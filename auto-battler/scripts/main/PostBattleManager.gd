@@ -5,6 +5,10 @@
 extends Node
 class_name PostBattleManager
 
+const SUMMARY_SCENE := preload("res://auto-battler/scenes/PostBattleSummary.tscn")
+
+var _summary_ui: Control
+
 # Emitted after all post-battle effects and updates are applied.
 # The receiving manager (likely GameManager) can then decide the next actual scene/state.
 signal post_battle_processing_complete(final_party_state: Array, rewards_summary: Dictionary)
@@ -37,8 +41,10 @@ func initialize_post_battle(combat_results: Dictionary, current_party_state_befo
     # Emit a general signal that processing is done. GameManager can use this.
     emit_signal("post_battle_processing_complete", final_party_state, rewards_summary)
 
-    # Then, suggest a transition (optional, could be handled by GameManager)
-    _determine_next_transition(final_party_state)
+    if battle_outcome.get("victory", false):
+        _show_summary_ui(rewards_summary)
+    else:
+        _determine_next_transition(final_party_state)
 
 
 # Main function to orchestrate all post-battle updates
@@ -112,9 +118,14 @@ func _update_inventory(loot_array: Array, party_state_array: Array) -> void:
     # Future implementation:
     # Add items from loot_array to the global inventory (likely managed by GameManager).
     # This function might receive a reference to the inventory or emit a signal.
-    print("PostBattleManager: Updating inventory with loot (stub): %s" % str(loot_array))
-    # Example: GameManager.add_items_to_inventory(loot_array)
-    pass
+    var gm = get_tree().get_root().get_node_or_null("GameManager")
+    if gm:
+        if not gm.player_inventory.has("items"):
+            gm.player_inventory["items"] = []
+        gm.player_inventory.items.append_array(loot_array)
+        print("PostBattleManager: Added %s loot items to inventory." % loot_array.size())
+    else:
+        print("PostBattleManager: GameManager not found, cannot add loot.")
 
 # Prepares a summary of rewards for UI display or logging.
 func _prepare_rewards_summary() -> Dictionary:
@@ -124,6 +135,20 @@ func _prepare_rewards_summary() -> Dictionary:
     }
     print("PostBattleManager: Rewards summary prepared.")
     return summary
+
+func _show_summary_ui(summary: Dictionary) -> void:
+    _summary_ui = SUMMARY_SCENE.instantiate()
+    add_child(_summary_ui)
+    if _summary_ui.has_method("show_summary"):
+        _summary_ui.show_summary(summary)
+    if _summary_ui.has_signal("continue_pressed"):
+        _summary_ui.continue_pressed.connect(_on_summary_continue_pressed)
+
+func _on_summary_continue_pressed() -> void:
+    if _summary_ui:
+        _summary_ui.queue_free()
+        _summary_ui = null
+    emit_signal("transition_to_rest_requested")
 
 # Stub for determining the next transition based on game state.
 func _determine_next_transition(final_party_state: Array) -> void:
