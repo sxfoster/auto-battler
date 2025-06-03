@@ -1,16 +1,24 @@
-extends Control
 class_name DungeonMapManager
+extends Control
 
-## Manages the procedural dungeon map and scene transitions.
+## Manages the procedural dungeon map, node interactions, and transitions to other game states.
 
-@onready var nodes_container: HBoxContainer = $MapNodesContainer
-const LOOT_PANEL_SCENE := preload("res://scenes/LootPanel.tscn")
-const EVENT_PANEL_SCENE := preload("res://scenes/EventPanel.tscn")
+# Signals for game state transitions and interactions
+signal node_interaction_selected(node_data: Dictionary)
+signal transition_to_combat(combat_setup_data: Dictionary)
+signal transition_to_loot_event(loot_event_data: Dictionary) # For both loot and generic events
+signal transition_to_rest(rest_setup_data: Dictionary)
 
-var map_nodes: Array = []            ## Array of dictionaries describing nodes
-var current_node_index: int = 0      ## Index of the node the party is currently on
-var visited: Array = []              ## List of visited node indices
+@onready var nodes_container: HBoxContainer = $MapNodesContainer # UI container for map node buttons
+# Optional: Preload scenes for popups if they remain part of this manager
+const LOOT_PANEL_SCENE := preload("res://scenes/LootPanel.tscn") # Example if used as popup
+const EVENT_PANEL_SCENE := preload("res://scenes/EventPanel.tscn") # Example if used as popup
 
+var map_nodes: Array[Dictionary] = [] # Array of dictionaries, each describing a node on the map
+var current_node_id: int = 0          # ID of the node the party is currently on
+var visited_node_ids: Array[int] = [] # List of visited node IDs
+
+# Example party status - this might be managed by a global GameManager in a real scenario
 var current_party_status := {
     "member1": {"hp": 100, "max_hp": 100, "food": 100, "water": 100, "energy": 100},
     "member2": {"hp": 100, "max_hp": 100, "food": 100, "water": 100, "energy": 100},
@@ -20,150 +28,317 @@ var current_party_status := {
 }
 
 func _ready() -> void:
-    randomize()
-    _generate_map()
-    _create_buttons()
-    update_party_status_display()
-    _highlight_available_nodes()
+    randomize() # Ensure random number generation is seeded
 
-## Procedurally create a simple chain of nodes with random types.
-func _generate_map() -> void:
+    # Connect signals if handling node interactions within this script
+    node_interaction_selected.connect(handle_node_interaction)
+
+    generate_procedural_map()
+    display_map()
+    update_party_status_display() # Initial display of party status
+    # UI elements for map will be connected here (e.g. zoom, pan buttons if added)
+
+
+## Generates the procedural map data.
+func generate_procedural_map() -> void:
+    # Clears existing map data
     map_nodes.clear()
-    var node_count := 5
+    visited_node_ids.clear()
+
+    var node_count := 5 # Example: fixed number of nodes
+    # Node types: combat, loot, event (generic text-based), rest, trap (a type of event)
     var node_types := ["combat", "loot", "event", "rest", "trap"]
+
     for i in node_count:
-        var t := node_types[randi() % node_types.size()]
+        var node_type := node_types[randi() % node_types.size()]
+        # Ensure the first node is typically combat or a starting event
         if i == 0:
-            t = "combat"            # always start with combat
-        var data := {"id": i, "type": t, "connections": []}
-        if t == "event":
-            data.event_data = _generate_random_event()
-        elif t == "trap":
-            data.event_data = _generate_random_trap()
-        map_nodes.append(data)
+            node_type = "combat"
+
+        var node_data := {
+            "id": i,
+            "type": node_type,
+            "connections": [], # IDs of nodes this node connects to
+            "specific_data": {} # Holds data specific to the node type
+        }
+
+        # Populate specific_data based on node type
+        match node_type:
+            "combat":
+                node_data.specific_data = get_combat_data_for_node(node_data)
+            "loot":
+                # For loot nodes, specific_data could define the loot table or specific items
+                node_data.specific_data = {"loot_table_id": "generic_dungeon_loot"}
+            "event":
+                node_data.specific_data = get_event_data_for_node(node_data)
+            "trap": # Traps are a subtype of event
+                node_data.specific_data = _generate_random_trap_event()
+            "rest":
+                # Rest nodes might have modifiers, e.g., safety level, cost
+                node_data.specific_data = {"safety_level": "average"}
+
+        map_nodes.append(node_data)
+
+    # Create simple linear connections for this example
+    # Future: Implement more complex map structures (branching, loops)
+    # Future: Pathfinding logic for more complex maps may be needed
     for i in node_count - 1:
         map_nodes[i].connections.append(i + 1)
-    current_node_index = 0
-    visited = [0]
 
-## Build buttons for each map node.
-func _create_buttons() -> void:
+    current_node_id = 0 # Start at the first node
+    visited_node_ids.append(current_node_id)
+
+
+## Visually represents the map based on map_nodes data.
+func display_map() -> void:
+    # Clear existing buttons/UI elements for map nodes
     for child in nodes_container.get_children():
         child.queue_free()
-    for node in map_nodes:
+
+    # Create and configure buttons for each map node
+    for node_data in map_nodes:
         var btn := Button.new()
-        btn.text = node.type.capitalize()
-        btn.pressed.connect(_on_node_pressed.bind(node.id))
+        btn.text = node_data.type.capitalize() + " " + str(node_data.id)
+        # Connect button press to on_node_button_pressed with the node's ID
+        btn.pressed.connect(on_node_button_pressed.bind(node_data.id))
         nodes_container.add_child(btn)
-        node.button = btn
+        node_data.button_node = btn # Store reference to the button for easy access
 
-## Disable or enable buttons based on the current node.
-func _highlight_available_nodes() -> void:
-    var current := map_nodes[current_node_index]
-    for node in map_nodes:
-        if node.id == current_node_index:
-            node.button.disabled = true
-            node.button.modulate = Color(0.7, 0.9, 1.0)
-        elif node.id in current.connections and node.id not in visited:
-            node.button.disabled = false
-            node.button.modulate = Color(1, 1, 1)
-        else:
-            node.button.disabled = true
-            node.button.modulate = Color(0.5, 0.5, 0.5)
+    _update_node_visuals() # Update highlights/disabled states
 
-func _on_node_pressed(node_id: int) -> void:
-    var current := map_nodes[current_node_index]
-    if node_id not in current.connections:
+
+## Updates the visual state of node buttons (e.g., highlights, disabled).
+func _update_node_visuals() -> void:
+    if map_nodes.is_empty(): return
+
+    var current_node_data = null
+    for node_d in map_nodes:
+        if node_d.id == current_node_id:
+            current_node_data = node_d
+            break
+
+    if not current_node_data:
+        printerr("Current node data not found for ID: ", current_node_id)
         return
-    visited.append(node_id)
-    current_node_index = node_id
-    _handle_node(map_nodes[node_id])
 
-## Transition or show panels based on node type.
-func _handle_node(node: Dictionary) -> void:
-    match node.type:
+    for node_data in map_nodes:
+        var button = node_data.button_node as Button
+        if not button: continue
+
+        if node_data.id == current_node_id:
+            button.disabled = true # Current node is disabled for interaction
+            button.modulate = Color(0.7, 0.9, 1.0) # Highlight for current node
+        elif node_data.id in current_node_data.connections and not node_data.id in visited_node_ids:
+            button.disabled = false # Available, unvisited connected node
+            button.modulate = Color(1, 1, 1)
+        else:
+            button.disabled = true # Either not connected or already visited
+            button.modulate = Color(0.5, 0.5, 0.5) # Dim for unavailable/visited
+
+
+## Called when a map node button is pressed.
+func on_node_button_pressed(node_id: int) -> void:
+    var selected_node_data = null
+    for node_d in map_nodes:
+        if node_d.id == node_id:
+            selected_node_data = node_d
+            break
+
+    if selected_node_data:
+        # Check if the selected node is a valid move
+        var current_node_data = null
+        for node_d_curr in map_nodes:
+            if node_d_curr.id == current_node_id:
+                current_node_data = node_d_curr
+                break
+
+        if current_node_data and node_id in current_node_data.connections and not node_id in visited_node_ids:
+            emit_signal("node_interaction_selected", selected_node_data)
+        else:
+            print("Invalid node selection or already visited: ", node_id)
+    else:
+        printerr("Node data not found for ID: ", node_id)
+
+## Handles the interaction logic based on the selected node's data.
+func handle_node_interaction(node_data: Dictionary) -> void:
+    print("Handling interaction for node: ", node_data.id, " type: ", node_data.type)
+    update_player_position(node_data.id) # Move player to the new node
+
+    match node_data.type:
         "combat":
-            get_tree().change_scene_to_file("res://scenes/CombatScene.tscn")
-        "rest":
-            get_tree().change_scene_to_file("res://scenes/RestScene.tscn")
+            var combat_data = node_data.specific_data
+            # Add party state to combat_data if needed by CombatScene
+            # combat_data.party_status = current_party_status
+            emit_signal("transition_to_combat", combat_data)
         "loot":
-            _show_loot_panel()
-        "event", "trap":
-            _show_event_panel(node.event_data)
-    _highlight_available_nodes()
+            # If loot panels are popups within DungeonMap:
+            # _show_loot_panel(node_data.specific_data)
+            # Otherwise, emit signal for GameManager to handle scene/UI transition
+            emit_signal("transition_to_loot_event", {"type": "loot", "data": node_data.specific_data})
+        "event", "trap": # Traps are handled as events
+             # If event panels are popups within DungeonMap:
+            # _show_event_panel(node_data.specific_data)
+            # Otherwise, emit signal
+            emit_signal("transition_to_loot_event", {"type": "event", "data": node_data.specific_data})
+        "rest":
+            var rest_data = node_data.specific_data
+            # Add party state to rest_data if needed
+            # rest_data.party_status = current_party_status
+            emit_signal("transition_to_rest", rest_data)
+        _:
+            printerr("Unknown node type encountered: ", node_data.type)
+            _update_node_visuals() # Ensure map visuals are refreshed even on unknown type
 
-func _show_loot_panel() -> void:
+## Updates the player's current position on the map.
+func update_player_position(node_id: int) -> void:
+    current_node_id = node_id
+    if not node_id in visited_node_ids:
+        visited_node_ids.append(node_id)
+
+    # Visual feedback for player movement (e.g., animation, sound) can be triggered here.
+    print("Player moved to node: ", node_id)
+
+    display_map() # Re-call display_map to update button states, or just _update_node_visuals
+                  # Using display_map() is simpler for now, though _update_node_visuals() is more performant.
+
+
+## Helper to extract/generate enemy info for a combat node.
+func get_combat_data_for_node(node_data: Dictionary) -> Dictionary:
+    # Placeholder: Define enemy encounter based on node_data or dungeon level
+    # This would typically involve looking up enemy types, numbers, and stats
+    var enemy_types = ["goblin_grunt", "goblin_archer", "orc_berserker"]
+    var encounter_enemies = []
+    var num_enemies = randi_range(1, 3)
+    for _i in num_enemies:
+        encounter_enemies.append(enemy_types[randi() % enemy_types.size()])
+
+    return {
+        "enemies": encounter_enemies,
+        "environment": "standard_dungeon_room", # Example environment detail
+        "difficulty_rating": randi_range(1,5) # Example
+    }
+
+## Helper to get specific event data for an event node.
+func get_event_data_for_node(node_data: Dictionary) -> Dictionary:
+    # Placeholder: Define event details
+    var events = [
+        {
+            "event_id": "shrine_01",
+            "description": "A mysterious shrine radiates a faint energy. Do you attempt to decipher the ancient runes?",
+            "options": [
+                {"text": "Decipher Runes (Perception DC 12)", "action": "skill_check", "skill": "perception", "dc": 12},
+                {"text": "Leave it alone", "action": "ignore"}
+            ],
+            "outcomes": {
+                "skill_check_success": {"text": "You gain a burst of insight and feel slightly rejuvenated!", "effects": {"heal_party_small": true}},
+                "skill_check_failure": {"text": "The runes shift menacingly, and a wave of fatigue washes over you.", "effects": {"fatigue_party_small": true}},
+                "ignore": {"text": "You decide not to meddle with unknown powers."}
+            }
+        },
+        {
+            "event_id": "merchant_01",
+            "description": "A weary merchant hails you, offering a small selection of goods.",
+            "options": [{"text": "Browse wares", "action": "open_shop"}, {"text": "Ignore", "action": "ignore"}],
+            # Shop data would be handled by a different system or defined here
+        }
+    ]
+    return events[randi() % events.size()]
+
+## Generates data for a random trap event.
+func _generate_random_trap_event() -> Dictionary:
+    var traps = [
+        {
+            "event_id": "trap_spikes_01",
+            "description": "As you step forward, hidden spikes spring up from the floor!",
+            "options": [{"text": "Attempt to dodge (Agility DC 10)", "action": "skill_check", "skill": "agility", "dc": 10}],
+            "outcomes": {
+                "skill_check_success": {"text": "You nimbly avoid the spikes!", "effects": {}},
+                "skill_check_failure": {"text": "The spikes catch you off guard!", "effects": {"damage_party_small": true, "amount": 5}}
+            }
+        },
+        {
+            "event_id": "trap_darts_01",
+            "description": "Poisoned darts shoot out from tiny holes in the walls!",
+            "options": [{"text": "Try to block or parry (Defense DC 11)", "action": "skill_check", "skill": "defense", "dc": 11}],
+             "outcomes": {
+                "skill_check_success": {"text": "You manage to deflect the darts!", "effects": {}},
+                "skill_check_failure": {"text": "A few darts find their mark, searing with poison!", "effects": {"damage_party_small": true, "amount": 3, "status": "poisoned"}}
+            }
+        }
+    ]
+    return traps[randi() % traps.size()]
+
+# --- Popup Panel Handling (Optional: Keep if panels are simple popups within this scene) ---
+# If these become complex or separate scenes, GameManager should handle them post-transition.
+
+func _show_loot_panel(loot_data: Dictionary) -> void:
     var panel := LOOT_PANEL_SCENE.instantiate()
     add_child(panel)
-    panel.show_loot([
-        {"name": "Gold", "type": "currency", "rarity": 0, "tags": []}
-    ])
-    panel.loot_panel_closed.connect(_on_loot_panel_closed)
+    # Assuming LootPanel has a method to display loot based on loot_data
+    # panel.display_loot(loot_data)
+    panel.show_loot([{"name": "Gold", "type": "currency", "rarity": 0, "tags": []}]) # Temp
+    panel.loot_panel_closed.connect(_on_popup_panel_closed)
 
-func _on_loot_panel_closed() -> void:
-    _highlight_available_nodes()
-
-func _show_event_panel(data: Dictionary) -> void:
+func _show_event_panel(event_data: Dictionary) -> void:
     var panel := EVENT_PANEL_SCENE.instantiate()
     add_child(panel)
-    panel.show_event(data)
-    panel.event_resolved.connect(_on_event_panel_resolved.bind(data))
+    panel.show_event(event_data) # Assuming EventPanel uses this structure
+    panel.event_resolved.connect(_on_event_panel_resolved.bind(event_data))
 
-func _on_event_panel_resolved(data: Dictionary) -> void:
-    if data.has("damage"):
-        for i in range(1, 6):
-            var key := "member" + str(i)
-            if current_party_status.has(key):
-                current_party_status[key].hp = max(current_party_status[key].hp - data.damage, 0)
+func _on_popup_panel_closed() -> void:
+    # Called when a loot or simple event popup is closed.
+    _update_node_visuals() # Refresh map state
+
+func _on_event_panel_resolved(resolved_outcome_data: Dictionary, original_event_data: Dictionary) -> void:
+    # Handle consequences of the event if managed by popups here
+    # Example: Apply damage or status effects from resolved_outcome_data
+    if resolved_outcome_data.has("effects"):
+        var effects = resolved_outcome_data.effects
+        if effects.has("damage_party_small"):
+            var damage_amount = effects.get("amount", 5) # Default damage if not specified
+            for i in range(1, 6): # Assuming 5 members max
+                var key := "member" + str(i)
+                if current_party_status.has(key):
+                    current_party_status[key].hp = max(current_party_status[key].hp - damage_amount, 0)
+        # Add more effect handling here (status effects, item changes, etc.)
     update_party_status_display()
-    _highlight_available_nodes()
+    _update_node_visuals()
 
-## Party status display copied from the previous placeholder script.
+
+# --- Party Status Display (Example, might be handled by a dedicated UI scene/script) ---
 func update_party_status_display() -> void:
+    # This is placeholder logic. In a real game, party status might be a separate, more complex UI element.
+    # It would likely be managed by GameManager or a dedicated PartyUIManager.
     for i in range(1, 6):
         var member_key := "member" + str(i)
+        # Assuming labels are named like PartyStatusOverlay/Member1Status, etc.
+        # This path might need adjustment based on your actual scene structure for party display.
         var label_path := "PartyStatusOverlay/Member" + str(i) + "Status"
-        var status_label := get_node_or_null(label_path)
+        var status_label := get_node_or_null(label_path) as Label
+
         if status_label and current_party_status.has(member_key):
             var stats := current_party_status[member_key]
             status_label.text = "Member %d: HP %d/%d, F:%d, W:%d, E:%d" % [
                 i, stats.hp, stats.max_hp, stats.food, stats.water, stats.energy]
-        elif !status_label:
-            print("Error: Status label not found for " + label_path)
+        elif not status_label and get_parent(): # Only print error if part of a scene tree
+            #print_debug("DungeonMapManager: Status label not found for " + label_path)
+            pass
 
-# Helper functions to update stats from other systems.
-func set_party_member_hp(index_from_1: int, hp: int) -> void:
-    var key := "member" + str(index_from_1)
+
+# --- Helper functions to update party stats (Example, likely from GameManager) ---
+func set_party_member_hp(member_id_from_1: int, hp_value: int) -> void:
+    var key := "member" + str(member_id_from_1)
     if current_party_status.has(key):
-        current_party_status[key].hp = hp
+        current_party_status[key].hp = hp_value
         update_party_status_display()
 
-func set_party_member_survival_stat(index_from_1: int, stat_name: String, value: int) -> void:
-    var key := "member" + str(index_from_1)
+func set_party_member_survival_stat(member_id_from_1: int, stat_name: String, value: int) -> void:
+    var key := "member" + str(member_id_from_1)
     if current_party_status.has(key) and current_party_status[key].has(stat_name):
         current_party_status[key][stat_name] = value
         update_party_status_display()
 
-func _generate_random_event() -> Dictionary:
-    var events = [
-        {
-            "description": "A mysterious shrine radiates energy. Attempt to decipher the runes?",
-            "skill_check": true,
-            "dc": 12,
-            "success_text": "You gain a burst of insight!",
-            "fail_text": "Nothing happens."
-        },
-        {
-            "description": "A lone merchant offers a few supplies.",
-            "skill_check": false
-        }
-    ]
-    return events[randi() % events.size()] 
-
-func _generate_random_trap() -> Dictionary:
-    var traps = [
-        {"description": "Hidden spikes spring from the floor!", "damage": 5},
-        {"description": "Poison darts shoot from the walls!", "damage": 3}
-    ]
-    return traps[randi() % traps.size()]
+# Note: _generate_random_event() and _generate_random_trap() were refactored into
+# get_event_data_for_node() and _generate_random_trap_event() respectively,
+# with more structured data.
 
