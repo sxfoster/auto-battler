@@ -1,19 +1,30 @@
 extends Control
 
+signal combat_finished
+
 var is_paused = false
 var current_speed = 1.0
 const SPEED_LEVELS = [1.0, 1.5, 2.0]
 var current_speed_index = 0
 
-# References to UI elements that need updating (assign in _ready or via editor)
-@onready var party_panel: VBoxContainer = $"Main 전투 Layout/BattleArea/PartyPanel"
-@onready var enemy_panel: VBoxContainer = $"Main 전투 Layout/BattleArea/EnemyPanel"
-@onready var character_cards_area: HBoxContainer = $"Main 전투 Layout/CharacterCardsArea"
-@onready var combat_log_container: VBoxContainer = $"Main 전투 Layout/CombatLogPanel/CombatLogScroll/CombatLog"
-@onready var feedback_label: Label = $VisualFeedbackLabel
-@onready var speed_up_button: Button = $"Main 전투 Layout/TopBar/SpeedUpButton"
-@onready var pause_button: Button = $"Main 전투 Layout/TopBar/PauseButton"
-@onready var combat_log_scroll: ScrollContainer = $"Main 전투 Layout/CombatLogPanel/CombatLogScroll"
+# Exported node paths for important panels
+@export var party_panel_path: NodePath = NodePath("PartyPanel")
+@export var enemy_panel_path: NodePath = NodePath("EnemyPanel")
+@export var cards_area_path: NodePath = NodePath("CharacterCardsArea")
+@export var combat_log_container_path: NodePath = NodePath("CombatLogPanel/CombatLogScroll/CombatLog")
+@export var combat_log_scroll_path: NodePath = NodePath("CombatLogPanel/CombatLogScroll")
+@export var speed_button_path: NodePath = NodePath("TopBar/SpeedUpButton")
+@export var pause_button_path: NodePath = NodePath("TopBar/PauseButton")
+@export var feedback_label_path: NodePath = NodePath("FeedbackLabel")
+
+@onready var party_panel: VBoxContainer = get_node(party_panel_path)
+@onready var enemy_panel: VBoxContainer = get_node(enemy_panel_path)
+@onready var character_cards_area: HBoxContainer = get_node(cards_area_path)
+@onready var combat_log_container: VBoxContainer = get_node(combat_log_container_path)
+@onready var combat_log_scroll: ScrollContainer = get_node(combat_log_scroll_path)
+@onready var speed_up_button: Button = get_node(speed_button_path)
+@onready var pause_button: Button = get_node(pause_button_path)
+@onready var feedback_label: Label = get_node(feedback_label_path)
 
 # Placeholder data for party and enemies
 var party_members_data = []
@@ -67,7 +78,10 @@ func _on_speed_up_button_pressed():
 	current_speed = SPEED_LEVELS[current_speed_index]
 	speed_up_button.text = "Speed Up x" + str(current_speed)
 	add_combat_log_entry("Combat speed set to x" + str(current_speed))
-	print("Speed up button pressed. Current speed: ", current_speed)
+        print("Speed up button pressed. Current speed: ", current_speed)
+
+func end_combat() -> void:
+    emit_signal("combat_finished")
 
 func add_combat_log_entry(text_entry: String):
 	var new_log = Label.new()

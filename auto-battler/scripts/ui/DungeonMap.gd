@@ -1,25 +1,33 @@
 extends Control
 
-var map_nodes = [] # Array to hold data about map nodes
-var current_party_status = {} # Dictionary to hold party status
+signal map_node_selected(node_id)
+
+# Exported paths to important UI containers
+@export var map_nodes_container_path: NodePath = NodePath("MapNodesContainer")
+@export var party_status_overlay_path: NodePath = NodePath("PartyStatusOverlay")
+
+var map_nodes: Array = [] # Array describing generated map nodes
+var current_party_status: Dictionary = {} # Tracks party status values
+
+@onready var _map_nodes_container: HBoxContainer = get_node(map_nodes_container_path)
+@onready var _party_status_overlay: VBoxContainer = get_node(party_status_overlay_path)
 
 func _ready():
-	# Initialize map nodes (placeholder)
-	map_nodes = [
-		{"id": 0, "type": "room", "name": "Starting Room"},
-		{"id": 1, "type": "event", "name": "Mysterious Shrine"},
-		{"id": 2, "type": "room", "name": "Goblin Cave"}
-	]
-	# You would typically generate or load this data
+        # Placeholder map generation. Real data should come from a manager.
+        map_nodes = [
+                {"id": 0, "type": "room", "name": "Starting Room"},
+                {"id": 1, "type": "event", "name": "Mysterious Shrine"},
+                {"id": 2, "type": "room", "name": "Goblin Cave"}
+        ]
 
 	# Initialize party status (placeholder)
-	current_party_status = {
-		"member1": {"hp": 100, "max_hp": 100, "food": 100, "water": 100, "energy":100},
-		"member2": {"hp": 100, "max_hp": 100, "food": 100, "water": 100, "energy":100},
-		"member3": {"hp": 100, "max_hp": 100, "food": 100, "water": 100, "energy":100},
-		"member4": {"hp": 100, "max_hp": 100, "food": 100, "water": 100, "energy":100},
-		"member5": {"hp": 100, "max_hp": 100, "food": 100, "water": 100, "energy":100}
-	}
+        current_party_status = {
+                "member1": {"hp": 100, "max_hp": 100, "food": 100, "water": 100, "energy":100},
+                "member2": {"hp": 100, "max_hp": 100, "food": 100, "water": 100, "energy":100},
+                "member3": {"hp": 100, "max_hp": 100, "food": 100, "water": 100, "energy":100},
+                "member4": {"hp": 100, "max_hp": 100, "food": 100, "water": 100, "energy":100},
+                "member5": {"hp": 100, "max_hp": 100, "food": 100, "water": 100, "energy":100}
+        }
 	update_party_status_display()
 	update_map_node_display()
 
@@ -38,17 +46,12 @@ func update_map_node_display():
 			# Potentially disable buttons for already visited or unreachable nodes
 
 func _on_map_node_selected(node_index):
-	if node_index >= 0 and node_index < map_nodes.size():
-		var selected_node = map_nodes[node_index]
-		print("Map node selected: ", selected_node.name)
-		# Add logic to handle node selection, e.g.:
-		# if selected_node.type == "room":
-		#     get_tree().change_scene_to_file("res://scenes/CombatScene.tscn") # Or specific room scene
-		# elif selected_node.type == "event":
-		#     # Trigger event logic
-		#     pass
-	else:
-		print("Invalid node index: ", node_index)
+        if node_index >= 0 and node_index < map_nodes.size():
+                var selected_node = map_nodes[node_index]
+                emit_signal("map_node_selected", selected_node.id)
+                print("Map node selected: ", selected_node.name)
+        else:
+                print("Invalid node index: ", node_index)
 
 
 func update_party_status_display():

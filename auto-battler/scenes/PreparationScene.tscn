@@ -1,11 +1,25 @@
-[gd_scene load_steps=2 format=3 uid="uid://tduowt4vqxrh"]
+[gd_scene load_steps=2 format=3]
 
-[ext_resource type="Script" uid="uid://1m17alwsg3ty" path="res://scripts/preparation/PreparationManager.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/ui/PreparationScene.gd" id="1"]
 
-[node name="Preparation" type="Control"]
+[node name="PreparationScene" type="Control"]
+anchor_right = 1.0
+anchor_bottom = 1.0
 script = ExtResource("1")
 
-[node name="EnterDungeonButton" type="Button" parent="."]
-text = "Enter Dungeon"
+[node name="PartyPanel" type="GridContainer" parent="."]
+columns = 5
 
-[connection signal="pressed" from="EnterDungeonButton" to="." method="_on_EnterDungeonButton_pressed"]
+[node name="CardSelectPanel" type="VBoxContainer" parent="."]
+margin_top = 220
+custom_minimum_size = Vector2(0, 150)
+
+[node name="GearSelectPanel" type="VBoxContainer" parent="."]
+margin_top = 380
+custom_minimum_size = Vector2(0, 150)
+
+[node name="ReadyButton" type="Button" parent="."]
+text = "Enter Dungeon"
+margin_top = 560
+
+[connection signal="pressed" from="ReadyButton" to="." method="_on_ready_button_pressed"]

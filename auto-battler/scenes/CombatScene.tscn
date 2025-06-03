@@ -1,137 +1,50 @@
-[gd_scene load_steps=2 format=3 uid="uid://cqx705wscy5vt"]
+[gd_scene load_steps=2 format=3]
 
-[ext_resource type="Script" uid="uid://c5qpnq7d2jtrt" path="res://scripts/combat/CombatScene.gd" id="1_klmno"]
+[ext_resource type="Script" path="res://scripts/combat/CombatScene.gd" id="1"]
 
 [node name="CombatScene" type="Control"]
-layout_mode = 3
-anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-script = ExtResource("1_klmno")
+script = ExtResource("1")
 
-[node name="Main 전투 Layout" type="VBoxContainer" parent="."]
-layout_mode = 1
-anchors_preset = 15
+[node name="TopBar" type="HBoxContainer" parent="."]
 anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
 
-[node name="TopBar" type="HBoxContainer" parent="Main 전투 Layout"]
-layout_mode = 2
-alignment = 2
-"#Aligntotherightforpause/speedbuttons[nodename" = "PauseButton"
-type = "Button"
-parent = "Main 전투 Layout/TopBar"
-"]layout_mode" = 2
+[node name="PauseButton" type="Button" parent="TopBar"]
 text = "Pause"
 
-[node name="SpeedUpButton" type="Button" parent="Main 전투 Layout/TopBar"]
-layout_mode = 2
-text = "Speed Up x1"
+[node name="SpeedUpButton" type="Button" parent="TopBar"]
+text = "Speed x1"
 
-[node name="BattleArea" type="HBoxContainer" parent="Main 전투 Layout"]
-layout_mode = 2
-size_flags_vertical = 3
-#Makethisareatakemostoftheverticalspacealignment = 1
-"#Centerchildren[nodename" = "PartyPanel"
-type = "VBoxContainer"
-parent = "Main 전투 Layout/BattleArea"
-"]layout_mode" = 2
-size_flags_horizontal = 3
-#Partytakesupsomespacealignment = 1
-"#PlaceholderforPartyMemberPanelinstances[nodename" = "PartyMember1"
-type = "PanelContainer"
-parent = "Main 전투 Layout/BattleArea/PartyPanel"
-"]layout_mode" = 2
-"#childwillbePartyMemberPanel.tscninstance[nodename" = "Label"
-type = "Label"
-parent = "Main 전투 Layout/BattleArea/PartyPanel/PartyMember1"
-"]layout_mode" = 2
-text = "Party Member 1
-HP: 100/100
-Fatigue: 0"
-horizontal_alignment = 1
-vertical_alignment = 1
+[node name="PartyPanel" type="VBoxContainer" parent="."]
+margin_top = 40
+custom_minimum_size = Vector2(0,150)
 
-[node name="EnemyPanel" type="VBoxContainer" parent="Main 전투 Layout/BattleArea"]
-layout_mode = 2
-size_flags_horizontal = 3
-#Enemiestakeupsomespacealignment = 1
-"#PlaceholderforEnemyPanel.tscninstances[nodename" = "Enemy1"
-type = "PanelContainer"
-parent = "Main 전투 Layout/BattleArea/EnemyPanel"
-"]layout_mode" = 2
-"#childwillbeEnemyPanel.tscninstance[nodename" = "Label"
-type = "Label"
-parent = "Main 전투 Layout/BattleArea/EnemyPanel/Enemy1"
-"]layout_mode" = 2
-text = "Enemy 1
-HP: 50/50"
-horizontal_alignment = 1
-vertical_alignment = 1
+[node name="EnemyPanel" type="VBoxContainer" parent="."]
+margin_top = 200
+custom_minimum_size = Vector2(0,150)
 
-[node name="CharacterCardsArea" type="HBoxContainer" parent="Main 전투 Layout"]
-layout_mode = 2
-custom_minimum_size = Vector2(0, 100)
-#Minheightforcarddisplayareaalignment = 1
-"#Placeholderforactivecharacter'scards(CardViewer.tscninstances)[nodename" = "Card1"
-type = "PanelContainer"
-parent = "Main 전투 Layout/CharacterCardsArea"
-"]layout_mode" = 2
-"#childwillbeCardViewer.tscninstance[nodename" = "Label"
-type = "Label"
-parent = "Main 전투 Layout/CharacterCardsArea/Card1"
-"]layout_mode" = 2
-text = "Card 1 Name"
-horizontal_alignment = 1
-vertical_alignment = 1
+[node name="CharacterCardsArea" type="HBoxContainer" parent="."]
+margin_top = 360
+custom_minimum_size = Vector2(0,100)
 
-[node name="CombatLogPanel" type="PanelContainer" parent="Main 전투 Layout"]
-layout_mode = 2
-custom_minimum_size = Vector2(0, 150)
-"#Minheightforcombatlog[nodename" = "CombatLogScroll"
-type = "ScrollContainer"
-parent = "Main 전투 Layout/CombatLogPanel"
-"]layout_mode" = 2
-horizontal_scroll_mode = 0
-"#Disablehorizontalscroll[nodename" = "CombatLog"
-type = "VBoxContainer"
-parent = "Main 전투 Layout/CombatLogPanel/CombatLogScroll"
-"]layout_mode" = 2
-size_flags_horizontal = 3
-"#Expandtofillscrollcontainerwidth[nodename" = "LogEntry1"
-type = "Label"
-parent = "Main 전투 Layout/CombatLogPanel/CombatLogScroll/CombatLog"
-"]layout_mode" = 2
-text = "Combat Started!"
-autowrap_mode = 3
-"#Wordwrap[nodename" = "VisualFeedbackLabel"
-type = "Label"
-parent = "."
-Heal!#Positionitinthecenterofthescreenorovercharacterslayout_mode = 1
-anchors_preset = 8
+[node name="CombatLogPanel" type="PanelContainer" parent="."]
+margin_top = 470
+custom_minimum_size = Vector2(0,150)
+
+[node name="CombatLogScroll" type="ScrollContainer" parent="CombatLogPanel"]
+[node name="CombatLog" type="VBoxContainer" parent="CombatLogScroll"]
+
+[node name="FeedbackLabel" type="Label" parent="."]
 anchor_left = 0.5
-anchor_top = 0.5
 anchor_right = 0.5
+anchor_top = 0.5
 anchor_bottom = 0.5
-offset_left = -50.0
-offset_top = -15.0
-offset_right = 50.0
-offset_bottom = 15.0
-grow_horizontal = 2
-grow_vertical = 2
-text = "Feedback!"
-horizontal_alignment = 1
-vertical_alignment = 1
+offset_left = -60
+offset_right = 60
+offset_top = -20
+offset_bottom = 20
 visible = false
-"#Initiallyhidden[connectionsignal" = "pressed"
-from = "Main 전투 Layout/TopBar/PauseButton"
-to = "."
-method = "_on_pause_button_pressed"
-"][connectionsignal" = "pressed"
-from = "Main 전투 Layout/TopBar/SpeedUpButton"
-to = "."
-method = "_on_speed_up_button_pressed"
+
+[connection signal="pressed" from="TopBar/PauseButton" to="." method="_on_pause_button_pressed"]
+[connection signal="pressed" from="TopBar/SpeedUpButton" to="." method="_on_speed_up_button_pressed"]
