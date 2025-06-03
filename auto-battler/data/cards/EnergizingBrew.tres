@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="CardData" load_steps=2 format=3 uid="uid://dmetg1qmkyo20"]
+
+[ext_resource type="Script" uid="uid://d28ph5bgy4xlp" path="res://scripts/data/CardData.gd" id="1_l61dh"]
+
+[resource]
+script = ExtResource("1_l61dh")
+card_name = "Energizing Brew"
+description = "Drink to instantly restore energy and reduce fatigue."
+card_type = 8
+role_restriction = "Any"
+class_restriction = "Any"
+effect_description = "Remove 2 Fatigue from user. If user is Support, also gain +1 Energy Regen for 2 turns."
+rarity = 1
+icon_path = ""
+synergy_tags = Array[String](["Energy"])
+energy_cost = 0
+is_combo_starter = false
+is_combo_finisher = false
+metadata/_custom_type_script = "uid://d28ph5bgy4xlp"
