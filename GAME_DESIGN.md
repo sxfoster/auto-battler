@@ -1,207 +1,150 @@
-# 🧭 Survival Dungeon CCG Auto-Battler — Game Design Document
+
+# 🧭 Survival Dungeon CCG Auto-Battler — Game Design Document (GDD)
 
 ## 🎯 Game Concept
-A tactical survival dungeon crawler blended with collectible card game (CCG) mechanics and auto-battler combat.  
-Players guide a party of 1–5 adventurers through procedurally generated dungeon biomes, surviving by managing hunger, thirst, fatigue, and tactical resources—all as upgradeable and tradable cards.
+
+A **tactical survival dungeon crawler** built on **collectible card game (CCG)** mechanics and **auto-battler combat**.  
+Players control a party of **1–5 characters**, assigning **up to 4 ability cards per character**, and guide them through procedurally generated **biome-themed dungeons** while managing **survival constraints**: Hunger, Thirst, and Fatigue.
+
+- Every mechanic, item, action, or ability is implemented via **cards**.
+- Players earn, craft, trade, and upgrade cards using a **player-driven economy** with a global **auction house**.
+- Dungeons focus on **strategy, endurance, and preparation**, rather than reflex-based gameplay.
 
 ---
 
 ## ⚔️ Combat System
 
-### Core Loop
-- Auto-battle executes turns based on player-assigned ability cards.
-- Characters have up to 4 ability cards from role and class pools.
-- Tactical depth comes from synergy, card sequencing, and party composition.
+### 🔁 Core Combat Loop
+- Players assign up to **4 ability cards** per character pre-combat.
+- Characters act **automatically** in combat based on AI, speed, and context.
+- Combat is resolved in **turns**, ordered by each unit’s `SpeedModifier`.
 
-### AI & Turn Flow
-- Each character acts automatically; player controls card assignment, not moves.
-- `SpeedModifier` controls action order each round.
-- After every battle, party members gain Fatigue, Hunger, and Thirst.
-
----
-
-## 📦 Card Categories
-
-- **Ability Cards** – Used in auto-battle (Attack, Buff, Heal, Debuff, Utility)
-- **Equipment Cards** – Weapons/Armor with passive effects
-- **Ingredient Cards** – Raw materials for crafting
-- **Food & Drink Cards** – Restore Hunger/Thirst, grant buffs
-- **Elixir Cards** – Passive temporary dungeon buffs
-- **Utility Cards** – Tools (Repair Kits, Traps, Campfires)
-
-### Role & Class Restrictions
-- Cards suffer **-75% penalty** when used outside their intended role.
-- Class-restricted cards gain enhanced effects and combo synergies.
+### 🎴 Card Execution
+- All cards consume **Energy** and may have **cooldowns**.
+- After each battle, all party members gain:
+  - **+1 Fatigue**
+  - **+1 Hunger**
+  - **+1 Thirst**
 
 ---
 
-## 🧪 Crafting System
+## 📦 Card System
 
-### Professions
-- **Cooking** – Creates food/drink cards
-- **Smithing** – Creates/upgrades equipment cards
-- **Alchemy** – Produces elixirs and utility items
+### 🧱 Card Categories
 
-### Magical Pouch Crafting
-- Drag up to 5 cards into the pouch, no equipment/tools needed.
-- Output is determined by ingredient synergy.
-- Some recipes are discoverable only via experimentation.
+- **Ability Cards** — Used in auto-battles; cover attacks, buffs, heals, debuffs, and utility.
+- **Equipment Cards** — Grant passive bonuses or enable specific card usage.
+- **Ingredient Cards** — Collected from exploration/monsters, used in crafting.
+- **Food/Drink Cards** — Restores Hunger/Thirst and may grant temporary buffs.
+- **Elixir Cards** — Crafted potions with temporary dungeon-only passives.
+- **Utility Cards** — Tools like traps, repair kits, campfires, etc.
 
-### Profession Progression (Lv. 1–10)
-- Unlocks: success rate boosts, preview hints, exclusive recipes.
-- "Crafted By" tag added to finished cards for fame/trade value.
+### ⚖️ Role & Class Restrictions
+
+- Each **Ability Card** has a `roleTag` and optional `classRestriction`.
+- Cards used **outside the correct role** suffer a **-75% penalty** to effectiveness.
+- Cards used by the **correct class** may unlock bonus effects or synergies.
+
+### 🧪 Card Rarity & Scaling
+
+- Rarities: **Common → Uncommon → Rare → Legendary**
+- Higher rarities unlock at **character levels** (Lv 1–3: Common, Lv 10: Legendary).
+- Cards are upgradeable via **crafting fusion** or dungeon achievements.
+
+---
+
+## 🛠️ Crafting System
+
+### 🎓 Crafting Professions
+
+- **Cooking** — Creates Food & Drink Cards (restores stats, grants buffs)
+- **Smithing** — Upgrades base equipment (e.g., sword → flame sword)
+- **Alchemy** — Creates Elixirs and Utility Cards
+
+Each profession has a **level 1–10 progression system** with rewards such as:
+
+- Higher crafting success rate
+- Discovery of secret recipes
+- Access to **exclusive** profession-only cards
+- “**Crafted by [Player]**” tags on Auction House listings
+
+### 🔮 Magical Pouch System
+
+- Players drag up to **5 cards** into the pouch.
+- No external crafting tools required.
+- Every valid combination yields **at least a base result**.
+- Recipes are:
+  - **Discoverable through experimentation**
+  - **Upgradeable** through repeat crafting or fusion
 
 ---
 
 ## 💰 Economy
 
-### Currency
-- **Gold** – For basic goods and marketplace
-- **Guild Credits** – Earned from raids and commissions
+### 💵 Currency
 
-### Markets
-1. **Town Marketplace** – Basic starter items
-2. **Black Market** – Rare, cursed, or risky cards
-3. **Guild Exchange** – Limited intra-guild trade
-4. **Auction House** – Global player-driven card trading
-   - Only Common cards tradable for Gold
-   - Most card value flows through player-to-player economy
+- **Gold** — Used for Town Market & basic goods
+- **Guild Credits** — Earned via commissions, raid participation, or investment
 
----
+### 🛒 Market Systems
 
-## 🛡️ Classes & Roles
-
-### Roles
-- **Tank** – Soaks damage, protects allies
-- **Healer** – Restores HP, removes debuffs
-- **Support** – Buffs allies, controls tempo
-- **DPS** – High damage (physical/magical)
-
-### Class Examples
-- **Guardian** (Tank) – Shield, Taunt
-- **Cleric** (Healer) – Group heal, purify
-- **Bard** (Support) – Buff, song-based utility
-- **Blademaster** (DPS) – Melee crit chain
-- **Wizard** (DPS) – Spell combos, burst damage
-- **Warrior** (Tank) – Fortify, war shouts
+1. **Town Marketplace** — Basic starter items and low-tier cards only
+2. **Black Market** — Rare, cursed, or risky cards
+3. **Guild Exchange** — Shared trading within guilds
+4. **Auction House** *(Player Economy)*:
+   - **Primary economic engine**
+   - Players buy/sell crafted and looted cards
+   - Only **Common** cards are purchasable with Gold
+   - Everything else flows through player listings
 
 ---
 
-## 🎲 Combat Card Examples
+## 🧑‍🤝‍🧑 Classes & Roles
 
-| Role      | Card Name      | Effect                          |
-|-----------|----------------|---------------------------------|
-| Tank      | Shield Bash    | 1–3 dmg + 25% stun              |
-| Healer    | Mending Touch  | Heal 2–4 HP                     |
-| Support   | Rally Cry      | +1 damage to all allies         |
-| DPS       | Quick Slash    | 2–4 damage, melee               |
-| Wizard    | Arcane Spark   | 2–4 magic damage                |
-| Warrior   | Fortify        | +1 Armor for 2 turns            |
-| Bard      | Mood Maker     | Random +1 ATK/DEF/Energy Regen  |
+### 🎭 Roles
+
+- **Tank** — Draw aggro, soak damage, protect
+- **Healer** — Restore HP, cleanse debuffs
+- **Support** — Buff, control tempo, extend combos
+- **DPS** — High single-target or AoE damage
+
+### 🔖 Example Classes by Role
+
+- **Tank**: Guardian, Warrior, Runestone Sentinel
+- **Healer**: Cleric, Herbalist, Bloodweaver
+- **Support**: Bard, Chronomancer, Totem Warden
+- **DPS**: Blademaster, Wizard, Shadowblade, Ranger, Pyromancer
+
+Each class has access to:
+
+- **Core Cards** (all roles)
+- **Role Cards**
+- **Class-Specific Cards**
 
 ---
 
-## 🧟 Enemy Design: Fungal Depths Example
+## 🧟 Enemy Design: Fungal Depths
 
-| Enemy             | Type        | Sample Abilities                    |
-|-------------------|-------------|-------------------------------------|
-| Rotgrub Swarm     | Creature    | Bite Swarm, Burrow Latch (DoT)      |
-| Spore Witch       | Demi-human  | Spore Veil (miss debuff), Heal Fungus |
-| Myconid Brute     | Creature    | Fungal Slam (knockback), Thick Hide |
-| Mushroom Shaman   | Demi-human  | Mind Spore, Hallucinate             |
+| Enemy             | Type        | Abilities                                           |
+|------------------|-------------|-----------------------------------------------------|
+| Rotgrub Swarm     | Creature    | Bite Swarm (DoT), Burrow Latch (latched DoT)       |
+| Spore Witch       | Demi-human  | Spore Veil (miss chance), Heal Fungus              |
+| Myconid Brute     | Creature    | Fungal Slam (knockback), Thick Hide (damage resist)|
+| Mushroom Shaman   | Demi-human  | Mind Spore (slow), Hallucinate (confuse)           |
 
 ---
 
-## 🗺️ Encounter Flow
+## 🧭 Encounter Flow
 
-1. **Preparation** – Assign cards, equip gear
-2. **Enter Dungeon** – Procedural floor generation
-3. **Combat** – Turn-based, auto-resolved by speed and AI logic
-4. **Post-Battle** – Gain fatigue/hunger/thirst, loot, XP
+1. **Card Assignment Phase** – Player equips cards to each character
+2. **Enter Dungeon** – Procedural biome floors generated
+3. **Combat Phase** – Auto-battle executes based on speed and card AI logic
+4. **Post-Battle** – Gain loot, fatigue, hunger, thirst
 5. **Rest** – Use Food/Drink to recover, apply buffs
-6. **Repeat or Exit**
+6. **Continue or Exit** – Players may advance deeper or retreat to reset
 
 ---
 
-## 📂 Core Data Objects (for AI/codegen)
+## 🧩 Core Data Models
 
-### CardData
-
-| Field             | Type      | Description                                  |
-|-------------------|-----------|----------------------------------------------|
-| card_name         | String    | Display name                                 |
-| description       | String    | Card effect summary                          |
-| card_type         | Enum      | Ability, Equipment, Ingredient, FoodDrink, Elixir, Utility |
-| role_restriction  | String    | Intended role (Tank, DPS, etc.)              |
-| class_restriction | String    | Intended class (Warrior, Bard, etc.)         |
-| effect_description| String    | Human-readable effect                        |
-| rarity            | Enum      | Common, Uncommon, Rare, Legendary            |
-| icon_path         | String    | Asset path for art                           |
-| synergy_tags      | Array     | Combo/interaction keywords                   |
-| energy_cost       | int       | Points to use card                           |
-| is_combo_starter  | bool      | Starts a combo                               |
-| is_combo_finisher | bool      | Finishes a combo                             |
-
-### EnemyData
-
-| Field            | Type      | Description                                   |
-|------------------|-----------|-----------------------------------------------|
-| enemy_name       | String    | Display name                                  |
-| description      | String    | Flavour text                                  |
-| enemy_type       | Enum      | Creature, DemiHuman, Undead, Boss             |
-| abilities        | Array     | Cards or ability names the enemy can use      |
-| base_hp          | int       | Starting health                               |
-| base_attack      | int       | Base damage value                             |
-| speed_modifier   | int       | Turn order modifier                           |
-| loot_table       | Array     | Possible drops                                |
-| encounter_weight | int       | Spawn weighting for random encounters         |
-| icon_path        | String    | Optional sprite path                          |
-| passive_traits   | Array     | Always-on traits or resistances               |
-
-### CharacterData
-
-| Field            | Type      | Description                                   |
-|------------------|-----------|-----------------------------------------------|
-| character_name   | String    | Party member name                             |
-| role             | Enum      | Tank, Healer, Support, DPS                    |
-| class_name       | String    | Specific class (Guardian, Wizard, etc.)       |
-| base_hp          | int       | Starting health                               |
-| base_attack      | int       | Base attack value                             |
-| speed_modifier   | int       | Turn order modifier                           |
-| assigned_cards   | Array     | Ability cards equipped (max 4)                |
-| equipped_gear    | Array     | Equipment cards                               |
-| profession       | String    | Crafting profession                           |
-| hunger           | int       | Survival meter                                |
-| thirst           | int       | Survival meter                                |
-| fatigue          | int       | Survival meter                                |
-| inventory        | Array     | Additional carried cards                      |
-| icon_path        | String    | Optional portrait path                        |
-
-### ProfessionData
-
-Basic data describing a crafting profession and progress.
-
-| Field           | Type      | Description                            |
-|-----------------|-----------|----------------------------------------|
-| profession_name | String    | Name of the profession                 |
-| description     | String    | Short description                      |
-| max_level       | int       | Maximum attainable level               |
-| current_level   | int       | Current level                          |
-| known_recipes   | Array     | Unlocked `RecipeData` references       |
-| crafting_bonus  | float     | Percent success/quality bonus          |
-| exclusive_cards | Array     | Special cards only this profession can craft |
-| crafted_by_tag  | String    | Tag added to crafted cards             |
-
-### RecipeData
-
-Represents a crafting recipe for the Magical Pouch system.
-
-| Field               | Type      | Description                          |
-|---------------------|-----------|--------------------------------------|
-| recipe_name         | String    | Name shown to the player             |
-| input_cards         | Array     | Required cards or identifiers        |
-| output_card         | CardData  | Resulting crafted card               |
-| profession_required | String    | Profession that can craft it         |
-| level_required      | int       | Minimum profession level             |
-| synergy_tags        | Array     | Tags that trigger special effects    |
-| discovered          | bool      | Whether the recipe is already known  |
+Includes detailed field names for all card, character, enemy, profession, and recipe types. [Omitted here for brevity; maintained in backend schema]
