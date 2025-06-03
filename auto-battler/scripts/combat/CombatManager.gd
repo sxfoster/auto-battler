@@ -194,13 +194,14 @@ func _process_actor_turn(actor: Combatant) -> void:
     ])
     # Detailed card effect resolution here (damage, healing, status application)
     # Example: Apply damage from card
-    var damage = card_to_play.get("damage_amount", 0) # Assuming card has damage_amount
+    var damage = card_to_play.get("damage_amount", actor.source_data.get("base_attack", 1))
     if damage > 0:
         for target_combatant in actual_targets:
             target_combatant.current_hp -= damage
             _log("%s takes %d damage. Current HP: %d" % [target_combatant.get_name(), damage, target_combatant.current_hp])
             if target_combatant.current_hp <= 0:
                 _log(target_combatant.get_name() + " has been defeated.")
+    _update_ui()
 
 
 ## Checks if all combatants on a given side are defeated.
@@ -222,6 +223,7 @@ func _finalize_combat() -> void:
     var party_defeated = _is_side_defeated(party_members)
     var enemies_defeated = _is_side_defeated(enemies)
     var final_party_state = _get_final_party_state()
+    _apply_survival_penalties()
 
     if party_defeated:
         _log("Party was defeated.")
@@ -287,10 +289,35 @@ func _get_living_combatants(combatants_list: Array[Combatant]) -> Array[Combatan
 func _log(message: String) -> void:
     combat_log.append(message)
     print("CombatManager: " + message) # Prefixing for clarity in console
+    var scene = get_tree().current_scene
+    if scene and scene.has_method("add_combat_log_entry"):
+        scene.add_combat_log_entry(message)
+
+func _update_ui() -> void:
+    var scene = get_tree().current_scene
+    if not scene:
+        return
+    if scene.has_method("update_party_display"):
+        var party_state = []
+        for c in party_members:
+            party_state.append({"name": c.get_name(), "hp": c.current_hp})
+        scene.update_party_display(party_state)
+    if scene.has_method("update_enemy_display"):
+        var enemy_state = []
+        for e in enemies:
+            enemy_state.append({"name": e.get_name(), "hp": e.current_hp})
+        scene.update_enemy_display(enemy_state)
+
+func _apply_survival_penalties() -> void:
+    for member in party_members:
+        if member.source_data:
+            member.source_data.fatigue = member.source_data.get("fatigue", 0) + 1
+            member.source_data.hunger = member.source_data.get("hunger", 0) + 1
+            member.source_data.thirst = member.source_data.get("thirst", 0) + 1
 
 
 # --- Functions to be removed or refactored from original ---
-# _apply_survival_penalties() -> Moved to PostBattleManager
+# Legacy TODO markers
 # _show_post_battle_summary() -> Handled by UI / PostBattleManager
 # _compare_speed() -> Integrated into _build_turn_order() lambda or static method if complex
 # _get_name() -> Moved to Combatant class as get_name()
