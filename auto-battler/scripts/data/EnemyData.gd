@@ -31,3 +31,6 @@ enum EnemyType {
 
 # Optional icon used when displaying the enemy in UI.
 @export var icon_path: String = ""
+
+# Array of passive traits that always affect this enemy, such as resistances.
+@export var passive_traits: Array[String] = []
