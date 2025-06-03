@@ -187,10 +187,14 @@ func _process_actor_turn(actor: Combatant) -> void:
     # Apply card effect
     # Placeholder: Call a method on the card resource itself, passing targets
     # _apply_card_effect(actor, card_to_play, actual_targets)
+    var target_names: Array[String] = []
+    for t in actual_targets:
+        target_names.append(t.get_name())
+
     _log("%s uses %s on %s" % [
         actor.get_name(),
         card_to_play.get("card_name", "a card"),
-        ", ".join([t.get_name() for t in actual_targets])
+        ", ".join(target_names)
     ])
     # Detailed card effect resolution here (damage, healing, status application)
     # Example: Apply damage from card
