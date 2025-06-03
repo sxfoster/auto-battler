@@ -268,6 +268,17 @@ func _notify_dungeon_map_manager_to_initialize():
     else:
         printerr("GameManager: Failed to notify DungeonMapManager or method not found.")
 
+func on_map_node_selected(node_type: String) -> void:
+    match node_type:
+        "combat":
+            _change_game_phase_and_scene("combat", "res://auto-battler/scenes/CombatScene.tscn")
+        "rest":
+            _change_game_phase_and_scene("rest", "res://auto-battler/scenes/RestScene.tscn")
+        "loot":
+            _change_game_phase_and_scene("loot", "res://auto-battler/scenes/LootPanel.tscn")
+        _:
+            print("GameManager: Unknown node type '%s' selected." % node_type)
+
 
 ## Called when DungeonMapManager requests a transition to combat.
 func on_transition_to_combat_requested(combat_setup_data: Dictionary) -> void:
