@@ -109,6 +109,7 @@ func _ready() -> void:
 ## Starts a new dungeon run with selected party and gear.
 func start_new_run(selected_party_composition: Array, initial_gear: Array = []) -> void:
     print("GameManager: Starting new run.")
+    reset_game_state() # Clear any previous run data
     # Initialize current_party_members based on selected_party_composition.
     # This involves creating CharacterData instances/dictionaries with base stats, cards, gear.
     # Placeholder: Assume selected_party_composition contains pre-defined CharacterData objects/dictionaries.
@@ -143,6 +144,22 @@ func start_new_run(selected_party_composition: Array, initial_gear: Array = []) 
     # Using call_deferred to wait for the scene to fully load.
     call_deferred("_notify_preparation_manager_to_load_data")
 
+## Resets all persistent data back to defaults for a brand new run.
+func reset_game_state() -> void:
+    current_party_members = []
+    player_inventory = {
+        "cards": [],
+        "gear": [],
+        "consumables": [],
+        "currency": 0
+    }
+    current_dungeon_state = {
+        "depth": 0,
+        "map_data": null,
+        "current_node_id": null
+    }
+    current_game_phase = "main_menu"
+
 func _notify_preparation_manager_to_load_data():
     var prep_manager = get_node_or_null(PREPARATION_MANAGER_PATH) # Adjust path if it's inside PrepScene
     if prep_manager and prep_manager.has_method("load_party_data"):
@@ -153,24 +170,51 @@ func _notify_preparation_manager_to_load_data():
         printerr("GameManager: Failed to notify PreparationManager or method not found.")
 
 
-## Saves the current game state to a specified slot. (Stub)
+## Saves the current game state to a specified slot.
 func save_game_state(slot_name: String) -> void:
-    # Future implementation:
-    # Use FileAccess or ConfigFile to save:
-    # - current_party_members (serialize CharacterData)
-    # - player_inventory (serialize resources/data)
-    # - current_dungeon_state
-    # - current_game_phase
-    print("GameManager: save_game_state(%s) called (stub)." % slot_name)
+    var save_path := "user://%s.save" % slot_name
+    var file := FileAccess.open(save_path, FileAccess.WRITE)
+    if file:
+        var data = {
+            "party": current_party_members,
+            "inventory": player_inventory,
+            "dungeon": current_dungeon_state,
+            "phase": current_game_phase
+        }
+        file.store_var(data)
+        file.close()
+        print("GameManager: Saved game state to %s" % save_path)
+    else:
+        printerr("GameManager: Failed to open %s for saving" % save_path)
 
 
-## Loads game state from a specified slot. (Stub)
+## Loads game state from a specified slot.
 func load_game_state(slot_name: String) -> void:
-    # Future implementation:
-    # Use FileAccess or ConfigFile to load data.
-    # Restore current_party_members, player_inventory, current_dungeon_state.
-    # Call _change_game_phase_and_scene to restore the game to the saved phase and scene.
-    print("GameManager: load_game_state(%s) called (stub)." % slot_name)
+    var save_path := "user://%s.save" % slot_name
+    var file := FileAccess.open(save_path, FileAccess.READ)
+    if file:
+        var data = file.get_var()
+        file.close()
+        if typeof(data) == TYPE_DICTIONARY:
+            current_party_members = data.get("party", [])
+            player_inventory = data.get("inventory", {})
+            current_dungeon_state = data.get("dungeon", {})
+            var phase = data.get("phase", "main_menu")
+            var scene_map = {
+                "main_menu": "res://auto-battler/scenes/MainMenu.tscn",
+                "preparation": "res://auto-battler/scenes/PreparationScene.tscn",
+                "dungeon_map": "res://auto-battler/scenes/DungeonMap.tscn",
+                "combat": "res://auto-battler/scenes/CombatScene.tscn",
+                "rest": "res://auto-battler/scenes/RestScene.tscn",
+                "game_over": "res://auto-battler/scenes/GameOverScreen.tscn"
+            }
+            var scene = scene_map.get(phase, "res://auto-battler/scenes/MainMenu.tscn")
+            _change_game_phase_and_scene(phase, scene)
+            print("GameManager: Loaded game state from %s" % save_path)
+        else:
+            printerr("GameManager: Invalid data in %s" % save_path)
+    else:
+        printerr("GameManager: Failed to open %s for loading" % save_path)
 
 
 # --- Getter Functions for other managers to access game state ---
