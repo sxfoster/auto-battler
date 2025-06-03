@@ -52,6 +52,15 @@ Represents a specific crafting recipe, mapping input cards to an output card and
 ### DungeonMapManager
 `scripts/main/DungeonMapManager.gd` builds a chain of dungeon nodes. Each node can trigger combat, loot, a random event, a rest opportunity or a trap. The manager handles navigation and displays the appropriate panels.
 
+### PostBattleManager
+`scripts/main/PostBattleManager.gd` runs immediately after combat. It applies fatigue, hunger and thirst penalties, distributes loot and experience, then signals which scene to load next.
+
+### RestManager
+`scripts/main/RestManager.gd` manages the resting phase between encounters. Players may use consumables, view survival stats or exit the dungeon. The manager emits signals when to continue exploring or to leave.
+
+### EncounterManager
+`scripts/main/EncounterManager.gd` is a placeholder for future logic that will coordinate event and enemy encounters on the dungeon map.
+
 ### CraftingSystem
 `scripts/systems/CraftingSystem.gd` is a stub demonstrating how magical pouch crafting might work.  It selects a recipe based on up to five ingredient cards and emits a `crafted` signal with the result.
 
