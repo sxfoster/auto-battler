@@ -9,7 +9,11 @@ enum CardType {
         Buff,
         Heal,
         Debuff,
-        Utility
+        Utility,
+        Equipment, # Added
+        Ingredient, # Added
+        FoodDrink, # Added
+        Elixir # Added
 }
 
 enum Rarity {
