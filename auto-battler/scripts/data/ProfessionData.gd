@@ -7,7 +7,7 @@ class_name ProfessionData
 @export var description: String = ""
 @export var max_level: int = 10
 @export var current_level: int = 1
-@export var known_recipes: Array = []
+@export var known_recipes: Array[RecipeData] = []
 @export var crafting_bonus: float = 0.0
 @export var exclusive_cards: Array[CardData] = []
 @export var crafted_by_tag: String = ""
@@ -25,12 +25,14 @@ func grant_xp(amount: int, crafted_card: CardData) -> void:
         level_up()
 
 func level_up() -> void:
+    ## Increase profession level and unlock new recipes.
     if current_level < max_level:
         current_level += 1
         unlock_new_recipes()
 
 func unlock_new_recipes() -> void:
     ## Unlock additional recipes when leveling up.
+    ## Actual recipe lists are provided elsewhere.
     pass
 
 func _apply_crafted_by(card: CardData) -> void:
