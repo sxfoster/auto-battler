@@ -1,7 +1,7 @@
 # CombatManager.gd
 # Skeleton for automated combat resolution.
 
-class_name CombatManager
+class_name CombatManagerSkeleton
 extends Node
 
 ## Signals emitted when combat ends.

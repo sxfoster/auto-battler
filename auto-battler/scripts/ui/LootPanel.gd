@@ -100,8 +100,8 @@ func populate_loot_display():
 		else:
 			tags_label.text = "" # Hide if no tags, or "No special tags"
 			tags_label.visible = false
-                tags_label.add_theme_font_size_override("font_size", 12)
-		details_vbox.add_child(tags_label)
+			tags_label.add_theme_font_size_override("font_size", 12)
+			details_vbox.add_child(tags_label)
 
 		var add_button = Button.new()
 		add_button.text = "Add" # Shorter text
@@ -148,7 +148,7 @@ func _on_close_button_pressed():
 
 # Call this method to show the loot panel with specific items
 func show_loot(items_to_display: Array):
-        set_loot_items(items_to_display)
-        self.visible = true
-        # Optional: Bring to front if it's part of a complex UI
-        # move_to_front()
+	set_loot_items(items_to_display)
+	self.visible = true
+	# Optional: Bring to front if it's part of a complex UI
+	# move_to_front()
