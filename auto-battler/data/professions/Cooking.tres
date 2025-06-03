@@ -1,0 +1,13 @@
+[gd_resource type="ProfessionData" load_steps=2 format=3]
+
+[ext_resource path="res://auto-battler/data/recipes/MushroomSoup.tres" type="RecipeData" id=1]
+
+[resource]
+profession_name = "Cooking"
+description = "Prepare food and drink cards."
+max_level = 10
+current_level = 1
+known_recipes = [ExtResource(1)]
+crafting_bonus = 0.0
+exclusive_cards = []
+crafted_by_tag = ""

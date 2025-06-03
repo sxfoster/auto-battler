@@ -1,0 +1,15 @@
+[gd_resource type="CardData" load_steps=2 format=3]
+
+[resource]
+card_name = "Mushroom Soup"
+description = "A hearty soup that eases hunger."
+card_type = 3
+role_restriction = ""
+class_restriction = ""
+effect_description = "Restores a small amount of hunger and thirst."
+rarity = 0
+icon_path = ""
+synergy_tags = []
+energy_cost = 0
+is_combo_starter = false
+is_combo_finisher = false

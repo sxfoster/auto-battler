@@ -1,0 +1,15 @@
+[gd_resource type="CardData" load_steps=2 format=3]
+
+[resource]
+card_name = "Reinforced Sword"
+description = "A sturdy sword with extra durability."
+card_type = 1
+role_restriction = ""
+class_restriction = ""
+effect_description = "Grants +1 attack while equipped."
+rarity = 0
+icon_path = ""
+synergy_tags = []
+energy_cost = 0
+is_combo_starter = false
+is_combo_finisher = false

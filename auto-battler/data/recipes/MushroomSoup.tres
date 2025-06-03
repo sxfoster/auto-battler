@@ -1,0 +1,12 @@
+[gd_resource type="RecipeData" load_steps=2 format=3]
+
+[ext_resource path="res://auto-battler/data/cards/MushroomSoup.tres" type="CardData" id=1]
+
+[resource]
+recipe_name = "Mushroom Soup"
+description = "Simple soup using common mushrooms."
+profession = "Cooking"
+required_level = 1
+ingredients = ["Mushroom", "Water", "Herbs"]
+output_card = ExtResource(1)
+success_rate = 1.0
