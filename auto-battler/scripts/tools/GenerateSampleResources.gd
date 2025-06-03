@@ -1,7 +1,7 @@
 @tool
 extends EditorScript
 
-## Generates card and enemy .tres resources from sample lists.
+## Generates .tres resources from the various sample lists.
 
 static func _sanitize(name: String) -> String:
     var result := ""
@@ -13,6 +13,9 @@ static func _sanitize(name: String) -> String:
 func _run() -> void:
     _generate_cards()
     _generate_enemies()
+    _generate_professions()
+    _generate_recipes()
+    _generate_characters()
     print("Sample resources generated.")
 
 func _generate_cards() -> void:
@@ -28,3 +31,24 @@ func _generate_enemies() -> void:
         var fname := _sanitize(enemy.enemy_name)
         var path := "res://data/enemies/%s.tres" % fname
         ResourceSaver.save(enemy, path)
+
+func _generate_professions() -> void:
+    var professions := SampleProfessions.get_professions()
+    for prof in professions:
+        var fname := _sanitize(prof.profession_name)
+        var path := "res://data/professions/%s.tres" % fname
+        ResourceSaver.save(prof, path)
+
+func _generate_recipes() -> void:
+    var recipes := SampleRecipes.get_recipes()
+    for recipe in recipes:
+        var fname := _sanitize(recipe.recipe_name)
+        var path := "res://data/recipes/%s.tres" % fname
+        ResourceSaver.save(recipe, path)
+
+func _generate_characters() -> void:
+    var chars := SampleCharacters.get_characters()
+    for ch in chars:
+        var fname := _sanitize(ch.character_name)
+        var path := "res://data/characters/%s.tres" % fname
+        ResourceSaver.save(ch, path)
