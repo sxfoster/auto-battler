@@ -1,15 +1,15 @@
-[gd_scene load_steps=2 format=3 uid="uid://dqvcn7p4j7x0y"]
+[gd_scene format=3]
 
-[ext_resource type="Script" path="res://scripts/ui/DungeonMap.gd" id="1_fghij"]
+[ext_resource path="res://scripts/main/DungeonMapManager.gd" type="Script" id=1]
 
 [node name="DungeonMap" type="Control"]
+script = ExtResource(1)
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-script = ExtResource("1_fghij")
 
 [node name="MapNodesContainer" type="HBoxContainer" parent="."]
 layout_mode = 1
@@ -18,55 +18,30 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -200.0
-offset_top = -50.0
-offset_right = 200.0
-offset_bottom = 50.0
+offset_left = -200
+offset_top = -50
+offset_right = 200
+offset_bottom = 50
 grow_horizontal = 2
 grow_vertical = 2
 alignment = 1
 
-[node name="Node1Button" type="Button" parent="MapNodesContainer"]
-layout_mode = 2
-size_flags_horizontal = 3
-text = "Room 1"
-
-[node name="Node2Button" type="Button" parent="MapNodesContainer"]
-layout_mode = 2
-size_flags_horizontal = 3
-text = "Event A"
-
-[node name="Node3Button" type="Button" parent="MapNodesContainer"]
-layout_mode = 2
-size_flags_horizontal = 3
-text = "Room 2"
-
 [node name="PartyStatusOverlay" type="VBoxContainer" parent="."]
 layout_mode = 0
-offset_right = 150.0
-offset_bottom = 200.0
-# Position it on the screen, e.g., top-left
+offset_right = 150
+offset_bottom = 200
 
 [node name="Member1Status" type="Label" parent="PartyStatusOverlay"]
-layout_mode = 2
 text = "Member 1: HP 100/100, F:100, W:100, E:100"
 
 [node name="Member2Status" type="Label" parent="PartyStatusOverlay"]
-layout_mode = 2
 text = "Member 2: HP 100/100, F:100, W:100, E:100"
 
 [node name="Member3Status" type="Label" parent="PartyStatusOverlay"]
-layout_mode = 2
 text = "Member 3: HP 100/100, F:100, W:100, E:100"
 
 [node name="Member4Status" type="Label" parent="PartyStatusOverlay"]
-layout_mode = 2
 text = "Member 4: HP 100/100, F:100, W:100, E:100"
 
 [node name="Member5Status" type="Label" parent="PartyStatusOverlay"]
-layout_mode = 2
 text = "Member 5: HP 100/100, F:100, W:100, E:100"
-
-[connection signal="pressed" from="MapNodesContainer/Node1Button" to="." method="_on_map_node_selected" binds= [0]]
-[connection signal="pressed" from="MapNodesContainer/Node2Button" to="." method="_on_map_node_selected" binds= [1]]
-[connection signal="pressed" from="MapNodesContainer/Node3Button" to="." method="_on_map_node_selected" binds= [2]]
