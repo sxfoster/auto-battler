@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="EnemyData" load_steps=2 format=3 uid="uid://mushroomshaman01"]
+
+[ext_resource type="Script" uid="uid://b7cd3dx14xek6" path="res://scripts/data/EnemyData.gd" id="1_dxswm"]
+
+[resource]
+script = ExtResource("1_dxswm")
+enemy_name = "Mushroom Shaman"
+description = "A twisted sage wielding mind-altering spores and dark rituals."
+enemy_type = 1
+abilities = ["Mind Spore", "Hallucinate"]
+base_hp = 12
+base_attack = 3
+speed_modifier = 2
+loot_table = ["Shaman Staff", "Spore Dust"]
+encounter_weight = 2
+icon_path = "res://assets/enemies/mushroom_shaman.png"
+passive_traits = ["Applies slow with spells", "Immune to confusion"]
+metadata/_custom_type_script = "uid://b7cd3dx14xek6"
