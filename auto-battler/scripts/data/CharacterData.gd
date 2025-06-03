@@ -24,8 +24,8 @@ enum Role {
 @export var speed_modifier : int = 0
 
 # Card and equipment lists
-@export var assigned_cards : Array[CardData] = []    # Array[CardData] up to 4
-@export var equipped_gear : Array[CardData] = []     # Array[CardData] Equipment
+@export var assigned_cards : Array = []              # Array[CardData] up to 4
+@export var equipped_gear : Array = []               # Array[CardData] Equipment
 
 # Non-combat and survival stats
 @export var profession : String = ""
@@ -34,5 +34,5 @@ enum Role {
 @export var fatigue : int = 0
 
 # Inventory and visuals
-@export var inventory : Array[CardData] = []         # Array[CardData]
+@export var inventory : Array = []                   # Array[CardData]
 @export_file var icon_path : String = ""

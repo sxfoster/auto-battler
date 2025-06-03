@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="EnemyData" load_steps=2 format=3 uid="uid://rotgrubswarm01"]
+
+[ext_resource type="Script" uid="uid://b7cd3dx14xek6" path="res://scripts/data/EnemyData.gd" id="1_dxswm"]
+
+[resource]
+script = ExtResource("1_dxswm")
+enemy_name = "Rotgrub Swarm"
+description = "A mass of hungry, biting grubs that overwhelm foes with numbers."
+enemy_type = 0
+abilities = ["Bite Swarm", "Burrow Latch"]
+base_hp = 9
+base_attack = 2
+speed_modifier = 3
+loot_table = ["Mossy Meat", "Grub Ichor"]
+encounter_weight = 4
+icon_path = "res://assets/sprites/enemies/rotgrub_swarm.png"
+passive_traits = ["Immune to poison", "May multiply if not killed quickly"]
+metadata/_custom_type_script = "uid://b7cd3dx14xek6"
