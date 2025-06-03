@@ -1,0 +1,43 @@
+[gd_scene load_steps=2 format=3 uid="uid://cv1x0x7w7x0x3"]
+
+[ext_resource type="Script" path="res://scripts/ui/CardViewer.gd" id="1_abc12"]
+
+[node name="CardViewer" type="PanelContainer"]
+custom_minimum_size = Vector2(100, 150) # Example size
+script = ExtResource("1_abc12")
+focus_mode = Control.FOCUS_ALL # Allow focus for GUI input if needed by some interactions
+mouse_filter = Control.MOUSE_FILTER_STOP # Stop mouse events from passing through if it covers other elements
+
+[node name="VBoxContainer" type="VBoxContainer" parent="."]
+layout_mode = 2
+
+[node name="CardNameLabel" type="Label" parent="VBoxContainer"]
+layout_mode = 2
+text = "Card Name"
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 14 # Slightly larger for name
+
+[node name="CardArtTexture" type="TextureRect" parent="VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3 # Art takes up available space
+expand_mode = 1
+stretch_mode = 5 # Keep aspect, fit
+# Add a placeholder color or texture if desired
+color = Color(0.8, 0.8, 0.8, 1) # Placeholder color for art area
+
+[node name="CardDescriptionLabel" type="Label" parent="VBoxContainer"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 30) # Ensure some space for description
+text = "Card effect description here."
+autowrap_mode = 3
+theme_override_font_sizes/font_size = 10 # Smaller for description
+
+[node name="CardCostLabel" type="Label" parent="VBoxContainer"]
+layout_mode = 2
+text = "Cost: 3"
+horizontal_alignment = 2 # Right align
+theme_override_font_sizes/font_size = 12
+
+[connection signal="gui_input" from="." to="." method="_on_gui_input"]
+[connection signal="mouse_entered" from="." to="." method="_on_mouse_entered"]
+[connection signal="mouse_exited" from="." to="." method="_on_mouse_exited"]

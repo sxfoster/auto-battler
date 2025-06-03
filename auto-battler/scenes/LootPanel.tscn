@@ -1,0 +1,77 @@
+[gd_scene load_steps=2 format=3 uid="uid://dxylqx7w7x0x2"]
+
+[ext_resource type="Script" path="res://scripts/ui/LootPanel.gd" id="1_yzabc"]
+
+[node name="LootPanel" type="PanelContainer"] # Changed root to PanelContainer for better theming/background
+layout_mode = 3
+anchors_preset = 15
+anchor_left = 0.25 # Example: Center it a bit more
+anchor_top = 0.25
+anchor_right = 0.75
+anchor_bottom = 0.75
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_yzabc")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="."]
+layout_mode = 2
+alignment = 1
+
+[node name="TitleLabel" type="Label" parent="VBoxContainer"]
+layout_mode = 2
+text = "Loot & Rewards"
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 24 # Make title bigger
+
+[node name="LootScrollContainer" type="ScrollContainer" parent="VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3 # Make scroll container take available vertical space
+horizontal_scroll_mode = 0 # Disable horizontal scroll if items are stacked vertically
+custom_minimum_size = Vector2(0, 150) # Ensure it has some min height
+
+[node name="LootList" type="VBoxContainer" parent="VBoxContainer/LootScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3 # Loot items will fill width
+
+# Example Loot Item Entry (This would ideally be a reusable scene instance)
+# The script will populate this area dynamically.
+# Keeping one example for structure reference, though script will clear it.
+[node name="LootItemEntry1" type="HBoxContainer" parent="VBoxContainer/LootScrollContainer/LootList"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 50) # Min height for an item entry
+visible = false # Initially invisible, script will handle population
+
+[node name="ItemIcon" type="TextureRect" parent="VBoxContainer/LootScrollContainer/LootList/LootItemEntry1"]
+# Placeholder for item icon
+custom_minimum_size = Vector2(40, 40)
+layout_mode = 2
+expand_mode = 1 # Or keep aspect ratio if needed
+stretch_mode = 5 # Scale to fit
+color = Color(0.5, 0.5, 0.5, 1) # Placeholder color
+
+[node name="ItemDetails" type="VBoxContainer" parent="VBoxContainer/LootScrollContainer/LootList/LootItemEntry1"]
+layout_mode = 2
+size_flags_horizontal = 3 # Details take remaining space
+
+[node name="ItemNameLabel" type="Label" parent="VBoxContainer/LootScrollContainer/LootList/LootItemEntry1/ItemDetails"]
+layout_mode = 2
+text = "Magic Sword (Rare)"
+
+[node name="ItemTagsLabel" type="Label" parent="VBoxContainer/LootScrollContainer/LootList/LootItemEntry1/ItemDetails"]
+layout_mode = 2
+text = "Crafted by: Player1"
+theme_override_font_sizes/font_size = 12 # Smaller for tags
+
+[node name="AddButton" type="Button" parent="VBoxContainer/LootScrollContainer/LootList/LootItemEntry1"]
+layout_mode = 2
+size_flags_vertical = 4 # Center button vertically if HBox allows
+text = "Add to Inventory"
+# This button's pressed signal would be connected in script when item is added
+
+
+[node name="CloseButton" type="Button" parent="VBoxContainer"]
+layout_mode = 2
+text = "Close / Take All"
+# This button might take all items and then close, or just close if items are added individually
+
+[connection signal="pressed" from="VBoxContainer/CloseButton" to="." method="_on_close_button_pressed"]
