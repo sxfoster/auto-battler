@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="EnemyData" load_steps=2 format=3 uid="uid://sporewitch01"]
+
+[ext_resource type="Script" uid="uid://b7cd3dx14xek6" path="res://scripts/data/EnemyData.gd" id="1_dxswm"]
+
+[resource]
+script = ExtResource("1_dxswm")
+enemy_name = "Spore Witch"
+description = "A cunning cultist that manipulates toxic spores to hinder foes."
+enemy_type = 1
+abilities = ["Spore Veil", "Heal Fungus"]
+base_hp = 14
+base_attack = 3
+speed_modifier = 3
+loot_table = ["Witch Cap", "Fungal Essence"]
+encounter_weight = 3
+icon_path = "res://assets/enemies/spore_witch.png"
+passive_traits = ["Resistant to poison", "Can shield allies with spores"]
+metadata/_custom_type_script = "uid://b7cd3dx14xek6"
