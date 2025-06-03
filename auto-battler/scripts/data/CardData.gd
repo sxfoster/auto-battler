@@ -4,12 +4,12 @@ extends Resource
 # Content for fields and enums will be added in subsequent steps.
 
 enum CardType {
-	Ability,
-	Equipment,
-	Ingredient,
-	FoodDrink,
-	Elixir,
-	Utility
+        Ability,
+        Attack,
+        Buff,
+        Heal,
+        Debuff,
+        Utility
 }
 
 enum Rarity {
