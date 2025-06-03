@@ -1,7 +1,7 @@
 # DungeonMapManager.gd
 # Skeleton for navigating the procedural dungeon map.
 
-class_name DungeonMapManager
+# class_name DungeonMapManager
 extends Control
 
 ## Transition signals for GameManager.

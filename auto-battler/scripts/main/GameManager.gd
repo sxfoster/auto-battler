@@ -113,7 +113,7 @@ func start_new_run(selected_party_composition: Array, initial_gear: Array = []) 
     # Initialize current_party_members based on selected_party_composition.
     # This involves creating CharacterData instances/dictionaries with base stats, cards, gear.
     # Placeholder: Assume selected_party_composition contains pre-defined CharacterData objects/dictionaries.
-    current_party_members = selected_party_composition.deep_copy()
+    current_party_members = selected_party_composition.duplicate(true)
     for member_data in current_party_members:
         if not member_data.has("hp"): member_data["hp"] = member_data.get("base_hp", 100) # Ensure HP is set
         if not member_data.has("statuses"): member_data["statuses"] = {}
@@ -332,7 +332,7 @@ func on_combat_victory(results: Dictionary) -> void:
     var post_battle_manager = get_node_or_null(POST_BATTLE_MANAGER_PATH)
     if post_battle_manager and post_battle_manager.has_method("initialize_post_battle"):
         # Pass the combat results and the party state *before* post-battle effects like fatigue.
-        post_battle_manager.initialize_post_battle(results, current_party_members.deep_copy())
+        post_battle_manager.initialize_post_battle(results, current_party_members.duplicate(true))
     else:
         printerr("GameManager: PostBattleManager not found or method missing for combat victory.")
         # Fallback if PostBattleManager is missing: try to go to map directly (simplified)
@@ -350,7 +350,7 @@ func on_combat_defeat(results: Dictionary) -> void:
 
     var post_battle_manager = get_node_or_null(POST_BATTLE_MANAGER_PATH)
     if post_battle_manager and post_battle_manager.has_method("initialize_post_battle"):
-        post_battle_manager.initialize_post_battle(results, current_party_members.deep_copy())
+        post_battle_manager.initialize_post_battle(results, current_party_members.duplicate(true))
     else:
         printerr("GameManager: PostBattleManager not found or method missing for combat defeat.")
         # Fallback if PostBattleManager is missing: go to game over directly
@@ -361,7 +361,7 @@ func on_combat_defeat(results: Dictionary) -> void:
 ## Called by PostBattleManager when all its processing is complete.
 func on_post_battle_processing_complete(final_party_state_after_effects: Array, rewards_summary: Dictionary) -> void:
     print("GameManager: Post-battle processing complete.")
-    current_party_members = final_party_state_after_effects.deep_copy()
+    current_party_members = final_party_state_after_effects.duplicate(true)
 
     # Update inventory with loot if PostBattleManager didn't do it directly
     var loot_received = rewards_summary.get("loot_received", [])
@@ -417,7 +417,7 @@ func on_game_over_requested() -> void:
 ## Called when RestManager signals to continue exploration.
 func on_rest_continue_exploration(updated_party_data: Array) -> void:
     print("GameManager: Continue exploration after rest.")
-    current_party_members = updated_party_data.deep_copy()
+    current_party_members = updated_party_data.duplicate(true)
 
     # current_dungeon_state.depth += 1 # Or other logic to advance the dungeon
     _change_game_phase_and_scene("dungeon_map", "res://auto-battler/scenes/DungeonMap.tscn") # Example path
@@ -427,7 +427,7 @@ func on_rest_continue_exploration(updated_party_data: Array) -> void:
 ## Called when RestManager signals to exit the dungeon.
 func on_rest_exit_dungeon(updated_party_data: Array) -> void:
     print("GameManager: Exiting dungeon after rest.")
-    current_party_members = updated_party_data.deep_copy()
+    current_party_members = updated_party_data.duplicate(true)
     # Handle logic for exiting the dungeon (e.g., back to a main menu, town hub).
     # This could also be a "run_summary" scene.
     _change_game_phase_and_scene("main_menu", "res://auto-battler/scenes/MainMenu.tscn") # Example path

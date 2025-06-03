@@ -1,7 +1,7 @@
 # PreparationManager.gd
 # Skeleton for the preparation phase where the party is configured before entering the dungeon.
 
-class_name PreparationManager
+# class_name PreparationManager
 extends Node
 
 ## Emitted when the player finishes preparations.

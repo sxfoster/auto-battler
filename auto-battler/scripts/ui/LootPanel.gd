@@ -100,7 +100,7 @@ func populate_loot_display():
 		else:
 			tags_label.text = "" # Hide if no tags, or "No special tags"
 			tags_label.visible = false
-                tags_label.add_theme_font_size_override("font_size", 12)
+			tags_label.add_theme_font_size_override("font_size", 12)
 		details_vbox.add_child(tags_label)
 
 		var add_button = Button.new()

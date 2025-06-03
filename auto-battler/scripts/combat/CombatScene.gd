@@ -78,10 +78,10 @@ func _on_speed_up_button_pressed():
 	current_speed = SPEED_LEVELS[current_speed_index]
 	speed_up_button.text = "Speed Up x" + str(current_speed)
 	add_combat_log_entry("Combat speed set to x" + str(current_speed))
-        print("Speed up button pressed. Current speed: ", current_speed)
+	print("Speed up button pressed. Current speed: ", current_speed)
 
 func end_combat() -> void:
-    emit_signal("combat_finished")
+	emit_signal("combat_finished")
 
 func add_combat_log_entry(text_entry: String):
 	var new_log = Label.new()

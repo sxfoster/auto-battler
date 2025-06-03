@@ -35,8 +35,8 @@ class Combatant:
         source_data = data_resource
         is_player_side = is_player
         # Ensure assigned_cards is always an array, even if empty
-        assigned_cards = data_resource.get("assigned_cards" if is_player else "abilities", [])
-        current_hp = data_resource.get("base_hp", 10) # Default to 10 HP if not specified
+        assigned_cards = is_player ? data_resource.assigned_cards : data_resource.abilities
+        current_hp = data_resource.base_hp
         # Note: Initial fatigue, hunger, thirst from source_data are not directly used by Combatant during combat itself.
         # They are more relevant for the PostBattleManager or overall GameManager.
 
@@ -48,7 +48,7 @@ class Combatant:
         return card
 
     func get_name() -> String:
-        return source_data.get("character_name" if is_player_side else "enemy_name", "Unknown Combatant")
+        return is_player_side ? source_data.character_name : source_data.enemy_name
 
 func _ready() -> void:
     # Potential future use: Connect to UI signals if a combat UI scene is directly managed here.
@@ -139,7 +139,7 @@ func _build_turn_order() -> void:
 
     # Sort by speed (higher speed goes first)
     # Assumes combatants have a 'speed_modifier' or similar attribute in their source_data
-    turn_order.sort_custom(func(a, b): return a.source_data.get("speed_modifier", 0) > b.source_data.get("speed_modifier", 0))
+    turn_order.sort_custom(func(a, b): return a.source_data.speed_modifier > b.source_data.speed_modifier)
 
     var turn_order_names = []
     for c in turn_order: turn_order_names.append(c.get_name())
@@ -177,7 +177,7 @@ func _process_actor_turn(actor: Combatant) -> void:
         potential_targets = _get_living_combatants(party_members)
 
     if potential_targets.is_empty():
-        _log(actor.get_name() + " has no valid targets for " + card_to_play.get("card_name", "Unknown Card"))
+        _log(actor.get_name() + " has no valid targets for " + card_to_play.card_name)
         return
 
     # Select actual target(s) based on card properties and AI/rules
@@ -193,12 +193,14 @@ func _process_actor_turn(actor: Combatant) -> void:
 
     _log("%s uses %s on %s" % [
         actor.get_name(),
-        card_to_play.get("card_name", "a card"),
+        card_to_play.card_name,
         ", ".join(target_names)
     ])
     # Detailed card effect resolution here (damage, healing, status application)
     # Example: Apply damage from card
-    var damage = card_to_play.get("damage_amount", actor.source_data.get("base_attack", 1))
+    var damage = card_to_play.get("damage_amount")
+    if damage == null:
+        damage = actor.source_data.base_attack
     if damage > 0:
         for target_combatant in actual_targets:
             target_combatant.current_hp -= damage
@@ -256,7 +258,7 @@ func _get_final_party_state() -> Array[Dictionary]:
     var final_state_array: Array[Dictionary] = []
     for member_combatant in party_members:
         var state = {
-            "source_data_id": member_combatant.source_data.get("id", "unknown_id"), # Assuming source_data has an ID
+            "source_data_id": member_combatant.source_data.get("id"), # Assuming source_data has an ID
             "current_hp": member_combatant.current_hp,
             "statuses": member_combatant.statuses.duplicate(true) # Deep copy statuses
             # Add other relevant data like remaining card uses, etc., if needed by PostBattleManager
@@ -273,10 +275,10 @@ func _distribute_loot_and_xp() -> void:
     for enemy_combatant in enemies:
         # Only grant loot/XP if the enemy was actually defeated (though this function is called on victory)
         if enemy_combatant.current_hp <= 0:
-            if enemy_combatant.source_data.has("loot_table"):
+            if enemy_combatant.source_data.loot_table.size() > 0:
                 for item_resource in enemy_combatant.source_data.loot_table:
                     loot_gained.append(item_resource) # Assuming items are resources
-            xp_gained += enemy_combatant.source_data.get("xp_value", 10) # Default 10 XP
+            xp_gained += enemy_combatant.source_data.xp_value
     _log("Loot gained: %s, XP gained: %d" % [str(loot_gained.size()) + " items" if not loot_gained.is_empty() else "None", xp_gained])
 
 
@@ -315,9 +317,9 @@ func _update_ui() -> void:
 func _apply_survival_penalties() -> void:
     for member in party_members:
         if member.source_data:
-            member.source_data.fatigue = member.source_data.get("fatigue", 0) + 1
-            member.source_data.hunger = member.source_data.get("hunger", 0) + 1
-            member.source_data.thirst = member.source_data.get("thirst", 0) + 1
+            member.source_data.fatigue = member.source_data.fatigue + 1
+            member.source_data.hunger = member.source_data.hunger + 1
+            member.source_data.thirst = member.source_data.thirst + 1
 
 
 # --- Functions to be removed or refactored from original ---

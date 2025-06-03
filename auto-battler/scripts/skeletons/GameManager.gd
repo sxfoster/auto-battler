@@ -1,7 +1,7 @@
 # GameManager.gd
 # Skeleton orchestrating the overall game flow and scene transitions.
 
-class_name GameManager
+# class_name GameManager
 extends Node
 
 ## Signal emitted whenever the high level phase changes.

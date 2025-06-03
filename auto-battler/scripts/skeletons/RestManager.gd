@@ -1,7 +1,7 @@
 # RestManager.gd
 # Skeleton for handling the rest phase between encounters.
 
-class_name RestManager
+# class_name RestManager
 extends Node
 
 ## Signals for scene transitions.
