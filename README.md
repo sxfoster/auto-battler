@@ -3,6 +3,8 @@
 A tactical survival dungeon crawler with collectible card game (CCG) mechanics and auto-battler combat, built in Godot.  
 Players guide a party of adventurers through procedural dungeon biomes, surviving by managing hunger, thirst, fatigue, and tactical card resources.
 
+Navigation now runs through a simple dungeon map. Nodes may lead to combat, loot, random events, rest points, or traps. The `DungeonMapManager` script handles node generation and scene transitions.
+
 ---
 
 ## 🚀 Getting Started
@@ -39,3 +41,5 @@ When generating documentation, docstrings, or comments, base them on the termino
 ### Documentation
 
 Additional developer notes are available in [docs/TECHNICAL_OVERVIEW.md](docs/TECHNICAL_OVERVIEW.md). The full game design outline is in [GAME_DESIGN.md](GAME_DESIGN.md).
+
+This repository is a prototype for demonstration purposes. Many scenes and scripts are incomplete and subject to change.
