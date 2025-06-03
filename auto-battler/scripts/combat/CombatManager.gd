@@ -12,6 +12,9 @@ var enemies: Array = []        ## Array[Combatant]
 var turn_order: Array = []     ## Array[Combatant] sorted each round
 
 var _rng: RandomNumberGenerator = RandomNumberGenerator.new()
+var combat_log: Array = []
+var loot_gained: Array = []
+var xp_gained: int = 0
 
 class Combatant:
     var data
@@ -43,6 +46,9 @@ class Combatant:
 func start_combat(party_data: Array, enemy_data: Array) -> void:
     ## Initialize combatants and build the first turn order.
     _rng.randomize()
+    combat_log.clear()
+    loot_gained.clear()
+    xp_gained = 0
     party_members.clear()
     enemies.clear()
     for pd in party_data:
@@ -157,8 +163,10 @@ func _end_combat(victory: bool) -> void:
         _log("Party is victorious!")
         _apply_survival_penalties()
         _distribute_loot_and_xp()
+        _show_post_battle_summary()
     else:
         _log("Party was defeated.")
+        _show_post_battle_summary()
     emit_signal("combat_finished", victory)
 
 func _apply_survival_penalties() -> void:
@@ -168,8 +176,34 @@ func _apply_survival_penalties() -> void:
         c.thirst += 1
 
 func _distribute_loot_and_xp() -> void:
-    ## Placeholder for loot and experience distribution logic
-    pass
+    ## Simple loot and experience distribution placeholder
+    for enemy in enemies:
+        if enemy.data.loot_table:
+            for item in enemy.data.loot_table:
+                loot_gained.append(item)
+                # Add loot to the first party member's inventory as a stub
+                if party_members.size() > 0:
+                    party_members[0].data.inventory.append(item)
+    xp_gained = enemies.size() * 10
+
+func _show_post_battle_summary() -> void:
+    print("=== Battle Summary ===")
+    for entry in combat_log:
+        print(entry)
+    print("--- Rewards ---")
+    print("XP Gained: %d" % xp_gained)
+    if loot_gained.is_empty():
+        print("No loot acquired.")
+    else:
+        for item in loot_gained:
+            var name = item.card_name if item.has_method("apply_effect") else String(item)
+            print("Loot: %s" % name)
+    print("--- Party Status ---")
+    for c in party_members:
+        print("%s HP:%d Fatigue:%d Hunger:%d Thirst:%d" % [
+            c.data.character_name, c.current_hp, c.fatigue, c.hunger, c.thirst])
+    print("1) Continue to map\n2) View inventory\n3) Rest")
 
 func _log(message: String) -> void:
+    combat_log.append(message)
     print(message)
