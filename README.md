@@ -17,6 +17,12 @@ Players guide a party of adventurers through procedural dungeon biomes, survivin
 git clone https://github.com/sxfoster/auto-battler.git
 cd auto-battler
 ```
+
+### Running
+
+1. Open `project.godot` with **Godot 4.x**.
+2. Run the `Main.tscn` scene. Most scenes are placeholders so game functionality is limited.
+
 For AI Contributors
 Before generating, editing, or refactoring any code, always read and reference GAME_DESIGN.md.
 
@@ -29,3 +35,7 @@ Use the latest core data field lists for resource and script generation.
 If adding or updating content (e.g., new card, enemy, or mechanic), ensure it matches the structure and intent in the design document.
 
 When generating documentation, docstrings, or comments, base them on the terminology and intent described in GAME_DESIGN.md.
+
+### Documentation
+
+Additional developer notes are available in [docs/TECHNICAL_OVERVIEW.md](docs/TECHNICAL_OVERVIEW.md). The full game design outline is in [GAME_DESIGN.md](GAME_DESIGN.md).
