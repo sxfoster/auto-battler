@@ -1,0 +1,70 @@
+[gd_scene load_steps=2 format=3 uid="uid://pm1x0x7w7x0x4"]
+
+[ext_resource type="Script" path="res://scripts/ui/PartyMemberPanel.gd" id="1_abcde"]
+
+[node name="PartyMemberPanel" type="PanelContainer"]
+custom_minimum_size = Vector2(120, 200)
+script = ExtResource("1_abcde")
+focus_mode = Control.FOCUS_ALL
+mouse_filter = Control.MOUSE_FILTER_STOP
+
+[node name="VBoxContainer" type="VBoxContainer" parent="."]
+layout_mode = 2
+
+[node name="NameLabel" type="Label" parent="VBoxContainer"]
+layout_mode = 2
+text = "Character Name"
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 14
+
+[node name="PortraitTexture" type="TextureRect" parent="VBoxContainer"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 80) # Min height for portrait
+size_flags_vertical = 3
+expand_mode = 1
+stretch_mode = 5 # Keep aspect, fit
+color = Color(0.7, 0.7, 0.7, 1) # Placeholder color
+
+[node name="HpBar" type="ProgressBar" parent="VBoxContainer"]
+layout_mode = 2
+value = 75.0 # Example value
+show_percentage = false
+theme_override_styles/fill = SubResource("StyleBoxFlat_hpbarfill") # Placeholder for custom style
+
+[node name="HpLabel" type="Label" parent="VBoxContainer/HpBar"] # Child of ProgressBar for overlay
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+text = "75/100"
+horizontal_alignment = 1
+vertical_alignment = 1
+theme_override_colors/font_color = Color(1, 1, 1, 1) # White text
+theme_override_font_sizes/font_size = 10
+
+[node name="RoleClassLabel" type="Label" parent="VBoxContainer"]
+layout_mode = 2
+text = "Warrior / Fighter"
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 11
+
+[node name="StatusEffectsBox" type="HBoxContainer" parent="VBoxContainer"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 20) # Min height for status icons
+alignment = 1 # Center status icons
+# Add TextureRects here for buffs/debuffs
+
+[node name="FatigueMeterLabel" type="Label" parent="VBoxContainer"] # Example for a survival meter
+layout_mode = 2
+text = "Fatigue: 20/100"
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 10
+
+[connection signal="gui_input" from="." to="." method="_on_gui_input"]
+[connection signal="mouse_entered" from="." to="." method="_on_mouse_entered"]
+[connection signal="mouse_exited" from="." to="." method="_on_mouse_exited"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hpbarfill"]
+bg_color = Color(0.8, 0.2, 0.2, 1) # Red color for HP bar fill
