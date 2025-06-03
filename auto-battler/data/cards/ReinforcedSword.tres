@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="CardData" load_steps=2 format=3 uid="uid://reinforced_sword_card"]
+
+[ext_resource type="Script" uid="uid://d28ph5bgy4xlp" path="res://scripts/data/CardData.gd" id="1_rs"]
+
+[resource]
+script = ExtResource("1_rs")
+card_name = "Reinforced Sword"
+description = "Sturdier than a basic blade."
+card_type = 6
+role_restriction = "Any"
+class_restriction = "Any"
+effect_description = "Deals increased melee damage."
+rarity = 0
+icon_path = ""
+synergy_tags = Array[String]([])
+energy_cost = 0
+is_combo_starter = false
+is_combo_finisher = false
+metadata/_custom_type_script = "uid://d28ph5bgy4xlp"

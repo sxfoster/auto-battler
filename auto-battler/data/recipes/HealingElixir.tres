@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="RecipeData" load_steps=2 format=3 uid="uid://healing_elixir_recipe"]
+
+[ext_resource type="Script" uid="uid://bu61k6ltodatl" path="res://scripts/data/RecipeData.gd" id="1_herecipe"]
+[ext_resource type="Resource" path="res://data/cards/HealingElixir.tres" id="2_he_card"]
+
+[resource]
+script = ExtResource("1_herecipe")
+recipe_name = "Healing Elixir"
+input_cards = ["Herb", "Water"]
+output_card = ExtResource("2_he_card")
+profession_required = "Alchemy"
+level_required = 1
+synergy_tags = Array[String]([])
+discovered = true
+metadata/_custom_type_script = "uid://bu61k6ltodatl"
