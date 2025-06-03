@@ -20,6 +20,8 @@ git clone https://github.com/sxfoster/auto-battler.git
 cd auto-battler
 ```
 
+The Godot project files are located within the `auto-battler` directory of this repository.
+
 ### Running
 
 1. Open `project.godot` with **Godot 4.x**.
