@@ -138,10 +138,11 @@ Each class has access to:
 
 1. **Card Assignment Phase** – Player equips cards to each character
 2. **Enter Dungeon** – Procedural biome floors generated
-3. **Combat Phase** – Auto-battle executes based on speed and card AI logic
-4. **Post-Battle** – Gain loot, fatigue, hunger, thirst
-5. **Rest** – Use Food/Drink to recover, apply buffs
-6. **Continue or Exit** – Players may advance deeper or retreat to reset
+3. **Navigate Map** – Nodes may present combat, loot, random events, rest spots or traps
+4. **Combat Phase** – Auto-battle executes based on speed and card AI logic
+5. **Post-Battle** – Gain loot, fatigue, hunger, thirst
+6. **Rest** – Use Food/Drink to recover, apply buffs
+7. **Continue or Exit** – Players may advance deeper or retreat to reset
 
 ---
 

@@ -11,7 +11,7 @@ auto-battler/
 ├─ scripts/     # GDScript sources
 │  ├─ combat/   # Combat manager and AI stubs
 │  ├─ data/     # Resource classes (CardData, EnemyData, etc.)
-│  ├─ main/        # Game and encounter managers
+│  ├─ main/        # Game, encounter and map managers
 │  ├─ preparation/ # Pre-combat party setup logic
 │  ├─ systems/     # Crafting, inventory and economy systems
 │  ├─ ui/       # UI controllers
@@ -48,6 +48,9 @@ Represents a specific crafting recipe, mapping input cards to an output card and
 
 ### PreparationManager
 `scripts/preparation/PreparationManager.gd` powers the pre-combat setup screen, letting players assign cards, equip gear and pick consumables before entering the dungeon.
+
+### DungeonMapManager
+`scripts/main/DungeonMapManager.gd` builds a chain of dungeon nodes. Each node can trigger combat, loot, a random event, a rest opportunity or a trap. The manager handles navigation and displays the appropriate panels.
 
 ### CraftingSystem
 `scripts/systems/CraftingSystem.gd` is a stub demonstrating how magical pouch crafting might work.  It selects a recipe based on up to five ingredient cards and emits a `crafted` signal with the result.
