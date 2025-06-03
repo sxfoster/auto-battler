@@ -1,11 +1,17 @@
+# Scene controlling the rest phase UI
 extends Control
 
-# Signal for when resting is complete and player continues
+# Signal emitted when the player chooses to continue
 signal rest_completed
 
-# References to UI elements
-@onready var party_status_grid: GridContainer = $VBoxContainer/PartyStatusGrid
-@onready var rest_progress_label: Label = $VBoxContainer/RestProgressLabel
+# Exported paths to key UI nodes
+@export var party_status_grid_path: NodePath = NodePath("VBox/PartyStatusGrid")
+@export var rest_progress_label_path: NodePath = NodePath("VBox/RestProgressLabel")
+@export var continue_button_path: NodePath = NodePath("VBox/ContinueButton")
+
+@onready var party_status_grid: GridContainer = get_node(party_status_grid_path)
+@onready var rest_progress_label: Label = get_node(rest_progress_label_path)
+@onready var _continue_button: Button = get_node(continue_button_path)
 # Add @onready vars for food/drink buttons if they are dynamic
 
 # Placeholder for party data. In a real game, this would come from GameManager or PartyManager
@@ -90,8 +96,8 @@ func add_rest_log_entry(log_text: String):
 
 
 func _on_continue_button_pressed():
-	print("Continue button pressed from Rest Scene")
-	# Perform any final rest calculations (e.g., small passive recovery for all members)
+        print("Continue button pressed from Rest Scene")
+        # Perform any final rest calculations (e.g., small passive recovery for all members)
 	# Example: Small fatigue recovery for everyone
 	for member_key in party_members_data:
 		if party_members_data[member_key].has("fatigue") and party_members_data[member_key].has("max_fatigue"):
@@ -102,7 +108,7 @@ func _on_continue_button_pressed():
 
 	await get_tree().create_timer(1.0).timeout # Brief pause to show final log
 
-	emit_signal("rest_completed")
+        emit_signal("rest_completed")
 	# Transition to the next scene (e.g., DungeonMap or a post-rest summary)
 	# Example: get_tree().change_scene_to_file("res://scenes/DungeonMap.tscn")
 

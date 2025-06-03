@@ -5,8 +5,11 @@ signal add_item_to_inventory(item_data: Dictionary)
 # Signal emitted when the panel is closed
 signal loot_panel_closed
 
-@onready var loot_list_container: VBoxContainer = $VBoxContainer/LootScrollContainer/LootList
-@onready var close_button: Button = $VBoxContainer/CloseButton
+@export var loot_list_container_path: NodePath = NodePath("VBox/LootScroll/LootList")
+@export var close_button_path: NodePath = NodePath("VBox/CloseButton")
+
+@onready var loot_list_container: VBoxContainer = get_node(loot_list_container_path)
+@onready var close_button: Button = get_node(close_button_path)
 
 # Placeholder for loot items. In a real game, this would be passed to the panel.
 var current_loot_items: Array = []
