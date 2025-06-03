@@ -124,8 +124,8 @@ func _on_mouse_exited():
 		print("Party member unhovered: ", member_data.get("name", "N/A"))
 
 func clear_status_effects():
-   for child in status_effects_box.get_children():
-       child.queue_free()
+	for child in status_effects_box.get_children():
+		child.queue_free()
 
 func add_status_effect_icon(effect_data: Dictionary):
 	var icon = TextureRect.new()
