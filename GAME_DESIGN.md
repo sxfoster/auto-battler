@@ -142,4 +142,66 @@ Players guide a party of 1–5 adventurers through procedurally generated dungeo
 | is_combo_starter  | bool      | Starts a combo                               |
 | is_combo_finisher | bool      | Finishes a combo                             |
 
-### EnemyDa
+### EnemyData
+
+| Field            | Type      | Description                                   |
+|------------------|-----------|-----------------------------------------------|
+| enemy_name       | String    | Display name                                  |
+| description      | String    | Flavour text                                  |
+| enemy_type       | Enum      | Creature, DemiHuman, Undead, Boss             |
+| abilities        | Array     | Cards or ability names the enemy can use      |
+| base_hp          | int       | Starting health                               |
+| base_attack      | int       | Base damage value                             |
+| speed_modifier   | int       | Turn order modifier                           |
+| loot_table       | Array     | Possible drops                                |
+| encounter_weight | int       | Spawn weighting for random encounters         |
+| icon_path        | String    | Optional sprite path                          |
+| passive_traits   | Array     | Always-on traits or resistances               |
+
+### CharacterData
+
+| Field            | Type      | Description                                   |
+|------------------|-----------|-----------------------------------------------|
+| character_name   | String    | Party member name                             |
+| role             | Enum      | Tank, Healer, Support, DPS                    |
+| class_name       | String    | Specific class (Guardian, Wizard, etc.)       |
+| base_hp          | int       | Starting health                               |
+| base_attack      | int       | Base attack value                             |
+| speed_modifier   | int       | Turn order modifier                           |
+| assigned_cards   | Array     | Ability cards equipped (max 4)                |
+| equipped_gear    | Array     | Equipment cards                               |
+| profession       | String    | Crafting profession                           |
+| hunger           | int       | Survival meter                                |
+| thirst           | int       | Survival meter                                |
+| fatigue          | int       | Survival meter                                |
+| inventory        | Array     | Additional carried cards                      |
+| icon_path        | String    | Optional portrait path                        |
+
+### ProfessionData
+
+Basic data describing a crafting profession and progress.
+
+| Field           | Type      | Description                            |
+|-----------------|-----------|----------------------------------------|
+| profession_name | String    | Name of the profession                 |
+| description     | String    | Short description                      |
+| max_level       | int       | Maximum attainable level               |
+| current_level   | int       | Current level                          |
+| known_recipes   | Array     | Unlocked `RecipeData` references       |
+| crafting_bonus  | float     | Percent success/quality bonus          |
+| exclusive_cards | Array     | Special cards only this profession can craft |
+| crafted_by_tag  | String    | Tag added to crafted cards             |
+
+### RecipeData
+
+Represents a crafting recipe for the Magical Pouch system.
+
+| Field               | Type      | Description                          |
+|---------------------|-----------|--------------------------------------|
+| recipe_name         | String    | Name shown to the player             |
+| input_cards         | Array     | Required cards or identifiers        |
+| output_card         | CardData  | Resulting crafted card               |
+| profession_required | String    | Profession that can craft it         |
+| level_required      | int       | Minimum profession level             |
+| synergy_tags        | Array     | Tags that trigger special effects    |
+| discovered          | bool      | Whether the recipe is already known  |
