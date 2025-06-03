@@ -148,3 +148,69 @@ Each class has access to:
 ## 🧩 Core Data Models
 
 Includes detailed field names for all card, character, enemy, profession, and recipe types. [Omitted here for brevity; maintained in backend schema]
+
+---
+
+## 🌍 Biome Synergy Bonuses
+
+Each dungeon biome enhances its native enemies with unique, passive bonuses that reflect the biome’s thematic identity and difficulty curve. These bonuses are automatically applied to all enemies spawned within the biome.
+
+### Biome Bonus Examples
+
+- **Fungal Depths**: Poison effects last +1 turn. First debuff applied to any monster has a 50% chance to fail.
+- **Frozen Bastion**: Ice casters gain +1 SpeedModifier. Defensive spells reduce +10% extra damage.
+- **Inferno Ruins**: Burn effects can stack one additional time. Enemies ignore first tick of DoTs.
+- **Thornwild Grove**: Root effects gain +1 duration. Regeneration heals +1 per turn.
+- **Ashen Necropolis**: Undead are immune to fear/charm. 10% chance to revive with 20% HP.
+- **Crystalline Hollow**: 10% magic damage reflection. Caster enemies gain +1 energy every 2 turns.
+- **Sunken Deep**: Melee attacks vs aquatic enemies have -15% accuracy. Enemies below 50% HP gain +1 SpeedModifier.
+- **Obsidian Reach**: 20% chance to evade AoE. Shadow cards cost 0 energy, but cause self-debuffs.
+
+---
+
+## 🌋 Floor-Wide Dynamic Events
+
+Dynamic dungeon events are randomly assigned to certain floors to alter combat flow, increase variety, and force adaptive strategy.
+
+### Examples by Biome
+
+- **Fungal Depths – Spore Bloom**: +15% miss chance for 3 turns.
+- **Frozen Bastion – Mana Freeze**: Halved energy regen for first 3 turns.
+- **Inferno Ruins – Volcanic Eruption**: Random burn every 4 turns.
+- **Thornwild Grove – Vine Wrath**: 10% root chance per turn.
+- **Ashen Necropolis – Haunting Echoes**: 30% chance for first card each turn to cast twice.
+- **Crystalline Hollow – Arcane Overload**: +25% spell damage, 15% fumble risk.
+- **Sunken Deep – Crashing Wave**: All frontliners pushed back every 5 turns.
+- **Obsidian Reach – Whispers in the Dark**: Random cooldowns increased each round.
+
+Events are shown at the top of the combat UI and may be toggled for added challenge or disabled in standard runs.
+
+---
+
+## 🤖 Combo-Aware Enemy AI
+
+Enemies with combo-aware AI can sequence their actions intelligently, using starter and finisher cards within the same combat window or across units in the same enemy party.
+
+### Features
+
+- Tracks last used card and synergy tags.
+- Prioritizes combo finishers if a valid setup occurred within X turns.
+- Weighs target selection based on status (e.g., marked, poisoned, stunned).
+- Elite groups may share synergy memory for group-wide combos.
+
+### EnemyAIProfile Additions
+
+```csharp
+public bool enableComboAwareness;
+public int comboWindowTurns = 2;
+public bool prefersFinisherChains;
+public string[] preferredComboTags;
+```
+
+### Sample Chain
+
+- **Turn 1**: Spore Witch casts "Mark Target" (isComboStarter, synergyTag: Execute)
+- **Turn 2**: Mushroom Shaman casts "Shadow Execution" (isComboFinisher, synergyTag: Execute)
+
+---
+
