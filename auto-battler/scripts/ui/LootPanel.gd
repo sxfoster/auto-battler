@@ -93,17 +93,17 @@ func populate_loot_display():
 		name_label.text = "%s (%s)" % [item_data.get("name", "Unknown Item"), rarity_str]
 		details_vbox.add_child(name_label)
 
-		var tags_label = Label.new()
-		var tags_array = item_data.get("tags", [])
-		if tags_array is Array and not tags_array.is_empty():
-			tags_label.text = ", ".join(tags_array)
-		else:
-			tags_label.text = "" # Hide if no tags, or "No special tags"
-			tags_label.visible = false
-			tags_label.add_theme_font_size_override("font_size", 12)
-			details_vbox.add_child(tags_label)
+                var tags_label = Label.new()
+                var tags_array = item_data.get("tags", [])
+                if tags_array is Array and not tags_array.is_empty():
+                        tags_label.text = ", ".join(tags_array)
+                else:
+                        tags_label.text = "" # Hide if no tags, or "No special tags"
+                        tags_label.visible = false
+                tags_label.add_theme_font_size_override("font_size", 12)
+                details_vbox.add_child(tags_label)
 
-		var add_button = Button.new()
+                var add_button = Button.new()
 		add_button.text = "Add" # Shorter text
 		add_button.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 		add_button.pressed.connect(_on_add_item_button_pressed.bind(item_data, add_button, item_entry_hbox))

@@ -1,5 +1,5 @@
 extends Node
-class_name CombatManager
+class_name AutoCombatManager
 
 ## Manages turn-based combat for the Survival Dungeon CCG Auto-Battler.
 ## Handles party and enemy combatants, turn order, and card usage.
