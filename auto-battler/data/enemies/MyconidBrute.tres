@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="EnemyData" load_steps=2 format=3 uid="uid://myconidbrute01"]
+
+[ext_resource type="Script" uid="uid://b7cd3dx14xek6" path="res://scripts/data/EnemyData.gd" id="1_dxswm"]
+
+[resource]
+script = ExtResource("1_dxswm")
+enemy_name = "Myconid Brute"
+description = "A hulking fungal warrior covered in thick, protective hide."
+enemy_type = 0
+abilities = ["Fungal Slam", "Thick Hide"]
+base_hp = 20
+base_attack = 4
+speed_modifier = 1
+loot_table = ["Brute Plate", "Dense Spores"]
+encounter_weight = 2
+icon_path = "res://assets/enemies/myconid_brute.png"
+passive_traits = ["High damage resistance", "Slow but relentless"]
+metadata/_custom_type_script = "uid://b7cd3dx14xek6"
