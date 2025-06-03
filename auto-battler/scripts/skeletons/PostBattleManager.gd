@@ -1,7 +1,7 @@
 # PostBattleManager.gd
 # Skeleton for applying rewards and penalties after combat.
 
-class_name PostBattleManager
+class_name PostBattleManagerSkeleton
 extends Node
 
 ## Signals to inform GameManager of completion and suggested transitions.

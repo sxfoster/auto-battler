@@ -49,8 +49,8 @@ func generate_procedural_map() -> void:
     # Node types: combat, loot, event (generic text-based), rest, trap (a type of event)
     var node_types := ["combat", "loot", "event", "rest", "trap"]
 
-    for i in node_count:
-        var node_type := node_types[randi() % node_types.size()]
+    for i in range(node_count):
+        var node_type = node_types[randi() % node_types.size()]
         # Ensure the first node is typically combat or a starting event
         if i == 0:
             node_type = "combat"
@@ -317,7 +317,7 @@ func update_party_status_display() -> void:
         var status_label := get_node_or_null(label_path) as Label
 
         if status_label and current_party_status.has(member_key):
-            var stats := current_party_status[member_key]
+            var stats = current_party_status[member_key]
             status_label.text = "Member %d: HP %d/%d, F:%d, W:%d, E:%d" % [
                 i, stats.hp, stats.max_hp, stats.food, stats.water, stats.energy]
         elif not status_label and get_parent(): # Only print error if part of a scene tree

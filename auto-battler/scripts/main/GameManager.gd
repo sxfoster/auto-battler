@@ -82,8 +82,8 @@ func _ready() -> void:
             post_battle_manager.post_battle_processing_complete.connect(on_post_battle_processing_complete)
         if not post_battle_manager.transition_to_map_requested.is_connected(on_transition_to_map_requested):
             post_battle_manager.transition_to_map_requested.connect(on_transition_to_map_requested)
-        if not post_battle_manager.transition_to_rest_requested.is_connected(on_transition_to_rest_requested):
-            post_battle_manager.transition_to_rest_requested.connect(on_transition_to_rest_requested)
+        if not post_battle_manager.transition_to_rest_requested.is_connected(on_transition_to_rest_requested_from_post_battle):
+            post_battle_manager.transition_to_rest_requested.connect(on_transition_to_rest_requested_from_post_battle)
         if not post_battle_manager.transition_to_game_over_requested.is_connected(on_game_over_requested):
             post_battle_manager.transition_to_game_over_requested.connect(on_game_over_requested)
     else:
@@ -403,7 +403,7 @@ func on_transition_to_map_requested() -> void:
 
 
 ## Called by PostBattleManager if it determines the next state is rest.
-func on_transition_to_rest_requested() -> void:
+func on_transition_to_rest_requested_from_post_battle() -> void:
     print("GameManager: Transition to rest requested by PostBattleManager.")
     on_transition_to_rest_requested({}) # Call the main handler, pass empty dict if no specific data from PBM
 
