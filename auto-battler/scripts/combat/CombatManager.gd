@@ -37,7 +37,8 @@ class Combatant:
         # Ensure assigned_cards is always an array, even if empty
         var card_key = "assigned_cards" if is_player else "abilities"
         assigned_cards = data_resource.get(card_key) if data_resource.has(card_key) and data_resource.get(card_key) != null else []
-        current_hp = data_resource.get("base_hp") ?? 10 # Default to 10 HP if not specified
+        var base_hp_val = data_resource.get("base_hp")
+        current_hp = base_hp_val if base_hp_val != null else 10 # Default to 10 HP if not specified
         # Note: Initial fatigue, hunger, thirst from source_data are not directly used by Combatant during combat itself.
         # They are more relevant for the PostBattleManager or overall GameManager.
 
@@ -50,7 +51,8 @@ class Combatant:
 
     func get_name() -> String:
         var name_key = is_player_side ? "character_name" : "enemy_name"
-        return source_data.get(name_key) ?? "Unknown Combatant"
+        var n = source_data.get(name_key)
+        return n if n != null else "Unknown Combatant"
 
 func _ready() -> void:
     # Potential future use: Connect to UI signals if a combat UI scene is directly managed here.
@@ -142,7 +144,11 @@ func _build_turn_order() -> void:
     # Sort by speed (higher speed goes first)
     # Assumes combatants have a 'speed_modifier' or similar attribute in their source_data
     turn_order.sort_custom(func(a, b):
-        return (a.source_data.get("speed_modifier") ?? 0) > (b.source_data.get("speed_modifier") ?? 0)
+        var a_speed = a.source_data.get("speed_modifier")
+        a_speed = a_speed if a_speed != null else 0
+        var b_speed = b.source_data.get("speed_modifier")
+        b_speed = b_speed if b_speed != null else 0
+        return a_speed > b_speed
     )
 
     var turn_order_names = []
@@ -181,7 +187,8 @@ func _process_actor_turn(actor: Combatant) -> void:
         potential_targets = _get_living_combatants(party_members)
 
     if potential_targets.is_empty():
-        var card_name = card_to_play.get("card_name") ?? "Unknown Card"
+        var card_name_val = card_to_play.get("card_name")
+        var card_name = card_name_val if card_name_val != null else "Unknown Card"
         _log(actor.get_name() + " has no valid targets for " + card_name)
         return
 
@@ -196,7 +203,8 @@ func _process_actor_turn(actor: Combatant) -> void:
     for t in actual_targets:
         target_names.append(t.get_name())
 
-    var play_name = card_to_play.get("card_name") ?? "a card"
+    var play_name_val = card_to_play.get("card_name")
+    var play_name = play_name_val if play_name_val != null else "a card"
     _log("%s uses %s on %s" % [
         actor.get_name(),
         play_name,
@@ -204,7 +212,10 @@ func _process_actor_turn(actor: Combatant) -> void:
     ])
     # Detailed card effect resolution here (damage, healing, status application)
     # Example: Apply damage from card
-    var damage = card_to_play.get("damage_amount") ?? (actor.source_data.get("base_attack") ?? 1)
+    var damage_val = card_to_play.get("damage_amount")
+    var base_attack_val = actor.source_data.get("base_attack")
+    var default_attack = base_attack_val if base_attack_val != null else 1
+    var damage = damage_val if damage_val != null else default_attack
     if damage > 0:
         for target_combatant in actual_targets:
             target_combatant.current_hp -= damage
@@ -270,7 +281,11 @@ func _get_final_party_state() -> Array[Dictionary]:
     var final_state_array: Array[Dictionary] = []
     for member_combatant in party_members:
         var state = {
-            "source_data_id": member_combatant.source_data.get("id") ?? "unknown_id", # Assuming source_data has an ID
+            "source_data_id": (
+                member_combatant.source_data.get("id")
+                if member_combatant.source_data.get("id") != null
+                else "unknown_id"
+            ), # Assuming source_data has an ID
             "current_hp": member_combatant.current_hp,
             "statuses": member_combatant.statuses.duplicate(true) # Deep copy statuses
             # Add other relevant data like remaining card uses, etc., if needed by PostBattleManager
@@ -290,7 +305,8 @@ func _distribute_loot_and_xp() -> void:
             if enemy_combatant.source_data.has("loot_table"):
                 for item_resource in enemy_combatant.source_data.loot_table:
                     loot_gained.append(item_resource) # Assuming items are resources
-            xp_gained += enemy_combatant.source_data.get("xp_value") ?? 10 # Default 10 XP
+            var xp_val = enemy_combatant.source_data.get("xp_value")
+            xp_gained += xp_val if xp_val != null else 10 # Default 10 XP
     _log("Loot gained: %s, XP gained: %d" % [str(loot_gained.size()) + " items" if not loot_gained.is_empty() else "None", xp_gained])
 
 
@@ -329,9 +345,12 @@ func _update_ui() -> void:
 func _apply_survival_penalties() -> void:
     for member in party_members:
         if member.source_data:
-            member.source_data.fatigue = (member.source_data.get("fatigue") ?? 0) + 1
-            member.source_data.hunger = (member.source_data.get("hunger") ?? 0) + 1
-            member.source_data.thirst = (member.source_data.get("thirst") ?? 0) + 1
+            var fatigue_val = member.source_data.get("fatigue")
+            member.source_data.fatigue = (fatigue_val if fatigue_val != null else 0) + 1
+            var hunger_val = member.source_data.get("hunger")
+            member.source_data.hunger = (hunger_val if hunger_val != null else 0) + 1
+            var thirst_val = member.source_data.get("thirst")
+            member.source_data.thirst = (thirst_val if thirst_val != null else 0) + 1
 
 
 # --- Functions to be removed or refactored from original ---
