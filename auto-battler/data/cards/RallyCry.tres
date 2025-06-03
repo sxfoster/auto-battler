@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="CardData" load_steps=2 format=3 uid="uid://rally_cry"]
+
+[ext_resource type="Script" uid="uid://d28ph5bgy4xlp" path="res://scripts/data/CardData.gd" id="1_rc"]
+
+[resource]
+script = ExtResource("1_rc")
+card_name = "Rally Cry"
+description = "Inspire allies, boosting attack."
+card_type = 2
+role_restriction = "Support"
+class_restriction = "Bard"
+effect_description = "All allies +1 damage for next attack."
+rarity = 0
+icon_path = "res://assets/cards/rally_cry.png"
+synergy_tags = Array[String]([])
+energy_cost = 1
+is_combo_starter = false
+is_combo_finisher = false
+metadata/_custom_type_script = "uid://d28ph5bgy4xlp"

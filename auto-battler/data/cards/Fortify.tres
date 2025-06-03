@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="CardData" load_steps=2 format=3 uid="uid://fortify"]
+
+[ext_resource type="Script" uid="uid://d28ph5bgy4xlp" path="res://scripts/data/CardData.gd" id="1_ft"]
+
+[resource]
+script = ExtResource("1_ft")
+card_name = "Fortify"
+description = "Harden defenses for a short period."
+card_type = 2
+role_restriction = "Tank"
+class_restriction = "Warrior"
+effect_description = "+1 Armor (2 turns)."
+rarity = 0
+icon_path = "res://assets/cards/fortify.png"
+synergy_tags = Array[String](["TauntSynergy"])
+energy_cost = 1
+is_combo_starter = false
+is_combo_finisher = false
+metadata/_custom_type_script = "uid://d28ph5bgy4xlp"

@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="CardData" load_steps=2 format=3 uid="uid://bless"]
+
+[ext_resource type="Script" uid="uid://d28ph5bgy4xlp" path="res://scripts/data/CardData.gd" id="1_bl"]
+
+[resource]
+script = ExtResource("1_bl")
+card_name = "Bless"
+description = "Enhance an ally’s next action."
+card_type = 2
+role_restriction = "Healer"
+class_restriction = "Any"
+effect_description = "Next ability used by target gets +1 effect."
+rarity = 0
+icon_path = "res://assets/cards/bless.png"
+synergy_tags = Array[String]([])
+energy_cost = 1
+is_combo_starter = false
+is_combo_finisher = false
+metadata/_custom_type_script = "uid://d28ph5bgy4xlp"

@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="CardData" load_steps=2 format=3 uid="uid://arcane_spark"]
+
+[ext_resource type="Script" uid="uid://d28ph5bgy4xlp" path="res://scripts/data/CardData.gd" id="1_as"]
+
+[resource]
+script = ExtResource("1_as")
+card_name = "Arcane Spark"
+description = "Burst of magical energy."
+card_type = 1
+role_restriction = "DPS"
+class_restriction = "Wizard"
+effect_description = "2–4 magic damage."
+rarity = 0
+icon_path = "res://assets/cards/arcane_spark.png"
+synergy_tags = Array[String]([])
+energy_cost = 1
+is_combo_starter = false
+is_combo_finisher = false
+metadata/_custom_type_script = "uid://d28ph5bgy4xlp"
