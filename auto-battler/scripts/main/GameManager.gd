@@ -237,6 +237,37 @@ func get_current_dungeon_state() -> Dictionary:
 func get_current_game_phase() -> String:
     return current_game_phase
 
+## Helper to check if at least one party member is alive
+func _party_is_alive() -> bool:
+    for member in current_party_members:
+        if member.get("hp", 0) > 0:
+            return true
+    return false
+
+## Ends the current run and optionally starts another
+##  save_slot: if provided, game state will be saved to this slot
+##  show_results: display a summary/run results scene before returning to menu
+##  repeat: immediately start a new run with surviving party members
+func end_current_run(save_slot: String = "", show_results: bool = false, repeat: bool = false, results_scene: String = "res://auto-battler/scenes/MainMenu.tscn") -> void:
+    print("GameManager: Ending current run.")
+    if save_slot != "":
+        save_game_state(save_slot)
+
+    var survivors := current_party_members.duplicate(true)
+
+    if repeat and _party_is_alive():
+        print("GameManager: Restarting run with surviving party.")
+        start_new_run(survivors)
+        return
+
+    reset_game_state()
+
+    if show_results:
+        # A dedicated summary scene could be shown here. Use the provided scene path or main menu as placeholder.
+        _change_game_phase_and_scene("run_summary", results_scene)
+    else:
+        _change_game_phase_and_scene("main_menu", "res://auto-battler/scenes/MainMenu.tscn")
+
 
 # --- Scene/Phase Transition Logic ---
 ## Helper function to change game phase and current scene.
@@ -429,7 +460,8 @@ func on_transition_to_rest_requested_from_post_battle() -> void:
 ## Called by PostBattleManager if it determines the game should end.
 func on_game_over_requested() -> void:
     print("GameManager: Game over requested.")
-    _change_game_phase_and_scene("game_over", "res://auto-battler/scenes/GameOverScreen.tscn") # Example path
+    # Show game over screen, then return to menu when player acknowledges
+    end_current_run("autosave", true, false, "res://auto-battler/scenes/GameOverScreen.tscn")
 
 
 ## Called when RestManager signals to continue exploration.
@@ -446,9 +478,8 @@ func on_rest_continue_exploration(updated_party_data: Array) -> void:
 func on_rest_exit_dungeon(updated_party_data: Array) -> void:
     print("GameManager: Exiting dungeon after rest.")
     current_party_members = updated_party_data.duplicate(true)
-    # Handle logic for exiting the dungeon (e.g., back to a main menu, town hub).
-    # This could also be a "run_summary" scene.
-    _change_game_phase_and_scene("main_menu", "res://auto-battler/scenes/MainMenu.tscn") # Example path
+    # Save progress and return to main menu or a summary screen
+    end_current_run("autosave", true)
 
 # Remove old scene transition logic if fully replaced.
 # The old on_combat_finished, on_loot_complete, on_rest_complete are now handled by the new signal system.
