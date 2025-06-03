@@ -1,7 +1,7 @@
 extends Resource
 class_name ProfessionData
 
-## A Resource representing a character profession for crafting or other systems
+## Resource representing a crafting profession and its progression.
 
 @export var profession_name: String = ""
 @export var description: String = ""

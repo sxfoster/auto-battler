@@ -6,26 +6,25 @@ class_name EnemyData
 
 # Types of enemies that can appear in the game.
 enum EnemyType {
-    Creature, # Changed
-    DemiHuman, # Changed
-    Undead, # Changed
-    Boss # Changed
+    Creature,
+    DemiHuman,
+    Undead,
+    Boss
 }
 
 @export var enemy_name: String = ""
 @export var description: String = ""
 @export var enemy_type: EnemyType = EnemyType.Creature
-# List of abilities this enemy can use. Each entry can be a CardData resource.
-# While strings could also be used to refer to ability names, Array[Resource]
-# is used for stronger typing in the editor for CardData instances.
-@export var abilities: Array[Resource] = []
+# List of abilities this enemy can use.
+# Entries may be ability names or CardData resources.
+@export var abilities: Array = [] # Array[String] or CardData
 
 @export var base_hp: int = 0
 @export var base_attack: int = 0
 @export var speed_modifier: int = 0
 
 # Array describing the potential loot dropped when this enemy is defeated.
-@export var loot_table: Array = []
+@export var loot_table: Array[String] = []
 
 # Higher values make this enemy more likely to appear in random encounters.
 @export var encounter_weight: int = 1

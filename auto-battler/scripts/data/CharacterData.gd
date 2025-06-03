@@ -1,7 +1,7 @@
 extends Resource
 class_name CharacterData
 
-## Resource representing a party member for the CCG auto-battler.
+## Resource representing a party member in the Survival Dungeon CCG.
 ## Saved as .tres files for use in the editor.
 
 # Roles a character can fulfill in combat.
