@@ -20,6 +20,17 @@ horizontal_alignment = 1
 columns = 5
 custom_minimum_size = Vector2(0,150)
 
+[node name="ItemButtons" type="HBoxContainer" parent="VBox"]
+
+[node name="UseFoodButton" type="Button" parent="ItemButtons"]
+text = "Use Food"
+
+[node name="UseDrinkButton" type="Button" parent="ItemButtons"]
+text = "Use Drink"
+
+[node name="CraftButton" type="Button" parent="ItemButtons"]
+text = "Craft"
+
 [node name="RestProgressLabel" type="Label" parent="VBox"]
 text = "Resting..."
 visible = false
@@ -28,3 +39,6 @@ visible = false
 text = "Continue"
 
 [connection signal="pressed" from="ContinueButton" to="." method="_on_continue_button_pressed"]
+[connection signal="pressed" from="ItemButtons/UseFoodButton" to="." method="_on_use_food_button_pressed"]
+[connection signal="pressed" from="ItemButtons/UseDrinkButton" to="." method="_on_use_drink_button_pressed"]
+[connection signal="pressed" from="ItemButtons/CraftButton" to="." method="_on_craft_button_pressed"]

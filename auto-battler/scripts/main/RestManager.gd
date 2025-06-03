@@ -101,6 +101,10 @@ func _on_continue_exploration_pressed() -> void:
     print("RestManager: Continue exploration pressed.")
     emit_signal("rest_continue_exploration", get_updated_party_data())
 
+func on_rest_continue() -> void:
+    print("RestManager: on_rest_continue called")
+    _on_continue_exploration_pressed()
+
 # Called when the "Exit Dungeon" button is pressed in the UI.
 func _on_exit_dungeon_pressed() -> void:
     # Future implementation:

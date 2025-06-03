@@ -8,10 +8,18 @@ signal rest_completed
 @export var party_status_grid_path: NodePath = NodePath("VBox/PartyStatusGrid")
 @export var rest_progress_label_path: NodePath = NodePath("VBox/RestProgressLabel")
 @export var continue_button_path: NodePath = NodePath("VBox/ContinueButton")
+@export var use_food_button_path: NodePath = NodePath("VBox/ItemButtons/UseFoodButton")
+@export var use_drink_button_path: NodePath = NodePath("VBox/ItemButtons/UseDrinkButton")
+@export var craft_button_path: NodePath = NodePath("VBox/ItemButtons/CraftButton")
+@export var rest_manager_path: NodePath = NodePath("../RestManager")
 
 @onready var party_status_grid: GridContainer = get_node(party_status_grid_path)
 @onready var rest_progress_label: Label = get_node(rest_progress_label_path)
 @onready var _continue_button: Button = get_node(continue_button_path)
+@onready var _use_food_button: Button = get_node_or_null(use_food_button_path)
+@onready var _use_drink_button: Button = get_node_or_null(use_drink_button_path)
+@onready var _craft_button: Button = get_node_or_null(craft_button_path)
+@onready var _rest_manager: Node = get_node_or_null(rest_manager_path)
 # Add @onready vars for food/drink buttons if they are dynamic
 
 # Placeholder for party data. In a real game, this would come from GameManager or PartyManager
@@ -81,8 +89,24 @@ func _on_use_food_drink_pressed(item_effect_data: Dictionary):
 		# You might want to consume the item from inventory here
 		# InventoryManager.consume_item(item_effect_data.name) # Assuming item_effect_data has a unique name/id
 		add_rest_log_entry("Applied %s to %s. New %s: %d" % [item_effect_data.get("name", "Item"), party_members_data[target_member_key].name, stat_to_change, party_members_data[target_member_key][stat_to_change]])
-	else:
-		add_rest_log_entry("Error: Stat '%s' or '%s' not found for %s." % [stat_to_change, max_stat_key, party_members_data[target_member_key].name])
+        else:
+                add_rest_log_entry("Error: Stat '%s' or '%s' not found for %s." % [stat_to_change, max_stat_key, party_members_data[target_member_key].name])
+
+
+func _on_use_food_button_pressed() -> void:
+        var food_effect := {"name": "Ration", "target_stat": "hunger", "value": 20}
+        _on_use_food_drink_pressed(food_effect)
+
+
+func _on_use_drink_button_pressed() -> void:
+        var drink_effect := {"name": "Water", "target_stat": "thirst", "value": 20}
+        _on_use_food_drink_pressed(drink_effect)
+
+
+func _on_craft_button_pressed() -> void:
+        print("Crafting button pressed")
+        if _rest_manager and _rest_manager.has_method("_on_crafting_invoked"):
+                _rest_manager._on_crafting_invoked()
 
 
 func add_rest_log_entry(log_text: String):
@@ -106,11 +130,13 @@ func _on_continue_button_pressed():
 	update_party_status_display() # Update display after final changes
 	add_rest_log_entry("Journey continues. Party is somewhat rested.")
 
-	await get_tree().create_timer(1.0).timeout # Brief pause to show final log
+        await get_tree().create_timer(1.0).timeout # Brief pause to show final log
 
         emit_signal("rest_completed")
-	# Transition to the next scene (e.g., DungeonMap or a post-rest summary)
-	# Example: get_tree().change_scene_to_file("res://scenes/DungeonMap.tscn")
+        if _rest_manager and _rest_manager.has_method("on_rest_continue"):
+                _rest_manager.on_rest_continue()
+        # Transition to the next scene (e.g., DungeonMap or a post-rest summary)
+        # Example: get_tree().change_scene_to_file("res://scenes/DungeonMap.tscn")
 
 
 # Call this function if party data changes from an external source
