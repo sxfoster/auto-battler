@@ -8,7 +8,7 @@ static func get_enemies() -> Array[EnemyData]:
     var rotgrub_swarm := EnemyData.new()
     rotgrub_swarm.enemy_name = "Rotgrub Swarm"
     rotgrub_swarm.description = "A mass of hungry, biting grubs that overwhelm foes with numbers."
-    rotgrub_swarm.enemy_type = EnemyData.EnemyType.CREATURE
+    rotgrub_swarm.enemy_type = EnemyData.EnemyType.Creature
     rotgrub_swarm.abilities = ["Bite Swarm", "Burrow Latch"]
     rotgrub_swarm.base_hp = 9
     rotgrub_swarm.base_attack = 2
@@ -22,7 +22,7 @@ static func get_enemies() -> Array[EnemyData]:
     var spore_witch := EnemyData.new()
     spore_witch.enemy_name = "Spore Witch"
     spore_witch.description = "A twisted sorcerer harnessing hallucinogenic spores."
-    spore_witch.enemy_type = EnemyData.EnemyType.DEMI_HUMAN
+    spore_witch.enemy_type = EnemyData.EnemyType.DemiHuman
     spore_witch.abilities = ["Spore Veil", "Heal Fungus"]
     spore_witch.base_hp = 12
     spore_witch.base_attack = 3
@@ -36,7 +36,7 @@ static func get_enemies() -> Array[EnemyData]:
     var myconid_brute := EnemyData.new()
     myconid_brute.enemy_name = "Myconid Brute"
     myconid_brute.description = "Hulking fungal giant with armor-like hide."
-    myconid_brute.enemy_type = EnemyData.EnemyType.CREATURE
+    myconid_brute.enemy_type = EnemyData.EnemyType.Creature
     myconid_brute.abilities = ["Fungal Slam", "Thick Hide"]
     myconid_brute.base_hp = 15
     myconid_brute.base_attack = 4
@@ -50,7 +50,7 @@ static func get_enemies() -> Array[EnemyData]:
     var mushroom_shaman := EnemyData.new()
     mushroom_shaman.enemy_name = "Mushroom Shaman"
     mushroom_shaman.description = "Fungal mystic with powers over mind and decay."
-    mushroom_shaman.enemy_type = EnemyData.EnemyType.DEMI_HUMAN
+    mushroom_shaman.enemy_type = EnemyData.EnemyType.DemiHuman
     mushroom_shaman.abilities = ["Mind Spore", "Hallucinate"]
     mushroom_shaman.base_hp = 11
     mushroom_shaman.base_attack = 3
