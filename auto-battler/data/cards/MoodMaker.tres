@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="CardData" load_steps=2 format=3 uid="uid://mood_maker"]
+
+[ext_resource type="Script" uid="uid://d28ph5bgy4xlp" path="res://scripts/data/CardData.gd" id="1_mm"]
+
+[resource]
+script = ExtResource("1_mm")
+card_name = "Mood Maker"
+description = "Bestows a random buff to an ally."
+card_type = 2
+role_restriction = "Support"
+class_restriction = "Bard"
+effect_description = "Random: +1 ATK, +1 DEF, or +1 Energy Regen."
+rarity = 0
+icon_path = "res://assets/cards/mood_maker.png"
+synergy_tags = Array[String]([])
+energy_cost = 1
+is_combo_starter = false
+is_combo_finisher = false
+metadata/_custom_type_script = "uid://d28ph5bgy4xlp"

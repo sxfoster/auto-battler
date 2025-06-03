@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="CardData" load_steps=2 format=3 uid="uid://iron_will"]
+
+[ext_resource type="Script" uid="uid://d28ph5bgy4xlp" path="res://scripts/data/CardData.gd" id="1_iw"]
+
+[resource]
+script = ExtResource("1_iw")
+card_name = "Iron Will"
+description = "Resist debuffs and control effects."
+card_type = 2
+role_restriction = "Tank"
+class_restriction = "Any"
+effect_description = "Immune to debuffs this round."
+rarity = 0
+icon_path = "res://assets/cards/iron_will.png"
+synergy_tags = Array[String]([])
+energy_cost = 1
+is_combo_starter = false
+is_combo_finisher = false
+metadata/_custom_type_script = "uid://d28ph5bgy4xlp"

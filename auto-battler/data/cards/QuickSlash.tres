@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="CardData" load_steps=2 format=3 uid="uid://quick_slash"]
+
+[ext_resource type="Script" uid="uid://d28ph5bgy4xlp" path="res://scripts/data/CardData.gd" id="1_qs"]
+
+[resource]
+script = ExtResource("1_qs")
+card_name = "Quick Slash"
+description = "Fast melee attack."
+card_type = 1
+role_restriction = "DPS"
+class_restriction = "Blademaster"
+effect_description = "2–4 damage, physical."
+rarity = 0
+icon_path = "res://assets/cards/quick_slash.png"
+synergy_tags = Array[String]([])
+energy_cost = 1
+is_combo_starter = false
+is_combo_finisher = false
+metadata/_custom_type_script = "uid://d28ph5bgy4xlp"
