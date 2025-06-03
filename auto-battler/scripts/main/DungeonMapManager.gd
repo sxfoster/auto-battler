@@ -8,6 +8,7 @@ signal node_interaction_selected(node_data: Dictionary)
 signal transition_to_combat(combat_setup_data: Dictionary)
 signal transition_to_loot_event(loot_event_data: Dictionary) # For both loot and generic events
 signal transition_to_rest(rest_setup_data: Dictionary)
+signal node_selected(node_type: String)
 
 @onready var nodes_container: HBoxContainer = $MapNodesContainer # UI container for map node buttons
 # Optional: Preload scenes for popups if they remain part of this manager
@@ -154,6 +155,11 @@ func on_node_button_pressed(node_id: int) -> void:
 
         if current_node_data and node_id in current_node_data.connections and not node_id in visited_node_ids:
             emit_signal("node_interaction_selected", selected_node_data)
+            emit_signal("node_selected", selected_node_data.type)
+            if Engine.has_singleton("GameManager"):
+                var gm = Engine.get_singleton("GameManager")
+                if gm.has_method("on_map_node_selected"):
+                    gm.on_map_node_selected(selected_node_data.type)
         else:
             print("Invalid node selection or already visited: ", node_id)
     else:
