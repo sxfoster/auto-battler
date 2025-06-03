@@ -1,6 +1,6 @@
 [gd_scene load_steps=2 format=3 uid="uid://c6vj0w0jqy7hx"]
 
-[ext_resource type="Script" path="res://scripts/ui/PartySetup.gd" id="1_abcde"]
+[ext_resource type="Script" uid="uid://dp5sxi2lnxtoh" path="res://scripts/ui/PartySetup.gd" id="1_abcde"]
 
 [node name="PartySetup" type="Control"]
 layout_mode = 3
@@ -28,8 +28,7 @@ alignment = 1
 [node name="Portrait1" type="TextureRect" parent="HBoxContainer/PartyMemberSlot1"]
 layout_mode = 2
 size_flags_vertical = 3
-# Placeholder texture or color
-expand_mode = 1
+#Placeholdertextureorcolorexpand_mode = 1
 stretch_mode = 5
 
 [node name="NameLabel1" type="Label" parent="HBoxContainer/PartyMemberSlot1"]
@@ -39,7 +38,11 @@ horizontal_alignment = 1
 
 [node name="StatsLabel1" type="Label" parent="HBoxContainer/PartyMemberSlot1"]
 layout_mode = 2
-text = "HP: 100\nRole: Warrior\nClass: Fighter\nFood: 100\nWater: 100"
+text = "HP: 100
+Role: Warrior
+Class: Fighter
+Food: 100
+Water: 100"
 horizontal_alignment = 1
 
 [node name="CardsLabel1" type="Label" parent="HBoxContainer/PartyMemberSlot1"]
@@ -51,20 +54,17 @@ horizontal_alignment = 1
 layout_mode = 2
 text = "Equipped Gear"
 horizontal_alignment = 1
-
-# Repeat PartyMemberSlot for 5 members (PartyMemberSlot2 to PartyMemberSlot5)
-# ... (similar structure for members 2-5) ...
-
-[node name="PartyMemberSlot2" type="VBoxContainer" parent="HBoxContainer"]
-layout_mode = 2
+"#RepeatPartyMemberSlotfor5members(PartyMemberSlot2toPartyMemberSlot5)#...(similarstructureformembers2-5)...[nodename" = "PartyMemberSlot2"
+type = "VBoxContainer"
+parent = "HBoxContainer"
+"]layout_mode" = 2
 size_flags_horizontal = 3
 alignment = 1
 
 [node name="Portrait2" type="TextureRect" parent="HBoxContainer/PartyMemberSlot2"]
 layout_mode = 2
 size_flags_vertical = 3
-# Placeholder texture or color
-expand_mode = 1
+#Placeholdertextureorcolorexpand_mode = 1
 stretch_mode = 5
 
 [node name="NameLabel2" type="Label" parent="HBoxContainer/PartyMemberSlot2"]
@@ -74,7 +74,11 @@ horizontal_alignment = 1
 
 [node name="StatsLabel2" type="Label" parent="HBoxContainer/PartyMemberSlot2"]
 layout_mode = 2
-text = "HP: 100\nRole: Mage\nClass: Wizard\nFood: 100\nWater: 100"
+text = "HP: 100
+Role: Mage
+Class: Wizard
+Food: 100
+Water: 100"
 horizontal_alignment = 1
 
 [node name="CardsLabel2" type="Label" parent="HBoxContainer/PartyMemberSlot2"]
@@ -95,8 +99,7 @@ alignment = 1
 [node name="Portrait3" type="TextureRect" parent="HBoxContainer/PartyMemberSlot3"]
 layout_mode = 2
 size_flags_vertical = 3
-# Placeholder texture or color
-expand_mode = 1
+#Placeholdertextureorcolorexpand_mode = 1
 stretch_mode = 5
 
 [node name="NameLabel3" type="Label" parent="HBoxContainer/PartyMemberSlot3"]
@@ -106,7 +109,11 @@ horizontal_alignment = 1
 
 [node name="StatsLabel3" type="Label" parent="HBoxContainer/PartyMemberSlot3"]
 layout_mode = 2
-text = "HP: 100\nRole: Rogue\nClass: Assassin\nFood: 100\nWater: 100"
+text = "HP: 100
+Role: Rogue
+Class: Assassin
+Food: 100
+Water: 100"
 horizontal_alignment = 1
 
 [node name="CardsLabel3" type="Label" parent="HBoxContainer/PartyMemberSlot3"]
@@ -127,8 +134,7 @@ alignment = 1
 [node name="Portrait4" type="TextureRect" parent="HBoxContainer/PartyMemberSlot4"]
 layout_mode = 2
 size_flags_vertical = 3
-# Placeholder texture or color
-expand_mode = 1
+#Placeholdertextureorcolorexpand_mode = 1
 stretch_mode = 5
 
 [node name="NameLabel4" type="Label" parent="HBoxContainer/PartyMemberSlot4"]
@@ -138,7 +144,11 @@ horizontal_alignment = 1
 
 [node name="StatsLabel4" type="Label" parent="HBoxContainer/PartyMemberSlot4"]
 layout_mode = 2
-text = "HP: 100\nRole: Cleric\nClass: Priest\nFood: 100\nWater: 100"
+text = "HP: 100
+Role: Cleric
+Class: Priest
+Food: 100
+Water: 100"
 horizontal_alignment = 1
 
 [node name="CardsLabel4" type="Label" parent="HBoxContainer/PartyMemberSlot4"]
@@ -159,8 +169,7 @@ alignment = 1
 [node name="Portrait5" type="TextureRect" parent="HBoxContainer/PartyMemberSlot5"]
 layout_mode = 2
 size_flags_vertical = 3
-# Placeholder texture or color
-expand_mode = 1
+#Placeholdertextureorcolorexpand_mode = 1
 stretch_mode = 5
 
 [node name="NameLabel5" type="Label" parent="HBoxContainer/PartyMemberSlot5"]
@@ -170,7 +179,11 @@ horizontal_alignment = 1
 
 [node name="StatsLabel5" type="Label" parent="HBoxContainer/PartyMemberSlot5"]
 layout_mode = 2
-text = "HP: 100\nRole: Ranger\nClass: Archer\nFood: 100\nWater: 100"
+text = "HP: 100
+Role: Ranger
+Class: Archer
+Food: 100
+Water: 100"
 horizontal_alignment = 1
 
 [node name="CardsLabel5" type="Label" parent="HBoxContainer/PartyMemberSlot5"]
@@ -182,7 +195,6 @@ horizontal_alignment = 1
 layout_mode = 2
 text = "Equipped Gear"
 horizontal_alignment = 1
-
 
 [node name="ReadyButton" type="Button" parent="."]
 layout_mode = 1

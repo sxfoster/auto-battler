@@ -1,9 +1,9 @@
-[gd_scene format=3]
+[gd_scene load_steps=2 format=3 uid="uid://b201p5jvvtfib"]
 
-[ext_resource path="res://scripts/main/DungeonMapManager.gd" type="Script" id=1]
+[ext_resource type="Script" uid="uid://io8v7vjm8uk7" path="res://scripts/main/DungeonMapManager.gd" id="1"]
 
 [node name="DungeonMap" type="Control"]
-script = ExtResource(1)
+script = ExtResource("1")
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0

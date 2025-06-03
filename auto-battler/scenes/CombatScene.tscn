@@ -1,6 +1,6 @@
 [gd_scene load_steps=2 format=3 uid="uid://cqx705wscy5vt"]
 
-[ext_resource type="Script" path="res://scripts/combat/CombatScene.gd" id="1_klmno"]
+[ext_resource type="Script" uid="uid://c5qpnq7d2jtrt" path="res://scripts/combat/CombatScene.gd" id="1_klmno"]
 
 [node name="CombatScene" type="Control"]
 layout_mode = 3
@@ -21,90 +21,97 @@ grow_vertical = 2
 
 [node name="TopBar" type="HBoxContainer" parent="Main 전투 Layout"]
 layout_mode = 2
-alignment = 2 # Align to the right for pause/speed buttons
-
-[node name="PauseButton" type="Button" parent="Main 전투 Layout/TopBar"]
-layout_mode = 2
+alignment = 2
+"#Aligntotherightforpause/speedbuttons[nodename" = "PauseButton"
+type = "Button"
+parent = "Main 전투 Layout/TopBar"
+"]layout_mode" = 2
 text = "Pause"
 
 [node name="SpeedUpButton" type="Button" parent="Main 전투 Layout/TopBar"]
 layout_mode = 2
 text = "Speed Up x1"
 
-
 [node name="BattleArea" type="HBoxContainer" parent="Main 전투 Layout"]
 layout_mode = 2
-size_flags_vertical = 3 # Make this area take most of the vertical space
-alignment = 1 # Center children
-
-[node name="PartyPanel" type="VBoxContainer" parent="Main 전투 Layout/BattleArea"]
-layout_mode = 2
-size_flags_horizontal = 3 # Party takes up some space
-alignment = 1
-# Placeholder for PartyMemberPanel instances
-
-[node name="PartyMember1" type="PanelContainer" parent="Main 전투 Layout/BattleArea/PartyPanel"]
-layout_mode = 2
-# child will be PartyMemberPanel.tscn instance
-[node name="Label" type="Label" parent="Main 전투 Layout/BattleArea/PartyPanel/PartyMember1"]
-layout_mode = 2
-text = "Party Member 1\nHP: 100/100\nFatigue: 0"
+size_flags_vertical = 3
+#Makethisareatakemostoftheverticalspacealignment = 1
+"#Centerchildren[nodename" = "PartyPanel"
+type = "VBoxContainer"
+parent = "Main 전투 Layout/BattleArea"
+"]layout_mode" = 2
+size_flags_horizontal = 3
+#Partytakesupsomespacealignment = 1
+"#PlaceholderforPartyMemberPanelinstances[nodename" = "PartyMember1"
+type = "PanelContainer"
+parent = "Main 전투 Layout/BattleArea/PartyPanel"
+"]layout_mode" = 2
+"#childwillbePartyMemberPanel.tscninstance[nodename" = "Label"
+type = "Label"
+parent = "Main 전투 Layout/BattleArea/PartyPanel/PartyMember1"
+"]layout_mode" = 2
+text = "Party Member 1
+HP: 100/100
+Fatigue: 0"
 horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="EnemyPanel" type="VBoxContainer" parent="Main 전투 Layout/BattleArea"]
 layout_mode = 2
-size_flags_horizontal = 3 # Enemies take up some space
-alignment = 1
-# Placeholder for EnemyPanel.tscn instances
-
-[node name="Enemy1" type="PanelContainer" parent="Main 전투 Layout/BattleArea/EnemyPanel"]
-layout_mode = 2
-# child will be EnemyPanel.tscn instance
-[node name="Label" type="Label" parent="Main 전투 Layout/BattleArea/EnemyPanel/Enemy1"]
-layout_mode = 2
-text = "Enemy 1\nHP: 50/50"
+size_flags_horizontal = 3
+#Enemiestakeupsomespacealignment = 1
+"#PlaceholderforEnemyPanel.tscninstances[nodename" = "Enemy1"
+type = "PanelContainer"
+parent = "Main 전투 Layout/BattleArea/EnemyPanel"
+"]layout_mode" = 2
+"#childwillbeEnemyPanel.tscninstance[nodename" = "Label"
+type = "Label"
+parent = "Main 전투 Layout/BattleArea/EnemyPanel/Enemy1"
+"]layout_mode" = 2
+text = "Enemy 1
+HP: 50/50"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-
 [node name="CharacterCardsArea" type="HBoxContainer" parent="Main 전투 Layout"]
 layout_mode = 2
-custom_minimum_size = Vector2(0, 100) # Min height for card display area
-alignment = 1
-# Placeholder for active character's cards (CardViewer.tscn instances)
-
-[node name="Card1" type="PanelContainer" parent="Main 전투 Layout/CharacterCardsArea"]
-layout_mode = 2
-# child will be CardViewer.tscn instance
-[node name="Label" type="Label" parent="Main 전투 Layout/CharacterCardsArea/Card1"]
-layout_mode = 2
+custom_minimum_size = Vector2(0, 100)
+#Minheightforcarddisplayareaalignment = 1
+"#Placeholderforactivecharacter'scards(CardViewer.tscninstances)[nodename" = "Card1"
+type = "PanelContainer"
+parent = "Main 전투 Layout/CharacterCardsArea"
+"]layout_mode" = 2
+"#childwillbeCardViewer.tscninstance[nodename" = "Label"
+type = "Label"
+parent = "Main 전투 Layout/CharacterCardsArea/Card1"
+"]layout_mode" = 2
 text = "Card 1 Name"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-
 [node name="CombatLogPanel" type="PanelContainer" parent="Main 전투 Layout"]
 layout_mode = 2
-custom_minimum_size = Vector2(0, 150) # Min height for combat log
-
-[node name="CombatLogScroll" type="ScrollContainer" parent="Main 전투 Layout/CombatLogPanel"]
-layout_mode = 2
-horizontal_scroll_mode = 0 # Disable horizontal scroll
-
-[node name="CombatLog" type="VBoxContainer" parent="Main 전투 Layout/CombatLogPanel/CombatLogScroll"]
-layout_mode = 2
-size_flags_horizontal = 3 # Expand to fill scroll container width
-
-[node name="LogEntry1" type="Label" parent="Main 전투 Layout/CombatLogPanel/CombatLogScroll/CombatLog"]
-layout_mode = 2
+custom_minimum_size = Vector2(0, 150)
+"#Minheightforcombatlog[nodename" = "CombatLogScroll"
+type = "ScrollContainer"
+parent = "Main 전투 Layout/CombatLogPanel"
+"]layout_mode" = 2
+horizontal_scroll_mode = 0
+"#Disablehorizontalscroll[nodename" = "CombatLog"
+type = "VBoxContainer"
+parent = "Main 전투 Layout/CombatLogPanel/CombatLogScroll"
+"]layout_mode" = 2
+size_flags_horizontal = 3
+"#Expandtofillscrollcontainerwidth[nodename" = "LogEntry1"
+type = "Label"
+parent = "Main 전투 Layout/CombatLogPanel/CombatLogScroll/CombatLog"
+"]layout_mode" = 2
 text = "Combat Started!"
-autowrap_mode = 3 # Word wrap
-
-[node name="VisualFeedbackLabel" type="Label" parent="."]
-# This label can be used for temporary feedback like "Damage!", "Heal!"
-# Position it in the center of the screen or over characters
-layout_mode = 1
+autowrap_mode = 3
+"#Wordwrap[nodename" = "VisualFeedbackLabel"
+type = "Label"
+parent = "."
+Heal!#Positionitinthecenterofthescreenorovercharacterslayout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5
@@ -119,7 +126,12 @@ grow_vertical = 2
 text = "Feedback!"
 horizontal_alignment = 1
 vertical_alignment = 1
-visible = false # Initially hidden
-
-[connection signal="pressed" from="Main 전투 Layout/TopBar/PauseButton" to="." method="_on_pause_button_pressed"]
-[connection signal="pressed" from="Main 전투 Layout/TopBar/SpeedUpButton" to="." method="_on_speed_up_button_pressed"]
+visible = false
+"#Initiallyhidden[connectionsignal" = "pressed"
+from = "Main 전투 Layout/TopBar/PauseButton"
+to = "."
+method = "_on_pause_button_pressed"
+"][connectionsignal" = "pressed"
+from = "Main 전투 Layout/TopBar/SpeedUpButton"
+to = "."
+method = "_on_speed_up_button_pressed"
