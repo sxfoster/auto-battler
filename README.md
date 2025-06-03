@@ -17,3 +17,15 @@ Players guide a party of adventurers through procedural dungeon biomes, survivin
 git clone https://github.com/sxfoster/auto-battler.git
 cd auto-battler
 ```
+For AI Contributors
+Before generating, editing, or refactoring any code, always read and reference GAME_DESIGN.md.
+
+Align all code, class/data structures, and naming conventions with the systems described in GAME_DESIGN.md.
+
+If a data model, mechanic, or term is unclear, check GAME_DESIGN.md first before proceeding.
+
+Use the latest core data field lists for resource and script generation.
+
+If adding or updating content (e.g., new card, enemy, or mechanic), ensure it matches the structure and intent in the design document.
+
+When generating documentation, docstrings, or comments, base them on the terminology and intent described in GAME_DESIGN.md.
