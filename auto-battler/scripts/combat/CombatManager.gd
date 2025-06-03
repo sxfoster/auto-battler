@@ -2,208 +2,303 @@ extends Node
 class_name CombatManager
 
 ## Manages turn-based combat for the Survival Dungeon CCG Auto-Battler.
-## Handles party and enemy combatants, turn order, card usage, and
-## post-battle survival updates.
+## Handles party and enemy combatants, turn order, and card usage.
+## Emits signals for combat victory or defeat with results.
 
-signal combat_finished(victory: bool)
+# Signal emitted when combat ends in victory
+signal combat_victory(results: Dictionary)
+# Signal emitted when combat ends in defeat
+signal combat_defeat(results: Dictionary)
 
-var party_members: Array = []  ## Array[Combatant]
-var enemies: Array = []        ## Array[Combatant]
-var turn_order: Array = []     ## Array[Combatant] sorted each round
+var party_members: Array[Combatant] = []  # Array of Combatant objects for the player's party
+var enemies: Array[Combatant] = []        # Array of Combatant objects for the enemy side
+var turn_order: Array[Combatant] = []     # Array of Combatant objects, sorted each round by speed
 
-var _rng: RandomNumberGenerator = RandomNumberGenerator.new()
-var combat_log: Array = []
-var loot_gained: Array = []
-var xp_gained: int = 0
+var _rng: RandomNumberGenerator = RandomNumberGenerator.new() # For RNG-based mechanics
+var combat_log: Array[String] = [] # Log of combat events
+var loot_gained: Array = []    # Loot obtained during this combat
+var xp_gained: int = 0         # XP gained during this combat
 
+# Inner class to represent a combatant (party member or enemy)
 class Combatant:
-    var data
-    var is_player: bool
-    var assigned_cards: Array
+    var source_data # Original data resource (e.g., PartyMemberResource, EnemyResource)
+    var is_player_side: bool
+    var assigned_cards: Array # Cards or abilities the combatant can use
     var current_hp: int
-    var fatigue: int
-    var hunger: int
-    var thirst: int
-    var card_index: int = 0
-    var statuses := {}
+    # Combat-specific statuses (buffs, debuffs)
+    var statuses: Dictionary = {}
+    # Example: {"stunned": 1, "poisoned": 3} (value could be duration in turns)
 
-    func _init(d, player: bool):
-        data = d
-        is_player = player
-        assigned_cards = d.assigned_cards if player else d.abilities
-        current_hp = d.base_hp
-        fatigue = d.fatigue if player else 0
-        hunger = d.hunger if player else 0
-        thirst = d.thirst if player else 0
+    var card_play_index: int = 0 # Index for cycling through cards/abilities
 
-    func next_card():
+    func _init(data_resource, is_player: bool):
+        source_data = data_resource
+        is_player_side = is_player
+        # Ensure assigned_cards is always an array, even if empty
+        assigned_cards = data_resource.get("assigned_cards" if is_player else "abilities", [])
+        current_hp = data_resource.get("base_hp", 10) # Default to 10 HP if not specified
+        # Note: Initial fatigue, hunger, thirst from source_data are not directly used by Combatant during combat itself.
+        # They are more relevant for the PostBattleManager or overall GameManager.
+
+    func get_next_card_to_play() -> Resource: # Assuming cards/abilities are resources
         if assigned_cards.is_empty():
             return null
-        var card = assigned_cards[card_index]
-        card_index = (card_index + 1) % assigned_cards.size()
+        var card = assigned_cards[card_play_index]
+        card_play_index = (card_play_index + 1) % assigned_cards.size()
         return card
 
-func start_combat(party_data: Array, enemy_data: Array) -> void:
-    ## Initialize combatants and build the first turn order.
+    func get_name() -> String:
+        return source_data.get("character_name" if is_player_side else "enemy_name", "Unknown Combatant")
+
+func _ready() -> void:
+    # Potential future use: Connect to UI signals if a combat UI scene is directly managed here.
+    # For now, CombatManager is primarily logic-driven and controlled by GameManager.
     _rng.randomize()
+
+
+## Initializes combat with party and enemy data.
+func initialize_combat(initial_party_data: Array, enemy_encounter_data: Array) -> void:
+    _log("Combat initializing...")
+    _rng.randomize() # Ensure RNG is seeded for each combat
+
+    # Reset combat state variables
     combat_log.clear()
     loot_gained.clear()
     xp_gained = 0
     party_members.clear()
     enemies.clear()
-    for pd in party_data:
-        party_members.append(Combatant.new(pd, true))
-    for ed in enemy_data:
-        enemies.append(Combatant.new(ed, false))
-    _build_turn_order()
-    _run_battle()
+    turn_order.clear()
 
-func _build_turn_order() -> void:
-    turn_order = []
-    for c in party_members:
-        if c.current_hp > 0:
-            turn_order.append(c)
-    for c in enemies:
-        if c.current_hp > 0:
-            turn_order.append(c)
-    # Shuffle first so ties can be broken randomly
-    for i in range(turn_order.size()):
-        var j = _rng.randi_range(i, turn_order.size() - 1)
-        turn_order.swap(i, j)
-    turn_order.sort_custom(self, "_compare_speed")
+    # Create Combatant instances for party members
+    for member_data in initial_party_data:
+        if member_data: # Ensure data is not null
+            party_members.append(Combatant.new(member_data, true))
+        else:
+            printerr("Null data encountered in initial_party_data")
 
-func _compare_speed(a: Combatant, b: Combatant) -> int:
-    if a.data.speed_modifier == b.data.speed_modifier:
-        return 0
-    return int(b.data.speed_modifier - a.data.speed_modifier)
+    # Create Combatant instances for enemies
+    # Future: Actual enemy instantiation might involve loading scenes or resources based on enemy_encounter_data
+    for enemy_data in enemy_encounter_data:
+         if enemy_data: # Ensure data is not null
+            # Assuming enemy_encounter_data contains enemy resource paths or preloaded resources
+            # For now, assume it's structured similarly to party_data with necessary fields
+            enemies.append(Combatant.new(enemy_data, false))
+         else:
+            printerr("Null data encountered in enemy_encounter_data")
 
-func _run_battle() -> void:
-    while true:
+    _log("Combatants initialized. Party: %d, Enemies: %d" % [party_members.size(), enemies.size()])
+    # Note: The actual auto-battle loop should be started by a separate call, e.g., from GameManager
+    # run_auto_battle_loop() # This might be called externally after initialization
+
+
+## Runs the main auto-battle loop until one side is defeated.
+func run_auto_battle_loop() -> void:
+    _log("Auto-battle loop started.")
+    if party_members.is_empty() or enemies.is_empty():
+        _log("Cannot start battle: one or both sides are empty.")
+        # Determine if this is an immediate win/loss or an error
+        _finalize_combat() # Will determine outcome based on empty sides
+        return
+
+    _build_turn_order() # Initial turn order
+
+    var round_count = 0
+    while not _is_side_defeated(party_members) and not _is_side_defeated(enemies):
+        round_count += 1
+        _log("--- Round %d ---" % round_count)
+        if round_count > 50: # Safety break for excessively long battles
+            _log("Battle exceeds 50 rounds, auto-terminating.")
+            break
+
         for actor in turn_order:
             if _is_side_defeated(party_members) or _is_side_defeated(enemies):
-                break
-            _process_turn(actor)
-        if _is_side_defeated(party_members) or _is_side_defeated(enemies):
-            break
-        _build_turn_order()  # new round
-    var victory := not _is_side_defeated(party_members)
-    _end_combat(victory)
+                break # End round immediately if a side is defeated mid-round
+            _process_actor_turn(actor)
 
-func _process_turn(actor: Combatant) -> void:
-    if actor.current_hp <= 0:
+        if not (_is_side_defeated(party_members) or _is_side_defeated(enemies)):
+            _build_turn_order() # Rebuild turn order for the next round if combat continues
+
+    _finalize_combat()
+
+
+## Builds or rebuilds the turn order based on combatant speed and status.
+func _build_turn_order() -> void:
+    turn_order.clear()
+    # Add living party members
+    for combatant in party_members:
+        if combatant.current_hp > 0:
+            turn_order.append(combatant)
+    # Add living enemies
+    for combatant in enemies:
+        if combatant.current_hp > 0:
+            turn_order.append(combatant)
+
+    # Shuffle for tie-breaking before sorting by speed
+    # This ensures that if speeds are equal, the order is random.
+    turn_order.shuffle()
+
+    # Sort by speed (higher speed goes first)
+    # Assumes combatants have a 'speed_modifier' or similar attribute in their source_data
+    turn_order.sort_custom(func(a, b): return a.source_data.get("speed_modifier", 0) > b.source_data.get("speed_modifier", 0))
+
+    var turn_order_names = []
+    for c in turn_order: turn_order_names.append(c.get_name())
+    _log("Turn order: " + ", ".join(turn_order_names))
+
+
+## Processes an individual actor's turn.
+func _process_actor_turn(actor: Combatant) -> void:
+    if actor.current_hp <= 0: # Actor might have been defeated before their turn
         return
-    if _should_skip_turn(actor):
-        _log("%s is unable to act." % _get_name(actor))
+
+    _log("Processing turn for: " + actor.get_name())
+
+    # Status effect processing (e.g., DoTs, stun checks)
+    # if _should_skip_turn_due_to_status(actor):
+    #     _log(actor.get_name() + " is unable to act due to status effects.")
+    #     return
+
+    # AI Logic for card/ability and target selection would go here.
+    # For players, this might be auto-control logic or input from a player controller.
+    # For enemies, this is their AI decision-making process.
+    var card_to_play = actor.get_next_card_to_play()
+
+    if card_to_play == null:
+        _log(actor.get_name() + " has no card/ability to use or chooses to pass.")
+        return # Actor passes or has no valid action
+
+    # Target selection logic
+    # Placeholder: Simple targeting - enemies target players, players target enemies.
+    # More complex logic would involve checking card's target type (single, multi, self, ally).
+    var potential_targets = []
+    if actor.is_player_side:
+        potential_targets = _get_living_combatants(enemies)
+    else:
+        potential_targets = _get_living_combatants(party_members)
+
+    if potential_targets.is_empty():
+        _log(actor.get_name() + " has no valid targets for " + card_to_play.get("card_name", "Unknown Card"))
         return
-    var card = actor.next_card()
-    if card == null:
-        _log("%s has no card to play." % _get_name(actor))
-        return
-    var targets = _get_valid_targets(actor, card)
-    var multiplier = _compute_effect_modifier(actor, card)
-    _apply_card_effect(actor, card, targets, multiplier)
 
-func _get_name(c: Combatant) -> String:
-    return c.data.character_name if c.is_player else c.data.enemy_name
+    # Select actual target(s) based on card properties and AI/rules
+    # For now, assume single target, first valid target
+    var actual_targets: Array[Combatant] = [potential_targets[0]]
 
-func _should_skip_turn(c: Combatant) -> bool:
-    return _is_stunned(c) or _is_silenced(c) or _is_disabled(c)
-
-func _is_stunned(c: Combatant) -> bool:
-    ## Placeholder for stun status check
-    return c.statuses.get("stun", false)
-
-func _is_silenced(c: Combatant) -> bool:
-    ## Placeholder for silence status check
-    return c.statuses.get("silence", false)
-
-func _is_disabled(c: Combatant) -> bool:
-    ## Placeholder for disable status check
-    return c.statuses.get("disable", false)
-
-func _get_valid_targets(user: Combatant, card) -> Array:
-    ## Placeholder target selection based on simple rules.
-    var pool = user.is_player ? enemies : party_members
-    var result: Array = []
-    for t in pool:
-        if t.current_hp > 0:
-            result.append(t)
-            break
-    return result
-
-func _compute_effect_modifier(user: Combatant, card) -> float:
-    var modifier: float = 1.0
-    if card.role_restriction != "":
-        var role_names = ["Tank", "Healer", "Support", "DPS"]
-        var role_str = role_names[user.data.role] if user.is_player else ""
-        if role_str != card.role_restriction:
-            modifier *= 0.25  # -75% penalty
-    if card.class_restriction != "":
-        var class_name = user.data.class_name if user.is_player else ""
-        if class_name == card.class_restriction:
-            modifier *= 1.25  # bonus for correct class
-    return modifier
-
-func _apply_card_effect(user: Combatant, card, targets: Array, multiplier: float) -> void:
-    ## Placeholder for resolving the card's effect with the given modifier.
-    for t in targets:
-        card.apply_effect(t)
+    # Apply card effect
+    # Placeholder: Call a method on the card resource itself, passing targets
+    # _apply_card_effect(actor, card_to_play, actual_targets)
     _log("%s uses %s on %s" % [
-        _get_name(user), card.card_name,
-        ", ".join([_get_name(x) for x in targets])])
+        actor.get_name(),
+        card_to_play.get("card_name", "a card"),
+        ", ".join([t.get_name() for t in actual_targets])
+    ])
+    # Detailed card effect resolution here (damage, healing, status application)
+    # Example: Apply damage from card
+    var damage = card_to_play.get("damage_amount", 0) # Assuming card has damage_amount
+    if damage > 0:
+        for target_combatant in actual_targets:
+            target_combatant.current_hp -= damage
+            _log("%s takes %d damage. Current HP: %d" % [target_combatant.get_name(), damage, target_combatant.current_hp])
+            if target_combatant.current_hp <= 0:
+                _log(target_combatant.get_name() + " has been defeated.")
 
-func _is_side_defeated(side: Array) -> bool:
-    for c in side:
-        if c.current_hp > 0:
-            return false
-    return true
 
-func _end_combat(victory: bool) -> void:
-    if victory:
-        _log("Party is victorious!")
-        _apply_survival_penalties()
-        _distribute_loot_and_xp()
-        _show_post_battle_summary()
-    else:
+## Checks if all combatants on a given side are defeated.
+func _is_side_defeated(side_combatants: Array[Combatant]) -> bool:
+    if side_combatants.is_empty() and (side_combatants == party_members or side_combatants == enemies):
+        # If checking an initially empty side (e.g. no enemies loaded), that side is effectively "defeated"
+        # in the context of starting combat. However, during combat, an empty list means they were all defeated.
+        # This logic might need refinement based on when this check is called relative to combat setup.
+        # For now, if a side becomes empty during combat, it's defeated.
+        return true
+    for combatant in side_combatants:
+        if combatant.current_hp > 0:
+            return false # At least one combatant is still alive
+    return true # All combatants are defeated or the side was empty
+
+
+## Finalizes combat, determines outcome, and emits appropriate signal.
+func _finalize_combat() -> void:
+    var party_defeated = _is_side_defeated(party_members)
+    var enemies_defeated = _is_side_defeated(enemies)
+    var final_party_state = _get_final_party_state()
+
+    if party_defeated:
         _log("Party was defeated.")
-        _show_post_battle_summary()
-    emit_signal("combat_finished", victory)
-
-func _apply_survival_penalties() -> void:
-    for c in party_members:
-        c.fatigue += 1
-        c.hunger += 1
-        c.thirst += 1
-
-func _distribute_loot_and_xp() -> void:
-    ## Simple loot and experience distribution placeholder
-    for enemy in enemies:
-        if enemy.data.loot_table:
-            for item in enemy.data.loot_table:
-                loot_gained.append(item)
-                # Add loot to the first party member's inventory as a stub
-                if party_members.size() > 0:
-                    party_members[0].data.inventory.append(item)
-    xp_gained = enemies.size() * 10
-
-func _show_post_battle_summary() -> void:
-    print("=== Battle Summary ===")
-    for entry in combat_log:
-        print(entry)
-    print("--- Rewards ---")
-    print("XP Gained: %d" % xp_gained)
-    if loot_gained.is_empty():
-        print("No loot acquired.")
+        var results = {"final_party_state": final_party_state}
+        emit_signal("combat_defeat", results)
+    elif enemies_defeated:
+        _log("Party is victorious!")
+        _distribute_loot_and_xp() # Calculate loot and XP
+        var results = {
+            "loot": loot_gained,
+            "xp_gained": xp_gained,
+            "final_party_state": final_party_state
+        }
+        emit_signal("combat_victory", results)
     else:
-        for item in loot_gained:
-            var name = item.card_name if item.has_method("apply_effect") else String(item)
-            print("Loot: %s" % name)
-    print("--- Party Status ---")
-    for c in party_members:
-        print("%s HP:%d Fatigue:%d Hunger:%d Thirst:%d" % [
-            c.data.character_name, c.current_hp, c.fatigue, c.hunger, c.thirst])
-    print("1) Continue to map\n2) View inventory\n3) Rest")
+        # This case (neither side defeated, e.g. from round limit) might be a draw or special scenario
+        _log("Combat ended inconclusively (e.g., round limit reached).")
+        # Consider if this should be a victory, defeat, or a new signal type (e.g., combat_draw)
+        # For now, treating as a defeat if party isn't victorious.
+        var results = {"final_party_state": final_party_state}
+        emit_signal("combat_defeat", results) # Or a specific "combat_draw" signal
 
+
+## Gathers the final state of party members (HP, statuses, etc.).
+func _get_final_party_state() -> Array[Dictionary]:
+    var final_state_array: Array[Dictionary] = []
+    for member_combatant in party_members:
+        var state = {
+            "source_data_id": member_combatant.source_data.get("id", "unknown_id"), # Assuming source_data has an ID
+            "current_hp": member_combatant.current_hp,
+            "statuses": member_combatant.statuses.duplicate(true) # Deep copy statuses
+            # Add other relevant data like remaining card uses, etc., if needed by PostBattleManager
+        }
+        final_state_array.append(state)
+    return final_state_array
+
+
+## Distributes loot and XP based on defeated enemies. (Placeholder)
+func _distribute_loot_and_xp() -> void:
+    # Simple loot and experience distribution placeholder
+    loot_gained.clear()
+    xp_gained = 0
+    for enemy_combatant in enemies:
+        # Only grant loot/XP if the enemy was actually defeated (though this function is called on victory)
+        if enemy_combatant.current_hp <= 0:
+            if enemy_combatant.source_data.has("loot_table"):
+                for item_resource in enemy_combatant.source_data.loot_table:
+                    loot_gained.append(item_resource) # Assuming items are resources
+            xp_gained += enemy_combatant.source_data.get("xp_value", 10) # Default 10 XP
+    _log("Loot gained: %s, XP gained: %d" % [str(loot_gained.size()) + " items" if not loot_gained.is_empty() else "None", xp_gained])
+
+
+## Helper to get living combatants from a list.
+func _get_living_combatants(combatants_list: Array[Combatant]) -> Array[Combatant]:
+    var living: Array[Combatant] = []
+    for c in combatants_list:
+        if c.current_hp > 0:
+            living.append(c)
+    return living
+
+
+## Logs a message to the internal combat log and prints it.
 func _log(message: String) -> void:
     combat_log.append(message)
-    print(message)
+    print("CombatManager: " + message) # Prefixing for clarity in console
+
+
+# --- Functions to be removed or refactored from original ---
+# _apply_survival_penalties() -> Moved to PostBattleManager
+# _show_post_battle_summary() -> Handled by UI / PostBattleManager
+# _compare_speed() -> Integrated into _build_turn_order() lambda or static method if complex
+# _get_name() -> Moved to Combatant class as get_name()
+# _should_skip_turn(), _is_stunned(), _is_silenced(), _is_disabled() -> Part of _process_actor_turn status checks
+# _get_valid_targets() -> Part of _process_actor_turn AI/targeting logic
+# _compute_effect_modifier() -> Part of card effect resolution in _process_actor_turn
+# _apply_card_effect() -> Main logic of _process_actor_turn
+# _end_combat() -> Replaced by _finalize_combat()
+# start_combat() -> Replaced by initialize_combat() and external call to run_auto_battle_loop()
+# _run_battle() -> Renamed to run_auto_battle_loop()
+# _process_turn() -> Refactored into _process_actor_turn()
