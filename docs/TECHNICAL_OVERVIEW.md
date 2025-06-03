@@ -24,47 +24,50 @@ The top level of the repository also contains `Main.tscn` and `project.godot` so
 ## Key Resource Classes
 
 ### `CardData`
-Represents an ability, equipment piece or consumable card used in combat or crafting.  See the design document for the full list of fields.
+Represents an ability, equipment piece or consumable card used in combat or crafting. Key fields include `energy_cost`, `synergy_tags`, `is_combo_starter`, and `is_combo_finisher`. It utilizes the `CardType` and `Rarity` enums. See the design document for the full list of fields.
 
 ### `EnemyData`
-Defines enemy combatants.  Fields include name, description, type, ability list, base stats, loot table and passive traits.
+Defines enemy combatants. Fields include name, description, type (using the `EnemyType` enum), ability list, base stats, loot table and passive traits.
 
 ### `CharacterData`
-Describes party members controlled by the player, including combat stats, assigned cards and survival meters.
+Describes party members controlled by the player, including combat stats (utilizing the `Role` enum), assigned cards and survival meters.
 
 ### `ProfessionData`
-Tracks crafting profession levels and unlocks.
+Tracks crafting profession levels and unlocks. Key fields include `max_level`, `current_level`, `known_recipes`, `exclusive_cards`, and `crafted_by_tag`.
 
 ### `RecipeData`
-Represents a specific crafting recipe, mapping input cards to an output card and required profession level.
+Represents a specific crafting recipe, mapping input cards to an output card and required profession level. It also includes `synergy_tags` and a `discovered` status.
 
 ## Systems
 
 ### CombatManager
-`scripts/combat/CombatManager.gd` implements a basic turn-based loop.  It manages combatants, builds turn order based on `speed_modifier`, processes card effects and applies survival penalties after battle.
+`scripts/combat/CombatManager.gd` implements a basic turn-based loop. It manages combatants (including an inner `Combatant` class), builds turn order based on `speed_modifier`, processes card effects (currently basic), handles combat log/loot/XP, and emits signals like `combat_victory` and `combat_defeat`.
 
 ### GameManager
-`scripts/main/GameManager.gd` maintains global game state and drives the encounter loop. It stores the party and inventory, tracks dungeon progress and switches scenes between combat, loot and rest phases.
+`scripts/main/GameManager.gd` is the central coordinator for game flow. It uses signals to manage interactions between different managers (e.g., `CombatManager`, `DungeonMapManager`) and scenes. It is responsible for global game state, including party composition, inventory, and dungeon progression. It also handles scene transitions and save/load functionality.
 
 ### PreparationManager
-`scripts/preparation/PreparationManager.gd` powers the pre-combat setup screen, letting players assign cards, equip gear and pick consumables before entering the dungeon.
+`scripts/preparation/PreparationManager.gd` powers the pre-combat setup screen, letting players assign cards, equip gear, manage consumables, and view profession data before entering the dungeon. It manages data related to the party, available cards/gear, consumables, and professions.
 
 ### DungeonMapManager
-`scripts/main/DungeonMapManager.gd` builds a chain of dungeon nodes. Each node can trigger combat, loot, a random event, a rest opportunity or a trap. The manager handles navigation and displays the appropriate panels.
+`scripts/main/DungeonMapManager.gd` builds a chain of dungeon nodes. Each node can trigger combat, loot, a random event, a rest opportunity or a trap. The manager handles navigation and can either emit signals for `GameManager` to handle full scene transitions or manage simpler interactions via its own internal popups/panels.
 
 ### PostBattleManager
-`scripts/main/PostBattleManager.gd` runs immediately after combat. It applies fatigue, hunger and thirst penalties, distributes loot and experience, then signals which scene to load next.
+`scripts/main/PostBattleManager.gd` runs immediately after combat. It applies fatigue, hunger and thirst penalties, distributes loot and experience, and can display a `PostBattleSummary.tscn`. It then signals which scene to load next.
 
 ### RestManager
 `scripts/main/RestManager.gd` manages the resting phase between encounters. Players may use consumables, view survival stats or exit the dungeon. The manager emits signals when to continue exploring or to leave.
 
 ### EncounterManager
-`scripts/main/EncounterManager.gd` is a placeholder for future logic that will coordinate event and enemy encounters on the dungeon map.
+`scripts/main/EncounterManager.gd` is currently a placeholder and does not yet implement significant logic for coordinating events or enemy encounters.
 
 ### CraftingSystem
-`scripts/systems/CraftingSystem.gd` is a stub demonstrating how magical pouch crafting might work.  It selects a recipe based on up to five ingredient cards and emits a `crafted` signal with the result.
+`scripts/systems/CraftingSystem.gd` handles item creation. It takes `ProfessionData` and a list of ingredient cards, then uses `RecipeData` to find a matching recipe. The system accounts for synergies between ingredients, grants profession XP upon successful crafting, and can produce either actual `CardData` objects or scrap materials.
 
-Other systems such as `EconomySystem` and `InventorySystem` exist as placeholders for future development.
+Other systems such as `EconomySystem` (`scripts/systems/EconomySystem.gd`) and `InventorySystem` (`scripts/systems/InventorySystem.gd`) exist as placeholders for future development.
+
+### AIController.gd
+Note: `scripts/combat/AIController.gd` (listed in the Project Layout) is currently an empty script/placeholder and does not yet implement the advanced AI features discussed in the `GAME_DESIGN.md` document.
 
 ## Running the Project
 
