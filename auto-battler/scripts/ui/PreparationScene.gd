@@ -1,5 +1,7 @@
 extends Control
 
+# Emitted when the "Enter Dungeon" button is pressed.
+signal enter_dungeon_pressed
 signal enter_dungeon
 
 @export var party_panel_path: NodePath = NodePath("PartyPanel")
@@ -16,4 +18,5 @@ func _ready() -> void:
     pass # Placeholder for future initialization
 
 func _on_ready_button_pressed() -> void:
+    emit_signal("enter_dungeon_pressed")
     emit_signal("enter_dungeon")

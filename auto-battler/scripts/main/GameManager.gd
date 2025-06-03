@@ -170,6 +170,13 @@ func _notify_preparation_manager_to_load_data():
         printerr("GameManager: Failed to notify PreparationManager or method not found.")
 
 
+## Starts the dungeon map using the prepared party data.
+func start_dungeon_run(party_data: Array) -> void:
+    current_party_members = party_data.duplicate(true)
+    _change_game_phase_and_scene("dungeon_map", "res://auto-battler/scenes/DungeonMap.tscn")
+    call_deferred("_notify_dungeon_map_manager_to_initialize")
+
+
 ## Saves the current game state to a specified slot.
 func save_game_state(slot_name: String) -> void:
     var save_path := "user://%s.save" % slot_name

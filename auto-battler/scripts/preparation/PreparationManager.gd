@@ -24,8 +24,13 @@ var professions_data: Dictionary = {}
 
 func _ready() -> void:
     # Initial setup when the node is ready
-    # Connect to UI signals here if necessary
     load_party_data()
+
+    # Connect to the PreparationScene's signal if present
+    var scene := get_tree().current_scene
+    if scene and scene.has_signal("enter_dungeon_pressed"):
+        if not scene.is_connected("enter_dungeon_pressed", self, "_on_enter_dungeon_pressed"):
+            scene.connect("enter_dungeon_pressed", self, "_on_enter_dungeon_pressed")
 
 func load_party_data() -> void:
     # This function should load all necessary information:
@@ -180,5 +185,20 @@ func _on_enter_dungeon_pressed() -> void:
     #     # Optionally, show a UI message to the player
     #     return
 
-    party_ready_for_dungeon.emit()
-    print("PreparationManager: Party ready for dungeon!")
+    # Gather the configured party data. Duplicate to avoid accidental mutation
+    var party_data := party_members_data.duplicate(true)
+
+    # Attempt to pass this data to the GameManager singleton
+    var gm := Engine.has_singleton("GameManager")
+        ? Engine.get_singleton("GameManager")
+        : get_node_or_null("/root/GameManager")
+
+    if gm:
+        if gm.has_method("start_dungeon_run"):
+            gm.start_dungeon_run(party_data)
+        else:
+            # Fallback to the existing signal-based flow
+            party_ready_for_dungeon.emit()
+        print("PreparationManager: Party ready for dungeon!")
+    else:
+        printerr("PreparationManager: GameManager not found. Cannot start dungeon run.")
