@@ -50,7 +50,7 @@ class Combatant:
         return card
 
     func get_name() -> String:
-        var name_key = is_player_side ? "character_name" : "enemy_name"
+        var name_key = "character_name" if is_player_side else "enemy_name"
         var n = source_data.get(name_key)
         return n if n != null else "Unknown Combatant"
 
