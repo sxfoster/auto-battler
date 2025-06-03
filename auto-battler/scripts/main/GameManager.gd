@@ -280,6 +280,10 @@ func on_transition_to_combat_requested(combat_setup_data: Dictionary) -> void:
 func _notify_combat_manager_to_initialize(combat_setup_data: Dictionary):
     var combat_manager = get_node_or_null(COMBAT_MANAGER_PATH)
     if combat_manager and combat_manager.has_method("initialize_combat"):
+        if not combat_manager.combat_victory.is_connected(on_combat_victory):
+            combat_manager.combat_victory.connect(on_combat_victory)
+        if not combat_manager.combat_defeat.is_connected(on_combat_defeat):
+            combat_manager.combat_defeat.connect(on_combat_defeat)
         var enemy_data_list = combat_setup_data.get("enemies", [])
         combat_manager.initialize_combat(current_party_members, enemy_data_list)
         combat_manager.run_auto_battle_loop() # Start the battle
@@ -356,6 +360,13 @@ func on_combat_defeat(results: Dictionary) -> void:
         # Fallback if PostBattleManager is missing: go to game over directly
         # current_party_members = results.get("final_party_state", current_party_members)
         # on_game_over_requested()
+
+## Wrapper called by CombatManager when combat ends.
+func on_combat_end(victory: bool, results: Dictionary) -> void:
+    if victory:
+        on_combat_victory(results)
+    else:
+        on_combat_defeat(results)
 
 
 ## Called by PostBattleManager when all its processing is complete.

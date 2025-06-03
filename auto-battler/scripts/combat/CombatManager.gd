@@ -235,10 +235,14 @@ func _finalize_combat() -> void:
     var final_party_state = _get_final_party_state()
     _apply_survival_penalties()
 
+    var gm = get_node_or_null("/root/GameManager")
+
     if party_defeated:
         _log("Party was defeated.")
         var results = {"final_party_state": final_party_state}
         emit_signal("combat_defeat", results)
+        if gm and gm.has_method("on_combat_end"):
+            gm.on_combat_end(false, results)
     elif enemies_defeated:
         _log("Party is victorious!")
         _distribute_loot_and_xp() # Calculate loot and XP
@@ -248,6 +252,8 @@ func _finalize_combat() -> void:
             "final_party_state": final_party_state
         }
         emit_signal("combat_victory", results)
+        if gm and gm.has_method("on_combat_end"):
+            gm.on_combat_end(true, results)
     else:
         # This case (neither side defeated, e.g. from round limit) might be a draw or special scenario
         _log("Combat ended inconclusively (e.g., round limit reached).")
@@ -255,6 +261,8 @@ func _finalize_combat() -> void:
         # For now, treating as a defeat if party isn't victorious.
         var results = {"final_party_state": final_party_state}
         emit_signal("combat_defeat", results) # Or a specific "combat_draw" signal
+        if gm and gm.has_method("on_combat_end"):
+            gm.on_combat_end(false, results)
 
 
 ## Gathers the final state of party members (HP, statuses, etc.).
