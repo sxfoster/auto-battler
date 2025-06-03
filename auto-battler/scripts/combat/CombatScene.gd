@@ -43,50 +43,50 @@ func _ready():
                 if not combat_manager.combat_defeat.is_connected(_on_combat_defeat):
                         combat_manager.combat_defeat.connect(_on_combat_defeat)
 
-	# Example: Populate with placeholder party member panels
-	# for i in range(1, 3): # Assuming 2 party members for this example
-	#     var member_label = party_panel.get_node("PartyMember" + str(i) + "/Label")
-	#     if member_label:
-	#         member_label.text = "Party Member " + str(i) + "\nHP: 100/100\nFatigue: 0"
+    # Example: Populate with placeholder party member panels
+    # for i in range(1, 3): # Assuming 2 party members for this example
+    #     var member_label = party_panel.get_node("PartyMember" + str(i) + "/Label")
+    #     if member_label:
+    #         member_label.text = "Party Member " + str(i) + "\nHP: 100/100\nFatigue: 0"
 
-	# Example: Populate with placeholder enemy panels
-	# for i in range(1, 2): # Assuming 1 enemy for this example
-	#     var enemy_label = enemy_panel.get_node("Enemy" + str(i) + "/Label")
-	#     if enemy_label:
-	#         enemy_label.text = "Enemy " + str(i) + "\nHP: 50/50"
+    # Example: Populate with placeholder enemy panels
+    # for i in range(1, 2): # Assuming 1 enemy for this example
+    #     var enemy_label = enemy_panel.get_node("Enemy" + str(i) + "/Label")
+    #     if enemy_label:
+    #         enemy_label.text = "Enemy " + str(i) + "\nHP: 50/50"
 
-	# Disable player input areas (except pause/speed)
-	# This might involve disabling input on card nodes or other interactive elements
-	# For now, it's mostly a conceptual note as detailed interaction isn't built yet
+    # Disable player input areas (except pause/speed)
+    # This might involve disabling input on card nodes or other interactive elements
+    # For now, it's mostly a conceptual note as detailed interaction isn't built yet
 
 func _process(delta):
-	if is_paused:
-		return
+    if is_paused:
+        return
 
-	var effective_delta = delta * current_speed
-	# Main combat loop logic would go here (AI turns, card resolution, etc.)
-	# For now, just a placeholder
-	# update_combat_state(effective_delta)
-	# update_ui()
+    var effective_delta = delta * current_speed
+    # Main combat loop logic would go here (AI turns, card resolution, etc.)
+    # For now, just a placeholder
+    # update_combat_state(effective_delta)
+    # update_ui()
 
 func _on_pause_button_pressed():
-	is_paused = !is_paused
-	if is_paused:
-		pause_button.text = "Resume"
-		add_combat_log_entry("Combat Paused.")
-		Engine.time_scale = 0 # More robust pausing if physics is involved
-	else:
-		pause_button.text = "Pause"
-		add_combat_log_entry("Combat Resumed.")
-		Engine.time_scale = 1.0 # Ensure time scale is reset
-	print("Pause button pressed. Paused: ", is_paused)
+    is_paused = !is_paused
+    if is_paused:
+        pause_button.text = "Resume"
+        add_combat_log_entry("Combat Paused.")
+        Engine.time_scale = 0 # More robust pausing if physics is involved
+    else:
+        pause_button.text = "Pause"
+        add_combat_log_entry("Combat Resumed.")
+        Engine.time_scale = 1.0 # Ensure time scale is reset
+    print("Pause button pressed. Paused: ", is_paused)
 
 func _on_speed_up_button_pressed():
-	current_speed_index = (current_speed_index + 1) % SPEED_LEVELS.size()
-	current_speed = SPEED_LEVELS[current_speed_index]
-	speed_up_button.text = "Speed Up x" + str(current_speed)
-	add_combat_log_entry("Combat speed set to x" + str(current_speed))
-	print("Speed up button pressed. Current speed: ", current_speed)
+    current_speed_index = (current_speed_index + 1) % SPEED_LEVELS.size()
+    current_speed = SPEED_LEVELS[current_speed_index]
+    speed_up_button.text = "Speed Up x" + str(current_speed)
+    add_combat_log_entry("Combat speed set to x" + str(current_speed))
+    print("Speed up button pressed. Current speed: ", current_speed)
 
 func end_combat() -> void:
     emit_signal("combat_finished")
@@ -110,40 +110,40 @@ func _on_combat_defeat(results: Dictionary) -> void:
         end_combat()
 
 func add_combat_log_entry(text_entry: String):
-	var new_log = Label.new()
-	new_log.text = text_entry
-	new_log.autowrap_mode = TextServer.AUTOWRAP_WORD
-	combat_log_container.add_child(new_log)
-	# Optional: Scroll to bottom if the log is in a ScrollContainer
-	await get_tree().process_frame # Wait for node to be added
-	# Alternative: call_deferred on scroll_bar.value = scroll_bar.max_value
-	var scroll_bar = combat_log_scroll.get_v_scroll_bar()
-	if scroll_bar:
-		scroll_bar.value = scroll_bar.max_value
+    var new_log = Label.new()
+    new_log.text = text_entry
+    new_log.autowrap_mode = TextServer.AUTOWRAP_WORD
+    combat_log_container.add_child(new_log)
+    # Optional: Scroll to bottom if the log is in a ScrollContainer
+    await get_tree().process_frame # Wait for node to be added
+    # Alternative: call_deferred on scroll_bar.value = scroll_bar.max_value
+    var scroll_bar = combat_log_scroll.get_v_scroll_bar()
+    if scroll_bar:
+        scroll_bar.value = scroll_bar.max_value
 
 func show_visual_feedback(text: String, duration: float = 1.0):
-	feedback_label.text = text
-	feedback_label.visible = true
-	var timer = get_tree().create_timer(duration)
-	await timer.timeout # Use await with timeout signal
-	feedback_label.visible = false
+    feedback_label.text = text
+    feedback_label.visible = true
+    var timer = get_tree().create_timer(duration)
+    await timer.timeout # Use await with timeout signal
+    feedback_label.visible = false
 
 # Placeholder functions for updating UI based on game state
 func update_party_display(party_data):
-	# Iterate through party_data and update each PartyMemberPanel instance
-	pass
+    # Iterate through party_data and update each PartyMemberPanel instance
+    pass
 
 func update_enemy_display(enemy_data):
-	# Iterate through enemy_data and update each EnemyPanel instance
-	pass
+    # Iterate through enemy_data and update each EnemyPanel instance
+    pass
 
 func update_character_cards_display(character_cards):
-	# Display cards for the current acting character
-	# Highlight the card being played
-	pass
+    # Display cards for the current acting character
+    # Highlight the card being played
+    pass
 
 # Example of how visual feedback might be triggered
 func _trigger_example_feedback():
-	# Simulate a damage event
-	show_visual_feedback("Direct Hit! -20 HP", 1.5)
-	add_combat_log_entry("Goblin attacks Player 1 for 20 damage.")
+    # Simulate a damage event
+    show_visual_feedback("Direct Hit! -20 HP", 1.5)
+    add_combat_log_entry("Goblin attacks Player 1 for 20 damage.")

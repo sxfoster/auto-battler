@@ -35,7 +35,7 @@ class Combatant:
         source_data = data_resource
         is_player_side = is_player
         # Ensure assigned_cards is always an array, even if empty
-        var card_key = is_player ? "assigned_cards" : "abilities"
+        var card_key = "assigned_cards" if is_player else "abilities"
         assigned_cards = data_resource.get(card_key) ?? []
         current_hp = data_resource.get("base_hp") ?? 10 # Default to 10 HP if not specified
         # Note: Initial fatigue, hunger, thirst from source_data are not directly used by Combatant during combat itself.
