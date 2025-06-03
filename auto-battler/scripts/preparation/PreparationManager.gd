@@ -5,9 +5,9 @@ extends Node
 signal party_ready_for_dungeon
 
 # Exported variables for configuration
-export var max_cards_per_member: int = 4
-export var max_gear_pieces_per_member: int = 2 # Example, adjust as needed
-export var max_consumable_slots: int = 4 # Example, adjust as needed
+@export var max_cards_per_member: int = 4
+@export var max_gear_pieces_per_member: int = 2 # Example, adjust as needed
+@export var max_consumable_slots: int = 4 # Example, adjust as needed
 
 # Data variables
 # Holds data for party members, including their assigned cards and gear

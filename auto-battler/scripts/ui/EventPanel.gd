@@ -15,7 +15,7 @@ func show_event(data: Dictionary) -> void:
     event_data = data
     description_label.text = data.get("description", "An event occurs.")
     result_label.text = ""
-    confirm_button.text = data.get("skill_check", false) ? "Attempt" : "Continue"
+    confirm_button.text = "Attempt" if data.get("skill_check", false) else "Continue"
 
 func _on_confirm_button_pressed() -> void:
     if not resolved and event_data.get("skill_check", false):

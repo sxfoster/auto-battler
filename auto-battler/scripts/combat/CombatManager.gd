@@ -79,11 +79,11 @@ func initialize_combat(initial_party_data: Array, enemy_encounter_data: Array) -
     # Create Combatant instances for enemies
     # Future: Actual enemy instantiation might involve loading scenes or resources based on enemy_encounter_data
     for enemy_data in enemy_encounter_data:
-         if enemy_data: # Ensure data is not null
+        if enemy_data: # Ensure data is not null
             # Assuming enemy_encounter_data contains enemy resource paths or preloaded resources
             # For now, assume it's structured similarly to party_data with necessary fields
             enemies.append(Combatant.new(enemy_data, false))
-         else:
+        else:
             printerr("Null data encountered in enemy_encounter_data")
 
     _log("Combatants initialized. Party: %d, Enemies: %d" % [party_members.size(), enemies.size()])

@@ -28,7 +28,7 @@ func _ready() -> void:
 func initialize_post_battle(combat_results: Dictionary, current_party_state_before_effects: Array) -> void:
     print("PostBattleManager: Initializing with combat results.")
     battle_outcome = combat_results
-    party_data_before_post_battle = current_party_state_before_effects.deep_copy() # Make a deep copy to modify
+    party_data_before_post_battle = current_party_state_before_effects.duplicate(true) # Make a deep copy to modify
 
     # Apply all effects and updates
     var final_party_state = _apply_all_post_battle_effects()
