@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="CharacterData" load_steps=2 format=3 uid="uid://cleric01"]
+
+[ext_resource type="Script" uid="uid://duuen21q7vikq" path="res://scripts/data/CharacterData.gd" id="1_npght"]
+
+[resource]
+script = ExtResource("1_npght")
+character_name = "Cleric"
+role = 1
+character_class = "Cleric"
+base_hp = 14
+base_attack = 2
+speed_modifier = 3
+assigned_cards = []
+equipped_gear = []
+profession = "Alchemy"
+hunger = 0
+thirst = 0
+fatigue = 0
+inventory = []
+icon_path = "res://assets/portraits/default_portrait.png"
+metadata/_custom_type_script = "uid://duuen21q7vikq"
