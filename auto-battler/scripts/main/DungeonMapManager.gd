@@ -5,6 +5,7 @@ class_name DungeonMapManager
 
 @onready var nodes_container: HBoxContainer = $MapNodesContainer
 const LOOT_PANEL_SCENE := preload("res://scenes/LootPanel.tscn")
+const EVENT_PANEL_SCENE := preload("res://scenes/EventPanel.tscn")
 
 var map_nodes: Array = []            ## Array of dictionaries describing nodes
 var current_node_index: int = 0      ## Index of the node the party is currently on
@@ -29,12 +30,17 @@ func _ready() -> void:
 func _generate_map() -> void:
     map_nodes.clear()
     var node_count := 5
-    var node_types := ["combat", "loot", "event", "rest"]
+    var node_types := ["combat", "loot", "event", "rest", "trap"]
     for i in node_count:
         var t := node_types[randi() % node_types.size()]
         if i == 0:
             t = "combat"            # always start with combat
-        map_nodes.append({"id": i, "type": t, "connections": []})
+        var data := {"id": i, "type": t, "connections": []}
+        if t == "event":
+            data.event_data = _generate_random_event()
+        elif t == "trap":
+            data.event_data = _generate_random_trap()
+        map_nodes.append(data)
     for i in node_count - 1:
         map_nodes[i].connections.append(i + 1)
     current_node_index = 0
@@ -80,8 +86,10 @@ func _handle_node(node: Dictionary) -> void:
             get_tree().change_scene_to_file("res://scenes/CombatScene.tscn")
         "rest":
             get_tree().change_scene_to_file("res://scenes/RestScene.tscn")
-        "loot", "event":
+        "loot":
             _show_loot_panel()
+        "event", "trap":
+            _show_event_panel(node.event_data)
     _highlight_available_nodes()
 
 func _show_loot_panel() -> void:
@@ -93,6 +101,21 @@ func _show_loot_panel() -> void:
     panel.loot_panel_closed.connect(_on_loot_panel_closed)
 
 func _on_loot_panel_closed() -> void:
+    _highlight_available_nodes()
+
+func _show_event_panel(data: Dictionary) -> void:
+    var panel := EVENT_PANEL_SCENE.instantiate()
+    add_child(panel)
+    panel.show_event(data)
+    panel.event_resolved.connect(_on_event_panel_resolved.bind(data))
+
+func _on_event_panel_resolved(data: Dictionary) -> void:
+    if data.has("damage"):
+        for i in range(1, 6):
+            var key := "member" + str(i)
+            if current_party_status.has(key):
+                current_party_status[key].hp = max(current_party_status[key].hp - data.damage, 0)
+    update_party_status_display()
     _highlight_available_nodes()
 
 ## Party status display copied from the previous placeholder script.
@@ -120,3 +143,27 @@ func set_party_member_survival_stat(index_from_1: int, stat_name: String, value:
     if current_party_status.has(key) and current_party_status[key].has(stat_name):
         current_party_status[key][stat_name] = value
         update_party_status_display()
+
+func _generate_random_event() -> Dictionary:
+    var events = [
+        {
+            "description": "A mysterious shrine radiates energy. Attempt to decipher the runes?",
+            "skill_check": true,
+            "dc": 12,
+            "success_text": "You gain a burst of insight!",
+            "fail_text": "Nothing happens."
+        },
+        {
+            "description": "A lone merchant offers a few supplies.",
+            "skill_check": false
+        }
+    ]
+    return events[randi() % events.size()] 
+
+func _generate_random_trap() -> Dictionary:
+    var traps = [
+        {"description": "Hidden spikes spring from the floor!", "damage": 5},
+        {"description": "Poison darts shoot from the walls!", "damage": 3}
+    ]
+    return traps[randi() % traps.size()]
+
