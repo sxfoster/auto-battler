@@ -1,4 +1,4 @@
-class_name GameManager
+class_name GameManagerRoot
 extends Node
 
 ## Manages global game state, persistent data, and scene/phase transitions for the auto-battler.

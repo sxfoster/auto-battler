@@ -5,7 +5,7 @@
 extends Node
 class_name PostBattleManager
 
-const SUMMARY_SCENE := preload("res://auto-battler/scenes/PostBattleSummary.tscn")
+const SUMMARY_SCENE: PackedScene = preload("res://scenes/PostBattleSummary.tscn")
 
 var _summary_ui: Control
 

@@ -89,24 +89,24 @@ func _on_use_food_drink_pressed(item_effect_data: Dictionary):
 		# You might want to consume the item from inventory here
 		# InventoryManager.consume_item(item_effect_data.name) # Assuming item_effect_data has a unique name/id
 		add_rest_log_entry("Applied %s to %s. New %s: %d" % [item_effect_data.get("name", "Item"), party_members_data[target_member_key].name, stat_to_change, party_members_data[target_member_key][stat_to_change]])
-        else:
-                add_rest_log_entry("Error: Stat '%s' or '%s' not found for %s." % [stat_to_change, max_stat_key, party_members_data[target_member_key].name])
+	else:
+		add_rest_log_entry("Error: Stat '%s' or '%s' not found for %s." % [stat_to_change, max_stat_key, party_members_data[target_member_key].name])
 
 
 func _on_use_food_button_pressed() -> void:
-        var food_effect := {"name": "Ration", "target_stat": "hunger", "value": 20}
-        _on_use_food_drink_pressed(food_effect)
+	var food_effect := {"name": "Ration", "target_stat": "hunger", "value": 20}
+	_on_use_food_drink_pressed(food_effect)
 
 
 func _on_use_drink_button_pressed() -> void:
-        var drink_effect := {"name": "Water", "target_stat": "thirst", "value": 20}
-        _on_use_food_drink_pressed(drink_effect)
+	var drink_effect := {"name": "Water", "target_stat": "thirst", "value": 20}
+	_on_use_food_drink_pressed(drink_effect)
 
 
 func _on_craft_button_pressed() -> void:
-        print("Crafting button pressed")
-        if _rest_manager and _rest_manager.has_method("_on_crafting_invoked"):
-                _rest_manager._on_crafting_invoked()
+	print("Crafting button pressed")
+	if _rest_manager and _rest_manager.has_method("_on_crafting_invoked"):
+		_rest_manager._on_crafting_invoked()
 
 
 func add_rest_log_entry(log_text: String):
@@ -120,8 +120,8 @@ func add_rest_log_entry(log_text: String):
 
 
 func _on_continue_button_pressed():
-        print("Continue button pressed from Rest Scene")
-        # Perform any final rest calculations (e.g., small passive recovery for all members)
+	print("Continue button pressed from Rest Scene")
+	# Perform any final rest calculations (e.g., small passive recovery for all members)
 	# Example: Small fatigue recovery for everyone
 	for member_key in party_members_data:
 		if party_members_data[member_key].has("fatigue") and party_members_data[member_key].has("max_fatigue"):
@@ -130,13 +130,13 @@ func _on_continue_button_pressed():
 	update_party_status_display() # Update display after final changes
 	add_rest_log_entry("Journey continues. Party is somewhat rested.")
 
-        await get_tree().create_timer(1.0).timeout # Brief pause to show final log
+	await get_tree().create_timer(1.0).timeout # Brief pause to show final log
 
-        emit_signal("rest_completed")
-        if _rest_manager and _rest_manager.has_method("on_rest_continue"):
-                _rest_manager.on_rest_continue()
-        # Transition to the next scene (e.g., DungeonMap or a post-rest summary)
-        # Example: get_tree().change_scene_to_file("res://scenes/DungeonMap.tscn")
+	emit_signal("rest_completed")
+	if _rest_manager and _rest_manager.has_method("on_rest_continue"):
+		_rest_manager.on_rest_continue()
+	# Transition to the next scene (e.g., DungeonMap or a post-rest summary)
+	# Example: get_tree().change_scene_to_file("res://scenes/DungeonMap.tscn")
 
 
 # Call this function if party data changes from an external source

@@ -11,8 +11,8 @@ signal continue_pressed
 @onready var continue_button: Button = get_node(continue_button_path)
 
 func show_summary(rewards: Dictionary) -> void:
-    var xp := rewards.get("xp_gained", 0)
-    var loot := rewards.get("loot_received", [])
+    var xp: int = rewards.get("xp_gained", 0)
+    var loot: Array = rewards.get("loot_received", [])
     var loot_names: Array = []
     for item in loot:
         if typeof(item) == TYPE_STRING:
