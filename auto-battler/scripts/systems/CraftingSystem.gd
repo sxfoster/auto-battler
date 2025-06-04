@@ -49,7 +49,7 @@ func _has_synergy(inputs: Array) -> bool:
     for item in inputs:
         if item is CardData and "Rare Spice" in item.synergy_tags:
             return true
-        elif typeof(item) == TYPE_STRING and item == "Rare Spice":
+        if typeof(item) == TYPE_STRING and item == "Rare Spice":
             return true
     return false
 

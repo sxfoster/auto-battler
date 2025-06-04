@@ -50,8 +50,13 @@ func _display_party_survival_stats() -> void:
     for i in range(current_party_data.size()):
         var member = current_party_data[i]
         # Assuming member is a Dictionary with expected keys
-        # print("Member %s: HP %s, Fatigue %s" % [member.get("name", "N/A"), member.get("hp", 0), member.get("fatigue", 0)])
-    pass
+        # print(
+        #     "Member %s: HP %s, Fatigue %s" % [
+        #         member.get("name", "N/A"),
+        #         member.get("hp", 0),
+        #         member.get("fatigue", 0),
+        #     ]
+        # )
 
 # Stub for displaying available consumables for use.
 func _display_consumables() -> void:
@@ -59,7 +64,6 @@ func _display_consumables() -> void:
     # Populate UI (e.g., consumables_panel_node) with available_consumables.
     # Each consumable item in the UI should allow triggering _on_consumable_used.
     print("RestManager: Displaying available consumables (stub).")
-    pass
 
 # Called when a player uses a consumable item on a party member.
 func _on_consumable_used(consumable_data: Resource, target_member_index: int) -> void:
@@ -70,21 +74,27 @@ func _on_consumable_used(consumable_data: Resource, target_member_index: int) ->
     # 4. Refresh UI displays (_display_party_survival_stats, _display_consumables).
     # Emits a signal if party data changes in a way other managers need to know,
     # or rely on GameManager to fetch updated state when rest phase ends.
-    print("RestManager: Consumable '%s' used on member %s (stub)." % [consumable_data.resource_name if consumable_data else "N/A", target_member_index])
+    print(
+        "RestManager: Consumable '%s' used on member %s (stub)." % [
+            consumable_data.resource_name if consumable_data else "N/A",
+            target_member_index,
+        ]
+    )
     # Example: current_party_data[target_member_index].hp += 10 # Placeholder effect
     _display_party_survival_stats() # Refresh stats display
     _display_consumables() # Refresh consumable list
-    pass
 
 # Called when the player initiates crafting.
 func _on_crafting_invoked() -> void:
     # Future implementation:
     # 1. May transition to a dedicated crafting scene/manager.
     # 2. Or, display a crafting UI panel within the rest scene.
-    # 3. GameManager might need to be involved for scene transitions or providing crafting system access.
+    # 3. GameManager might need to be involved for scene transitions or
+    #    providing crafting system access.
     print("RestManager: Crafting invoked (stub).")
-    # Example: get_tree().change_scene_to_file("res://scenes/CraftingScene.tscn") - but prefer signals to GameManager
-    pass
+    # Example: get_tree().change_scene_to_file(
+    #     "res://scenes/CraftingScene.tscn"
+    # ) - but prefer signals to GameManager
 
 # Called when the player initiates repair.
 func _on_repair_invoked() -> void:
@@ -92,7 +102,6 @@ func _on_repair_invoked() -> void:
     # 1. Similar to crafting, might involve a new scene/manager or a UI panel.
     # 2. Logic for selecting items to repair and resource costs.
     print("RestManager: Repair invoked (stub).")
-    pass
 
 # Called when the "Continue Exploration" button is pressed in the UI.
 func _on_continue_exploration_pressed() -> void:

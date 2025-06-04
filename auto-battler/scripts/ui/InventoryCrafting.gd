@@ -85,7 +85,6 @@ func populate_inventory_display():
     #   item_ui_instance.set_item_data(item_data) # A function you'd define in InventoryItemUI.gd
     #   inventory_grid.add_child(item_ui_instance)
     #   # Connect drag signals for item_ui_instance here or in its own script
-    pass
 
 func update_crafting_slots_display():
     var slots = crafting_slots_container.get_children()
@@ -135,7 +134,7 @@ func update_crafting_preview():
 
 # This function would be connected to the 'gui_input' signal of each crafting slot.
 # You'd need to iterate through slots in _ready and connect them.
-func _on_slot_gui_input(event: InputEvent, slot_index: int):
+func _on_slot_gui_input(event: InputEvent, _slot_index: int):
     if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
         # Example: Clicking a slot could try to move an item back to inventory or clear it
         # print("Clicked slot ", slot_index, " containing ", crafting_slot_items[slot_index])

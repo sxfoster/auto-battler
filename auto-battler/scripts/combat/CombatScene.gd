@@ -130,11 +130,11 @@ func show_visual_feedback(text: String, duration: float = 1.0):
 	feedback_label.visible = false
 
 # Placeholder functions for updating UI based on game state
-func update_party_display(party_data):
+func update_party_display(_party_data):
 	# Iterate through party_data and update each PartyMemberPanel instance
 	pass
 
-func update_enemy_display(enemy_data):
+func update_enemy_display(_enemy_data):
 	# Iterate through enemy_data and update each EnemyPanel instance
 	pass
 

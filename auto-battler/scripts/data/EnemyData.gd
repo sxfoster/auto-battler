@@ -6,10 +6,10 @@ class_name EnemyData
 
 # Types of enemies that can appear in the game.
 enum EnemyType {
-    Creature,
-    DemiHuman,
-    Undead,
-    Boss
+    CREATURE,
+    DEMIHUMAN,
+    UNDEAD,
+    BOSS
 }
 
 @export var enemy_name: String = ""
