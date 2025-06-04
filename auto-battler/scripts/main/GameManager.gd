@@ -101,7 +101,7 @@ func _ready() -> void:
     # Initialize game, potentially load initial data or set up for main menu.
     # For a new game, this might mean transitioning to a main menu scene.
     if get_tree().current_scene == null && !Engine.is_editor_hint():
-        _change_game_phase_and_scene("main_menu", "res://auto-battler/scenes/MainMenu.tscn") # Example path
+        _change_game_phase_and_scene("main_menu", "res://scenes/MainMenu.tscn") # Example path
 
     print("GameManager: Initialization complete. Current phase: %s" % current_game_phase)
 
@@ -137,7 +137,7 @@ func start_new_run(selected_party_composition: Array, initial_gear: Array = []) 
         "current_node_id": null # Starting node
     }
 
-    _change_game_phase_and_scene("preparation", "res://auto-battler/scenes/PreparationScene.tscn") # Example path
+    _change_game_phase_and_scene("preparation", "res://scenes/PreparationScene.tscn") # Example path
 
     # Inform PreparationManager to load data.
     # Ensure PreparationManager is ready in the new scene before calling its methods.
@@ -173,7 +173,7 @@ func _notify_preparation_manager_to_load_data():
 ## Starts the dungeon map using the prepared party data.
 func start_dungeon_run(party_data: Array) -> void:
     current_party_members = party_data.duplicate(true)
-    _change_game_phase_and_scene("dungeon_map", "res://auto-battler/scenes/DungeonMap.tscn")
+    _change_game_phase_and_scene("dungeon_map", "res://scenes/DungeonMap.tscn")
     call_deferred("_notify_dungeon_map_manager_to_initialize")
 
 
@@ -208,14 +208,14 @@ func load_game_state(slot_name: String) -> void:
             current_dungeon_state = data.get("dungeon", {})
             var phase = data.get("phase", "main_menu")
             var scene_map = {
-                "main_menu": "res://auto-battler/scenes/MainMenu.tscn",
-                "preparation": "res://auto-battler/scenes/PreparationScene.tscn",
-                "dungeon_map": "res://auto-battler/scenes/DungeonMap.tscn",
-                "combat": "res://auto-battler/scenes/CombatScene.tscn",
-                "rest": "res://auto-battler/scenes/RestScene.tscn",
-                "game_over": "res://auto-battler/scenes/GameOverScreen.tscn"
+                "main_menu": "res://scenes/MainMenu.tscn",
+                "preparation": "res://scenes/PreparationScene.tscn",
+                "dungeon_map": "res://scenes/DungeonMap.tscn",
+                "combat": "res://scenes/CombatScene.tscn",
+                "rest": "res://scenes/RestScene.tscn",
+                "game_over": "res://scenes/GameOverScreen.tscn"
             }
-            var scene = scene_map.get(phase, "res://auto-battler/scenes/MainMenu.tscn")
+            var scene = scene_map.get(phase, "res://scenes/MainMenu.tscn")
             _change_game_phase_and_scene(phase, scene)
             print("GameManager: Loaded game state from %s" % save_path)
         else:
@@ -248,7 +248,7 @@ func _party_is_alive() -> bool:
 ##  save_slot: if provided, game state will be saved to this slot
 ##  show_results: display a summary/run results scene before returning to menu
 ##  repeat: immediately start a new run with surviving party members
-func end_current_run(save_slot: String = "", show_results: bool = false, repeat: bool = false, results_scene: String = "res://auto-battler/scenes/MainMenu.tscn") -> void:
+func end_current_run(save_slot: String = "", show_results: bool = false, repeat: bool = false, results_scene: String = "res://scenes/MainMenu.tscn") -> void:
     print("GameManager: Ending current run.")
     if save_slot != "":
         save_game_state(save_slot)
@@ -266,7 +266,7 @@ func end_current_run(save_slot: String = "", show_results: bool = false, repeat:
         # A dedicated summary scene could be shown here. Use the provided scene path or main menu as placeholder.
         _change_game_phase_and_scene("run_summary", results_scene)
     else:
-        _change_game_phase_and_scene("main_menu", "res://auto-battler/scenes/MainMenu.tscn")
+        _change_game_phase_and_scene("main_menu", "res://scenes/MainMenu.tscn")
 
 
 # --- Scene/Phase Transition Logic ---
@@ -294,7 +294,7 @@ func on_party_ready_for_dungeon() -> void: # Removed arguments as PrepManager no
     # or GameManager fetches from PrepManager if data is modified there.
     # Simpler: Assume PrepManager has updated any necessary global state or its own state that DungeonMapManager will use.
 
-    _change_game_phase_and_scene("dungeon_map", "res://auto-battler/scenes/DungeonMap.tscn") # Example path
+    _change_game_phase_and_scene("dungeon_map", "res://scenes/DungeonMap.tscn") # Example path
     call_deferred("_notify_dungeon_map_manager_to_initialize")
 
 func _notify_dungeon_map_manager_to_initialize():
@@ -309,11 +309,11 @@ func _notify_dungeon_map_manager_to_initialize():
 func on_map_node_selected(node_type: String) -> void:
     match node_type:
         "combat":
-            _change_game_phase_and_scene("combat", "res://auto-battler/scenes/CombatScene.tscn")
+            _change_game_phase_and_scene("combat", "res://scenes/CombatScene.tscn")
         "rest":
-            _change_game_phase_and_scene("rest", "res://auto-battler/scenes/RestScene.tscn")
+            _change_game_phase_and_scene("rest", "res://scenes/RestScene.tscn")
         "loot":
-            _change_game_phase_and_scene("loot", "res://auto-battler/scenes/LootPanel.tscn")
+            _change_game_phase_and_scene("loot", "res://scenes/LootPanel.tscn")
         _:
             print("GameManager: Unknown node type '%s' selected." % node_type)
 
@@ -322,7 +322,7 @@ func on_map_node_selected(node_type: String) -> void:
 func on_transition_to_combat_requested(combat_setup_data: Dictionary) -> void:
     # combat_setup_data should include { "enemies": [EnemyResource/Data], "environment_effects": [] (optional) }
     print("GameManager: Transition to combat requested.")
-    _change_game_phase_and_scene("combat", "res://auto-battler/scenes/CombatScene.tscn") # Example path
+    _change_game_phase_and_scene("combat", "res://scenes/CombatScene.tscn") # Example path
 
     call_deferred("_notify_combat_manager_to_initialize", combat_setup_data)
 
@@ -358,7 +358,7 @@ func on_transition_to_loot_event_requested(event_data: Dictionary) -> void:
 ## Called when DungeonMapManager requests a transition to a rest area.
 func on_transition_to_rest_requested(_rest_setup_data: Dictionary = {}) -> void: # Added default for calls from PostBattle
     print("GameManager: Transition to rest requested.")
-    _change_game_phase_and_scene("rest", "res://auto-battler/scenes/RestScene.tscn") # Example path
+    _change_game_phase_and_scene("rest", "res://scenes/RestScene.tscn") # Example path
 
     call_deferred("_notify_rest_manager_to_initialize")
 
@@ -458,7 +458,7 @@ func on_post_battle_processing_complete(final_party_state_after_effects: Array, 
 func on_transition_to_map_requested() -> void:
     print("GameManager: Transition to map requested by PostBattleManager.")
     # current_dungeon_state.depth += 1 # This might be handled by DungeonMapManager or here.
-    _change_game_phase_and_scene("dungeon_map", "res://auto-battler/scenes/DungeonMap.tscn") # Example path
+    _change_game_phase_and_scene("dungeon_map", "res://scenes/DungeonMap.tscn") # Example path
     call_deferred("_notify_dungeon_map_manager_to_initialize") # Re-initialize map for new state
 
 
@@ -472,7 +472,7 @@ func on_transition_to_rest_requested_from_post_battle() -> void:
 func on_game_over_requested() -> void:
     print("GameManager: Game over requested.")
     # Show game over screen, then return to menu when player acknowledges
-    end_current_run("autosave", true, false, "res://auto-battler/scenes/GameOverScreen.tscn")
+    end_current_run("autosave", true, false, "res://scenes/GameOverScreen.tscn")
 
 
 ## Called when RestManager signals to continue exploration.
@@ -481,7 +481,7 @@ func on_rest_continue_exploration(updated_party_data: Array) -> void:
     current_party_members = updated_party_data.duplicate(true)
 
     # current_dungeon_state.depth += 1 # Or other logic to advance the dungeon
-    _change_game_phase_and_scene("dungeon_map", "res://auto-battler/scenes/DungeonMap.tscn") # Example path
+    _change_game_phase_and_scene("dungeon_map", "res://scenes/DungeonMap.tscn") # Example path
     call_deferred("_notify_dungeon_map_manager_to_initialize")
 
 
