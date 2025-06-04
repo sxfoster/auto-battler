@@ -367,6 +367,10 @@ func on_combat_end(victory: bool, results: Dictionary) -> void:
     else:
         on_combat_defeat(results)
 
+## Called when CombatManager emits combat_ended.
+func on_combat_ended(victory: bool) -> void:
+    print("GameManager: combat_ended received. Victory: %s" % victory)
+
 
 ## Called by PostBattleManager when all its processing is complete.
 func on_post_battle_processing_complete(final_party_state_after_effects: Array, rewards_summary: Dictionary) -> void:

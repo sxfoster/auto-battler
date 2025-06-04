@@ -104,7 +104,8 @@ func run_auto_battle_loop() -> void:
     if party_members.is_empty() or enemies.is_empty():
         _log("Cannot start battle: one or both sides are empty.")
         # Determine if this is an immediate win/loss or an error
-        _finalize_combat() # Will determine outcome based on empty sides
+        var immediate_result = _finalize_combat() # Will determine outcome based on empty sides
+        emit_signal("combat_ended", immediate_result)
         return
 
     _build_turn_order() # Initial turn order
@@ -125,7 +126,8 @@ func run_auto_battle_loop() -> void:
         if not (_is_side_defeated(party_members) or _is_side_defeated(enemies)):
             _build_turn_order() # Rebuild turn order for the next round if combat continues
 
-    _finalize_combat()
+    var victory = _finalize_combat()
+    emit_signal("combat_ended", victory)
 
 
 ## Builds or rebuilds the turn order based on combatant speed and status.
@@ -243,7 +245,7 @@ func _is_side_defeated(side_combatants: Array[Combatant]) -> bool:
 
 
 ## Finalizes combat, determines outcome, and emits appropriate signal.
-func _finalize_combat() -> void:
+func _finalize_combat() -> bool:
     var party_defeated = _is_side_defeated(party_members)
     var enemies_defeated = _is_side_defeated(enemies)
     var final_party_state = _get_final_party_state()
@@ -257,7 +259,7 @@ func _finalize_combat() -> void:
         emit_signal("combat_defeat", results)
         if gm and gm.has_method("on_combat_end"):
             gm.on_combat_end(false, results)
-        emit_signal("combat_ended", false)
+        return false
     elif enemies_defeated:
         _log("Party is victorious!")
         _distribute_loot_and_xp() # Calculate loot and XP
@@ -269,7 +271,7 @@ func _finalize_combat() -> void:
         emit_signal("combat_victory", results)
         if gm and gm.has_method("on_combat_end"):
             gm.on_combat_end(true, results)
-        emit_signal("combat_ended", true)
+        return true
     else:
         # This case (neither side defeated, e.g. from round limit) might be a draw or special scenario
         _log("Combat ended inconclusively (e.g., round limit reached).")
@@ -279,7 +281,7 @@ func _finalize_combat() -> void:
         emit_signal("combat_defeat", results) # Or a specific "combat_draw" signal
         if gm and gm.has_method("on_combat_end"):
             gm.on_combat_end(false, results)
-        emit_signal("combat_ended", false)
+        return false
 
 
 ## Gathers the final state of party members (HP, statuses, etc.).
