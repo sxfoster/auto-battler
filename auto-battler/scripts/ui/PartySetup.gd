@@ -16,9 +16,8 @@ func _ready():
 		# Additional labels can be initialized here if needed
 
 func _on_ready_button_pressed():
-	print("Ready button pressed")
-	# Transition to the dungeon map scene
-	# get_tree().change_scene_to_file("res://scenes/DungeonMap.tscn")
+        print("Ready button pressed")
+        SceneLoader.goto_scene("PreparationScene")
 
 # Placeholder functions for drag-and-drop card assignment
 # In a real implementation, these would handle drag data

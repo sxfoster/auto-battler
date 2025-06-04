@@ -28,5 +28,5 @@ func show_summary(rewards: Dictionary) -> void:
     summary_label.text = "XP Gained: %d\nLoot: %s" % [xp, loot_text]
 
 func _on_continue_button_pressed() -> void:
-    GameManager.on_post_battle_continue()
+    SceneLoader.goto_scene("RestScene")
     emit_signal("continue_pressed")

@@ -12,13 +12,13 @@ func _ready():
 	exit_button.connect("pressed", Callable(self, "_on_ExitButton_pressed"))
 
 func _on_StartButton_pressed():
-	get_tree().change_scene_to_file("res://scenes/PreparationScene.tscn")
+        SceneLoader.goto_scene("PartySetup")
 
 func _on_ContinueButton_pressed():
-	get_tree().change_scene_to_file("res://scenes/DungeonMap.tscn")
+        SceneLoader.goto_scene("DungeonMap")
 
 func _on_SettingsButton_pressed():
-	get_tree().change_scene_to_file("res://scenes/SettingsScene.tscn")
+        SceneLoader.goto_scene("SettingsScene")
 
 func _on_ExitButton_pressed():
 	get_tree().quit()

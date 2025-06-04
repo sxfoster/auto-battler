@@ -137,8 +137,7 @@ func _on_continue_button_pressed():
     if _rest_manager and _rest_manager.has_method("on_rest_continue"):
         _rest_manager.on_rest_continue()
     get_node("/root/GameManager").on_rest_continue()
-    # Transition to the next scene (e.g., DungeonMap or a post-rest summary)
-    # Example: get_tree().change_scene_to_file("res://scenes/DungeonMap.tscn")
+    SceneLoader.goto_scene("DungeonMap")
 
 
 # Call this function if party data changes from an external source
