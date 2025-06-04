@@ -447,7 +447,7 @@ func on_post_battle_processing_complete(final_party_state_after_effects: Array, 
     # If PostBattleManager did NOT emit a specific transition signal that was caught,
     # we might need default logic here, but the current design is that PBM *will* emit one.
     # Example: if current_game_phase still "post_battle_victory", default to map.
-    if current_game_phase == "post_battle_victory" and not get_tree().current_scene.name == "DungeonMap": # Avoid loop if already there
+    if current_game_phase == "post_battle_victory" and get_tree().current_scene.name != "DungeonMap": # Avoid loop if already there
         # This check for current_scene.name is a bit hacky.
         # A more robust way is to check if a transition is already pending or using a state machine.
         # on_transition_to_map_requested() # Default if PBM didn't guide
