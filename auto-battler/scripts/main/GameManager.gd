@@ -49,6 +49,13 @@ func _ready() -> void:
     print("GameManager: Initialization complete. Current phase: %s" % current_game_phase)
 
 
+## Entry point invoked by Bootstrap scene to kick off the game flow.
+func start_run() -> void:
+    print("GameManager: start_run called")
+    if get_tree().current_scene == null:
+        _change_game_phase_and_scene("main_menu", "res://auto-battler/scenes/MainMenu.tscn")
+
+
 ## Starts a new dungeon run with selected party and gear.
 func start_new_run(selected_party_composition: Array, initial_gear: Array = []) -> void:
     print("GameManager: Starting new run.")
