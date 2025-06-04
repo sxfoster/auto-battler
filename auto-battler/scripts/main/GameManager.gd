@@ -11,10 +11,6 @@ func change_to_preparation():
     print("GameManager.change_to_preparation()")
     get_tree().change_scene_to_file("res://scenes/PreparationScene.tscn")
 
-func on_preparation_done(party_data):
-    self.party_data = party_data
-    change_to_dungeon_map()
-
 func change_to_dungeon_map():
     print("GameManager.change_to_dungeon_map()")
     get_tree().change_scene_to_file("res://scenes/DungeonMap.tscn")
@@ -264,11 +260,11 @@ func _change_game_phase_and_scene(new_phase: String, scene_path: String) -> void
 
     emit_signal("game_phase_changed", new_phase) # For UI or other global listeners
 
-func change_to_rest():
+async func change_to_rest():
     get_tree().change_scene_to_file("res://scenes/RestScene.tscn")
-    yield(get_tree(), "idle_frame")
+    await get_tree().process_frame
     var rest_mgr = get_tree().current_scene.get_node("RestManager")
-    rest_mgr.connect("rest_complete", self, "on_rest_continue")
+    rest_mgr.rest_complete.connect(on_rest_continue)
 
 
 # --- Handler Functions for Signals from Other Managers ---
@@ -291,12 +287,6 @@ func _notify_dungeon_map_manager_to_initialize():
         map_manager.display_map()
     else:
         printerr("GameManager: Failed to notify DungeonMapManager or method not found.")
-
-func change_to_dungeon_map():
-    get_tree().change_scene_to_file("res://scenes/DungeonMap.tscn")
-    yield(get_tree(), "idle_frame")
-    var map_mgr = get_tree().current_scene.get_node("DungeonMapManager")
-    map_mgr.connect("node_selected", self, "on_node_selected")
 
 func on_node_selected(node_type: String) -> void:
     on_map_node_selected(node_type)
@@ -394,28 +384,14 @@ func on_combat_ended(victory):
     else:
         get_tree().change_scene_to_file("res://scenes/GameOver.tscn")
 
-func change_to_post_battle():
-    print("GameManager.change_to_post_battle()")
-    get_tree().change_scene_to_file("res://scenes/PostBattleSummary.tscn")
-
 func on_post_battle_continue():
     change_to_rest()
 
-func change_to_rest():
-    print("GameManager.change_to_rest()")
-    get_tree().change_scene_to_file("res://scenes/RestScene.tscn")
-
-func on_rest_continue():
-    change_to_dungeon_map()
-
-func change_to_post_battle() -> void:
+async func change_to_post_battle() -> void:
     get_tree().change_scene_to_file("res://scenes/PostBattleSummary.tscn")
-    yield(get_tree(), "idle_frame")
+    await get_tree().process_frame
     var post_mgr = get_tree().current_scene.get_node("PostBattleManager")
-    post_mgr.connect("post_battle_complete", self, "on_post_battle_continue")
-
-func on_post_battle_continue() -> void:
-    print("GameManager: Post-battle continue pressed.")
+    post_mgr.post_battle_complete.connect(on_post_battle_continue)
 
 func on_rest_continue() -> void:
     _change_game_phase_and_scene("dungeon_map", "res://scenes/DungeonMap.tscn")
@@ -424,10 +400,6 @@ func on_rest_continue() -> void:
 # Remove old scene transition logic if fully replaced.
 # The old on_combat_finished, on_loot_complete, on_rest_complete are now handled by the new signal system.
 
-func change_to_loot() -> void:
+async func change_to_loot() -> void:
     get_tree().change_scene_to_file("res://scenes/LootPanel.tscn")
-    yield(get_tree(), "idle_frame")
-
-func change_to_dungeon_map() -> void:
-    get_tree().change_scene_to_file("res://scenes/DungeonMap.tscn")
-    yield(get_tree(), "idle_frame")
+    await get_tree().process_frame

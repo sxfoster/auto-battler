@@ -18,7 +18,7 @@ var current_loot_items: Array = []
 # var LootItemEntryScene = preload("res://scenes/ui_components/LootItemEntry.tscn")
 
 func _ready():
-        $CollectButton.connect("pressed", self, "_on_Collect_pressed")
+	$CollectButton.pressed.connect(_on_Collect_pressed)
 	# Populate with some example loot if nothing is passed AND this panel is visible on start (for testing)
 	# Typically, you'd call show_loot() from another script to display this panel.
 	if current_loot_items.is_empty() and self.visible:
@@ -155,4 +155,4 @@ func show_loot(items_to_display: Array):
 	# move_to_front()
 
 func _on_Collect_pressed():
-        GameManager.change_to_dungeon_map()
+	GameManager.change_to_dungeon_map()
