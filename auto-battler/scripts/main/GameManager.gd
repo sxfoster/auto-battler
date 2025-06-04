@@ -402,6 +402,14 @@ func change_to_rest():
 func on_rest_continue():
     change_to_dungeon_map()
 
-func change_to_loot():
-    print("GameManager.change_to_loot()")
-    get_tree().change_scene_to_file("res://scenes/LootScene.tscn")
+func change_to_post_battle() -> void:
+    get_tree().change_scene_to_file("res://scenes/PostBattleSummary.tscn")
+    yield(get_tree(), "idle_frame")
+    var post_mgr = get_tree().current_scene.get_node("PostBattleManager")
+    post_mgr.connect("post_battle_complete", self, "on_post_battle_continue")
+
+func on_post_battle_continue() -> void:
+    print("GameManager: Post-battle continue pressed.")
+
+# Remove old scene transition logic if fully replaced.
+# The old on_combat_finished, on_loot_complete, on_rest_complete are now handled by the new signal system.
