@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://bdrmts4t4fmla"
-path="res://.godot/imported/energizing_brew.png.png-ac1eb8d6367e39a38bc72419dad81ca0.ctex"
+uid="uid://c55hycndagk3l"
+path="res://.godot/imported/mending_touch.png-6c0190ad9b6a016b19624668216d682e.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/cards/energizing_brew.png.png"
-dest_files=["res://.godot/imported/energizing_brew.png.png-ac1eb8d6367e39a38bc72419dad81ca0.ctex"]
+source_file="res://assets/cards/mending_touch.png"
+dest_files=["res://.godot/imported/mending_touch.png-6c0190ad9b6a016b19624668216d682e.ctex"]
 
 [params]
 
