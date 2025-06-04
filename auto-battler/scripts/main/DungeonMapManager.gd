@@ -201,7 +201,7 @@ func handle_node_interaction(node_data: Dictionary) -> void:
             # Otherwise, emit signal for GameManager to handle scene/UI transition
             emit_signal("transition_to_loot_event", {"type": "loot", "data": node_data.specific_data})
         "event", "trap": # Traps are handled as events
-             # If event panels are popups within DungeonMap:
+            # If event panels are popups within DungeonMap:
             # _show_event_panel(node_data.specific_data)
             # Otherwise, emit signal
             emit_signal("transition_to_loot_event", {"type": "event", "data": node_data.specific_data})
@@ -224,7 +224,7 @@ func update_player_position(node_id: int) -> void:
     print("Player moved to node: ", node_id)
 
     display_map() # Re-call display_map to update button states, or just _update_node_visuals
-                  # Using display_map() is simpler for now, though _update_node_visuals() is more performant.
+        # Using display_map() is simpler for now, though _update_node_visuals() is more performant.
 
 
 ## Helper to extract/generate enemy info for a combat node.
@@ -285,7 +285,7 @@ func _generate_random_trap_event() -> Dictionary:
             "event_id": "trap_darts_01",
             "description": "Poisoned darts shoot out from tiny holes in the walls!",
             "options": [{"text": "Try to block or parry (Defense DC 11)", "action": "skill_check", "skill": "defense", "dc": 11}],
-             "outcomes": {
+            "outcomes": {
                 "skill_check_success": {"text": "You manage to deflect the darts!", "effects": {}},
                 "skill_check_failure": {"text": "A few darts find their mark, searing with poison!", "effects": {"damage_party_small": true, "amount": 3, "status": "poisoned"}}
             }
