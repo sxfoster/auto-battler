@@ -260,9 +260,9 @@ func _change_game_phase_and_scene(new_phase: String, scene_path: String) -> void
 
     emit_signal("game_phase_changed", new_phase) # For UI or other global listeners
 
-func change_to_rest():
+async func change_to_rest():
     get_tree().change_scene_to_file("res://scenes/RestScene.tscn")
-    yield(get_tree(), "idle_frame")
+    await get_tree().process_frame
     var rest_mgr = get_tree().current_scene.get_node("RestManager")
     rest_mgr.rest_complete.connect(on_rest_continue)
 
@@ -387,9 +387,10 @@ func on_combat_ended(victory):
 func on_post_battle_continue():
     change_to_rest()
 
-func change_to_post_battle() -> void:
+
+async func change_to_post_battle() -> void:
     get_tree().change_scene_to_file("res://scenes/PostBattleSummary.tscn")
-    yield(get_tree(), "idle_frame")
+    await get_tree().process_frame
     var post_mgr = get_tree().current_scene.get_node("PostBattleManager")
     post_mgr.post_battle_complete.connect(on_post_battle_continue)
 
@@ -400,6 +401,6 @@ func on_rest_continue() -> void:
 # Remove old scene transition logic if fully replaced.
 # The old on_combat_finished, on_loot_complete, on_rest_complete are now handled by the new signal system.
 
-func change_to_loot() -> void:
+async func change_to_loot() -> void:
     get_tree().change_scene_to_file("res://scenes/LootPanel.tscn")
-    yield(get_tree(), "idle_frame")
+    await get_tree().process_frame
