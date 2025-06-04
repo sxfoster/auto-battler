@@ -97,8 +97,8 @@ func _on_combat_victory(results: Dictionary) -> void:
 						gm.on_combat_end(true, results)
 				elif gm.has_method("on_combat_victory"):
 						gm.on_combat_victory(results)
-                end_combat()
-                SceneLoader.goto_scene("PostBattleSummary")
+		end_combat()
+		SceneLoader.goto_scene("PostBattleSummary")
 
 func _on_combat_defeat(results: Dictionary) -> void:
 		var gm = get_node_or_null("/root/GameManager")
@@ -107,8 +107,8 @@ func _on_combat_defeat(results: Dictionary) -> void:
 						gm.on_combat_end(false, results)
 				elif gm.has_method("on_combat_ended"):
 						gm.on_combat_ended(false)
-                end_combat()
-                SceneLoader.goto_scene("PostBattleSummary")
+		end_combat()
+		SceneLoader.goto_scene("PostBattleSummary")
 
 func add_combat_log_entry(text_entry: String):
 	var new_log = Label.new()

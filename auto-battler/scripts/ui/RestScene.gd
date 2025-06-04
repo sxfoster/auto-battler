@@ -34,7 +34,7 @@ func _ready():
     update_party_status_display()
     # Hide progress label initially or manage its visibility during a "resting" state
     rest_progress_label.visible = false
-    _continue_button.connect("pressed", self, "_on_continue_button_pressed")
+    _continue_button.pressed.connect(_on_continue_button_pressed)
 
 func update_party_status_display():
     var member_nodes = party_status_grid.get_children() # These are VBoxContainers

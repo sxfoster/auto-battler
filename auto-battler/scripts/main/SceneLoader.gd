@@ -1,7 +1,6 @@
 extends Node
-class_name SceneLoader
 
-static var SCENES := {
+const SCENES := {
     "MainMenu": "res://scenes/MainMenu.tscn",
     "PartySetup": "res://scenes/PartySetup.tscn",
     "PreparationScene": "res://scenes/PreparationScene.tscn",
@@ -17,7 +16,7 @@ static var SCENES := {
     "Bootstrap": "res://scenes/Bootstrap.tscn"
 }
 
-static func goto_scene(key: String) -> void:
+func goto_scene(key: String) -> void:
     if !SCENES.has(key):
         push_error("SceneLoader: Unknown scene key %s" % key)
         return
