@@ -387,8 +387,7 @@ func on_combat_ended(victory):
 func on_post_battle_continue():
     change_to_rest()
 
-
-async func change_to_post_battle() -> void:
+func change_to_post_battle() -> void:
     get_tree().change_scene_to_file("res://scenes/PostBattleSummary.tscn")
     await get_tree().process_frame
     var post_mgr = get_tree().current_scene.get_node("PostBattleManager")
