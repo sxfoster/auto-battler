@@ -12,10 +12,8 @@ static func _sanitize(name: String) -> String:
 
 func _run() -> void:
     _generate_cards()
-    _generate_enemies()
     _generate_professions()
     _generate_recipes()
-    _generate_characters()
     print("Sample resources generated.")
 
 func _generate_cards() -> void:
@@ -26,11 +24,11 @@ func _generate_cards() -> void:
         ResourceSaver.save(card, path)
 
 func _generate_enemies() -> void:
-    var enemies := SampleEnemies.get_enemies()
-    for enemy in enemies:
-        var fname := _sanitize(enemy.enemy_name)
-        var path := "res://data/enemies/%s.tres" % fname
-        ResourceSaver.save(enemy, path)
+    # var enemies := SampleEnemies.get_enemies()
+    # for enemy in enemies:
+    #     var fname := _sanitize(enemy.enemy_name)
+    #     var path := "res://data/enemies/%s.tres" % fname
+    #     ResourceSaver.save(enemy, path)
 
 func _generate_professions() -> void:
     var professions := SampleProfessions.get_professions()
@@ -47,8 +45,8 @@ func _generate_recipes() -> void:
         ResourceSaver.save(recipe, path)
 
 func _generate_characters() -> void:
-    var chars := SampleCharacters.get_characters()
-    for ch in chars:
-        var fname := _sanitize(ch.character_name)
-        var path := "res://data/characters/%s.tres" % fname
-        ResourceSaver.save(ch, path)
+    # var chars := SampleCharacters.get_characters()
+    # for ch in chars:
+    #     var fname := _sanitize(ch.character_name)
+    #     var path := "res://data/characters/%s.tres" % fname
+    #     ResourceSaver.save(ch, path)
