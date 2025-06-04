@@ -189,9 +189,9 @@ func _on_enter_dungeon_pressed() -> void:
     var party_data := party_members_data.duplicate(true)
 
     # Attempt to pass this data to the GameManager singleton
-    var gm := Engine.has_singleton("GameManager")
-        ? Engine.get_singleton("GameManager")
-        : get_node_or_null("/root/GameManager")
+    var gm := Engine.has_singleton("GameManager") \
+            ? Engine.get_singleton("GameManager") \
+            : get_node_or_null("/root/GameManager")
 
     if gm:
         if gm.has_method("start_dungeon_run"):

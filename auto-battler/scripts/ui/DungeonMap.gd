@@ -46,12 +46,12 @@ func update_map_node_display():
 			# Potentially disable buttons for already visited or unreachable nodes
 
 func _on_map_node_selected(node_index):
-        if node_index >= 0 and node_index < map_nodes.size():
-                var selected_node = map_nodes[node_index]
-                emit_signal("map_node_selected", selected_node.id)
-                print("Map node selected: ", selected_node.name)
-        else:
-                print("Invalid node index: ", node_index)
+	if node_index >= 0 and node_index < map_nodes.size():
+		var selected_node = map_nodes[node_index]
+		emit_signal("map_node_selected", selected_node.id)
+		print("Map node selected: ", selected_node.name)
+	else:
+		print("Invalid node index: ", node_index)
 
 
 func update_party_status_display():
