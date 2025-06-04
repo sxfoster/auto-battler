@@ -1,11 +1,14 @@
 extends Control
 
+
 const DUNGEON_MAP_SCENE := "res://scenes/DungeonMap.tscn"
 
 @onready var ready_button = $PreparationManager/ReadyButton
 
+
 func _ready():
-    ready_button.connect("pressed", Callable(self, "_on_ReadyButton_pressed"))
+    $ContinueButton.pressed.connect(_on_continue)
+
 
 func _on_ReadyButton_pressed():
     var party_selection = gather_selected_party()
