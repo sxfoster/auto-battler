@@ -1,4 +1,4 @@
-extends PanelContainer
+extends Control
 
 # Signal emitted when an item is chosen to be added to inventory
 signal add_item_to_inventory(item_data: Dictionary)
@@ -7,11 +7,9 @@ signal loot_panel_closed
 
 @export var loot_list_container_path: NodePath = NodePath("VBox/LootScroll/LootList")
 @export var close_button_path: NodePath = NodePath("VBox/CloseButton")
-@export var collect_button_path: NodePath = NodePath("VBox/CollectButton")
 
 @onready var loot_list_container: VBoxContainer = get_node(loot_list_container_path)
 @onready var close_button: Button = get_node(close_button_path)
-@onready var collect_button: Button = get_node_or_null(collect_button_path)
 
 # Placeholder for loot items. In a real game, this would be passed to the panel.
 var current_loot_items: Array = []
@@ -20,8 +18,7 @@ var current_loot_items: Array = []
 # var LootItemEntryScene = preload("res://scenes/ui_components/LootItemEntry.tscn")
 
 func _ready():
-	if collect_button:
-		collect_button.pressed.connect(_on_CollectButton_pressed)
+        $CollectButton.connect("pressed", self, "_on_Collect_pressed")
 	# Populate with some example loot if nothing is passed AND this panel is visible on start (for testing)
 	# Typically, you'd call show_loot() from another script to display this panel.
 	if current_loot_items.is_empty() and self.visible:
@@ -157,8 +154,5 @@ func show_loot(items_to_display: Array):
 	# Optional: Bring to front if it's part of a complex UI
 	# move_to_front()
 
-func _on_CollectButton_pressed():
-	if Engine.has_singleton("GameManager"):
-		var gm = Engine.get_singleton("GameManager")
-		if gm.has_method("change_to_dungeon_map"):
-			gm.change_to_dungeon_map()
+func _on_Collect_pressed():
+        GameManager.change_to_dungeon_map()

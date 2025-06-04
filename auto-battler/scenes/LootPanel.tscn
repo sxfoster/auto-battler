@@ -23,4 +23,9 @@ size_flags_vertical = 3
 [node name="CloseButton" type="Button" parent="VBox"]
 text = "Take All"
 
+[node name="CollectButton" type="Button" parent="."]
+anchor_right = 1.0
+anchor_bottom = 1.0
+text = "Collect"
+
 [connection signal="pressed" from="CloseButton" to="." method="_on_close_button_pressed"]
