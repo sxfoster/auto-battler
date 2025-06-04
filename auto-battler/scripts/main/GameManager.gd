@@ -37,71 +37,14 @@ const REST_MANAGER_PATH := "RestManager"               # Placeholder path
 # --- Core Game State Functions ---
 func _ready() -> void:
     print("GameManager: Initializing...")
-    # Crucially, connect signals from other managers here.
-    # This assumes that these manager nodes are either autoloads/singletons
-    # or will be part of the scene tree when GameManager needs to interact with them.
-    # If managers are instantiated by GameManager or always children, direct connection is easier.
-    # For this subtask, we assume they become available and emit signals that GameManager listens to globally.
 
-    # Attempt to connect signals. It's safer if managers are singletons or reliably present.
-    # If managers are scene-specific, these connections might need to be established when scenes load.
-    # For now, assuming managers can be globally accessed for signal connection.
-
-    var prep_manager = get_node_or_null(PREPARATION_MANAGER_PATH) # Or use Autoload name
-    if prep_manager:
-        if not prep_manager.party_ready_for_dungeon.is_connected(on_party_ready_for_dungeon):
-            prep_manager.party_ready_for_dungeon.connect(on_party_ready_for_dungeon)
-    else:
-        print_rich("[color=yellow]GameManager Warning:[/color] PreparationManager not found at path '%s' during _ready(). Signals may not connect." % PREPARATION_MANAGER_PATH)
-
-    var map_manager = get_node_or_null(DUNGEON_MAP_MANAGER_PATH)
-    if map_manager:
-        if not map_manager.transition_to_combat.is_connected(on_transition_to_combat_requested):
-            map_manager.transition_to_combat.connect(on_transition_to_combat_requested)
-        if not map_manager.transition_to_loot_event.is_connected(on_transition_to_loot_event_requested):
-            map_manager.transition_to_loot_event.connect(on_transition_to_loot_event_requested)
-        if not map_manager.transition_to_rest.is_connected(on_transition_to_rest_requested):
-            map_manager.transition_to_rest.connect(on_transition_to_rest_requested)
-    else:
-        print_rich("[color=yellow]GameManager Warning:[/color] DungeonMapManager not found at path '%s' during _ready()." % DUNGEON_MAP_MANAGER_PATH)
-
-    var combat_manager = get_node_or_null(COMBAT_MANAGER_PATH)
-    if combat_manager:
-        if not combat_manager.combat_victory.is_connected(on_combat_victory):
-            combat_manager.combat_victory.connect(on_combat_victory)
-        if not combat_manager.combat_defeat.is_connected(on_combat_defeat):
-            combat_manager.combat_defeat.connect(on_combat_defeat)
-    else:
-        print_rich("[color=yellow]GameManager Warning:[/color] CombatManager not found at path '%s' during _ready()." % COMBAT_MANAGER_PATH)
-
-    var post_battle_manager = get_node_or_null(POST_BATTLE_MANAGER_PATH)
-    if post_battle_manager:
-        # Note: PostBattleManager might be instantiated on-demand rather than always present.
-        # If so, connections would happen upon its instantiation.
-        if not post_battle_manager.post_battle_processing_complete.is_connected(on_post_battle_processing_complete):
-            post_battle_manager.post_battle_processing_complete.connect(on_post_battle_processing_complete)
-        if not post_battle_manager.transition_to_map_requested.is_connected(on_transition_to_map_requested):
-            post_battle_manager.transition_to_map_requested.connect(on_transition_to_map_requested)
-        if not post_battle_manager.transition_to_rest_requested.is_connected(on_transition_to_rest_requested_from_post_battle):
-            post_battle_manager.transition_to_rest_requested.connect(on_transition_to_rest_requested_from_post_battle)
-        if not post_battle_manager.transition_to_game_over_requested.is_connected(on_game_over_requested):
-            post_battle_manager.transition_to_game_over_requested.connect(on_game_over_requested)
-    else:
-        print_rich("[color=yellow]GameManager Warning:[/color] PostBattleManager not found at path '%s' during _ready()." % POST_BATTLE_MANAGER_PATH)
-
-    var rest_manager = get_node_or_null(REST_MANAGER_PATH)
-    if rest_manager:
-        if not rest_manager.rest_continue_exploration.is_connected(on_rest_continue_exploration):
-            rest_manager.rest_continue_exploration.connect(on_rest_continue_exploration)
-        if not rest_manager.rest_exit_dungeon.is_connected(on_rest_exit_dungeon):
-            rest_manager.rest_exit_dungeon.connect(on_rest_exit_dungeon)
-    else:
-        print_rich("[color=yellow]GameManager Warning:[/color] RestManager not found at path '%s' during _ready()." % REST_MANAGER_PATH)
+    # Defer manager lookups until their scenes are loaded to avoid missing nodes
+    # during engine startup.
 
     # Initialize game, potentially load initial data or set up for main menu.
     # For a new game, this might mean transitioning to a main menu scene.
     if get_tree().current_scene == null && !Engine.is_editor_hint():
-         _change_game_phase_and_scene("main_menu", "res://auto-battler/scenes/MainMenu.tscn") # Example path
+        _change_game_phase_and_scene("main_menu", "res://auto-battler/scenes/MainMenu.tscn")
 
     print("GameManager: Initialization complete. Current phase: %s" % current_game_phase)
 
