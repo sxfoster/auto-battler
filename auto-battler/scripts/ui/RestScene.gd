@@ -31,9 +31,10 @@ var party_members_data = {
 }
 
 func _ready():
-	update_party_status_display()
-	# Hide progress label initially or manage its visibility during a "resting" state
-	rest_progress_label.visible = false
+        update_party_status_display()
+        # Hide progress label initially or manage its visibility during a "resting" state
+        rest_progress_label.visible = false
+        _continue_button.connect("pressed", self, "_on_ContinueButton_pressed")
 
 func update_party_status_display():
 	var member_nodes = party_status_grid.get_children() # These are VBoxContainers
@@ -120,9 +121,9 @@ func add_rest_log_entry(log_text: String):
 
 
 func _on_continue_button_pressed():
-	print("Continue button pressed from Rest Scene")
-	# Perform any final rest calculations (e.g., small passive recovery for all members)
-	# Example: Small fatigue recovery for everyone
+        print("Continue button pressed from Rest Scene")
+        # Perform any final rest calculations (e.g., small passive recovery for all members)
+        # Example: Small fatigue recovery for everyone
 	for member_key in party_members_data:
 		if party_members_data[member_key].has("fatigue") and party_members_data[member_key].has("max_fatigue"):
 			party_members_data[member_key].fatigue = max(0, party_members_data[member_key].fatigue - 10) # Recover 10 fatigue
@@ -135,8 +136,11 @@ func _on_continue_button_pressed():
 	emit_signal("rest_completed")
 	if _rest_manager and _rest_manager.has_method("on_rest_continue"):
 		_rest_manager.on_rest_continue()
-	# Transition to the next scene (e.g., DungeonMap or a post-rest summary)
-	# Example: get_tree().change_scene_to_file("res://scenes/DungeonMap.tscn")
+        # Transition to the next scene (e.g., DungeonMap or a post-rest summary)
+        # Example: get_tree().change_scene_to_file("res://scenes/DungeonMap.tscn")
+
+func _on_ContinueButton_pressed() -> void:
+        GameManager.on_rest_continue()
 
 
 # Call this function if party data changes from an external source
