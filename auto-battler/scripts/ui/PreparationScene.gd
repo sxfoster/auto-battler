@@ -30,10 +30,11 @@ func _on_ready_button_pressed() -> void:
     emit_signal("enter_dungeon")
 
 func gather_selected_party() -> Array:
-    # Placeholder implementation. In a full version this would read UI state
-    # from party_panel and card_panel to build the party data structure.
-    return party_selection.duplicate(true)
-
-func _on_EnterDungeonButton_pressed() -> void:
-    var chosen_party := gather_selected_party()
-    GameManager.on_preparation_done(chosen_party)
+    var party: Array = []
+    for panel in party_panel.get_children():
+        var char_data: CharacterData = panel.character_data
+        var assigned_cards: Array = []
+        if panel.has_method("get_assigned_cards"):
+            assigned_cards = panel.get_assigned_cards()
+        party.append({"character": char_data, "cards": assigned_cards})
+    return party
