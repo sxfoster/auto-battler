@@ -435,5 +435,16 @@ func on_rest_exit_dungeon(updated_party_data: Array) -> void:
     # Save progress and return to main menu or a summary screen
     end_current_run("autosave", true)
 
+## Changes the scene to the post-battle summary and hooks up completion handling.
+func change_to_post_battle() -> void:
+    get_tree().change_scene_to_file("res://scenes/PostBattleSummary.tscn")
+    yield(get_tree(), "idle_frame")
+    var post_mgr = get_tree().current_scene.get_node("PostBattleManager")
+    post_mgr.connect("post_battle_complete", self, "on_post_battle_continue")
+
+## Continues from the post-battle summary to the next phase.
+func on_post_battle_continue() -> void:
+    on_transition_to_rest_requested_from_post_battle()
+
 # Remove old scene transition logic if fully replaced.
 # The old on_combat_finished, on_loot_complete, on_rest_complete are now handled by the new signal system.
