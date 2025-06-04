@@ -11,7 +11,7 @@ signal continue_pressed
 @onready var continue_button: Button = get_node(continue_button_path)
 
 func _ready() -> void:
-    continue_button.pressed.connect(_on_continue_button_pressed)
+    continue_button.pressed.connect(_on_Continue_pressed)
 
 func show_summary(rewards: Dictionary) -> void:
     var xp: int = rewards.get("xp_gained", 0)
@@ -28,5 +28,7 @@ func show_summary(rewards: Dictionary) -> void:
     summary_label.text = "XP Gained: %d\nLoot: %s" % [xp, loot_text]
 
 func _on_continue_button_pressed() -> void:
-    GameManager.on_post_battle_continue()
     emit_signal("continue_pressed")
+
+func _on_Continue_pressed() -> void:
+    GameManager.on_post_battle_continue()
