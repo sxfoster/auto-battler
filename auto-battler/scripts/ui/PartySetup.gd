@@ -44,3 +44,11 @@ func _drop_data(position, data, member_index, card_slot_index):
 	# Handle card drop, assign card to member
 	# emit_signal("card_assigned", member_index, card_slot_index, data)
 	print("Card dropped on member %d, slot %d" % [member_index, card_slot_index])
+
+func gather_selected_party() -> Array:
+	var result = []
+	for panel in $PartyMembersContainer.get_children():
+		var char_data = panel.character_data # each PartyMemberPanel exposes its CharacterData
+		var assigned = panel.get_assigned_cards() # returns array of CardData
+		result.append({ "character": char_data, "cards": assigned })
+	return result
