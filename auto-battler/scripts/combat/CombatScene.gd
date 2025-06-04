@@ -35,7 +35,7 @@ func _ready():
     add_combat_log_entry("Combat Scene Initialized. Player input disabled during auto-battle.")
 
     var combat_mgr: AutoCombatManager = get_node("CombatManager")
-    combat_mgr.connect("combat_ended", GameManager, "on_combat_ended")
+    combat_mgr.combat_ended.connect(GameManager.on_combat_ended)
     if not combat_mgr.combat_victory.is_connected(_on_combat_victory):
         combat_mgr.combat_victory.connect(_on_combat_victory)
     if not combat_mgr.combat_defeat.is_connected(_on_combat_defeat):

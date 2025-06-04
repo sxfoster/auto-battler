@@ -8,10 +8,10 @@ signal exit_game
 
 # Exported paths for key UI elements so they can be reassigned in the editor if
 # the layout changes.
-@export var start_button_path: NodePath = NodePath("VBox/StartButton")
-@export var continue_button_path: NodePath = NodePath("VBox/ContinueButton")
-@export var settings_button_path: NodePath = NodePath("VBox/SettingsButton")
-@export var exit_button_path: NodePath = NodePath("VBox/ExitButton")
+@export var start_button_path: NodePath = NodePath("ContentMargin/MainVBox/ButtonsVBox/StartButton")
+@export var continue_button_path: NodePath = NodePath("ContentMargin/MainVBox/ButtonsVBox/ContinueButton")
+@export var settings_button_path: NodePath = NodePath("ContentMargin/MainVBox/ButtonsVBox/SettingsButton")
+@export var exit_button_path: NodePath = NodePath("ContentMargin/MainVBox/ButtonsVBox/ExitButton")
 
 @onready var start_button: Button = get_node(start_button_path)
 @onready var _continue_button: Button = get_node(continue_button_path)
