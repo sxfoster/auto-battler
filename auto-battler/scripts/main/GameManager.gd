@@ -356,7 +356,7 @@ func on_transition_to_loot_event_requested(event_data: Dictionary) -> void:
 
 
 ## Called when DungeonMapManager requests a transition to a rest area.
-func on_transition_to_rest_requested(rest_setup_data: Dictionary = {}) -> void: # Added default for calls from PostBattle
+func on_transition_to_rest_requested(_rest_setup_data: Dictionary = {}) -> void: # Added default for calls from PostBattle
     print("GameManager: Transition to rest requested.")
     _change_game_phase_and_scene("rest", "res://auto-battler/scenes/RestScene.tscn") # Example path
 
