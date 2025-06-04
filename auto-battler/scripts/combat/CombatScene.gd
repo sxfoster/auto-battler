@@ -42,8 +42,8 @@ func _ready():
                         combat_manager.combat_victory.connect(_on_combat_victory)
                 if not combat_manager.combat_defeat.is_connected(_on_combat_defeat):
                         combat_manager.combat_defeat.connect(_on_combat_defeat)
-                if not combat_manager.combat_ended.is_connected(GameManager, "on_combat_ended"):
-                        combat_manager.connect("combat_ended", GameManager, "on_combat_ended")
+                if not combat_manager.combat_ended.is_connected(GameManager.on_combat_end):
+                        combat_manager.combat_ended.connect(GameManager.on_combat_end)
                 combat_manager.run_auto_battle_loop()
 
     # Example: Populate with placeholder party member panels

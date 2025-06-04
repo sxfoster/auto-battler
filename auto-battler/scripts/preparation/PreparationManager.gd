@@ -29,8 +29,8 @@ func _ready() -> void:
     # Connect to the PreparationScene's signal if present
     var scene := get_tree().current_scene
     if scene and scene.has_signal("enter_dungeon_pressed"):
-        if not scene.is_connected("enter_dungeon_pressed", self, "_on_enter_dungeon_pressed"):
-            scene.connect("enter_dungeon_pressed", self, "_on_enter_dungeon_pressed")
+        if not scene.enter_dungeon_pressed.is_connected(_on_enter_dungeon_pressed):
+            scene.enter_dungeon_pressed.connect(_on_enter_dungeon_pressed)
 
 func load_party_data() -> void:
     # This function should load all necessary information:

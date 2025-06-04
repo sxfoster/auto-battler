@@ -8,7 +8,7 @@ signal enter_dungeon
 @export var card_panel_path: NodePath = NodePath("CardSelectPanel")
 @export var gear_panel_path: NodePath = NodePath("GearSelectPanel")
 @export var ready_button_path: NodePath = NodePath("ReadyButton")
-@export var enter_dungeon_button_path: NodePath = NodePath("EnterDungeonButton")
+@export var enter_dungeon_button_path: NodePath = NodePath("ReadyButton")
 
 ## Stores the party composition chosen in the preparation screen.
 ## Each entry should contain the member data along with assigned cards.
@@ -21,9 +21,10 @@ signal enter_dungeon
 @onready var enter_dungeon_button: Button = get_node(enter_dungeon_button_path)
 
 func _ready() -> void:
-    # Connect the "Enter Dungeon" button to its handler when the scene is ready.
+    # Connect the "Enter Dungeon" button (same as ReadyButton) when the scene is ready.
     if is_instance_valid(enter_dungeon_button):
-        enter_dungeon_button.connect("pressed", self, "_on_EnterDungeonButton_pressed")
+        if not enter_dungeon_button.pressed.is_connected(_on_ready_button_pressed):
+            enter_dungeon_button.pressed.connect(_on_ready_button_pressed)
 
 func _on_ready_button_pressed() -> void:
     emit_signal("enter_dungeon_pressed")

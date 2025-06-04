@@ -11,7 +11,8 @@ signal continue_pressed
 @onready var continue_button: Button = get_node(continue_button_path)
 
 func _ready() -> void:
-    continue_button.connect("pressed", self, "_on_ContinueButton_pressed")
+    if not continue_button.pressed.is_connected(_on_ContinueButton_pressed):
+        continue_button.pressed.connect(_on_ContinueButton_pressed)
 
 func show_summary(rewards: Dictionary) -> void:
     var xp: int = rewards.get("xp_gained", 0)
