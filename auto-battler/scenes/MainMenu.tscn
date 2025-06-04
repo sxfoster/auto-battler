@@ -1,11 +1,19 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/MainMenu.gd" id="1"]
+[ext_resource type="Theme" path="res://ui/GameTheme.tres" id="2"]
 
 [node name="MainMenu" type="Control"]
 anchor_right = 1.0
 anchor_bottom = 1.0
+theme = ExtResource("2")
 script = ExtResource("1")
+
+[node name="Background" type="TextureRect" parent="."]
+anchor_right = 1.0
+anchor_bottom = 1.0
+expand = true
+stretch_mode = 7
 
 [node name="ContentMargin" type="MarginContainer" parent="."]
 anchor_right = 1.0
@@ -24,9 +32,10 @@ separation = 20
 [node name="TitleLabel" type="Label" parent="MainVBox"]
 text = "Auto Battler"
 horizontal_alignment = 1
+vertical_alignment = 1
 
 [node name="ButtonsVBox" type="VBoxContainer" parent="MainVBox"]
-size_flags_horizontal = 2
+size_flags_horizontal = 3
 size_flags_vertical = 0
 separation = 10
 
