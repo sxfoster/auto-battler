@@ -27,7 +27,7 @@ var current_party_data: Array = [] # To store/display party member details
 var available_consumables: Array = [] # Consumables the player has access to
 
 func _ready() -> void:
-    $ContinueButton.connect("pressed", self, "_on_Continue_pressed")
+    $ContinueButton.pressed.connect(_on_Continue_pressed)
 
 func _on_Continue_pressed() -> void:
     emit_signal("rest_complete")
