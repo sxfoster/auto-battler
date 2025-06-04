@@ -1,6 +1,5 @@
 extends Node
-class_name CombatManager
-# (add any signals, e.g., signal combat_ended(victory: bool))
+class_name AutoCombatManager
 
 ## Manages turn-based combat for the Survival Dungeon CCG Auto-Battler.
 ## Handles party and enemy combatants, turn order, and card usage.
@@ -104,8 +103,7 @@ func run_auto_battle_loop() -> void:
     if party_members.is_empty() or enemies.is_empty():
         _log("Cannot start battle: one or both sides are empty.")
         # Determine if this is an immediate win/loss or an error
-        var immediate_result = _finalize_combat() # Will determine outcome based on empty sides
-        emit_signal("combat_ended", immediate_result)
+        _finalize_combat() # Will determine outcome based on empty sides
         return
 
     _build_turn_order() # Initial turn order
@@ -126,8 +124,7 @@ func run_auto_battle_loop() -> void:
         if not (_is_side_defeated(party_members) or _is_side_defeated(enemies)):
             _build_turn_order() # Rebuild turn order for the next round if combat continues
 
-    var victory = _finalize_combat()
-    emit_signal("combat_ended", victory)
+    _finalize_combat()
 
 
 ## Builds or rebuilds the turn order based on combatant speed and status.
@@ -245,7 +242,7 @@ func _is_side_defeated(side_combatants: Array[Combatant]) -> bool:
 
 
 ## Finalizes combat, determines outcome, and emits appropriate signal.
-func _finalize_combat() -> bool:
+func _finalize_combat() -> void:
     var party_defeated = _is_side_defeated(party_members)
     var enemies_defeated = _is_side_defeated(enemies)
     var final_party_state = _get_final_party_state()
@@ -259,7 +256,7 @@ func _finalize_combat() -> bool:
         emit_signal("combat_defeat", results)
         if gm and gm.has_method("on_combat_end"):
             gm.on_combat_end(false, results)
-        return false
+        emit_signal("combat_ended", false)
     elif enemies_defeated:
         _log("Party is victorious!")
         _distribute_loot_and_xp() # Calculate loot and XP
@@ -271,7 +268,7 @@ func _finalize_combat() -> bool:
         emit_signal("combat_victory", results)
         if gm and gm.has_method("on_combat_end"):
             gm.on_combat_end(true, results)
-        return true
+        emit_signal("combat_ended", true)
     else:
         # This case (neither side defeated, e.g. from round limit) might be a draw or special scenario
         _log("Combat ended inconclusively (e.g., round limit reached).")
@@ -281,7 +278,7 @@ func _finalize_combat() -> bool:
         emit_signal("combat_defeat", results) # Or a specific "combat_draw" signal
         if gm and gm.has_method("on_combat_end"):
             gm.on_combat_end(false, results)
-        return false
+        emit_signal("combat_ended", false)
 
 
 ## Gathers the final state of party members (HP, statuses, etc.).
