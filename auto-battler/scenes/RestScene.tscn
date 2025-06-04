@@ -1,11 +1,15 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/RestScene.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/main/RestManager.gd" id="2"]
 
 [node name="RestScene" type="Control"]
 anchor_right = 1.0
 anchor_bottom = 1.0
 script = ExtResource("1")
+
+[node name="RestManager" type="Node" parent="."]
+script = ExtResource("2")
 
 [node name="VBox" type="VBoxContainer" parent="."]
 anchor_right = 1.0
@@ -38,7 +42,6 @@ visible = false
 [node name="ContinueButton" type="Button" parent="VBox"]
 text = "Continue"
 
-[connection signal="pressed" from="ContinueButton" to="." method="_on_continue_button_pressed"]
 [connection signal="pressed" from="ItemButtons/UseFoodButton" to="." method="_on_use_food_button_pressed"]
 [connection signal="pressed" from="ItemButtons/UseDrinkButton" to="." method="_on_use_drink_button_pressed"]
 [connection signal="pressed" from="ItemButtons/CraftButton" to="." method="_on_craft_button_pressed"]

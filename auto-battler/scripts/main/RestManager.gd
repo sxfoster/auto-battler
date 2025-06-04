@@ -13,6 +13,9 @@ signal rest_continue_exploration(updated_party_data: Array)
 # Emitted when the player decides to exit the dungeon from the rest phase.
 signal rest_exit_dungeon(updated_party_data: Array)
 
+# Simple signal when rest is finished via Continue button
+signal rest_complete
+
 # Exported variables for UI node paths (examples)
 @export var party_stats_display_node: Control  # Assign in editor: Node to display party stats
 @export var consumables_panel_node: Control # Assign in editor: Node for consumable usage
@@ -24,13 +27,10 @@ var current_party_data: Array = [] # To store/display party member details
 var available_consumables: Array = [] # Consumables the player has access to
 
 func _ready() -> void:
-    # Initialization logic for the rest screen
-    # Example: Connect UI element signals to functions in this script
-    # if crafting_button_node:
-    #     crafting_button_node.pressed.connect(_on_crafting_invoked)
-    # if repair_button_node:
-    #     repair_button_node.pressed.connect(_on_repair_invoked)
-    pass
+    $ContinueButton.connect("pressed", self, "_on_Continue_pressed")
+
+func _on_Continue_pressed() -> void:
+    emit_signal("rest_complete")
 
 # Called by GameManager to initialize the rest phase with current data.
 func initialize_rest_phase(party_data: Array, inventory_consumables: Array) -> void:
