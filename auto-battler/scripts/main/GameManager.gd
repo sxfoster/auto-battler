@@ -346,7 +346,7 @@ func on_game_over_requested():
 # Remove old scene transition logic if fully replaced.
 # The old on_combat_finished, on_loot_complete, on_rest_complete are now handled by the new signal system.
 
-async func change_to_loot() -> void:
+func change_to_loot() -> void:
     get_tree().change_scene_to_file("res://scenes/LootPanel.tscn")
     await get_tree().process_frame
 
