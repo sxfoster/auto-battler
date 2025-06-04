@@ -8,7 +8,7 @@ func _ready():
 func _on_ReadyButton_pressed():
     var party_selection = gather_selected_party()
     print("Party ready:", party_selection)
-    get_node("/root/GameManager").on_preparation_done(party_selection)
+    SceneLoader.goto_scene("DungeonMap")
 
 func gather_selected_party() -> Array:
     var result: Array = []

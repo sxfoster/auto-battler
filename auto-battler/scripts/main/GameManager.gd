@@ -2,8 +2,8 @@ extends Node
 var current_party_selection: Array = []
 
 func start_run():
-	print("GameManager.start_run()")
-	get_tree().change_scene_to_file("res://scenes/MainMenu.tscn")
+        print("GameManager.start_run()")
+        SceneLoader.goto_scene("MainMenu")
 
 func on_preparation_done(party_data: Array) -> void:
 	current_party_selection = party_data
@@ -11,4 +11,4 @@ func on_preparation_done(party_data: Array) -> void:
 	change_to_dungeon_map()
 
 func change_to_dungeon_map() -> void:
-	get_tree().change_scene_to_file("res://scenes/DungeonMap.tscn")
+        SceneLoader.goto_scene("DungeonMap")
