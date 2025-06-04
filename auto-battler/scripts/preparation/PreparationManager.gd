@@ -1,5 +1,5 @@
-class_name PreparationManager
 extends Node
+class_name PreparationManager
 
 # Signal emitted when the party is ready to enter the dungeon
 signal party_ready_for_dungeon
