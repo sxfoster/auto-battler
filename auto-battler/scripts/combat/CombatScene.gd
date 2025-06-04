@@ -16,7 +16,6 @@ var current_speed_index = 0
 @export var speed_button_path: NodePath = NodePath("TopBar/SpeedUpButton")
 @export var pause_button_path: NodePath = NodePath("TopBar/PauseButton")
 @export var feedback_label_path: NodePath = NodePath("FeedbackLabel")
-@export var combat_manager_path: NodePath = NodePath("CombatManager")
 
 @onready var party_panel: VBoxContainer = get_node(party_panel_path)
 @onready var enemy_panel: VBoxContainer = get_node(enemy_panel_path)
@@ -26,26 +25,22 @@ var current_speed_index = 0
 @onready var speed_up_button: Button = get_node(speed_button_path)
 @onready var pause_button: Button = get_node(pause_button_path)
 @onready var feedback_label: Label = get_node(feedback_label_path)
-@onready var combat_manager: AutoCombatManager = get_node(combat_manager_path)
 
 # Placeholder data for party and enemies
 var party_members_data = []
 var enemies_data = []
 
 func _ready():
-        # Initialize combat: load party/enemy data, set up UI elements
-        # For now, using placeholder data and setup
-        add_combat_log_entry("Combat Scene Initialized. Player input disabled during auto-battle.")
+    # Initialize combat: load party/enemy data, set up UI elements
+    add_combat_log_entry("Combat Scene Initialized. Player input disabled during auto-battle.")
 
-        if combat_manager:
-                if not combat_manager.combat_victory.is_connected(_on_combat_victory):
-                        combat_manager.combat_victory.connect(_on_combat_victory)
-                if not combat_manager.combat_defeat.is_connected(_on_combat_defeat):
-                        combat_manager.combat_defeat.connect(_on_combat_defeat)
-                var gm_callable: Callable = GameManager.callable("on_combat_end")
-                if not combat_manager.combat_ended.is_connected(gm_callable):
-                        combat_manager.combat_ended.connect(gm_callable)
-                combat_manager.run_auto_battle_loop()
+    var combat_mgr: AutoCombatManager = get_node("CombatManager")
+    combat_mgr.connect("combat_ended", GameManager, "on_combat_ended")
+    if not combat_mgr.combat_victory.is_connected(_on_combat_victory):
+        combat_mgr.combat_victory.connect(_on_combat_victory)
+    if not combat_mgr.combat_defeat.is_connected(_on_combat_defeat):
+        combat_mgr.combat_defeat.connect(_on_combat_defeat)
+    combat_mgr.run_auto_battle_loop()
 
     # Example: Populate with placeholder party member panels
     # for i in range(1, 3): # Assuming 2 party members for this example

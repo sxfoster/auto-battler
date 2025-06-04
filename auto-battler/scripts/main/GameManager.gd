@@ -1,47 +1,23 @@
-class_name GameManagerRoot
+class_name GameManager
 extends Node
 
-## Manages global game state, persistent data, and scene/phase transitions for the auto-battler.
-## Connects signals from various specialized managers to orchestrate the game flow.
+var party_data
 
-# Signal for UI or other systems to react to game phase changes.
-signal game_phase_changed(new_phase_name: String)
+func start_run():
+    print("GameManager.start_run()")
+    change_to_preparation()
 
-# --- Persistent Data Variables ---
-# Holds CharacterData objects/dictionaries for the current party.
-var current_party_members: Array = []
-# Player's inventory: cards, gear, consumables, currency.
-var player_inventory: Dictionary = {
-    "cards": [],
-    "gear": [],
-    "consumables": [],
-    "currency": 0
-}
-# State of the current dungeon run.
-var current_dungeon_state: Dictionary = {
-    "depth": 0,             # Current depth or level in the dungeon
-    "map_data": null,       # Procedurally generated map for the current level
-    "current_node_id": null # Player's current position on the map
-}
-# Current high-level game phase. String for flexibility.
-var current_game_phase: String = "main_menu"
+func change_to_preparation():
+    print("GameManager.change_to_preparation()")
+    get_tree().change_scene_to_file("res://scenes/PreparationScene.tscn")
 
-# --- Manager Node Paths (adjust if using unique names or different scene structure) ---
-# These are placeholders. Actual node access might need to be /root/SceneName/ManagerName
-const PREPARATION_MANAGER_PATH := "PreparationManager" # Placeholder path
-const DUNGEON_MAP_MANAGER_PATH := "DungeonMapManager"   # Placeholder path
-const COMBAT_MANAGER_PATH := "CombatManager"           # Placeholder path
-const POST_BATTLE_MANAGER_PATH := "PostBattleManager" # Placeholder path
-const REST_MANAGER_PATH := "RestManager"               # Placeholder path
+func on_preparation_done(party_data):
+    self.party_data = party_data
+    change_to_dungeon_map()
 
-# --- Core Game State Functions ---
-func _ready() -> void:
-    print("GameManager: Initializing...")
-    # Crucially, connect signals from other managers here.
-    # This assumes that these manager nodes are either autoloads/singletons
-    # or will be part of the scene tree when GameManager needs to interact with them.
-    # If managers are instantiated by GameManager or always children, direct connection is easier.
-    # For this subtask, we assume they become available and emit signals that GameManager listens to globally.
+func change_to_dungeon_map():
+    print("GameManager.change_to_dungeon_map()")
+    get_tree().change_scene_to_file("res://scenes/DungeonMap.tscn")
 
     # Attempt to connect signals. It's safer if managers are singletons or reliably present.
     # If managers are scene-specific, these connections might need to be established when scenes load.
@@ -176,6 +152,10 @@ func start_dungeon_run(party_data: Array) -> void:
     _change_game_phase_and_scene("dungeon_map", "res://scenes/DungeonMap.tscn")
     call_deferred("_notify_dungeon_map_manager_to_initialize")
 
+## Called by PreparationScene when the player is ready.
+func on_preparation_done(party_data: Array) -> void:
+    start_dungeon_run(party_data)
+
 
 ## Saves the current game state to a specified slot.
 func save_game_state(slot_name: String) -> void:
@@ -306,6 +286,15 @@ func _notify_dungeon_map_manager_to_initialize():
     else:
         printerr("GameManager: Failed to notify DungeonMapManager or method not found.")
 
+func change_to_dungeon_map():
+    get_tree().change_scene_to_file("res://scenes/DungeonMap.tscn")
+    yield(get_tree(), "idle_frame")
+    var map_mgr = get_tree().current_scene.get_node("DungeonMapManager")
+    map_mgr.connect("node_selected", self, "on_node_selected")
+
+func on_node_selected(node_type: String) -> void:
+    on_map_node_selected(node_type)
+
 func on_map_node_selected(node_type: String) -> void:
     match node_type:
         "combat":
@@ -387,110 +376,40 @@ func on_combat_victory(results: Dictionary) -> void:
         # Pass the combat results and the party state *before* post-battle effects like fatigue.
         post_battle_manager.initialize_post_battle(results, current_party_members.duplicate(true))
     else:
-        printerr("GameManager: PostBattleManager not found or method missing for combat victory.")
-        # Fallback if PostBattleManager is missing: try to go to map directly (simplified)
-        # current_party_members = results.get("final_party_state", current_party_members) # Simplified update
-        # on_transition_to_map_requested()
+        change_to_loot()
 
+func change_to_combat():
+    print("GameManager.change_to_combat()")
+    get_tree().change_scene_to_file("res://scenes/CombatScene.tscn")
 
-## Called when CombatManager signals defeat.
-func on_combat_defeat(results: Dictionary) -> void:
-    print("GameManager: Combat defeat reported.")
-    # results typically: { "final_party_state": [CombatantState] }
-
-    current_game_phase = "post_battle_defeat" # Internal sub-phase
-    emit_signal("game_phase_changed", current_game_phase)
-
-    var post_battle_manager = get_node_or_null(POST_BATTLE_MANAGER_PATH)
-    if post_battle_manager and post_battle_manager.has_method("initialize_post_battle"):
-        post_battle_manager.initialize_post_battle(results, current_party_members.duplicate(true))
-    else:
-        printerr("GameManager: PostBattleManager not found or method missing for combat defeat.")
-        # Fallback if PostBattleManager is missing: go to game over directly
-        # current_party_members = results.get("final_party_state", current_party_members)
-        # on_game_over_requested()
-
-## Wrapper called by CombatManager when combat ends.
-func on_combat_end(victory: bool, results: Dictionary) -> void:
+func on_combat_ended(victory):
     if victory:
-        on_combat_victory(results)
+        change_to_post_battle()
     else:
-        on_combat_defeat(results)
+        get_tree().change_scene_to_file("res://scenes/GameOver.tscn")
 
+func change_to_post_battle():
+    print("GameManager.change_to_post_battle()")
+    get_tree().change_scene_to_file("res://scenes/PostBattleSummary.tscn")
 
-## Called by PostBattleManager when all its processing is complete.
-func on_post_battle_processing_complete(final_party_state_after_effects: Array, rewards_summary: Dictionary) -> void:
-    print("GameManager: Post-battle processing complete.")
-    current_party_members = final_party_state_after_effects.duplicate(true)
+func on_post_battle_continue():
+    change_to_rest()
 
-    # Update inventory with loot if PostBattleManager didn't do it directly
-    var loot_received = rewards_summary.get("loot_received", [])
-    if not loot_received.is_empty():
-        if not player_inventory.has("items"): player_inventory["items"] = [] # Generic item category
-        player_inventory.items.append_array(loot_received) # Example: add to a generic items list
-        # Or more specific:
-        # for item in loot_received:
-        #   if item.type == "consumable": player_inventory.consumables.append(item)
-        #   elif item.type == "gear": player_inventory.gear.append(item)
-        print("GameManager: Updated inventory with loot: %s items." % loot_received.size())
+func change_to_rest():
+    print("GameManager.change_to_rest()")
+    get_tree().change_scene_to_file("res://scenes/RestScene.tscn")
 
-    # XP application might have already been reflected in final_party_state_after_effects by PostBattleManager
-    # or GameManager could do final application/level-up checks here.
-    print("GameManager: Party state and rewards finalized.")
-    # The PostBattleManager might have already emitted a specific transition request signal
-    # which would be handled next if connected (e.g., on_transition_to_map_requested).
-    # If no specific transition was requested by PostBattleManager, GameManager decides here.
-    # For instance, if party wiped, PostBattleManager should have requested game over.
-    # If victorious, it should have requested map or rest.
-    # This handler is more for final data updates.
+func on_rest_continue():
+    change_to_dungeon_map()
 
-    # If PostBattleManager did NOT emit a specific transition signal that was caught,
-    # we might need default logic here, but the current design is that PBM *will* emit one.
-    # Example: if current_game_phase still "post_battle_victory", default to map.
-    if current_game_phase == "post_battle_victory" and get_tree().current_scene.name != "DungeonMap": # Avoid loop if already there
-        # This check for current_scene.name is a bit hacky.
-        # A more robust way is to check if a transition is already pending or using a state machine.
-        # on_transition_to_map_requested() # Default if PBM didn't guide
-        pass
+func change_to_post_battle() -> void:
+    get_tree().change_scene_to_file("res://scenes/PostBattleSummary.tscn")
+    yield(get_tree(), "idle_frame")
+    var post_mgr = get_tree().current_scene.get_node("PostBattleManager")
+    post_mgr.connect("post_battle_complete", self, "on_post_battle_continue")
 
-
-## Called by PostBattleManager if it determines the next state is the map.
-func on_transition_to_map_requested() -> void:
-    print("GameManager: Transition to map requested by PostBattleManager.")
-    # current_dungeon_state.depth += 1 # This might be handled by DungeonMapManager or here.
-    _change_game_phase_and_scene("dungeon_map", "res://scenes/DungeonMap.tscn") # Example path
-    call_deferred("_notify_dungeon_map_manager_to_initialize") # Re-initialize map for new state
-
-
-## Called by PostBattleManager if it determines the next state is rest.
-func on_transition_to_rest_requested_from_post_battle() -> void:
-    print("GameManager: Transition to rest requested by PostBattleManager.")
-    on_transition_to_rest_requested({}) # Call the main handler, pass empty dict if no specific data from PBM
-
-
-## Called by PostBattleManager if it determines the game should end.
-func on_game_over_requested() -> void:
-    print("GameManager: Game over requested.")
-    # Show game over screen, then return to menu when player acknowledges
-    end_current_run("autosave", true, false, "res://scenes/GameOverScreen.tscn")
-
-
-## Called when RestManager signals to continue exploration.
-func on_rest_continue_exploration(updated_party_data: Array) -> void:
-    print("GameManager: Continue exploration after rest.")
-    current_party_members = updated_party_data.duplicate(true)
-
-    # current_dungeon_state.depth += 1 # Or other logic to advance the dungeon
-    _change_game_phase_and_scene("dungeon_map", "res://scenes/DungeonMap.tscn") # Example path
-    call_deferred("_notify_dungeon_map_manager_to_initialize")
-
-
-## Called when RestManager signals to exit the dungeon.
-func on_rest_exit_dungeon(updated_party_data: Array) -> void:
-    print("GameManager: Exiting dungeon after rest.")
-    current_party_members = updated_party_data.duplicate(true)
-    # Save progress and return to main menu or a summary screen
-    end_current_run("autosave", true)
+func on_post_battle_continue() -> void:
+    print("GameManager: Post-battle continue pressed.")
 
 # Remove old scene transition logic if fully replaced.
 # The old on_combat_finished, on_loot_complete, on_rest_complete are now handled by the new signal system.
