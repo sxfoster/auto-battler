@@ -176,6 +176,10 @@ func start_dungeon_run(party_data: Array) -> void:
     _change_game_phase_and_scene("dungeon_map", "res://scenes/DungeonMap.tscn")
     call_deferred("_notify_dungeon_map_manager_to_initialize")
 
+## Called by PreparationScene when the player is ready.
+func on_preparation_done(party_data: Array) -> void:
+    start_dungeon_run(party_data)
+
 
 ## Saves the current game state to a specified slot.
 func save_game_state(slot_name: String) -> void:
