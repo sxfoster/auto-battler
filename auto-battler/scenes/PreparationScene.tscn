@@ -14,9 +14,9 @@ script = ExtResource("1_script")
 [node name="PreparationManager" type="Control" parent="."]
 anchors_preset = 0
 
-[node name="ReadyButton" type="Button" parent="PreparationManager"]
+[node name="ContinueButton" type="Button" parent="PreparationManager"]
 layout_mode = 0
-text = "Enter Dungeon"
+text = "Continue"
 
 [node name="PartyMembersContainer" type="GridContainer" parent="PreparationManager"]
 layout_mode = 0

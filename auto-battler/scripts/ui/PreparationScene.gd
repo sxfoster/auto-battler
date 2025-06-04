@@ -1,14 +1,12 @@
 extends Control
 
-@onready var ready_button = $PreparationManager/ReadyButton
+@onready var continue_button = $PreparationManager/ContinueButton
 
 func _ready():
-    ready_button.connect("pressed", Callable(self, "_on_ReadyButton_pressed"))
+    continue_button.connect("pressed", Callable(self, "_on_continue"))
 
-func _on_ReadyButton_pressed():
-    var party_selection = gather_selected_party()
-    print("Party ready:", party_selection)
-    get_node("/root/GameManager").on_preparation_done(party_selection)
+func _on_continue():
+    SceneLoader.goto_scene("DungeonMap")
 
 func gather_selected_party() -> Array:
     var result: Array = []
