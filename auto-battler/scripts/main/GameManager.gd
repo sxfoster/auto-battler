@@ -305,6 +305,12 @@ func on_transition_to_rest_requested(rest_setup_data: Dictionary = {}) -> void: 
 
     call_deferred("_notify_rest_manager_to_initialize")
 
+func change_to_rest() -> void:
+    get_tree().change_scene_to_file("res://scenes/RestScene.tscn")
+    await get_tree().process_frame
+    var rest_mgr = get_tree().current_scene.get_node("RestManager")
+    rest_mgr.connect("rest_complete", self, "on_rest_continue")
+
 func _notify_rest_manager_to_initialize():
     var rest_manager = get_node_or_null(REST_MANAGER_PATH)
     if rest_manager and rest_manager.has_method("initialize_rest_phase"):
@@ -434,6 +440,11 @@ func on_rest_exit_dungeon(updated_party_data: Array) -> void:
     current_party_members = updated_party_data.duplicate(true)
     # Save progress and return to main menu or a summary screen
     end_current_run("autosave", true)
+
+func on_rest_continue() -> void:
+    print("GameManager: Rest complete, returning to dungeon map.")
+    _change_game_phase_and_scene("dungeon_map", "res://scenes/DungeonMap.tscn")
+    call_deferred("_notify_dungeon_map_manager_to_initialize")
 
 # Remove old scene transition logic if fully replaced.
 # The old on_combat_finished, on_loot_complete, on_rest_complete are now handled by the new signal system.
