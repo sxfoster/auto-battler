@@ -55,7 +55,7 @@ layout_mode = 2
 text = "Equipped Gear"
 horizontal_alignment = 1
 
-[node name="PartyMemberSlot2" type="VBoxContainer" parent="MainColumn/HBoxContainer"]
+[node name="PartyMemberSlot2" type="VBoxContainer" parent="HBoxContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
 alignment = 1
