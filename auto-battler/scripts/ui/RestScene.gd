@@ -34,7 +34,7 @@ func _ready():
         update_party_status_display()
         # Hide progress label initially or manage its visibility during a "resting" state
         rest_progress_label.visible = false
-        _continue_button.connect("pressed", self, "_on_ContinueButton_pressed")
+        _continue_button.connect("pressed", self, "_on_Continue_pressed")
 
 func update_party_status_display():
 	var member_nodes = party_status_grid.get_children() # These are VBoxContainers
@@ -139,7 +139,7 @@ func _on_continue_button_pressed():
         # Transition to the next scene (e.g., DungeonMap or a post-rest summary)
         # Example: get_tree().change_scene_to_file("res://scenes/DungeonMap.tscn")
 
-func _on_ContinueButton_pressed() -> void:
+func _on_Continue_pressed() -> void:
         GameManager.on_rest_continue()
 
 
