@@ -354,10 +354,6 @@ func on_loot_collected():
     # placeholder
     pass
 
-func on_game_over_requested():
-    # placeholder
-    pass
-
 func on_rest_continue_exploration(_updated_party_data = []):
     # placeholder
     pass
