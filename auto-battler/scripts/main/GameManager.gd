@@ -435,5 +435,17 @@ func on_rest_exit_dungeon(updated_party_data: Array) -> void:
     # Save progress and return to main menu or a summary screen
     end_current_run("autosave", true)
 
+## Convenience method to load the LootPanel scene and hook up loot signals.
+func change_to_loot() -> void:
+    get_tree().change_scene_to_file("res://scenes/LootPanel.tscn")
+    await get_tree().process_frame
+    var loot_mgr = get_tree().current_scene.get_node("LootPanel")
+    if loot_mgr and not loot_mgr.is_connected("loot_collected", self, "on_loot_collected"):
+        loot_mgr.connect("loot_collected", self, "on_loot_collected")
+
+## Placeholder handler for when loot is collected from the LootPanel.
+func on_loot_collected(collected_items: Array = []) -> void:
+    print("GameManager: Loot collected - %s items" % collected_items.size())
+
 # Remove old scene transition logic if fully replaced.
 # The old on_combat_finished, on_loot_complete, on_rest_complete are now handled by the new signal system.
