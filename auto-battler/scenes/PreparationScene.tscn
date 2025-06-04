@@ -1,6 +1,6 @@
 [gd_scene load_steps=2 format=3 uid="uid://dh6m31cdgbygu"]
 
-[ext_resource type="Script" uid="uid://difol8ads43hk" path="res://scripts/ui/PreparationScene.gd" id="1"]
+[ext_resource type="Script" uid="uid://difol8ads43hk" path="res://scripts/ui/PreparationScene.gd" id="1_script"]
 
 [node name="PreparationScene" type="Control"]
 layout_mode = 3
@@ -9,10 +9,10 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+script = ExtResource("1_script")
 
 [node name="PreparationManager" type="Control" parent="."]
 anchors_preset = 0
-script = ExtResource("1")
 
 [node name="ReadyButton" type="Button" parent="PreparationManager"]
 layout_mode = 0
