@@ -13,21 +13,21 @@ var current_party_status: Dictionary = {} # Tracks party status values
 @onready var _party_status_overlay: VBoxContainer = get_node(party_status_overlay_path)
 
 func _ready():
-        # Placeholder map generation. Real data should come from a manager.
-        map_nodes = [
-                {"id": 0, "type": "room", "name": "Starting Room"},
-                {"id": 1, "type": "event", "name": "Mysterious Shrine"},
-                {"id": 2, "type": "room", "name": "Goblin Cave"}
-        ]
+	# Placeholder map generation. Real data should come from a manager.
+	map_nodes = [
+		{"id": 0, "type": "room", "name": "Starting Room"},
+		{"id": 1, "type": "event", "name": "Mysterious Shrine"},
+		{"id": 2, "type": "room", "name": "Goblin Cave"}
+	]
 
 	# Initialize party status (placeholder)
-        current_party_status = {
-                "member1": {"hp": 100, "max_hp": 100, "food": 100, "water": 100, "energy":100},
-                "member2": {"hp": 100, "max_hp": 100, "food": 100, "water": 100, "energy":100},
-                "member3": {"hp": 100, "max_hp": 100, "food": 100, "water": 100, "energy":100},
-                "member4": {"hp": 100, "max_hp": 100, "food": 100, "water": 100, "energy":100},
-                "member5": {"hp": 100, "max_hp": 100, "food": 100, "water": 100, "energy":100}
-        }
+	current_party_status = {
+		"member1": {"hp": 100, "max_hp": 100, "food": 100, "water": 100, "energy":100},
+		"member2": {"hp": 100, "max_hp": 100, "food": 100, "water": 100, "energy":100},
+		"member3": {"hp": 100, "max_hp": 100, "food": 100, "water": 100, "energy":100},
+		"member4": {"hp": 100, "max_hp": 100, "food": 100, "water": 100, "energy":100},
+		"member5": {"hp": 100, "max_hp": 100, "food": 100, "water": 100, "energy":100}
+	}
 	update_party_status_display()
 	update_map_node_display()
 

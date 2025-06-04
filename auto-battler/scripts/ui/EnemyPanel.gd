@@ -13,7 +13,7 @@ signal enemy_unhovered(enemy_data: Dictionary)
 var enemy_data: Dictionary = {} : set = set_enemy_data
 
 # Default texture for enemy sprites (optional, adjust path as needed)
-const DEFAULT_SPRITE_TEXTURE = preload("res://assets/sprites/default_enemy_sprite.png") # Ensure this path is valid or null
+const DEFAULT_SPRITE_TEXTURE = preload("res://auto-battler/assets/portraits/default_portrait.png") # Placeholder: Fallback to default portrait for missing enemy sprite
 
 
 func _ready():
