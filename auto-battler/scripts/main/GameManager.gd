@@ -1,4 +1,3 @@
-class_name GameManager
 extends Node
 
 var party_data
@@ -8,74 +7,16 @@ func start_run():
     change_to_preparation()
 
 func change_to_preparation():
-    print("GameManager.change_to_preparation()")
     get_tree().change_scene_to_file("res://scenes/PreparationScene.tscn")
+    yield(get_tree(), "idle_frame")
+    var prep_mgr = get_tree().current_scene.get_node("PreparationManager")
+    prep_mgr.connect("preparation_done", self, "on_preparation_done")
 
 func change_to_dungeon_map():
-    print("GameManager.change_to_dungeon_map()")
     get_tree().change_scene_to_file("res://scenes/DungeonMap.tscn")
-
-    # Attempt to connect signals. It's safer if managers are singletons or reliably present.
-    # If managers are scene-specific, these connections might need to be established when scenes load.
-    # For now, assuming managers can be globally accessed for signal connection.
-
-    var prep_manager = get_node_or_null(PREPARATION_MANAGER_PATH) # Or use Autoload name
-    if prep_manager:
-        if not prep_manager.party_ready_for_dungeon.is_connected(on_party_ready_for_dungeon):
-            prep_manager.party_ready_for_dungeon.connect(on_party_ready_for_dungeon)
-    else:
-        print_rich("[color=yellow]GameManager Warning:[/color] PreparationManager not found at path '%s' during _ready(). Signals may not connect." % PREPARATION_MANAGER_PATH)
-
-    var map_manager = get_node_or_null(DUNGEON_MAP_MANAGER_PATH)
-    if map_manager:
-        if not map_manager.transition_to_combat.is_connected(on_transition_to_combat_requested):
-            map_manager.transition_to_combat.connect(on_transition_to_combat_requested)
-        if not map_manager.transition_to_loot_event.is_connected(on_transition_to_loot_event_requested):
-            map_manager.transition_to_loot_event.connect(on_transition_to_loot_event_requested)
-        if not map_manager.transition_to_rest.is_connected(on_transition_to_rest_requested):
-            map_manager.transition_to_rest.connect(on_transition_to_rest_requested)
-    else:
-        print_rich("[color=yellow]GameManager Warning:[/color] DungeonMapManager not found at path '%s' during _ready()." % DUNGEON_MAP_MANAGER_PATH)
-
-    var combat_manager = get_node_or_null(COMBAT_MANAGER_PATH)
-    if combat_manager:
-        if not combat_manager.combat_victory.is_connected(on_combat_victory):
-            combat_manager.combat_victory.connect(on_combat_victory)
-        if not combat_manager.combat_defeat.is_connected(on_combat_defeat):
-            combat_manager.combat_defeat.connect(on_combat_defeat)
-    else:
-        print_rich("[color=yellow]GameManager Warning:[/color] CombatManager not found at path '%s' during _ready()." % COMBAT_MANAGER_PATH)
-
-    var post_battle_manager = get_node_or_null(POST_BATTLE_MANAGER_PATH)
-    if post_battle_manager:
-        # Note: PostBattleManager might be instantiated on-demand rather than always present.
-        # If so, connections would happen upon its instantiation.
-        if not post_battle_manager.post_battle_processing_complete.is_connected(on_post_battle_processing_complete):
-            post_battle_manager.post_battle_processing_complete.connect(on_post_battle_processing_complete)
-        if not post_battle_manager.transition_to_map_requested.is_connected(on_transition_to_map_requested):
-            post_battle_manager.transition_to_map_requested.connect(on_transition_to_map_requested)
-        if not post_battle_manager.transition_to_rest_requested.is_connected(on_transition_to_rest_requested_from_post_battle):
-            post_battle_manager.transition_to_rest_requested.connect(on_transition_to_rest_requested_from_post_battle)
-        if not post_battle_manager.transition_to_game_over_requested.is_connected(on_game_over_requested):
-            post_battle_manager.transition_to_game_over_requested.connect(on_game_over_requested)
-    else:
-        print_rich("[color=yellow]GameManager Warning:[/color] PostBattleManager not found at path '%s' during _ready()." % POST_BATTLE_MANAGER_PATH)
-
-    var rest_manager = get_node_or_null(REST_MANAGER_PATH)
-    if rest_manager:
-        if not rest_manager.rest_continue_exploration.is_connected(on_rest_continue_exploration):
-            rest_manager.rest_continue_exploration.connect(on_rest_continue_exploration)
-        if not rest_manager.rest_exit_dungeon.is_connected(on_rest_exit_dungeon):
-            rest_manager.rest_exit_dungeon.connect(on_rest_exit_dungeon)
-    else:
-        print_rich("[color=yellow]GameManager Warning:[/color] RestManager not found at path '%s' during _ready()." % REST_MANAGER_PATH)
-
-    # Initialize game, potentially load initial data or set up for main menu.
-    # For a new game, this might mean transitioning to a main menu scene.
-    if get_tree().current_scene == null && !Engine.is_editor_hint():
-        _change_game_phase_and_scene("main_menu", "res://scenes/MainMenu.tscn") # Example path
-
-    print("GameManager: Initialization complete. Current phase: %s" % current_game_phase)
+    yield(get_tree(), "idle_frame")
+    var map_mgr = get_tree().current_scene.get_node("DungeonMapManager")
+    map_mgr.connect("node_selected", self, "on_node_selected")
 
 
 ## Starts a new dungeon run with selected party and gear.
@@ -133,7 +74,7 @@ func reset_game_state() -> void:
     current_game_phase = "main_menu"
 
 func _notify_preparation_manager_to_load_data():
-    var prep_manager = get_node_or_null(PREPARATION_MANAGER_PATH) # Adjust path if it's inside PrepScene
+    var prep_manager = get_tree().current_scene.get_node_or_null("PreparationManager")
     if prep_manager and prep_manager.has_method("load_party_data"):
         # PreparationManager's load_party_data might need specific parts of inventory or party data.
         # For now, pass the main structures. It should know what to pick.
@@ -260,11 +201,11 @@ func _change_game_phase_and_scene(new_phase: String, scene_path: String) -> void
 
     emit_signal("game_phase_changed", new_phase) # For UI or other global listeners
 
-async func change_to_rest():
+func change_to_rest():
     get_tree().change_scene_to_file("res://scenes/RestScene.tscn")
-    await get_tree().process_frame
+    yield(get_tree(), "idle_frame")
     var rest_mgr = get_tree().current_scene.get_node("RestManager")
-    rest_mgr.rest_complete.connect(on_rest_continue)
+    rest_mgr.connect("rest_complete", self, "on_rest_continue")
 
 
 # --- Handler Functions for Signals from Other Managers ---
@@ -280,7 +221,7 @@ func on_party_ready_for_dungeon() -> void: # Removed arguments as PrepManager no
     call_deferred("_notify_dungeon_map_manager_to_initialize")
 
 func _notify_dungeon_map_manager_to_initialize():
-    var map_manager = get_node_or_null(DUNGEON_MAP_MANAGER_PATH)
+    var map_manager = get_tree().current_scene.get_node_or_null("DungeonMapManager")
     if map_manager and map_manager.has_method("generate_procedural_map"): # Check for a method it should have
         # DungeonMapManager should use getters from GameManager to fetch party/dungeon state.
         map_manager.generate_procedural_map() # Or a more specific init function if needed
@@ -312,12 +253,12 @@ func on_transition_to_combat_requested(combat_setup_data: Dictionary) -> void:
     call_deferred("_notify_combat_manager_to_initialize", combat_setup_data)
 
 func _notify_combat_manager_to_initialize(combat_setup_data: Dictionary):
-    var combat_manager = get_node_or_null(COMBAT_MANAGER_PATH)
+    var combat_manager = get_tree().current_scene.get_node_or_null("CombatManager")
     if combat_manager and combat_manager.has_method("initialize_combat"):
         if not combat_manager.combat_victory.is_connected(on_combat_victory):
             combat_manager.combat_victory.connect(on_combat_victory)
-        if not combat_manager.combat_defeat.is_connected(on_combat_defeat):
-            combat_manager.combat_defeat.connect(on_combat_defeat)
+        if not combat_manager.combat_defeat.is_connected(on_combat_ended):
+            combat_manager.combat_defeat.connect(Callable(self, "on_combat_ended").bind(false))
         var enemy_data_list = combat_setup_data.get("enemies", [])
         combat_manager.initialize_combat(current_party_members, enemy_data_list)
         combat_manager.run_auto_battle_loop() # Start the battle
@@ -348,7 +289,7 @@ func on_transition_to_rest_requested(_rest_setup_data: Dictionary = {}) -> void:
     call_deferred("_notify_rest_manager_to_initialize")
 
 func _notify_rest_manager_to_initialize():
-    var rest_manager = get_node_or_null(REST_MANAGER_PATH)
+    var rest_manager = get_tree().current_scene.get_node_or_null("RestManager")
     if rest_manager and rest_manager.has_method("initialize_rest_phase"):
         rest_manager.initialize_rest_phase(current_party_members, player_inventory.get("consumables", []))
     else:
@@ -367,7 +308,7 @@ func on_combat_victory(results: Dictionary) -> void:
     current_game_phase = "post_battle_victory" # Internal sub-phase
     emit_signal("game_phase_changed", current_game_phase)
 
-    var post_battle_manager = get_node_or_null(POST_BATTLE_MANAGER_PATH)
+    var post_battle_manager = get_tree().current_scene.get_node_or_null("PostBattleManager")
     if post_battle_manager and post_battle_manager.has_method("initialize_post_battle"):
         # Pass the combat results and the party state *before* post-battle effects like fatigue.
         post_battle_manager.initialize_post_battle(results, current_party_members.duplicate(true))
@@ -375,8 +316,10 @@ func on_combat_victory(results: Dictionary) -> void:
         change_to_loot()
 
 func change_to_combat():
-    print("GameManager.change_to_combat()")
     get_tree().change_scene_to_file("res://scenes/CombatScene.tscn")
+    yield(get_tree(), "idle_frame")
+    var combat_mgr = get_tree().current_scene.get_node("CombatManager")
+    combat_mgr.connect("combat_ended", self, "on_combat_ended")
 
 func on_combat_ended(victory):
     if victory:
@@ -387,15 +330,18 @@ func on_combat_ended(victory):
 func on_post_battle_continue():
     change_to_rest()
 
-func change_to_post_battle() -> void:
+func change_to_post_battle():
     get_tree().change_scene_to_file("res://scenes/PostBattleSummary.tscn")
-    await get_tree().process_frame
+    yield(get_tree(), "idle_frame")
     var post_mgr = get_tree().current_scene.get_node("PostBattleManager")
-    post_mgr.post_battle_complete.connect(on_post_battle_continue)
+    post_mgr.connect("post_battle_complete", self, "on_post_battle_continue")
 
 func on_rest_continue() -> void:
     _change_game_phase_and_scene("dungeon_map", "res://scenes/DungeonMap.tscn")
     call_deferred("_notify_dungeon_map_manager_to_initialize")
+
+func on_game_over_requested():
+    get_tree().change_scene_to_file("res://scenes/GameOver.tscn")
 
 # Remove old scene transition logic if fully replaced.
 # The old on_combat_finished, on_loot_complete, on_rest_complete are now handled by the new signal system.
@@ -403,3 +349,31 @@ func on_rest_continue() -> void:
 async func change_to_loot() -> void:
     get_tree().change_scene_to_file("res://scenes/LootPanel.tscn")
     await get_tree().process_frame
+
+func on_loot_collected():
+    # placeholder
+    pass
+
+func on_game_over_requested():
+    # placeholder
+    pass
+
+func on_rest_continue_exploration(_updated_party_data = []):
+    # placeholder
+    pass
+
+func on_rest_exit_dungeon(_updated_party_data = []):
+    # placeholder
+    pass
+
+func on_post_battle_processing_complete():
+    # placeholder
+    pass
+
+func on_transition_to_map_requested():
+    # placeholder
+    pass
+
+func on_transition_to_rest_requested_from_post_battle():
+    # placeholder
+    pass
