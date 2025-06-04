@@ -1,5 +1,5 @@
+extends Node
 class_name DungeonMapManager
-extends Control
 
 ## Manages the procedural dungeon map, node interactions, and transitions to other game states.
 

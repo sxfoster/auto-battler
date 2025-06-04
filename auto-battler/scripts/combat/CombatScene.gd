@@ -26,7 +26,7 @@ var current_speed_index = 0
 @onready var speed_up_button: Button = get_node(speed_button_path)
 @onready var pause_button: Button = get_node(pause_button_path)
 @onready var feedback_label: Label = get_node(feedback_label_path)
-@onready var combat_manager: AutoCombatManager = get_node(combat_manager_path)
+@onready var combat_manager: CombatManager = get_node(combat_manager_path)
 
 # Placeholder data for party and enemies
 var party_members_data = []

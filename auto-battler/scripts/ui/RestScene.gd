@@ -1,5 +1,7 @@
+extends Node
+class_name RestScene
+
 # Scene controlling the rest phase UI
-extends Control
 
 # Signal emitted when the player chooses to continue
 signal rest_completed

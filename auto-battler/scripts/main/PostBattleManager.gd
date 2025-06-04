@@ -1,9 +1,8 @@
-# PostBattleManager.gd
-# Handles the phase immediately after combat, applying effects,
-# distributing rewards, and determining the next game state transition.
-
 extends Node
 class_name PostBattleManager
+
+# Handles the phase immediately after combat, applying effects,
+# distributing rewards, and determining the next game state transition.
 
 const SUMMARY_SCENE: PackedScene = preload("res://scenes/PostBattleSummary.tscn")
 
