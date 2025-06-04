@@ -42,7 +42,7 @@ func _ready():
                         combat_manager.combat_victory.connect(_on_combat_victory)
                 if not combat_manager.combat_defeat.is_connected(_on_combat_defeat):
                         combat_manager.combat_defeat.connect(_on_combat_defeat)
-                var gm_callable := GameManager.callable("on_combat_end")
+                var gm_callable: Callable = GameManager.callable("on_combat_end")
                 if not combat_manager.combat_ended.is_connected(gm_callable):
                         combat_manager.combat_ended.connect(gm_callable)
                 combat_manager.run_auto_battle_loop()
