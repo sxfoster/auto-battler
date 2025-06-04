@@ -1,5 +1,5 @@
 extends Node
 
-func _ready() -> void:
+func _ready():
     print("Bootstrap loaded")
-    GameManager.start_run()
+    get_node("/root/GameManager").start_run()
