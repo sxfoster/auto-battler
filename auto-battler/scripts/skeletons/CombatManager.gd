@@ -8,24 +8,28 @@ extends Node
 signal combat_victory(results: Dictionary)
 signal combat_defeat(results: Dictionary)
 
+
 func _ready() -> void:
-    # Setup any combat UI or data structures here.
-    pass
+	# Setup any combat UI or data structures here.
+	pass
+
 
 func initialize_combat(_party_data: Array, _enemy_data: Array) -> void:
-    # GameManager provides combatants for both sides.
-    pass
+	# GameManager provides combatants for both sides.
+	pass
+
 
 func start_combat() -> void:
-    # Begin the turn loop or auto-battle sequence.
-    pass
+	# Begin the turn loop or auto-battle sequence.
+	pass
+
 
 func _end_combat(victory: bool) -> void:
-    # Called internally when combat is finished.
-    # Emit the appropriate signal so GameManager can change scenes.
-    var results := {}
-    if victory:
-        emit_signal("combat_victory", results)
-    else:
-        emit_signal("combat_defeat", results)
-    # Handoff results to PostBattleManager happens through GameManager.
+	# Called internally when combat is finished.
+	# Emit the appropriate signal so GameManager can change scenes.
+	var results := {}
+	if victory:
+		emit_signal("combat_victory", results)
+	else:
+		emit_signal("combat_defeat", results)
+	# Handoff results to PostBattleManager happens through GameManager.

@@ -11,7 +11,8 @@ var current_speed_index = 0
 @export var party_panel_path: NodePath = NodePath("PartyPanel")
 @export var enemy_panel_path: NodePath = NodePath("EnemyPanel")
 @export var cards_area_path: NodePath = NodePath("CharacterCardsArea")
-@export var combat_log_container_path: NodePath = NodePath("CombatLogPanel/CombatLogScroll/CombatLog")
+@export
+var combat_log_container_path: NodePath = NodePath("CombatLogPanel/CombatLogScroll/CombatLog")
 @export var combat_log_scroll_path: NodePath = NodePath("CombatLogPanel/CombatLogScroll")
 @export var speed_button_path: NodePath = NodePath("TopBar/SpeedUpButton")
 @export var pause_button_path: NodePath = NodePath("TopBar/PauseButton")
@@ -29,6 +30,7 @@ var current_speed_index = 0
 # Placeholder data for party and enemies
 var party_members_data = []
 var enemies_data = []
+
 
 func _ready():
 	# Initialize combat: load party/enemy data, set up UI elements
@@ -58,6 +60,7 @@ func _ready():
 	# This might involve disabling input on card nodes or other interactive elements
 	# For now, it's mostly a conceptual note as detailed interaction isn't built yet
 
+
 func _process(delta):
 	if is_paused:
 		return
@@ -68,17 +71,19 @@ func _process(delta):
 	# update_combat_state(effective_delta)
 	# update_ui()
 
+
 func _on_pause_button_pressed():
 	is_paused = !is_paused
 	if is_paused:
 		pause_button.text = "Resume"
 		add_combat_log_entry("Combat Paused.")
-		Engine.time_scale = 0 # More robust pausing if physics is involved
+		Engine.time_scale = 0  # More robust pausing if physics is involved
 	else:
 		pause_button.text = "Pause"
 		add_combat_log_entry("Combat Resumed.")
-		Engine.time_scale = 1.0 # Ensure time scale is reset
+		Engine.time_scale = 1.0  # Ensure time scale is reset
 	print("Pause button pressed. Paused: ", is_paused)
+
 
 func _on_speed_up_button_pressed():
 	current_speed_index = (current_speed_index + 1) % SPEED_LEVELS.size()
@@ -87,28 +92,32 @@ func _on_speed_up_button_pressed():
 	add_combat_log_entry("Combat speed set to x" + str(current_speed))
 	print("Speed up button pressed. Current speed: ", current_speed)
 
+
 func end_combat() -> void:
 	emit_signal("combat_finished")
 
+
 func _on_combat_victory(results: Dictionary) -> void:
-		var gm = get_node_or_null("/root/GameManager")
-		if gm:
-				if gm.has_method("on_combat_end"):
-						gm.on_combat_end(true, results)
-				elif gm.has_method("on_combat_victory"):
-						gm.on_combat_victory(results)
-		end_combat()
-		SceneLoader.goto_scene("PostBattleSummary")
+	var gm = get_node_or_null("/root/GameManager")
+	if gm:
+		if gm.has_method("on_combat_end"):
+			gm.on_combat_end(true, results)
+		elif gm.has_method("on_combat_victory"):
+			gm.on_combat_victory(results)
+	end_combat()
+	SceneLoader.goto_scene("PostBattleSummary")
+
 
 func _on_combat_defeat(results: Dictionary) -> void:
-		var gm = get_node_or_null("/root/GameManager")
-		if gm:
-				if gm.has_method("on_combat_end"):
-						gm.on_combat_end(false, results)
-				elif gm.has_method("on_combat_ended"):
-						gm.on_combat_ended(false)
-		end_combat()
-		SceneLoader.goto_scene("PostBattleSummary")
+	var gm = get_node_or_null("/root/GameManager")
+	if gm:
+		if gm.has_method("on_combat_end"):
+			gm.on_combat_end(false, results)
+		elif gm.has_method("on_combat_ended"):
+			gm.on_combat_ended(false)
+	end_combat()
+	SceneLoader.goto_scene("PostBattleSummary")
+
 
 func add_combat_log_entry(text_entry: String):
 	var new_log = Label.new()
@@ -116,32 +125,37 @@ func add_combat_log_entry(text_entry: String):
 	new_log.autowrap_mode = TextServer.AUTOWRAP_WORD
 	combat_log_container.add_child(new_log)
 	# Optional: Scroll to bottom if the log is in a ScrollContainer
-	await get_tree().process_frame # Wait for node to be added
+	await get_tree().process_frame  # Wait for node to be added
 	# Alternative: call_deferred on scroll_bar.value = scroll_bar.max_value
 	var scroll_bar = combat_log_scroll.get_v_scroll_bar()
 	if scroll_bar:
 		scroll_bar.value = scroll_bar.max_value
 
+
 func show_visual_feedback(text: String, duration: float = 1.0):
 	feedback_label.text = text
 	feedback_label.visible = true
 	var timer = get_tree().create_timer(duration)
-	await timer.timeout # Use await with timeout signal
+	await timer.timeout  # Use await with timeout signal
 	feedback_label.visible = false
+
 
 # Placeholder functions for updating UI based on game state
 func update_party_display(_party_data):
 	# Iterate through party_data and update each PartyMemberPanel instance
 	pass
 
+
 func update_enemy_display(_enemy_data):
 	# Iterate through enemy_data and update each EnemyPanel instance
 	pass
+
 
 func update_character_cards_display(character_cards):
 	# Display cards for the current acting character
 	# Highlight the card being played
 	pass
+
 
 # Example of how visual feedback might be triggered
 func _trigger_example_feedback():

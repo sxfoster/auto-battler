@@ -6,6 +6,7 @@ const PREPARATION_SCENE := "res://scenes/PreparationScene.tscn"
 signal card_assigned(member_index, card_slot, card_data)
 signal gear_equipped(member_index, gear_slot, gear_data)
 
+
 func _ready():
 	$ContentContainer/MainVBox/ConfirmPartyButton.pressed.connect(_on_confirm_party)
 	# Initialize party member slots (e.g., load character data)
@@ -18,20 +19,24 @@ func _ready():
 
 		# Additional labels can be initialized here if needed
 
+
 func _on_confirm_party():
 	# TODO: Add your logic here (for now, go to the next scene)
 	get_tree().change_scene_to_file(PREPARATION_SCENE)
 
+
 func _on_ready_button_pressed():
-		print("Ready button pressed")
-		get_tree().change_scene_to_file(PREPARATION_SCENE)
+	print("Ready button pressed")
+	get_tree().change_scene_to_file(PREPARATION_SCENE)
+
 
 # Placeholder functions for drag-and-drop card assignment
 # In a real implementation, these would handle drag data
 func _can_drop_data(_position: Vector2, data) -> bool:
-    # Check if data is a card and can be dropped here
-    return true # Placeholder
+	# Check if data is a card and can be dropped here
+	return true  # Placeholder
+
 
 func _drop_data(_position: Vector2, data) -> void:
-    # Handle card drop, assign card to member
-    print("Card dropped: %s" % [str(data)])
+	# Handle card drop, assign card to member
+	print("Card dropped: %s" % [str(data)])

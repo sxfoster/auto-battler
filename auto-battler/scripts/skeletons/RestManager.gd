@@ -8,20 +8,24 @@ extends Node
 signal rest_continue_exploration(updated_party_data: Array)
 signal rest_exit_dungeon(updated_party_data: Array)
 
+
 func _ready() -> void:
-    # Setup rest screen UI here.
-    pass
+	# Setup rest screen UI here.
+	pass
+
 
 func initialize_rest(_party_data: Array, _consumables: Array) -> void:
-    # Called by GameManager with the current party state and inventory.
-    pass
+	# Called by GameManager with the current party state and inventory.
+	pass
+
 
 func _on_continue_pressed() -> void:
-    # Player chooses to keep exploring.
-    emit_signal("rest_continue_exploration", [])
-    # Hand off any modified party data back to GameManager here.
+	# Player chooses to keep exploring.
+	emit_signal("rest_continue_exploration", [])
+	# Hand off any modified party data back to GameManager here.
+
 
 func _on_exit_pressed() -> void:
-    # Player chooses to leave the dungeon.
-    emit_signal("rest_exit_dungeon", [])
-    # Hand off party data to GameManager for wrap-up.
+	# Player chooses to leave the dungeon.
+	emit_signal("rest_exit_dungeon", [])
+	# Hand off party data to GameManager for wrap-up.

@@ -5,19 +5,14 @@ class_name EnemyData
 # Allows creation of .tres files within the Godot editor.
 
 # Types of enemies that can appear in the game.
-enum EnemyType {
-    CREATURE,
-    DEMIHUMAN,
-    UNDEAD,
-    BOSS
-}
+enum EnemyType { CREATURE, DEMIHUMAN, UNDEAD, BOSS }
 
 @export var enemy_name: String = ""
 @export var description: String = ""
 @export var enemy_type: EnemyType = EnemyType.Creature
 # List of abilities this enemy can use.
 # Entries may be ability names or CardData resources.
-@export var abilities: Array = [] # Array[String] or CardData
+@export var abilities: Array = []  # Array[String] or CardData
 
 @export var base_hp: int = 0
 @export var base_attack: int = 0
