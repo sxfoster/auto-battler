@@ -285,10 +285,7 @@ func change_to_rest() -> void:
     get_tree().change_scene_to_file("res://scenes/RestScene.tscn")
     yield(get_tree(), "idle_frame")
     var rest_mgr = get_tree().current_scene.get_node("RestManager")
-    if not rest_mgr.rest_continue_exploration.is_connected(on_rest_continue_exploration):
-        rest_mgr.rest_continue_exploration.connect(on_rest_continue_exploration)
-    if not rest_mgr.rest_exit_dungeon.is_connected(on_rest_exit_dungeon):
-        rest_mgr.rest_exit_dungeon.connect(on_rest_exit_dungeon)
+    rest_mgr.connect("rest_complete", self, "on_rest_continue")
 
 
 # --- Handler Functions for Signals from Other Managers ---
