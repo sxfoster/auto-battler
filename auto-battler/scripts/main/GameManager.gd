@@ -100,7 +100,7 @@ func _ready() -> void:
 
     # Initialize game, potentially load initial data or set up for main menu.
     # For a new game, this might mean transitioning to a main menu scene.
-    if get_tree().current_scene == null && !Engine.is_editor_hint():
+    if get_tree().current_scene == null and !Engine.is_editor_hint():
          _change_game_phase_and_scene("main_menu", "res://auto-battler/scenes/MainMenu.tscn") # Example path
 
     print("GameManager: Initialization complete. Current phase: %s" % current_game_phase)
