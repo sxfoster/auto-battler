@@ -64,7 +64,7 @@ func _apply_crafted_by_tag(card: CardData, profession: ProfessionData) -> void:
 
 func _grant_profession_xp(profession: ProfessionData, card: CardData, success: bool) -> void:
     ## Grant profession XP based on crafting success.
-    var xp := success ? 10 : 2
+    var xp := 10 if success else 2
     profession.grant_xp(xp, card)
 
 func _log_result(card: CardData, success: bool) -> void:
