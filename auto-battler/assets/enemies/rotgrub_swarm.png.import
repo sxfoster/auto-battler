@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://c55hycndagk3l"
-path="res://.godot/imported/mending_touch.png-b75d5e80e356a7ab067b0870d65ce94e.ctex"
+uid="uid://c2apgb3butrhv"
+path="res://.godot/imported/rotgrub_swarm.png-360fad66d07858e2c9f87f300b1d0081.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/cards/mending_touch.png"
-dest_files=["res://.godot/imported/mending_touch.png-b75d5e80e356a7ab067b0870d65ce94e.ctex"]
+source_file="res://assets/enemies/rotgrub_swarm.png"
+dest_files=["res://.godot/imported/rotgrub_swarm.png-360fad66d07858e2c9f87f300b1d0081.ctex"]
 
 [params]
 

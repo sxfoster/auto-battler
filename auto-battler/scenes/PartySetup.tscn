@@ -1,143 +1,237 @@
 [gd_scene load_steps=3 format=3 uid="uid://c6vj0w0jqy7hx"]
 
 [ext_resource type="Script" uid="uid://dp5sxi2lnxtoh" path="res://scripts/ui/PartySetup.gd" id="1_abcde"]
-[ext_resource type="Theme" path="res://ui/GameTheme.tres" id="2_theme"]
+[ext_resource type="Theme" uid="uid://buoaaw33exgpq" path="res://ui/GameTheme.tres" id="2_theme"]
 
 [node name="PartySetup" type="Control"]
+layout_mode = 3
+anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 theme = ExtResource("2_theme")
 script = ExtResource("1_abcde")
 
 [node name="BG" type="TextureRect" parent="."]
+layout_mode = 0
 anchor_right = 1.0
 anchor_bottom = 1.0
-expand = true
+expand_mode = 1
 stretch_mode = 7
 
 [node name="ContentContainer" type="MarginContainer" parent="."]
+layout_mode = 0
 anchor_right = 1.0
 anchor_bottom = 1.0
-margin_left = 20.0
-margin_top = 20.0
-margin_right = -20.0
-margin_bottom = -20.0
 
 [node name="MainVBox" type="VBoxContainer" parent="ContentContainer"]
-anchor_right = 1.0
-anchor_bottom = 1.0
+layout_mode = 2
 alignment = 1
-separation = 20
 
 [node name="TitleLabel" type="Label" parent="ContentContainer/MainVBox"]
+layout_mode = 2
 text = "Party Setup"
 horizontal_alignment = 1
 
 [node name="MembersGrid" type="GridContainer" parent="ContentContainer/MainVBox"]
-anchor_right = 1.0
-anchor_bottom = 1.0
+layout_mode = 2
 columns = 5
-h_separation = 10
-v_separation = 10
 
 [node name="MemberPanel1" type="PanelContainer" parent="ContentContainer/MainVBox/MembersGrid"]
+layout_mode = 2
+
 [node name="MemberVBox" type="VBoxContainer" parent="ContentContainer/MainVBox/MembersGrid/MemberPanel1"]
+layout_mode = 2
+
 [node name="NameLabel" type="Label" parent="ContentContainer/MainVBox/MembersGrid/MemberPanel1/MemberVBox"]
+layout_mode = 2
 text = "Member 1"
+
 [node name="HPLabel" type="Label" parent="ContentContainer/MainVBox/MembersGrid/MemberPanel1/MemberVBox"]
+layout_mode = 2
 text = "HP: 100"
+
 [node name="RoleLabel" type="Label" parent="ContentContainer/MainVBox/MembersGrid/MemberPanel1/MemberVBox"]
+layout_mode = 2
 text = "Role: –"
+
 [node name="ClassLabel" type="Label" parent="ContentContainer/MainVBox/MembersGrid/MemberPanel1/MemberVBox"]
+layout_mode = 2
 text = "Class: –"
+
 [node name="FoodLabel" type="Label" parent="ContentContainer/MainVBox/MembersGrid/MemberPanel1/MemberVBox"]
+layout_mode = 2
 text = "Food: 100"
+
 [node name="WaterLabel" type="Label" parent="ContentContainer/MainVBox/MembersGrid/MemberPanel1/MemberVBox"]
+layout_mode = 2
 text = "Water: 100"
+
 [node name="CardsLabel" type="Label" parent="ContentContainer/MainVBox/MembersGrid/MemberPanel1/MemberVBox"]
+layout_mode = 2
 text = "Cards: –"
+
 [node name="GearLabel" type="Label" parent="ContentContainer/MainVBox/MembersGrid/MemberPanel1/MemberVBox"]
+layout_mode = 2
 text = "Equipped Gear: –"
 
 [node name="MemberPanel2" type="PanelContainer" parent="ContentContainer/MainVBox/MembersGrid"]
+layout_mode = 2
+
 [node name="MemberVBox" type="VBoxContainer" parent="ContentContainer/MainVBox/MembersGrid/MemberPanel2"]
+layout_mode = 2
+
 [node name="NameLabel" type="Label" parent="ContentContainer/MainVBox/MembersGrid/MemberPanel2/MemberVBox"]
+layout_mode = 2
 text = "Member 2"
+
 [node name="HPLabel" type="Label" parent="ContentContainer/MainVBox/MembersGrid/MemberPanel2/MemberVBox"]
+layout_mode = 2
 text = "HP: 100"
+
 [node name="RoleLabel" type="Label" parent="ContentContainer/MainVBox/MembersGrid/MemberPanel2/MemberVBox"]
+layout_mode = 2
 text = "Role: –"
+
 [node name="ClassLabel" type="Label" parent="ContentContainer/MainVBox/MembersGrid/MemberPanel2/MemberVBox"]
+layout_mode = 2
 text = "Class: –"
+
 [node name="FoodLabel" type="Label" parent="ContentContainer/MainVBox/MembersGrid/MemberPanel2/MemberVBox"]
+layout_mode = 2
 text = "Food: 100"
+
 [node name="WaterLabel" type="Label" parent="ContentContainer/MainVBox/MembersGrid/MemberPanel2/MemberVBox"]
+layout_mode = 2
 text = "Water: 100"
+
 [node name="CardsLabel" type="Label" parent="ContentContainer/MainVBox/MembersGrid/MemberPanel2/MemberVBox"]
+layout_mode = 2
 text = "Cards: –"
+
 [node name="GearLabel" type="Label" parent="ContentContainer/MainVBox/MembersGrid/MemberPanel2/MemberVBox"]
+layout_mode = 2
 text = "Equipped Gear: –"
 
 [node name="MemberPanel3" type="PanelContainer" parent="ContentContainer/MainVBox/MembersGrid"]
+layout_mode = 2
+
 [node name="MemberVBox" type="VBoxContainer" parent="ContentContainer/MainVBox/MembersGrid/MemberPanel3"]
+layout_mode = 2
+
 [node name="NameLabel" type="Label" parent="ContentContainer/MainVBox/MembersGrid/MemberPanel3/MemberVBox"]
+layout_mode = 2
 text = "Member 3"
+
 [node name="HPLabel" type="Label" parent="ContentContainer/MainVBox/MembersGrid/MemberPanel3/MemberVBox"]
+layout_mode = 2
 text = "HP: 100"
+
 [node name="RoleLabel" type="Label" parent="ContentContainer/MainVBox/MembersGrid/MemberPanel3/MemberVBox"]
+layout_mode = 2
 text = "Role: –"
+
 [node name="ClassLabel" type="Label" parent="ContentContainer/MainVBox/MembersGrid/MemberPanel3/MemberVBox"]
+layout_mode = 2
 text = "Class: –"
+
 [node name="FoodLabel" type="Label" parent="ContentContainer/MainVBox/MembersGrid/MemberPanel3/MemberVBox"]
+layout_mode = 2
 text = "Food: 100"
+
 [node name="WaterLabel" type="Label" parent="ContentContainer/MainVBox/MembersGrid/MemberPanel3/MemberVBox"]
+layout_mode = 2
 text = "Water: 100"
+
 [node name="CardsLabel" type="Label" parent="ContentContainer/MainVBox/MembersGrid/MemberPanel3/MemberVBox"]
+layout_mode = 2
 text = "Cards: –"
+
 [node name="GearLabel" type="Label" parent="ContentContainer/MainVBox/MembersGrid/MemberPanel3/MemberVBox"]
+layout_mode = 2
 text = "Equipped Gear: –"
 
 [node name="MemberPanel4" type="PanelContainer" parent="ContentContainer/MainVBox/MembersGrid"]
+layout_mode = 2
+
 [node name="MemberVBox" type="VBoxContainer" parent="ContentContainer/MainVBox/MembersGrid/MemberPanel4"]
+layout_mode = 2
+
 [node name="NameLabel" type="Label" parent="ContentContainer/MainVBox/MembersGrid/MemberPanel4/MemberVBox"]
+layout_mode = 2
 text = "Member 4"
+
 [node name="HPLabel" type="Label" parent="ContentContainer/MainVBox/MembersGrid/MemberPanel4/MemberVBox"]
+layout_mode = 2
 text = "HP: 100"
+
 [node name="RoleLabel" type="Label" parent="ContentContainer/MainVBox/MembersGrid/MemberPanel4/MemberVBox"]
+layout_mode = 2
 text = "Role: –"
+
 [node name="ClassLabel" type="Label" parent="ContentContainer/MainVBox/MembersGrid/MemberPanel4/MemberVBox"]
+layout_mode = 2
 text = "Class: –"
+
 [node name="FoodLabel" type="Label" parent="ContentContainer/MainVBox/MembersGrid/MemberPanel4/MemberVBox"]
+layout_mode = 2
 text = "Food: 100"
+
 [node name="WaterLabel" type="Label" parent="ContentContainer/MainVBox/MembersGrid/MemberPanel4/MemberVBox"]
+layout_mode = 2
 text = "Water: 100"
+
 [node name="CardsLabel" type="Label" parent="ContentContainer/MainVBox/MembersGrid/MemberPanel4/MemberVBox"]
+layout_mode = 2
 text = "Cards: –"
+
 [node name="GearLabel" type="Label" parent="ContentContainer/MainVBox/MembersGrid/MemberPanel4/MemberVBox"]
+layout_mode = 2
 text = "Equipped Gear: –"
 
 [node name="MemberPanel5" type="PanelContainer" parent="ContentContainer/MainVBox/MembersGrid"]
+layout_mode = 2
+
 [node name="MemberVBox" type="VBoxContainer" parent="ContentContainer/MainVBox/MembersGrid/MemberPanel5"]
+layout_mode = 2
+
 [node name="NameLabel" type="Label" parent="ContentContainer/MainVBox/MembersGrid/MemberPanel5/MemberVBox"]
+layout_mode = 2
 text = "Member 5"
+
 [node name="HPLabel" type="Label" parent="ContentContainer/MainVBox/MembersGrid/MemberPanel5/MemberVBox"]
+layout_mode = 2
 text = "HP: 100"
+
 [node name="RoleLabel" type="Label" parent="ContentContainer/MainVBox/MembersGrid/MemberPanel5/MemberVBox"]
+layout_mode = 2
 text = "Role: –"
+
 [node name="ClassLabel" type="Label" parent="ContentContainer/MainVBox/MembersGrid/MemberPanel5/MemberVBox"]
+layout_mode = 2
 text = "Class: –"
+
 [node name="FoodLabel" type="Label" parent="ContentContainer/MainVBox/MembersGrid/MemberPanel5/MemberVBox"]
+layout_mode = 2
 text = "Food: 100"
+
 [node name="WaterLabel" type="Label" parent="ContentContainer/MainVBox/MembersGrid/MemberPanel5/MemberVBox"]
+layout_mode = 2
 text = "Water: 100"
+
 [node name="CardsLabel" type="Label" parent="ContentContainer/MainVBox/MembersGrid/MemberPanel5/MemberVBox"]
+layout_mode = 2
 text = "Cards: –"
+
 [node name="GearLabel" type="Label" parent="ContentContainer/MainVBox/MembersGrid/MemberPanel5/MemberVBox"]
+layout_mode = 2
 text = "Equipped Gear: –"
 
 [node name="ReadyButton" type="Button" parent="ContentContainer/MainVBox"]
-text = "Ready"
-size_flags_horizontal = 3
 custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Ready"
 
 [connection signal="pressed" from="ContentContainer/MainVBox/ReadyButton" to="." method="_on_ready_button_pressed"]

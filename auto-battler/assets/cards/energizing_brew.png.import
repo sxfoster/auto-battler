@@ -3,7 +3,7 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bdrmts4t4fmla"
-path="res://.godot/imported/energizing_brew.png-ac1eb8d6367e39a38bc72419dad81ca0.ctex"
+path="res://.godot/imported/energizing_brew.png-5b23be84659b28e0a3acb8842fa7a804.ctex"
 metadata={
 "vram_texture": false
 }
@@ -11,7 +11,7 @@ metadata={
 [deps]
 
 source_file="res://assets/cards/energizing_brew.png"
-dest_files=["res://.godot/imported/energizing_brew.png-ac1eb8d6367e39a38bc72419dad81ca0.ctex"]
+dest_files=["res://.godot/imported/energizing_brew.png-5b23be84659b28e0a3acb8842fa7a804.ctex"]
 
 [params]
 

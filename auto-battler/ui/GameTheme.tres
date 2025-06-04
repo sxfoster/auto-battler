@@ -1,46 +1,41 @@
-[gd_resource type="Theme" format=3]
+[gd_resource type="Theme" load_steps=5 format=3 uid="uid://buoaaw33exgpq"]
 
-[ext_resource path="res://fonts/Inter-Regular.otf" type="FontFile" id="1"]
+[sub_resource type="StyleBoxFlat" id="ButtonHover"]
+bg_color = Color(0.3, 0.3, 0.3, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.4, 0.4, 0.4, 1)
+
+[sub_resource type="StyleBoxFlat" id="ButtonNormal"]
+bg_color = Color(0.2, 0.2, 0.2, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.4, 0.4, 0.4, 1)
+
+[sub_resource type="StyleBoxFlat" id="ButtonPressed"]
+bg_color = Color(0.1, 0.1, 0.1, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.4, 0.4, 0.4, 1)
 
 [sub_resource type="StyleBoxFlat" id="Panel"]
 bg_color = Color(0.15, 0.15, 0.15, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
 border_color = Color(0.25, 0.25, 0.25, 1)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
-
-[sub_resource type="StyleBoxFlat" id="ButtonNormal"]
-bg_color = Color(0.20, 0.20, 0.20, 1)
-border_color = Color(0.40, 0.40, 0.40, 1)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
-
-[sub_resource type="StyleBoxFlat" id="ButtonHover"]
-bg_color = Color(0.30, 0.30, 0.30, 1)
-border_color = Color(0.40, 0.40, 0.40, 1)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
-
-[sub_resource type="StyleBoxFlat" id="ButtonPressed"]
-bg_color = Color(0.10, 0.10, 0.10, 1)
-border_color = Color(0.40, 0.40, 0.40, 1)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
 
 [resource]
-fonts/default_font = ExtResource("1")
-colors/ThemeColorBackground = Color(0.10, 0.10, 0.10, 1)
-colors/ThemeColorAccent = Color(0.80, 0.80, 0.20, 1)
-Button/styles/normal = SubResource("ButtonNormal")
 Button/styles/hover = SubResource("ButtonHover")
+Button/styles/normal = SubResource("ButtonNormal")
 Button/styles/pressed = SubResource("ButtonPressed")
+Label/colors/font_color = Color(0.9, 0.9, 0.9, 1)
 Panel/styles/panel = SubResource("Panel")
 PanelContainer/styles/panel = SubResource("Panel")
-Label/colors/font_color = Color(0.90, 0.90, 0.90, 1)
