@@ -136,7 +136,7 @@ func _on_continue_button_pressed():
         emit_signal("rest_completed")
         if _rest_manager and _rest_manager.has_method("on_rest_continue"):
                 _rest_manager.on_rest_continue()
-        GameManager.on_rest_continue() # Check if GameManager is globally accessible or needs get_node
+        GameManager.on_rest_continue()
         # Transition to the next scene (e.g., DungeonMap or a post-rest summary)
         # Example: get_tree().change_scene_to_file("res://scenes/DungeonMap.tscn")
 
