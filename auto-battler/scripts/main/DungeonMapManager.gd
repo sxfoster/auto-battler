@@ -1,5 +1,5 @@
 class_name DungeonMapManager
-extends Control
+extends Node
 
 ## Manages the procedural dungeon map, node interactions, and transitions to other game states.
 
@@ -10,7 +10,7 @@ signal transition_to_loot_event(loot_event_data: Dictionary) # For both loot and
 signal transition_to_rest(rest_setup_data: Dictionary)
 signal node_selected(node_type: String)
 
-@onready var nodes_container: HBoxContainer = $MapNodesContainer # UI container for map node buttons
+@onready var nodes_container: HBoxContainer = $MapContainer # UI container for map node buttons
 # Optional: Preload scenes for popups if they remain part of this manager
 const LOOT_PANEL_SCENE := preload("res://scenes/LootPanel.tscn") # Example if used as popup
 const EVENT_PANEL_SCENE := preload("res://scenes/EventPanel.tscn") # Example if used as popup
@@ -29,15 +29,8 @@ var current_party_status := {
 }
 
 func _ready() -> void:
-    randomize() # Ensure random number generation is seeded
-
-    # Connect signals if handling node interactions within this script
-    node_interaction_selected.connect(handle_node_interaction)
-
-    generate_procedural_map()
-    display_map()
-    update_party_status_display() # Initial display of party status
-    # UI elements for map will be connected here (e.g. zoom, pan buttons if added)
+    for btn in $MapContainer.get_children():
+        btn.connect("pressed", self, "_on_Node_pressed", [btn.name])
 
 
 ## Generates the procedural map data.
@@ -168,21 +161,13 @@ func on_node_button_pressed(node_id: int) -> void:
 
 ## Unified handler for node button presses. Determines node type and informs GameManager.
 func _on_Node_pressed(name: String) -> void:
-    var node_type := ""
-    var button := nodes_container.get_node_or_null(name)
-    if button and button.has_meta("node_type"):
-        node_type = str(button.get_meta("node_type"))
-    else:
-        if name.begins_with("Combat"):
-            node_type = "combat"
-        elif name.begins_with("Rest"):
-            node_type = "rest"
-        else:
-            node_type = "loot"
-    if Engine.has_singleton("GameManager"):
-        var gm = Engine.get_singleton("GameManager")
-        if gm.has_method("on_node_selected"):
-            gm.on_node_selected(node_type)
+    var node_type = "loot"
+    if name.begins_with("Combat"):
+        node_type = "combat"
+    elif name.begins_with("Rest"):
+        node_type = "rest"
+    print("Node selected:", node_type)
+    emit_signal("node_selected", node_type)
 
 ## Handles the interaction logic based on the selected node's data.
 func handle_node_interaction(node_data: Dictionary) -> void:
