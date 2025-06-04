@@ -155,4 +155,4 @@ func show_loot(items_to_display: Array):
 	# move_to_front()
 
 func _on_Collect_pressed():
-        SceneLoader.goto_scene("DungeonMap")
+	SceneLoader.goto_scene("DungeonMap")

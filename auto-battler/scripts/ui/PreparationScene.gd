@@ -3,14 +3,14 @@ extends Control
 
 const DUNGEON_MAP_SCENE := "res://scenes/DungeonMap.tscn"
 
-@onready var ready_button = $PreparationManager/ReadyButton
+@onready var continue_button = $PreparationManager/ContinueButton
 
 
 func _ready():
-    $ContinueButton.pressed.connect(_on_continue)
+    continue_button.pressed.connect(_on_continue_button_pressed)
 
 
-func _on_ReadyButton_pressed():
+func _on_continue_button_pressed():
     var party_selection = gather_selected_party()
     print("Party ready:", party_selection)
     get_tree().change_scene_to_file(DUNGEON_MAP_SCENE)
