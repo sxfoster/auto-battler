@@ -155,4 +155,4 @@ func show_loot(items_to_display: Array):
 	# move_to_front()
 
 func _on_Collect_pressed():
-	GameManager.change_to_dungeon_map()
+       get_node("/root/GameManager").change_to_dungeon_map()
