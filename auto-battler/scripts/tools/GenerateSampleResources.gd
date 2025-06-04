@@ -24,6 +24,7 @@ func _generate_cards() -> void:
         ResourceSaver.save(card, path)
 
 func _generate_enemies() -> void:
+    pass
     # var enemies := SampleEnemies.get_enemies()
     # for enemy in enemies:
     #     var fname := _sanitize(enemy.enemy_name)
@@ -45,6 +46,7 @@ func _generate_recipes() -> void:
         ResourceSaver.save(recipe, path)
 
 func _generate_characters() -> void:
+    pass
     # var chars := SampleCharacters.get_characters()
     # for ch in chars:
     #     var fname := _sanitize(ch.character_name)
