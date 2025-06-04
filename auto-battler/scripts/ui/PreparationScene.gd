@@ -1,12 +1,12 @@
 extends Control
 
-@onready var ready_button: Button = $PreparationManager/ReadyButton
+@onready var ready_button = $PreparationManager/ReadyButton
 
-func _ready() -> void:
-    ready_button.pressed.connect(_on_ReadyButton_pressed)
+func _ready():
+    ready_button.connect("pressed", self, "_on_ReadyButton_pressed")
 
-func _on_ReadyButton_pressed() -> void:
-    var party_selection := gather_selected_party()
+func _on_ReadyButton_pressed():
+    var party_selection = gather_selected_party()
     print("Party ready:", party_selection)
     get_node("/root/GameManager").on_preparation_done(party_selection)
 
