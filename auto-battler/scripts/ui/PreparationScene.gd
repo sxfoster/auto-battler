@@ -23,7 +23,8 @@ signal enter_dungeon
 func _ready() -> void:
     # Connect the "Enter Dungeon" button to its handler when the scene is ready.
     if is_instance_valid(enter_dungeon_button):
-        enter_dungeon_button.connect("pressed", self, "_on_EnterDungeonButton_pressed")
+        # Use Godot 4 callable connection style
+        enter_dungeon_button.pressed.connect(_on_EnterDungeonButton_pressed)
 
 func _on_ready_button_pressed() -> void:
     emit_signal("enter_dungeon_pressed")
