@@ -1,5 +1,6 @@
 extends Node
 class_name AutoCombatManager
+signal combat_ended(victory: bool)
 
 ## Manages turn-based combat for the Survival Dungeon CCG Auto-Battler.
 ## Handles party and enemy combatants, turn order, and card usage.
@@ -7,10 +8,7 @@ class_name AutoCombatManager
 
 # Signal emitted when combat ends in victory
 signal combat_victory(results: Dictionary)
-# Signal emitted when combat ends in defeat
 signal combat_defeat(results: Dictionary)
-# Signal emitted when combat resolution is complete
-signal combat_ended(victory: bool)
 
 var party_members: Array[Combatant] = []  # Array of Combatant objects for the player's party
 var enemies: Array[Combatant] = []        # Array of Combatant objects for the enemy side
