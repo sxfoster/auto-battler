@@ -130,7 +130,7 @@ func _update_node_visuals() -> void:
         if node_data.id == current_node_id:
             button.disabled = true # Current node is disabled for interaction
             button.modulate = Color(0.7, 0.9, 1.0) # Highlight for current node
-        elif node_data.id in current_node_data.connections and not node_data.id in visited_node_ids:
+        elif node_data.id in current_node_data.connections and node_data.id not in visited_node_ids:
             button.disabled = false # Available, unvisited connected node
             button.modulate = Color(1, 1, 1)
         else:
@@ -154,7 +154,7 @@ func on_node_button_pressed(node_id: int) -> void:
                 current_node_data = node_d_curr
                 break
 
-        if current_node_data and node_id in current_node_data.connections and not node_id in visited_node_ids:
+        if current_node_data and node_id in current_node_data.connections and node_id not in visited_node_ids:
             emit_signal("node_interaction_selected", selected_node_data)
             emit_signal("node_selected", selected_node_data.type)
             if Engine.has_singleton("GameManager"):
@@ -217,7 +217,7 @@ func handle_node_interaction(node_data: Dictionary) -> void:
 ## Updates the player's current position on the map.
 func update_player_position(node_id: int) -> void:
     current_node_id = node_id
-    if not node_id in visited_node_ids:
+    if node_id not in visited_node_ids:
         visited_node_ids.append(node_id)
 
     # Visual feedback for player movement (e.g., animation, sound) can be triggered here.

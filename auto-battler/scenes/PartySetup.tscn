@@ -11,201 +11,195 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_abcde")
 
-[node name="HBoxContainer" type="HBoxContainer" parent="."]
+[node name="MainColumn" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 0.75
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+alignment = 1
+
+[node name="HBoxContainer" type="HBoxContainer" parent="MainColumn"]
+layout_mode = 2
+size_flags_vertical = 3
+alignment = 1
+
+[node name="PartyMemberSlot1" type="VBoxContainer" parent="MainColumn/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+alignment = 1
+
+[node name="Portrait1" type="TextureRect" parent="MainColumn/HBoxContainer/PartyMemberSlot1"]
+layout_mode = 2
+size_flags_vertical = 3
+stretch_mode = 5
+
+[node name="NameLabel1" type="Label" parent="MainColumn/HBoxContainer/PartyMemberSlot1"]
+layout_mode = 2
+text = "Member 1 Name"
+horizontal_alignment = 1
+
+[node name="StatsLabel1" type="Label" parent="MainColumn/HBoxContainer/PartyMemberSlot1"]
+layout_mode = 2
+text = "HP: 100\nRole: Warrior\nClass: Fighter\nFood: 100\nWater: 100"
+horizontal_alignment = 1
+
+[node name="CardsLabel1" type="Label" parent="MainColumn/HBoxContainer/PartyMemberSlot1"]
+layout_mode = 2
+text = "Card 1, Card 2, Card 3, Card 4"
+horizontal_alignment = 1
+
+[node name="GearLabel1" type="Label" parent="MainColumn/HBoxContainer/PartyMemberSlot1"]
+layout_mode = 2
+text = "Equipped Gear"
+horizontal_alignment = 1
+
+[node name="PartyMemberSlot2" type="VBoxContainer" parent="HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+alignment = 1
+
+[node name="Portrait2" type="TextureRect" parent="MainColumn/HBoxContainer/PartyMemberSlot2"]
+layout_mode = 2
+size_flags_vertical = 3
+stretch_mode = 5
+
+[node name="NameLabel2" type="Label" parent="MainColumn/HBoxContainer/PartyMemberSlot2"]
+layout_mode = 2
+text = "Member 2 Name"
+horizontal_alignment = 1
+
+[node name="StatsLabel2" type="Label" parent="MainColumn/HBoxContainer/PartyMemberSlot2"]
+layout_mode = 2
+text = "HP: 100\nRole: Mage\nClass: Wizard\nFood: 100\nWater: 100"
+horizontal_alignment = 1
+
+[node name="CardsLabel2" type="Label" parent="MainColumn/HBoxContainer/PartyMemberSlot2"]
+layout_mode = 2
+text = "Card 1, Card 2, Card 3, Card 4"
+horizontal_alignment = 1
+
+[node name="GearLabel2" type="Label" parent="MainColumn/HBoxContainer/PartyMemberSlot2"]
+layout_mode = 2
+text = "Equipped Gear"
+horizontal_alignment = 1
+
+[node name="PartyMemberSlot3" type="VBoxContainer" parent="MainColumn/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+alignment = 1
+
+[node name="Portrait3" type="TextureRect" parent="MainColumn/HBoxContainer/PartyMemberSlot3"]
+layout_mode = 2
+size_flags_vertical = 3
+stretch_mode = 5
+
+[node name="NameLabel3" type="Label" parent="MainColumn/HBoxContainer/PartyMemberSlot3"]
+layout_mode = 2
+text = "Member 3 Name"
+horizontal_alignment = 1
+
+[node name="StatsLabel3" type="Label" parent="MainColumn/HBoxContainer/PartyMemberSlot3"]
+layout_mode = 2
+text = "HP: 100\nRole: Rogue\nClass: Assassin\nFood: 100\nWater: 100"
+horizontal_alignment = 1
+
+[node name="CardsLabel3" type="Label" parent="MainColumn/HBoxContainer/PartyMemberSlot3"]
+layout_mode = 2
+text = "Card 1, Card 2, Card 3, Card 4"
+horizontal_alignment = 1
+
+[node name="GearLabel3" type="Label" parent="MainColumn/HBoxContainer/PartyMemberSlot3"]
+layout_mode = 2
+text = "Equipped Gear"
+horizontal_alignment = 1
+
+[node name="PartyMemberSlot4" type="VBoxContainer" parent="MainColumn/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+alignment = 1
+
+[node name="Portrait4" type="TextureRect" parent="MainColumn/HBoxContainer/PartyMemberSlot4"]
+layout_mode = 2
+size_flags_vertical = 3
+stretch_mode = 5
+
+[node name="NameLabel4" type="Label" parent="MainColumn/HBoxContainer/PartyMemberSlot4"]
+layout_mode = 2
+text = "Member 4 Name"
+horizontal_alignment = 1
+
+[node name="StatsLabel4" type="Label" parent="MainColumn/HBoxContainer/PartyMemberSlot4"]
+layout_mode = 2
+text = "HP: 100\nRole: Cleric\nClass: Priest\nFood: 100\nWater: 100"
+horizontal_alignment = 1
+
+[node name="CardsLabel4" type="Label" parent="MainColumn/HBoxContainer/PartyMemberSlot4"]
+layout_mode = 2
+text = "Card 1, Card 2, Card 3, Card 4"
+horizontal_alignment = 1
+
+[node name="GearLabel4" type="Label" parent="MainColumn/HBoxContainer/PartyMemberSlot4"]
+layout_mode = 2
+text = "Equipped Gear"
+horizontal_alignment = 1
+
+[node name="PartyMemberSlot5" type="VBoxContainer" parent="MainColumn/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+alignment = 1
+
+[node name="Portrait5" type="TextureRect" parent="MainColumn/HBoxContainer/PartyMemberSlot5"]
+layout_mode = 2
+size_flags_vertical = 3
+stretch_mode = 5
+
+[node name="NameLabel5" type="Label" parent="MainColumn/HBoxContainer/PartyMemberSlot5"]
+layout_mode = 2
+text = "Member 5 Name"
+horizontal_alignment = 1
+
+[node name="StatsLabel5" type="Label" parent="MainColumn/HBoxContainer/PartyMemberSlot5"]
+layout_mode = 2
+text = "HP: 100\nRole: Ranger\nClass: Archer\nFood: 100\nWater: 100"
+horizontal_alignment = 1
+
+[node name="CardsLabel5" type="Label" parent="MainColumn/HBoxContainer/PartyMemberSlot5"]
+layout_mode = 2
+text = "Card 1, Card 2, Card 3, Card 4"
+horizontal_alignment = 1
+
+[node name="GearLabel5" type="Label" parent="MainColumn/HBoxContainer/PartyMemberSlot5"]
+layout_mode = 2
+text = "Equipped Gear"
+horizontal_alignment = 1
+
+[node name="ReadyMargin" type="MarginContainer" parent="MainColumn"]
+layout_mode = 2
+size_flags_vertical = 1
+
+[node name="ReadyButton" type="Button" parent="MainColumn/ReadyMargin"]
+layout_mode = 2
+text = "Ready"
+
+[node name="SelectedDetails" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_left = 0.75
+anchor_right = 1.0
+anchor_top = 0.0
+anchor_bottom = 0.5
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="SelectedLabel" type="Label" parent="SelectedDetails"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-alignment = 1
+text = "Select a member to see details."
 
-[node name="PartyMemberSlot1" type="VBoxContainer" parent="HBoxContainer"]
-layout_mode = 2
-size_flags_horizontal = 3
-alignment = 1
-
-[node name="Portrait1" type="TextureRect" parent="HBoxContainer/PartyMemberSlot1"]
-layout_mode = 2
-size_flags_vertical = 3
-#Placeholdertextureorcolorexpand_mode = 1
-stretch_mode = 5
-
-[node name="NameLabel1" type="Label" parent="HBoxContainer/PartyMemberSlot1"]
-layout_mode = 2
-text = "Member 1 Name"
-horizontal_alignment = 1
-
-[node name="StatsLabel1" type="Label" parent="HBoxContainer/PartyMemberSlot1"]
-layout_mode = 2
-text = "HP: 100
-Role: Warrior
-Class: Fighter
-Food: 100
-Water: 100"
-horizontal_alignment = 1
-
-[node name="CardsLabel1" type="Label" parent="HBoxContainer/PartyMemberSlot1"]
-layout_mode = 2
-text = "Card 1, Card 2, Card 3, Card 4"
-horizontal_alignment = 1
-
-[node name="GearLabel1" type="Label" parent="HBoxContainer/PartyMemberSlot1"]
-layout_mode = 2
-text = "Equipped Gear"
-horizontal_alignment = 1
-[node name="PartyMemberSlot2" type="VBoxContainer" parent="HBoxContainer"]
-layout_mode = 2
-size_flags_horizontal = 3
-alignment = 1
-
-[node name="Portrait2" type="TextureRect" parent="HBoxContainer/PartyMemberSlot2"]
-layout_mode = 2
-size_flags_vertical = 3
-#Placeholdertextureorcolorexpand_mode = 1
-stretch_mode = 5
-
-[node name="NameLabel2" type="Label" parent="HBoxContainer/PartyMemberSlot2"]
-layout_mode = 2
-text = "Member 2 Name"
-horizontal_alignment = 1
-
-[node name="StatsLabel2" type="Label" parent="HBoxContainer/PartyMemberSlot2"]
-layout_mode = 2
-text = "HP: 100
-Role: Mage
-Class: Wizard
-Food: 100
-Water: 100"
-horizontal_alignment = 1
-
-[node name="CardsLabel2" type="Label" parent="HBoxContainer/PartyMemberSlot2"]
-layout_mode = 2
-text = "Card 1, Card 2, Card 3, Card 4"
-horizontal_alignment = 1
-
-[node name="GearLabel2" type="Label" parent="HBoxContainer/PartyMemberSlot2"]
-layout_mode = 2
-text = "Equipped Gear"
-horizontal_alignment = 1
-
-[node name="PartyMemberSlot3" type="VBoxContainer" parent="HBoxContainer"]
-layout_mode = 2
-size_flags_horizontal = 3
-alignment = 1
-
-[node name="Portrait3" type="TextureRect" parent="HBoxContainer/PartyMemberSlot3"]
-layout_mode = 2
-size_flags_vertical = 3
-#Placeholdertextureorcolorexpand_mode = 1
-stretch_mode = 5
-
-[node name="NameLabel3" type="Label" parent="HBoxContainer/PartyMemberSlot3"]
-layout_mode = 2
-text = "Member 3 Name"
-horizontal_alignment = 1
-
-[node name="StatsLabel3" type="Label" parent="HBoxContainer/PartyMemberSlot3"]
-layout_mode = 2
-text = "HP: 100
-Role: Rogue
-Class: Assassin
-Food: 100
-Water: 100"
-horizontal_alignment = 1
-
-[node name="CardsLabel3" type="Label" parent="HBoxContainer/PartyMemberSlot3"]
-layout_mode = 2
-text = "Card 1, Card 2, Card 3, Card 4"
-horizontal_alignment = 1
-
-[node name="GearLabel3" type="Label" parent="HBoxContainer/PartyMemberSlot3"]
-layout_mode = 2
-text = "Equipped Gear"
-horizontal_alignment = 1
-
-[node name="PartyMemberSlot4" type="VBoxContainer" parent="HBoxContainer"]
-layout_mode = 2
-size_flags_horizontal = 3
-alignment = 1
-
-[node name="Portrait4" type="TextureRect" parent="HBoxContainer/PartyMemberSlot4"]
-layout_mode = 2
-size_flags_vertical = 3
-#Placeholdertextureorcolorexpand_mode = 1
-stretch_mode = 5
-
-[node name="NameLabel4" type="Label" parent="HBoxContainer/PartyMemberSlot4"]
-layout_mode = 2
-text = "Member 4 Name"
-horizontal_alignment = 1
-
-[node name="StatsLabel4" type="Label" parent="HBoxContainer/PartyMemberSlot4"]
-layout_mode = 2
-text = "HP: 100
-Role: Cleric
-Class: Priest
-Food: 100
-Water: 100"
-horizontal_alignment = 1
-
-[node name="CardsLabel4" type="Label" parent="HBoxContainer/PartyMemberSlot4"]
-layout_mode = 2
-text = "Card 1, Card 2, Card 3, Card 4"
-horizontal_alignment = 1
-
-[node name="GearLabel4" type="Label" parent="HBoxContainer/PartyMemberSlot4"]
-layout_mode = 2
-text = "Equipped Gear"
-horizontal_alignment = 1
-
-[node name="PartyMemberSlot5" type="VBoxContainer" parent="HBoxContainer"]
-layout_mode = 2
-size_flags_horizontal = 3
-alignment = 1
-
-[node name="Portrait5" type="TextureRect" parent="HBoxContainer/PartyMemberSlot5"]
-layout_mode = 2
-size_flags_vertical = 3
-#Placeholdertextureorcolorexpand_mode = 1
-stretch_mode = 5
-
-[node name="NameLabel5" type="Label" parent="HBoxContainer/PartyMemberSlot5"]
-layout_mode = 2
-text = "Member 5 Name"
-horizontal_alignment = 1
-
-[node name="StatsLabel5" type="Label" parent="HBoxContainer/PartyMemberSlot5"]
-layout_mode = 2
-text = "HP: 100
-Role: Ranger
-Class: Archer
-Food: 100
-Water: 100"
-horizontal_alignment = 1
-
-[node name="CardsLabel5" type="Label" parent="HBoxContainer/PartyMemberSlot5"]
-layout_mode = 2
-text = "Card 1, Card 2, Card 3, Card 4"
-horizontal_alignment = 1
-
-[node name="GearLabel5" type="Label" parent="HBoxContainer/PartyMemberSlot5"]
-layout_mode = 2
-text = "Equipped Gear"
-horizontal_alignment = 1
-
-[node name="ReadyButton" type="Button" parent="."]
-layout_mode = 1
-anchors_preset = 7
-anchor_left = 0.5
-anchor_top = 1.0
-anchor_right = 0.5
-anchor_bottom = 1.0
-offset_left = -50.0
-offset_top = -40.0
-offset_right = 50.0
-grow_horizontal = 2
-grow_vertical = 0
-text = "Ready"
-
-[connection signal="pressed" from="ReadyButton" to="." method="_on_ready_button_pressed"]
+[connection signal="pressed" from="MainColumn/ReadyMargin/ReadyButton" to="." method="_on_ready_button_pressed"]
