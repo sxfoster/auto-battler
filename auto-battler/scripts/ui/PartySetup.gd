@@ -36,11 +36,10 @@ func _on_ready_button_pressed():
 
 # Placeholder functions for drag-and-drop card assignment
 # In a real implementation, these would handle drag data
-func _can_drop_data(position, data, member_index, card_slot_index):
-	# Check if data is a card and can be dropped here
-	return true # Placeholder
+func _can_drop_data(position: Vector2, data) -> bool:
+        # Check if data is a card and can be dropped here
+        return true # Placeholder
 
-func _drop_data(position, data, member_index, card_slot_index):
-	# Handle card drop, assign card to member
-	# emit_signal("card_assigned", member_index, card_slot_index, data)
-	print("Card dropped on member %d, slot %d" % [member_index, card_slot_index])
+func _drop_data(position: Vector2, data) -> void:
+        # Handle card drop, assign card to member
+        print("Card dropped: %s" % [str(data)])

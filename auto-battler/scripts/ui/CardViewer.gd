@@ -12,7 +12,7 @@ signal card_selected(card_data: Dictionary) # For click/tap
 var card_data: Dictionary = {} : set = set_card_data # Store the card's data
 
 # Default texture for when card art is missing
-const DEFAULT_ART_TEXTURE = preload("res://auto-battler/assets/portraits/default_portrait.png") # Fallback to default portrait
+const DEFAULT_ART_TEXTURE = preload("res://assets/portraits/default_portrait.png") # Fallback to default portrait
 
 func _ready():
 	# Default appearance or based on initial card_data if set

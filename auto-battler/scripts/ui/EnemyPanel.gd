@@ -13,7 +13,7 @@ signal enemy_unhovered(enemy_data: Dictionary)
 var enemy_data: Dictionary = {} : set = set_enemy_data
 
 # Default texture for enemy sprites (optional, adjust path as needed)
-const DEFAULT_SPRITE_TEXTURE = preload("res://auto-battler/assets/portraits/default_portrait.png") # Placeholder: Fallback to default portrait for missing enemy sprite
+const DEFAULT_SPRITE_TEXTURE = preload("res://assets/portraits/default_portrait.png") # Placeholder: Fallback to default portrait for missing enemy sprite
 
 
 func _ready():
@@ -101,8 +101,8 @@ func _on_mouse_exited():
 		print("Enemy unhovered: ", enemy_data.get("name", "N/A"))
 
 func clear_status_effects():
-   for child in status_effects_box.get_children():
-       child.queue_free()
+	for child in status_effects_box.get_children():
+		child.queue_free()
 
 func add_status_effect_icon(effect_data: Dictionary):
 	var icon = TextureRect.new()
