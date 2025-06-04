@@ -18,6 +18,10 @@ func _ready():
 
         # Additional labels can be initialized here if needed
 
+func _on_confirm_party():
+    # TODO: Add your logic here (for now, go to the next scene)
+    get_tree().change_scene_to_file(PREPARATION_SCENE)
+
 func _on_ready_button_pressed():
         print("Ready button pressed")
         get_tree().change_scene_to_file(PREPARATION_SCENE)
