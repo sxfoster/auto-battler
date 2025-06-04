@@ -270,15 +270,8 @@ func change_to_post_battle() -> void:
     current_game_phase = "post_battle"
     get_tree().change_scene_to_file("res://scenes/PostBattleSummary.tscn")
     yield(get_tree(), "idle_frame")
-    var pb_mgr = get_tree().current_scene.get_node("PostBattleManager")
-    if not pb_mgr.post_battle_processing_complete.is_connected(on_post_battle_processing_complete):
-        pb_mgr.post_battle_processing_complete.connect(on_post_battle_processing_complete)
-    if not pb_mgr.transition_to_map_requested.is_connected(on_transition_to_map_requested):
-        pb_mgr.transition_to_map_requested.connect(on_transition_to_map_requested)
-    if not pb_mgr.transition_to_rest_requested.is_connected(on_transition_to_rest_requested_from_post_battle):
-        pb_mgr.transition_to_rest_requested.connect(on_transition_to_rest_requested_from_post_battle)
-    if not pb_mgr.transition_to_game_over_requested.is_connected(on_game_over_requested):
-        pb_mgr.transition_to_game_over_requested.connect(on_game_over_requested)
+    var post_mgr = get_tree().current_scene.get_node("PostBattleManager")
+    post_mgr.connect("post_battle_complete", self, "on_post_battle_continue")
 
 func change_to_rest() -> void:
     current_game_phase = "rest"
