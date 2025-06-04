@@ -1,5 +1,6 @@
 extends Node
 class_name AutoCombatManager
+# (add any signals, e.g., signal combat_ended(victory: bool))
 
 ## Manages turn-based combat for the Survival Dungeon CCG Auto-Battler.
 ## Handles party and enemy combatants, turn order, and card usage.
