@@ -100,8 +100,9 @@ func display_map() -> void:
     for node_data in map_nodes:
         var btn := Button.new()
         btn.text = node_data.type.capitalize() + " " + str(node_data.id)
-        # Connect button press to on_node_button_pressed with the node's ID
-        btn.pressed.connect(on_node_button_pressed.bind(node_data.id))
+        btn.name = "%sNode%d" % [node_data.type.capitalize(), node_data.id]
+        btn.set_meta("node_type", node_data.type)
+        btn.pressed.connect(_on_Node_pressed.bind(btn.name))
         nodes_container.add_child(btn)
         node_data.button_node = btn # Store reference to the button for easy access
 
@@ -164,6 +165,24 @@ func on_node_button_pressed(node_id: int) -> void:
             print("Invalid node selection or already visited: ", node_id)
     else:
         printerr("Node data not found for ID: ", node_id)
+
+## Unified handler for node button presses. Determines node type and informs GameManager.
+func _on_Node_pressed(name: String) -> void:
+    var node_type := ""
+    var button := nodes_container.get_node_or_null(name)
+    if button and button.has_meta("node_type"):
+        node_type = str(button.get_meta("node_type"))
+    else:
+        if name.begins_with("Combat"):
+            node_type = "combat"
+        elif name.begins_with("Rest"):
+            node_type = "rest"
+        else:
+            node_type = "loot"
+    if Engine.has_singleton("GameManager"):
+        var gm = Engine.get_singleton("GameManager")
+        if gm.has_method("on_node_selected"):
+            gm.on_node_selected(node_type)
 
 ## Handles the interaction logic based on the selected node's data.
 func handle_node_interaction(node_data: Dictionary) -> void:
