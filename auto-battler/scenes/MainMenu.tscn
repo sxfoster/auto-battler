@@ -34,7 +34,6 @@ text = "Settings"
 [node name="ExitButton" type="Button" parent="VBox"]
 text = "Exit"
 
-[connection signal="pressed" from="VBox/StartButton" to="." method="_on_start_button_pressed"]
 [connection signal="pressed" from="VBox/ContinueButton" to="." method="_on_continue_button_pressed"]
 [connection signal="pressed" from="VBox/SettingsButton" to="." method="_on_settings_button_pressed"]
 [connection signal="pressed" from="VBox/ExitButton" to="." method="_on_exit_button_pressed"]

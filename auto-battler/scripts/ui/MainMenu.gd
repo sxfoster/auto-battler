@@ -13,19 +13,17 @@ signal exit_game
 @export var settings_button_path: NodePath = NodePath("VBox/SettingsButton")
 @export var exit_button_path: NodePath = NodePath("VBox/ExitButton")
 
-@onready var _start_button: Button = get_node(start_button_path)
+@onready var start_button: Button = get_node(start_button_path)
 @onready var _continue_button: Button = get_node(continue_button_path)
 @onready var _settings_button: Button = get_node(settings_button_path)
 @onready var _exit_button: Button = get_node(exit_button_path)
 
 func _ready() -> void:
-    # Placeholder for any setup logic. Buttons are connected in the scene file.
-    pass
+    if is_instance_valid(start_button):
+        start_button.pressed.connect(_on_StartButton_pressed)
 
-func _on_start_button_pressed() -> void:
-    print("Start Game button pressed")
-    emit_signal("start_game")
-    # GameManager or another controller should handle the actual scene change.
+func _on_StartButton_pressed() -> void:
+    get_tree().change_scene_to_file("res://scenes/PreparationScene.tscn")
 
 func _on_continue_button_pressed() -> void:
     print("Continue button pressed")
