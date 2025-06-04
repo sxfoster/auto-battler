@@ -11,38 +11,43 @@ signal combat_victory(results: Dictionary)
 signal combat_defeat(results: Dictionary)
 
 var party_members: Array[Combatant] = []  # Array of Combatant objects for the player's party
-var enemies: Array[Combatant] = []        # Array of Combatant objects for the enemy side
-var turn_order: Array[Combatant] = []     # Array of Combatant objects, sorted each round by speed
+var enemies: Array[Combatant] = []  # Array of Combatant objects for the enemy side
+var turn_order: Array[Combatant] = []  # Array of Combatant objects, sorted each round by speed
 
-var _rng: RandomNumberGenerator = RandomNumberGenerator.new() # For RNG-based mechanics
-var combat_log: Array[String] = [] # Log of combat events
-var loot_gained: Array = []    # Loot obtained during this combat
-var xp_gained: int = 0         # XP gained during this combat
+var _rng: RandomNumberGenerator = RandomNumberGenerator.new()  # For RNG-based mechanics
+var combat_log: Array[String] = []  # Log of combat events
+var loot_gained: Array = []  # Loot obtained during this combat
+var xp_gained: int = 0  # XP gained during this combat
+
 
 # Inner class to represent a combatant (party member or enemy)
 class Combatant:
-	var source_data # Original data resource (e.g., PartyMemberResource, EnemyResource)
+	var source_data  # Original data resource (e.g., PartyMemberResource, EnemyResource)
 	var is_player_side: bool
-	var assigned_cards: Array # Cards or abilities the combatant can use
+	var assigned_cards: Array  # Cards or abilities the combatant can use
 	var current_hp: int
 	# Combat-specific statuses (buffs, debuffs)
 	var statuses: Dictionary = {}
 	# Example: {"stunned": 1, "poisoned": 3} (value could be duration in turns)
 
-	var card_play_index: int = 0 # Index for cycling through cards/abilities
+	var card_play_index: int = 0  # Index for cycling through cards/abilities
 
 	func _init(data_resource, is_player: bool):
 		source_data = data_resource
 		is_player_side = is_player
 		# Ensure assigned_cards is always an array, even if empty
 		var card_key = "assigned_cards" if is_player else "abilities"
-		assigned_cards = data_resource.get(card_key) if data_resource.has(card_key) and data_resource.get(card_key) != null else []
+		assigned_cards = (
+			data_resource.get(card_key)
+			if data_resource.has(card_key) and data_resource.get(card_key) != null
+			else []
+		)
 		var base_hp_val = data_resource.get("base_hp")
-		current_hp = base_hp_val if base_hp_val != null else 10 # Default to 10 HP if not specified
+		current_hp = base_hp_val if base_hp_val != null else 10  # Default to 10 HP if not specified
 		# Note: Initial fatigue, hunger, thirst from source_data are not directly used by Combatant during combat itself.
 		# They are more relevant for the PostBattleManager or overall GameManager.
 
-	func get_next_card_to_play() -> Resource: # Assuming cards/abilities are resources
+	func get_next_card_to_play() -> Resource:  # Assuming cards/abilities are resources
 		if assigned_cards.is_empty():
 			return null
 		var card = assigned_cards[card_play_index]
@@ -54,6 +59,7 @@ class Combatant:
 		var n = source_data.get(name_key)
 		return n if n != null else "Unknown Combatant"
 
+
 func _ready() -> void:
 	# Potential future use: Connect to UI signals if a combat UI scene is directly managed here.
 	# For now, CombatManager is primarily logic-driven and controlled by GameManager.
@@ -63,7 +69,7 @@ func _ready() -> void:
 ## Initializes combat with party and enemy data.
 func initialize_combat(initial_party_data: Array, enemy_encounter_data: Array) -> void:
 	_log("Combat initializing...")
-	_rng.randomize() # Ensure RNG is seeded for each combat
+	_rng.randomize()  # Ensure RNG is seeded for each combat
 
 	# Reset combat state variables
 	combat_log.clear()
@@ -75,7 +81,7 @@ func initialize_combat(initial_party_data: Array, enemy_encounter_data: Array) -
 
 	# Create Combatant instances for party members
 	for member_data in initial_party_data:
-		if member_data: # Ensure data is not null
+		if member_data:  # Ensure data is not null
 			party_members.append(Combatant.new(member_data, true))
 		else:
 			printerr("Null data encountered in initial_party_data")
@@ -83,7 +89,7 @@ func initialize_combat(initial_party_data: Array, enemy_encounter_data: Array) -
 	# Create Combatant instances for enemies
 	# Future: Actual enemy instantiation might involve loading scenes or resources based on enemy_encounter_data
 	for enemy_data in enemy_encounter_data:
-		if enemy_data: # Ensure data is not null
+		if enemy_data:  # Ensure data is not null
 			# Assuming enemy_encounter_data contains enemy resource paths or preloaded resources
 			# For now, assume it's structured similarly to party_data with necessary fields
 			enemies.append(Combatant.new(enemy_data, false))
@@ -101,26 +107,26 @@ func run_auto_battle_loop() -> void:
 	if party_members.is_empty() or enemies.is_empty():
 		_log("Cannot start battle: one or both sides are empty.")
 		# Determine if this is an immediate win/loss or an error
-		_finalize_combat() # Will determine outcome based on empty sides
+		_finalize_combat()  # Will determine outcome based on empty sides
 		return
 
-	_build_turn_order() # Initial turn order
+	_build_turn_order()  # Initial turn order
 
 	var round_count = 0
 	while not _is_side_defeated(party_members) and not _is_side_defeated(enemies):
 		round_count += 1
 		_log("--- Round %d ---" % round_count)
-		if round_count > 50: # Safety break for excessively long battles
+		if round_count > 50:  # Safety break for excessively long battles
 			_log("Battle exceeds 50 rounds, auto-terminating.")
 			break
 
 		for actor in turn_order:
 			if _is_side_defeated(party_members) or _is_side_defeated(enemies):
-				break # End round immediately if a side is defeated mid-round
+				break  # End round immediately if a side is defeated mid-round
 			_process_actor_turn(actor)
 
 		if not (_is_side_defeated(party_members) or _is_side_defeated(enemies)):
-			_build_turn_order() # Rebuild turn order for the next round if combat continues
+			_build_turn_order()  # Rebuild turn order for the next round if combat continues
 
 	_finalize_combat()
 
@@ -143,22 +149,24 @@ func _build_turn_order() -> void:
 
 	# Sort by speed (higher speed goes first)
 	# Assumes combatants have a 'speed_modifier' or similar attribute in their source_data
-	turn_order.sort_custom(func(a, b):
-		var a_speed = a.source_data.get("speed_modifier")
-		a_speed = a_speed if a_speed != null else 0
-		var b_speed = b.source_data.get("speed_modifier")
-		b_speed = b_speed if b_speed != null else 0
-		return a_speed > b_speed
+	turn_order.sort_custom(
+		func(a, b):
+			var a_speed = a.source_data.get("speed_modifier")
+			a_speed = a_speed if a_speed != null else 0
+			var b_speed = b.source_data.get("speed_modifier")
+			b_speed = b_speed if b_speed != null else 0
+			return a_speed > b_speed
 	)
 
 	var turn_order_names = []
-	for c in turn_order: turn_order_names.append(c.get_name())
+	for c in turn_order:
+		turn_order_names.append(c.get_name())
 	_log("Turn order: " + ", ".join(turn_order_names))
 
 
 ## Processes an individual actor's turn.
 func _process_actor_turn(actor: Combatant) -> void:
-	if actor.current_hp <= 0: # Actor might have been defeated before their turn
+	if actor.current_hp <= 0:  # Actor might have been defeated before their turn
 		return
 
 	_log("Processing turn for: " + actor.get_name())
@@ -175,7 +183,7 @@ func _process_actor_turn(actor: Combatant) -> void:
 
 	if card_to_play == null:
 		_log(actor.get_name() + " has no card/ability to use or chooses to pass.")
-		return # Actor passes or has no valid action
+		return  # Actor passes or has no valid action
 
 	# Target selection logic
 	# Placeholder: Simple targeting - enemies target players, players target enemies.
@@ -205,11 +213,7 @@ func _process_actor_turn(actor: Combatant) -> void:
 
 	var play_name_val = card_to_play.get("card_name")
 	var play_name = play_name_val if play_name_val != null else "a card"
-	_log("%s uses %s on %s" % [
-		actor.get_name(),
-		play_name,
-		", ".join(target_names)
-	])
+	_log("%s uses %s on %s" % [actor.get_name(), play_name, ", ".join(target_names)])
 	# Detailed card effect resolution here (damage, healing, status application)
 	# Example: Apply damage from card
 	var damage_val = card_to_play.get("damage_amount")
@@ -219,7 +223,12 @@ func _process_actor_turn(actor: Combatant) -> void:
 	if damage > 0:
 		for target_combatant in actual_targets:
 			target_combatant.current_hp -= damage
-			_log("%s takes %d damage. Current HP: %d" % [target_combatant.get_name(), damage, target_combatant.current_hp])
+			_log(
+				(
+					"%s takes %d damage. Current HP: %d"
+					% [target_combatant.get_name(), damage, target_combatant.current_hp]
+				)
+			)
 			if target_combatant.current_hp <= 0:
 				_log(target_combatant.get_name() + " has been defeated.")
 	_update_ui()
@@ -227,7 +236,10 @@ func _process_actor_turn(actor: Combatant) -> void:
 
 ## Checks if all combatants on a given side are defeated.
 func _is_side_defeated(side_combatants: Array[Combatant]) -> bool:
-	if side_combatants.is_empty() and (side_combatants == party_members or side_combatants == enemies):
+	if (
+		side_combatants.is_empty()
+		and (side_combatants == party_members or side_combatants == enemies)
+	):
 		# If checking an initially empty side (e.g. no enemies loaded), that side is effectively "defeated"
 		# in the context of starting combat. However, during combat, an empty list means they were all defeated.
 		# This logic might need refinement based on when this check is called relative to combat setup.
@@ -235,8 +247,8 @@ func _is_side_defeated(side_combatants: Array[Combatant]) -> bool:
 		return true
 	for combatant in side_combatants:
 		if combatant.current_hp > 0:
-			return false # At least one combatant is still alive
-	return true # All combatants are defeated or the side was empty
+			return false  # At least one combatant is still alive
+	return true  # All combatants are defeated or the side was empty
 
 
 ## Finalizes combat, determines outcome, and emits appropriate signal.
@@ -257,11 +269,9 @@ func _finalize_combat() -> void:
 		emit_signal("combat_ended", false)
 	elif enemies_defeated:
 		_log("Party is victorious!")
-		_distribute_loot_and_xp() # Calculate loot and XP
+		_distribute_loot_and_xp()  # Calculate loot and XP
 		var results = {
-			"loot": loot_gained,
-			"xp_gained": xp_gained,
-			"final_party_state": final_party_state
+			"loot": loot_gained, "xp_gained": xp_gained, "final_party_state": final_party_state
 		}
 		emit_signal("combat_victory", results)
 		if gm and gm.has_method("on_combat_end"):
@@ -273,7 +283,7 @@ func _finalize_combat() -> void:
 		# Consider if this should be a victory, defeat, or a new signal type (e.g., combat_draw)
 		# For now, treating as a defeat if party isn't victorious.
 		var results = {"final_party_state": final_party_state}
-		emit_signal("combat_defeat", results) # Or a specific "combat_draw" signal
+		emit_signal("combat_defeat", results)  # Or a specific "combat_draw" signal
 		if gm and gm.has_method("on_combat_end"):
 			gm.on_combat_end(false, results)
 		emit_signal("combat_ended", false)
@@ -284,13 +294,14 @@ func _get_final_party_state() -> Array[Dictionary]:
 	var final_state_array: Array[Dictionary] = []
 	for member_combatant in party_members:
 		var state = {
-			"source_data_id": (
+			"source_data_id":
+			(
 				member_combatant.source_data.get("id")
 				if member_combatant.source_data.get("id") != null
 				else "unknown_id"
-			), # Assuming source_data has an ID
+			),  # Assuming source_data has an ID
 			"current_hp": member_combatant.current_hp,
-			"statuses": member_combatant.statuses.duplicate(true) # Deep copy statuses
+			"statuses": member_combatant.statuses.duplicate(true)  # Deep copy statuses
 			# Add other relevant data like remaining card uses, etc., if needed by PostBattleManager
 		}
 		final_state_array.append(state)
@@ -307,10 +318,18 @@ func _distribute_loot_and_xp() -> void:
 		if enemy_combatant.current_hp <= 0:
 			if enemy_combatant.source_data.has("loot_table"):
 				for item_resource in enemy_combatant.source_data.loot_table:
-					loot_gained.append(item_resource) # Assuming items are resources
+					loot_gained.append(item_resource)  # Assuming items are resources
 			var xp_val = enemy_combatant.source_data.get("xp_value")
-			xp_gained += xp_val if xp_val != null else 10 # Default 10 XP
-	_log("Loot gained: %s, XP gained: %d" % [str(loot_gained.size()) + " items" if not loot_gained.is_empty() else "None", xp_gained])
+			xp_gained += xp_val if xp_val != null else 10  # Default 10 XP
+	_log(
+		(
+			"Loot gained: %s, XP gained: %d"
+			% [
+				str(loot_gained.size()) + " items" if not loot_gained.is_empty() else "None",
+				xp_gained
+			]
+		)
+	)
 
 
 ## Helper to get living combatants from a list.
@@ -325,10 +344,11 @@ func _get_living_combatants(combatants_list: Array[Combatant]) -> Array[Combatan
 ## Logs a message to the internal combat log and prints it.
 func _log(message: String) -> void:
 	combat_log.append(message)
-	print("CombatManager: " + message) # Prefixing for clarity in console
+	print("CombatManager: " + message)  # Prefixing for clarity in console
 	var scene = get_tree().current_scene
 	if scene and scene.has_method("add_combat_log_entry"):
 		scene.add_combat_log_entry(message)
+
 
 func _update_ui() -> void:
 	var scene = get_tree().current_scene
@@ -345,6 +365,7 @@ func _update_ui() -> void:
 			enemy_state.append({"name": e.get_name(), "hp": e.current_hp})
 		scene.update_enemy_display(enemy_state)
 
+
 func _apply_survival_penalties() -> void:
 	for member in party_members:
 		if member.source_data:
@@ -354,7 +375,6 @@ func _apply_survival_penalties() -> void:
 			member.source_data.hunger = (hunger_val if hunger_val != null else 0) + 1
 			var thirst_val = member.source_data.get("thirst")
 			member.source_data.thirst = (thirst_val if thirst_val != null else 0) + 1
-
 
 # --- Functions to be removed or refactored from original ---
 # Legacy TODO markers
