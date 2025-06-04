@@ -1,44 +1,25 @@
 extends Control
 
-# Signals emitted for other systems to react to menu actions
-signal start_game
-signal continue_game
-signal settings_requested
-signal exit_game
+@onready var start_button    = $ContentMargin/MainVBox/ButtonsVBox/StartButton
+@onready var continue_button = $ContentMargin/MainVBox/ButtonsVBox/ContinueButton
+@onready var settings_button = $ContentMargin/MainVBox/ButtonsVBox/SettingsButton
+@onready var exit_button     = $ContentMargin/MainVBox/ButtonsVBox/ExitButton
 
-# Exported paths for key UI elements so they can be reassigned in the editor if
-# the layout changes.
-@export var start_button_path: NodePath = NodePath("ContentMargin/MainVBox/ButtonsVBox/StartButton")
-@export var continue_button_path: NodePath = NodePath("ContentMargin/MainVBox/ButtonsVBox/ContinueButton")
-@export var settings_button_path: NodePath = NodePath("ContentMargin/MainVBox/ButtonsVBox/SettingsButton")
-@export var exit_button_path: NodePath = NodePath("ContentMargin/MainVBox/ButtonsVBox/ExitButton")
+func _ready():
+    start_button.connect("pressed", Callable(self, "_on_StartButton_pressed"))
+    continue_button.connect("pressed", Callable(self, "_on_ContinueButton_pressed"))
+    settings_button.connect("pressed", Callable(self, "_on_SettingsButton_pressed"))
+    exit_button.connect("pressed", Callable(self, "_on_ExitButton_pressed"))
 
-@onready var start_button: Button = get_node(start_button_path)
-@onready var _continue_button: Button = get_node(continue_button_path)
-@onready var _settings_button: Button = get_node(settings_button_path)
-@onready var _exit_button: Button = get_node(exit_button_path)
-
-func _ready() -> void:
-    if is_instance_valid(start_button):
-        start_button.pressed.connect(_on_StartButton_pressed)
-
-func _on_StartButton_pressed() -> void:
+func _on_StartButton_pressed():
     get_tree().change_scene_to_file("res://scenes/PreparationScene.tscn")
 
-func _on_continue_button_pressed() -> void:
-    print("Continue button pressed")
-    emit_signal("continue_game")
+func _on_ContinueButton_pressed():
+    get_tree().change_scene_to_file("res://scenes/DungeonMap.tscn")
 
-func _on_settings_button_pressed() -> void:
-    print("Settings button pressed")
-    emit_signal("settings_requested")
+func _on_SettingsButton_pressed():
+    get_tree().change_scene_to_file("res://scenes/SettingsScene.tscn")
 
-func _on_credits_button_pressed() -> void:
-    print("Credits button pressed")
-    # Could emit a signal if a dedicated credits scene is used
-
-func _on_exit_button_pressed() -> void:
-    print("Exit button pressed")
-    emit_signal("exit_game")
-    # Default behaviour quits the application
+func _on_ExitButton_pressed():
     get_tree().quit()
+
