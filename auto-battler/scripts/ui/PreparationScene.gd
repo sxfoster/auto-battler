@@ -20,3 +20,13 @@ func _ready() -> void:
 func _on_ready_button_pressed() -> void:
     emit_signal("enter_dungeon_pressed")
     emit_signal("enter_dungeon")
+
+func gather_selected_party() -> Array:
+    var party: Array = []
+    for panel in party_panel.get_children():
+        var char_data: CharacterData = panel.character_data
+        var assigned_cards: Array = []
+        if panel.has_method("get_assigned_cards"):
+            assigned_cards = panel.get_assigned_cards()
+        party.append({"character": char_data, "cards": assigned_cards})
+    return party
