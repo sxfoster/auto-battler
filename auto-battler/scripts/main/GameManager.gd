@@ -264,6 +264,12 @@ func _change_game_phase_and_scene(new_phase: String, scene_path: String) -> void
 
     emit_signal("game_phase_changed", new_phase) # For UI or other global listeners
 
+func change_to_rest():
+    get_tree().change_scene_to_file("res://scenes/RestScene.tscn")
+    yield(get_tree(), "idle_frame")
+    var rest_mgr = get_tree().current_scene.get_node("RestManager")
+    rest_mgr.connect("rest_complete", self, "on_rest_continue")
+
 
 # --- Handler Functions for Signals from Other Managers ---
 ## Called when PreparationManager signals party is ready for the dungeon.
@@ -410,6 +416,10 @@ func change_to_post_battle() -> void:
 
 func on_post_battle_continue() -> void:
     print("GameManager: Post-battle continue pressed.")
+
+func on_rest_continue() -> void:
+    _change_game_phase_and_scene("dungeon_map", "res://scenes/DungeonMap.tscn")
+    call_deferred("_notify_dungeon_map_manager_to_initialize")
 
 # Remove old scene transition logic if fully replaced.
 # The old on_combat_finished, on_loot_complete, on_rest_complete are now handled by the new signal system.
