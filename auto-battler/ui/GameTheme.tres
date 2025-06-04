@@ -1,5 +1,4 @@
 [gd_resource type="Theme" format=3]
-
 [sub_resource type="StyleBoxFlat" id="PanelStyle"]
 bg_color = Color(0.15, 0.15, 0.15, 1)
 border_color = Color(0.25, 0.25, 0.25, 1)
