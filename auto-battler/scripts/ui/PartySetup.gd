@@ -1,5 +1,7 @@
 extends Control
 
+const PREPARATION_SCENE := "res://scenes/PreparationScene.tscn"
+
 # Signals for card assignment (placeholders)
 signal card_assigned(member_index, card_slot, card_data)
 signal gear_equipped(member_index, gear_slot, gear_data)
@@ -17,7 +19,7 @@ func _ready():
 
 func _on_ready_button_pressed():
         print("Ready button pressed")
-        SceneLoader.goto_scene("PreparationScene")
+        get_tree().change_scene_to_file(PREPARATION_SCENE)
 
 # Placeholder functions for drag-and-drop card assignment
 # In a real implementation, these would handle drag data
