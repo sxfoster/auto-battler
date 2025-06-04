@@ -45,3 +45,8 @@ When generating documentation, docstrings, or comments, base them on the termino
 Additional developer notes are available in [docs/TECHNICAL_OVERVIEW.md](docs/TECHNICAL_OVERVIEW.md). The full game design outline is in [GAME_DESIGN.md](GAME_DESIGN.md).
 
 This repository is a prototype for demonstration purposes. Many scenes and scripts are incomplete and subject to change.
+
+## Formatting
+
+All GDScript files must be formatted using [gdformat](https://github.com/Scony/godot-gdscript-toolkit). A GitHub Actions workflow automatically checks formatting on pushes and pull requests. Run `gdformat .` before committing changes to avoid CI failures.
+
