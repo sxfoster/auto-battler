@@ -227,6 +227,62 @@ func _change_game_phase_and_scene(new_phase: String, scene_path: String) -> void
 
     emit_signal("game_phase_changed", new_phase) # For UI or other global listeners
 
+func change_to_preparation() -> void:
+    current_game_phase = "preparation"
+    get_tree().change_scene_to_file("res://scenes/PreparationScene.tscn")
+    yield(get_tree(), "idle_frame")
+    var prep_mgr = get_tree().current_scene.get_node("PreparationManager")
+    if not prep_mgr.party_ready_for_dungeon.is_connected(on_party_ready_for_dungeon):
+        prep_mgr.party_ready_for_dungeon.connect(on_party_ready_for_dungeon)
+
+func change_to_dungeon_map() -> void:
+    current_game_phase = "dungeon_map"
+    get_tree().change_scene_to_file("res://scenes/DungeonMap.tscn")
+    yield(get_tree(), "idle_frame")
+    var map_mgr = get_tree().current_scene.get_node("DungeonMapManager")
+    if not map_mgr.transition_to_combat.is_connected(on_transition_to_combat_requested):
+        map_mgr.transition_to_combat.connect(on_transition_to_combat_requested)
+    if not map_mgr.transition_to_loot_event.is_connected(on_transition_to_loot_event_requested):
+        map_mgr.transition_to_loot_event.connect(on_transition_to_loot_event_requested)
+    if not map_mgr.transition_to_rest.is_connected(on_transition_to_rest_requested):
+        map_mgr.transition_to_rest.connect(on_transition_to_rest_requested)
+    if not map_mgr.node_selected.is_connected(on_map_node_selected):
+        map_mgr.node_selected.connect(on_map_node_selected)
+
+func change_to_combat() -> void:
+    current_game_phase = "combat"
+    get_tree().change_scene_to_file("res://scenes/CombatScene.tscn")
+    yield(get_tree(), "idle_frame")
+    var combat_mgr = get_tree().current_scene.get_node("CombatManager")
+    if not combat_mgr.combat_victory.is_connected(on_combat_victory):
+        combat_mgr.combat_victory.connect(on_combat_victory)
+    if not combat_mgr.combat_defeat.is_connected(on_combat_defeat):
+        combat_mgr.combat_defeat.connect(on_combat_defeat)
+
+func change_to_post_battle() -> void:
+    current_game_phase = "post_battle"
+    get_tree().change_scene_to_file("res://scenes/PostBattleSummary.tscn")
+    yield(get_tree(), "idle_frame")
+    var pb_mgr = get_tree().current_scene.get_node("PostBattleManager")
+    if not pb_mgr.post_battle_processing_complete.is_connected(on_post_battle_processing_complete):
+        pb_mgr.post_battle_processing_complete.connect(on_post_battle_processing_complete)
+    if not pb_mgr.transition_to_map_requested.is_connected(on_transition_to_map_requested):
+        pb_mgr.transition_to_map_requested.connect(on_transition_to_map_requested)
+    if not pb_mgr.transition_to_rest_requested.is_connected(on_transition_to_rest_requested_from_post_battle):
+        pb_mgr.transition_to_rest_requested.connect(on_transition_to_rest_requested_from_post_battle)
+    if not pb_mgr.transition_to_game_over_requested.is_connected(on_game_over_requested):
+        pb_mgr.transition_to_game_over_requested.connect(on_game_over_requested)
+
+func change_to_rest() -> void:
+    current_game_phase = "rest"
+    get_tree().change_scene_to_file("res://scenes/RestScene.tscn")
+    yield(get_tree(), "idle_frame")
+    var rest_mgr = get_tree().current_scene.get_node("RestManager")
+    if not rest_mgr.rest_continue_exploration.is_connected(on_rest_continue_exploration):
+        rest_mgr.rest_continue_exploration.connect(on_rest_continue_exploration)
+    if not rest_mgr.rest_exit_dungeon.is_connected(on_rest_exit_dungeon):
+        rest_mgr.rest_exit_dungeon.connect(on_rest_exit_dungeon)
+
 
 # --- Handler Functions for Signals from Other Managers ---
 ## Called when PreparationManager signals party is ready for the dungeon.
