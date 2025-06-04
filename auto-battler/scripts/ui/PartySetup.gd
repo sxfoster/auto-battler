@@ -29,7 +29,6 @@ func _ready():
             # You can set default gear info here
             pass
 
-
 func _on_ready_button_pressed():
     print("Ready button pressed")
     # Transition to the dungeon map scene
