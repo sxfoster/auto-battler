@@ -1,5 +1,5 @@
-class_name PreparationManager
 extends Node
+class_name PreparationManager
 
 # Signal emitted when the party is ready to enter the dungeon
 signal party_ready_for_dungeon
@@ -189,9 +189,7 @@ func _on_enter_dungeon_pressed() -> void:
     var party_data := party_members_data.duplicate(true)
 
     # Attempt to pass this data to the GameManager singleton
-    var gm := Engine.has_singleton("GameManager")
-        ? Engine.get_singleton("GameManager")
-        : get_node_or_null("/root/GameManager")
+    var gm := Engine.get_singleton("GameManager") if Engine.has_singleton("GameManager") else get_node_or_null("/root/GameManager")
 
     if gm:
         if gm.has_method("start_dungeon_run"):

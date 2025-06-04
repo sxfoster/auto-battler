@@ -11,8 +11,10 @@ config_version=5
 [application]
 
 config/name="Auto Battler"
-run/main_scene="res://scenes/MainMenu.tscn"
+run/main_scene="res://scenes/Bootstrap.tscn"
 config/features=PackedStringArray("4.4", "GL Compatibility")
 config/icon="res://icon.svg"
+
 [autoload]
+
 GameManager="*res://scripts/main/GameManager.gd"

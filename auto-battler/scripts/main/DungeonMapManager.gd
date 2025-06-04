@@ -1,5 +1,5 @@
+extends Node
 class_name DungeonMapManager
-extends Control
 
 ## Manages the procedural dungeon map, node interactions, and transitions to other game states.
 
@@ -37,6 +37,10 @@ func _ready() -> void:
     generate_procedural_map()
     display_map()
     update_party_status_display() # Initial display of party status
+    # Connect any existing buttons in the map container
+    for button in nodes_container.get_children():
+        if button is Button:
+            button.pressed.connect(_on_Node_pressed.bind(button.name))
     # UI elements for map will be connected here (e.g. zoom, pan buttons if added)
 
 
@@ -168,21 +172,14 @@ func on_node_button_pressed(node_id: int) -> void:
 
 ## Unified handler for node button presses. Determines node type and informs GameManager.
 func _on_Node_pressed(name: String) -> void:
-    var node_type := ""
-    var button := nodes_container.get_node_or_null(name)
-    if button and button.has_meta("node_type"):
-        node_type = str(button.get_meta("node_type"))
-    else:
-        if name.begins_with("Combat"):
-            node_type = "combat"
-        elif name.begins_with("Rest"):
-            node_type = "rest"
-        else:
-            node_type = "loot"
-    if Engine.has_singleton("GameManager"):
-        var gm = Engine.get_singleton("GameManager")
-        if gm.has_method("on_node_selected"):
-            gm.on_node_selected(node_type)
+    var node_type = "loot"
+    if name.begins_with("Combat"):
+        node_type = "combat"
+    elif name.begins_with("Rest"):
+        node_type = "rest"
+
+    GameManager.on_node_selected(node_type)
+    print("Node selected: %s" % node_type)
 
 ## Handles the interaction logic based on the selected node's data.
 func handle_node_interaction(node_data: Dictionary) -> void:

@@ -26,7 +26,7 @@ var current_speed_index = 0
 @onready var speed_up_button: Button = get_node(speed_button_path)
 @onready var pause_button: Button = get_node(pause_button_path)
 @onready var feedback_label: Label = get_node(feedback_label_path)
-@onready var combat_manager: AutoCombatManager = get_node(combat_manager_path)
+@onready var combat_manager: CombatManager = get_node(combat_manager_path)
 
 # Placeholder data for party and enemies
 var party_members_data = []
@@ -42,7 +42,7 @@ func _ready():
                         combat_manager.combat_victory.connect(_on_combat_victory)
                 if not combat_manager.combat_defeat.is_connected(_on_combat_defeat):
                         combat_manager.combat_defeat.connect(_on_combat_defeat)
-                var gm_callable: Callable = GameManager.callable("on_combat_end")
+                var gm_callable: Callable = GameManager.callable("on_combat_ended")
                 if not combat_manager.combat_ended.is_connected(gm_callable):
                         combat_manager.combat_ended.connect(gm_callable)
                 combat_manager.run_auto_battle_loop()
