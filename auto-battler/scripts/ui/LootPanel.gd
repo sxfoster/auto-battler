@@ -152,13 +152,13 @@ func _on_close_button_pressed():
 
 # Call this method to show the loot panel with specific items
 func show_loot(items_to_display: Array):
-        set_loot_items(items_to_display)
-        self.visible = true
-        # Optional: Bring to front if it's part of a complex UI
-        # move_to_front()
+	set_loot_items(items_to_display)
+	self.visible = true
+	# Optional: Bring to front if it's part of a complex UI
+	# move_to_front()
 
 func _on_CollectButton_pressed():
-        if Engine.has_singleton("GameManager"):
-                var gm = Engine.get_singleton("GameManager")
-                if gm.has_method("change_to_dungeon_map"):
-                        gm.change_to_dungeon_map()
+	if Engine.has_singleton("GameManager"):
+		var gm = Engine.get_singleton("GameManager")
+		if gm.has_method("change_to_dungeon_map"):
+			gm.change_to_dungeon_map()
