@@ -1,5 +1,7 @@
 extends Control
 
+const DUNGEON_MAP_SCENE := "res://scenes/DungeonMap.tscn"
+
 @onready var ready_button = $PreparationManager/ReadyButton
 
 func _ready():
@@ -8,7 +10,7 @@ func _ready():
 func _on_ReadyButton_pressed():
     var party_selection = gather_selected_party()
     print("Party ready:", party_selection)
-    SceneLoader.goto_scene("DungeonMap")
+    get_tree().change_scene_to_file(DUNGEON_MAP_SCENE)
 
 func gather_selected_party() -> Array:
     var result: Array = []
