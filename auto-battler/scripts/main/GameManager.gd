@@ -306,6 +306,15 @@ func _notify_dungeon_map_manager_to_initialize():
     else:
         printerr("GameManager: Failed to notify DungeonMapManager or method not found.")
 
+func change_to_dungeon_map():
+    get_tree().change_scene_to_file("res://scenes/DungeonMap.tscn")
+    yield(get_tree(), "idle_frame")
+    var map_mgr = get_tree().current_scene.get_node("DungeonMapManager")
+    map_mgr.connect("node_selected", self, "on_node_selected")
+
+func on_node_selected(node_type: String) -> void:
+    on_map_node_selected(node_type)
+
 func on_map_node_selected(node_type: String) -> void:
     match node_type:
         "combat":
