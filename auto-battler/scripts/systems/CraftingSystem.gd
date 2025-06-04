@@ -1,5 +1,5 @@
-extends Node
 class_name CraftingSystem
+extends Node
 
 ## Handles magical pouch crafting. Accepts up to 5 ingredient cards and outputs
 ## a new card if a recipe is matched. Otherwise creates scrap.
@@ -44,7 +44,7 @@ func _generate_failure_item() -> CardData:
 	var scrap := CardData.new()
 	scrap.card_name = "Scrap"
 	scrap.description = "Leftover debris from failed crafting."
-	scrap.card_type = CardData.CardType.Utility
+	scrap.card_type = CardData.CardType.UTILITY
 	return scrap
 
 
@@ -60,8 +60,8 @@ func _has_synergy(inputs: Array) -> bool:
 
 func _upgrade_output(card: CardData) -> void:
 	## Improve output rarity when synergy is detected.
-	if card.rarity < CardData.Rarity.Legendary:
-		card.rarity += 1
+	if card.rarity < CardData.Rarity.LEGENDARY:
+	card.rarity += 1
 
 
 func _apply_crafted_by_tag(card: CardData, profession: ProfessionData) -> void:

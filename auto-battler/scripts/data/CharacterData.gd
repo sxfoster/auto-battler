@@ -1,10 +1,10 @@
-extends Resource
 class_name CharacterData
+extends Resource
 
 enum Role { TANK, HEALER, SUPPORT, DPS }
 
 @export var character_name: String = ""
-@export var role: Role = Role.Tank
+@export var role: Role = Role.TANK
 @export var character_class: String = ""
 @export var base_hp: int = 10
 @export var base_attack: int = 2

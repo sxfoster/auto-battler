@@ -1,12 +1,12 @@
-extends Node
 class_name SampleRecipes
+extends Node
 
 
 static func _create_card(name: String, desc: String) -> CardData:
 	var c := CardData.new()
 	c.card_name = name
 	c.description = desc
-	c.card_type = CardData.CardType.Utility
+	c.card_type = CardData.CardType.UTILITY
 	return c
 
 

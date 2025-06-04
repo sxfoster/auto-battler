@@ -22,7 +22,7 @@ static func _create_card(
 	c.role_restriction = role_restriction
 	c.class_restriction = class_restriction
 	c.effect_description = effect_description
-	c.rarity = CardData.Rarity.Common
+	c.rarity = CardData.Rarity.COMMON
 	c.icon_path = "res://assets/cards/%s.png" % icon_name
 	c.synergy_tags = synergy_tags
 	c.energy_cost = energy_cost
@@ -38,7 +38,7 @@ static func get_all_cards() -> Array[CardData]:
 		_create_card(
 			"Shield Bash",
 			"Slam enemy with shield, may stun.",
-			CardData.CardType.Attack,
+			CardData.CardType.ATTACK,
 			"Tank",
 			"Guardian, Warrior",
 			"1–3 dmg, 25% stun chance.",
@@ -50,7 +50,7 @@ static func get_all_cards() -> Array[CardData]:
 		_create_card(
 			"Fortify",
 			"Harden defenses for a short period.",
-			CardData.CardType.Buff,
+			CardData.CardType.BUFF,
 			"Tank",
 			"Warrior",
 			"+1 Armor (2 turns).",
@@ -63,7 +63,7 @@ static func get_all_cards() -> Array[CardData]:
 		_create_card(
 			"Taunt",
 			"Draw enemy attacks to self.",
-			CardData.CardType.Utility,
+			CardData.CardType.UTILITY,
 			"Tank",
 			"Guardian",
 			"Enemies focus attacks on user for 1 round.",
@@ -75,7 +75,7 @@ static func get_all_cards() -> Array[CardData]:
 		_create_card(
 			"Iron Will",
 			"Resist debuffs and control effects.",
-			CardData.CardType.Buff,
+			CardData.CardType.BUFF,
 			"Tank",
 			"Any",
 			"Immune to debuffs this round.",
@@ -87,7 +87,7 @@ static func get_all_cards() -> Array[CardData]:
 		_create_card(
 			"Bodyguard",
 			"Protect a weak ally.",
-			CardData.CardType.Utility,
+			CardData.CardType.UTILITY,
 			"Tank",
 			"Guardian",
 			"Redirect next attack targeting an ally to self.",
@@ -99,7 +99,7 @@ static func get_all_cards() -> Array[CardData]:
 		_create_card(
 			"Mending Touch",
 			"Restore moderate HP to an ally.",
-			CardData.CardType.Heal,
+			CardData.CardType.HEAL,
 			"Healer",
 			"Cleric",
 			"Heal 2–4 HP.",
@@ -111,7 +111,7 @@ static func get_all_cards() -> Array[CardData]:
 		_create_card(
 			"Purify",
 			"Remove all debuffs from a party member.",
-			CardData.CardType.Utility,
+			CardData.CardType.UTILITY,
 			"Healer",
 			"Cleric",
 			"Cleanse all debuffs on target.",
@@ -123,7 +123,7 @@ static func get_all_cards() -> Array[CardData]:
 		_create_card(
 			"Revitalize",
 			"Small heal + fatigue reduction.",
-			CardData.CardType.Heal,
+			CardData.CardType.HEAL,
 			"Healer",
 			"Any",
 			"Heal 1–2 HP, -1 Fatigue.",
@@ -135,7 +135,7 @@ static func get_all_cards() -> Array[CardData]:
 		_create_card(
 			"Sanctuary",
 			"Shield party from next damage.",
-			CardData.CardType.Buff,
+			CardData.CardType.BUFF,
 			"Healer",
 			"Cleric",
 			"Next damage instance to party reduced by 2.",
@@ -147,7 +147,7 @@ static func get_all_cards() -> Array[CardData]:
 		_create_card(
 			"Bless",
 			"Enhance an ally’s next action.",
-			CardData.CardType.Buff,
+			CardData.CardType.BUFF,
 			"Healer",
 			"Any",
 			"Next ability used by target gets +1 effect.",
@@ -159,7 +159,7 @@ static func get_all_cards() -> Array[CardData]:
 		_create_card(
 			"Rally Cry",
 			"Inspire allies, boosting attack.",
-			CardData.CardType.Buff,
+			CardData.CardType.BUFF,
 			"Support",
 			"Bard",
 			"All allies +1 damage for next attack.",
@@ -171,7 +171,7 @@ static func get_all_cards() -> Array[CardData]:
 		_create_card(
 			"Mood Maker",
 			"Bestows a random buff to an ally.",
-			CardData.CardType.Buff,
+			CardData.CardType.BUFF,
 			"Support",
 			"Bard",
 			"Random: +1 ATK, +1 DEF, or +1 Energy Regen.",
@@ -183,7 +183,7 @@ static func get_all_cards() -> Array[CardData]:
 		_create_card(
 			"Quick Tune",
 			"Let an ally act sooner.",
-			CardData.CardType.Buff,
+			CardData.CardType.BUFF,
 			"Support",
 			"Bard",
 			"Next turn: target ally acts at top of order.",
@@ -195,7 +195,7 @@ static func get_all_cards() -> Array[CardData]:
 		_create_card(
 			"Disarm",
 			"Reduce enemy’s attack.",
-			CardData.CardType.Debuff,
+			CardData.CardType.DEBUFF,
 			"Support",
 			"Any",
 			"Target enemy deals -1 damage on next attack.",
@@ -207,7 +207,7 @@ static func get_all_cards() -> Array[CardData]:
 		_create_card(
 			"Encore",
 			"Grant extra action to ally.",
-			CardData.CardType.Utility,
+			CardData.CardType.UTILITY,
 			"Support",
 			"Bard",
 			"Ally may repeat last used card.",
@@ -219,7 +219,7 @@ static func get_all_cards() -> Array[CardData]:
 		_create_card(
 			"Quick Slash",
 			"Fast melee attack.",
-			CardData.CardType.Attack,
+			CardData.CardType.ATTACK,
 			"DPS",
 			"Blademaster",
 			"2–4 damage, physical.",
@@ -231,7 +231,7 @@ static func get_all_cards() -> Array[CardData]:
 		_create_card(
 			"Arcane Spark",
 			"Burst of magical energy.",
-			CardData.CardType.Attack,
+			CardData.CardType.ATTACK,
 			"DPS",
 			"Wizard",
 			"2–4 magic damage.",
@@ -243,7 +243,7 @@ static func get_all_cards() -> Array[CardData]:
 		_create_card(
 			"Flurry",
 			"Multiple low-damage hits.",
-			CardData.CardType.Attack,
+			CardData.CardType.ATTACK,
 			"DPS",
 			"Blademaster",
 			"1–2 damage, hit 2 times.",
@@ -255,7 +255,7 @@ static func get_all_cards() -> Array[CardData]:
 		_create_card(
 			"Venom Strike",
 			"Apply poison effect.",
-			CardData.CardType.Debuff,
+			CardData.CardType.DEBUFF,
 			"DPS",
 			"Any",
 			"1–2 damage, +1 DoT (2 turns).",
@@ -267,7 +267,7 @@ static func get_all_cards() -> Array[CardData]:
 		_create_card(
 			"Finisher",
 			"Extra damage if enemy was hit this round.",
-			CardData.CardType.Attack,
+			CardData.CardType.ATTACK,
 			"DPS",
 			"Blademaster",
 			"3–5 damage if enemy already damaged this round.",

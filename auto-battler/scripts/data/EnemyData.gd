@@ -1,5 +1,5 @@
-extends Resource
 class_name EnemyData
+extends Resource
 
 # Resource data for enemy definitions used in encounters.
 # Allows creation of .tres files within the Godot editor.
@@ -9,7 +9,7 @@ enum EnemyType { CREATURE, DEMIHUMAN, UNDEAD, BOSS }
 
 @export var enemy_name: String = ""
 @export var description: String = ""
-@export var enemy_type: EnemyType = EnemyType.Creature
+@export var enemy_type: EnemyType = EnemyType.CREATURE
 # List of abilities this enemy can use.
 # Entries may be ability names or CardData resources.
 @export var abilities: Array = []  # Array[String] or CardData

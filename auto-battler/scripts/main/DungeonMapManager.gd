@@ -10,10 +10,10 @@ signal transition_to_loot_event(loot_event_data: Dictionary)  # For both loot an
 signal transition_to_rest(rest_setup_data: Dictionary)
 signal node_selected(node_type: String)
 
+const LOOT_PANEL_SCENE := preload("res://scenes/LootPanel.tscn")
+const EVENT_PANEL_SCENE := preload("res://scenes/EventPanel.tscn")
+
 @onready var nodes_container: HBoxContainer = $MapContainer  # UI container for map node buttons
-# Optional: Preload scenes for popups if they remain part of this manager
-const LOOT_PANEL_SCENE := preload("res://scenes/LootPanel.tscn")  # Example if used as popup
-const EVENT_PANEL_SCENE := preload("res://scenes/EventPanel.tscn")  # Example if used as popup
 
 var map_nodes: Array[Dictionary] = []  # Array of dictionaries, each describing a node on the map
 var current_node_id: int = 0  # ID of the node the party is currently on
