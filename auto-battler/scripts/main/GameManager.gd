@@ -8,13 +8,13 @@ func start_run():
 
 func change_to_preparation():
     get_tree().change_scene_to_file("res://scenes/PreparationScene.tscn")
-    yield(get_tree(), "idle_frame")
+    await get_tree().process_frame
     var prep_mgr = get_tree().current_scene.get_node("PreparationManager")
     prep_mgr.connect("preparation_done", self, "on_preparation_done")
 
 func change_to_dungeon_map():
     get_tree().change_scene_to_file("res://scenes/DungeonMap.tscn")
-    yield(get_tree(), "idle_frame")
+    await get_tree().process_frame
     var map_mgr = get_tree().current_scene.get_node("DungeonMapManager")
     map_mgr.connect("node_selected", self, "on_node_selected")
 
@@ -203,7 +203,7 @@ func _change_game_phase_and_scene(new_phase: String, scene_path: String) -> void
 
 func change_to_rest():
     get_tree().change_scene_to_file("res://scenes/RestScene.tscn")
-    yield(get_tree(), "idle_frame")
+    await get_tree().process_frame
     var rest_mgr = get_tree().current_scene.get_node("RestManager")
     rest_mgr.connect("rest_complete", self, "on_rest_continue")
 
@@ -317,7 +317,7 @@ func on_combat_victory(results: Dictionary) -> void:
 
 func change_to_combat():
     get_tree().change_scene_to_file("res://scenes/CombatScene.tscn")
-    yield(get_tree(), "idle_frame")
+    await get_tree().process_frame
     var combat_mgr = get_tree().current_scene.get_node("CombatManager")
     combat_mgr.connect("combat_ended", self, "on_combat_ended")
 
@@ -332,7 +332,7 @@ func on_post_battle_continue():
 
 func change_to_post_battle():
     get_tree().change_scene_to_file("res://scenes/PostBattleSummary.tscn")
-    yield(get_tree(), "idle_frame")
+    await get_tree().process_frame
     var post_mgr = get_tree().current_scene.get_node("PostBattleManager")
     post_mgr.connect("post_battle_complete", self, "on_post_battle_continue")
 
