@@ -104,8 +104,8 @@ func _on_combat_defeat(results: Dictionary) -> void:
         if gm:
                 if gm.has_method("on_combat_end"):
                         gm.on_combat_end(false, results)
-                elif gm.has_method("on_combat_defeat"):
-                        gm.on_combat_defeat(results)
+                elif gm.has_method("on_combat_ended"):
+                        gm.on_combat_ended(false)
         end_combat()
 
 func add_combat_log_entry(text_entry: String):

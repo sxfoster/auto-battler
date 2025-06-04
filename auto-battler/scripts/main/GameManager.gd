@@ -41,8 +41,8 @@ func change_to_dungeon_map():
     if combat_manager:
         if not combat_manager.combat_victory.is_connected(on_combat_victory):
             combat_manager.combat_victory.connect(on_combat_victory)
-        if not combat_manager.combat_defeat.is_connected(on_combat_defeat):
-            combat_manager.combat_defeat.connect(on_combat_defeat)
+        if not combat_manager.combat_defeat.is_connected(on_combat_ended):
+            combat_manager.combat_defeat.connect(Callable(self, "on_combat_ended").bind(false))
     else:
         print_rich("[color=yellow]GameManager Warning:[/color] CombatManager not found in current scene.")
 
@@ -316,8 +316,8 @@ func _notify_combat_manager_to_initialize(combat_setup_data: Dictionary):
     if combat_manager and combat_manager.has_method("initialize_combat"):
         if not combat_manager.combat_victory.is_connected(on_combat_victory):
             combat_manager.combat_victory.connect(on_combat_victory)
-        if not combat_manager.combat_defeat.is_connected(on_combat_defeat):
-            combat_manager.combat_defeat.connect(on_combat_defeat)
+        if not combat_manager.combat_defeat.is_connected(on_combat_ended):
+            combat_manager.combat_defeat.connect(Callable(self, "on_combat_ended").bind(false))
         var enemy_data_list = combat_setup_data.get("enemies", [])
         combat_manager.initialize_combat(current_party_members, enemy_data_list)
         combat_manager.run_auto_battle_loop() # Start the battle
@@ -396,6 +396,9 @@ func change_to_post_battle() -> void:
 func on_rest_continue() -> void:
     _change_game_phase_and_scene("dungeon_map", "res://scenes/DungeonMap.tscn")
     call_deferred("_notify_dungeon_map_manager_to_initialize")
+
+func on_game_over_requested():
+    get_tree().change_scene_to_file("res://scenes/GameOver.tscn")
 
 # Remove old scene transition logic if fully replaced.
 # The old on_combat_finished, on_loot_complete, on_rest_complete are now handled by the new signal system.
