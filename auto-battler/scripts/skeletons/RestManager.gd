@@ -12,7 +12,7 @@ func _ready() -> void:
     # Setup rest screen UI here.
     pass
 
-func initialize_rest(party_data: Array, consumables: Array) -> void:
+func initialize_rest(_party_data: Array, _consumables: Array) -> void:
     # Called by GameManager with the current party state and inventory.
     pass
 

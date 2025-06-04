@@ -20,12 +20,12 @@ func _on_party_ready_for_dungeon() -> void:
     emit_signal("game_phase_changed", "dungeon_map")
     # Scene change via get_tree().change_scene_to_file() happens here.
 
-func _on_enter_combat(combat_data: Dictionary) -> void:
+func _on_enter_combat(_combat_data: Dictionary) -> void:
     # Received from DungeonMapManager when a combat node is chosen.
     emit_signal("game_phase_changed", "combat")
     # Pass combat_data to CombatManager and change scenes.
 
-func _on_rest_complete(updated_party: Array) -> void:
+func _on_rest_complete(_updated_party: Array) -> void:
     # Received from RestManager after resting.
     emit_signal("game_phase_changed", "dungeon_map")
     # Update stored party data and return to map.

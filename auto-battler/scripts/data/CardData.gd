@@ -4,23 +4,23 @@ extends Resource
 # Resource describing a card used throughout the Survival Dungeon CCG.
 
 enum CardType {
-    Ability,
-    Attack,
-    Buff,
-    Heal,
-    Debuff,
-    Utility,
-    Equipment,
-    Ingredient,
-    FoodDrink,
-    Elixir
+    ABILITY,
+    ATTACK,
+    BUFF,
+    HEAL,
+    DEBUFF,
+    UTILITY,
+    EQUIPMENT,
+    INGREDIENT,
+    FOODDRINK,
+    ELIXIR
 }
 
 enum Rarity {
-    Common,
-    Uncommon,
-    Rare,
-    Legendary
+    COMMON,
+    UNCOMMON,
+    RARE,
+    LEGENDARY
 }
 
 @export var card_name: String = ""
@@ -36,7 +36,7 @@ enum Rarity {
 @export var is_combo_starter: bool = false
 @export var is_combo_finisher: bool = false
 
-func apply_effect(target) -> void:
+func apply_effect(_target) -> void:
     # Placeholder for applying the card's effect to a target.
     # Actual implementation will depend on the game's combat system.
     pass

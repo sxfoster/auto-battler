@@ -17,7 +17,7 @@ func generate_map() -> void:
     # Build nodes and connections for the dungeon map.
     pass
 
-func on_node_selected(node_data: Dictionary) -> void:
+func on_node_selected(_node_data: Dictionary) -> void:
     # Determine node type and emit the matching transition signal.
     # Scene or data handoff to GameManager happens via these signals.
     pass

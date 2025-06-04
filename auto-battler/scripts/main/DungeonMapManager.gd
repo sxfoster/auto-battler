@@ -170,7 +170,7 @@ func _on_Node_pressed(name: String) -> void:
     emit_signal("node_selected", node_type)
 
 ## Handles the interaction logic based on the selected node's data.
-func handle_node_interaction(node_data: Dictionary) -> void:
+func handle_node_interaction(_node_data: Dictionary) -> void:
     print("Handling interaction for node: ", node_data.id, " type: ", node_data.type)
     update_player_position(node_data.id) # Move player to the new node
 
@@ -213,7 +213,7 @@ func update_player_position(node_id: int) -> void:
 
 
 ## Helper to extract/generate enemy info for a combat node.
-func get_combat_data_for_node(node_data: Dictionary) -> Dictionary:
+func get_combat_data_for_node(_node_data: Dictionary) -> Dictionary:
     # Placeholder: Define enemy encounter based on node_data or dungeon level
     # This would typically involve looking up enemy types, numbers, and stats
     var enemy_types = ["goblin_grunt", "goblin_archer", "orc_berserker"]
@@ -229,7 +229,7 @@ func get_combat_data_for_node(node_data: Dictionary) -> Dictionary:
     }
 
 ## Helper to get specific event data for an event node.
-func get_event_data_for_node(node_data: Dictionary) -> Dictionary:
+func get_event_data_for_node(_node_data: Dictionary) -> Dictionary:
     # Placeholder: Define event details
     var events = [
         {
@@ -281,7 +281,7 @@ func _generate_random_trap_event() -> Dictionary:
 # --- Popup Panel Handling (Optional: Keep if panels are simple popups within this scene) ---
 # If these become complex or separate scenes, GameManager should handle them post-transition.
 
-func _show_loot_panel(loot_data: Dictionary) -> void:
+func _show_loot_panel(_loot_data: Dictionary) -> void:
     var panel := LOOT_PANEL_SCENE.instantiate()
     add_child(panel)
     # Assuming LootPanel has a method to display loot based on loot_data
@@ -299,7 +299,7 @@ func _on_popup_panel_closed() -> void:
     # Called when a loot or simple event popup is closed.
     _update_node_visuals() # Refresh map state
 
-func _on_event_panel_resolved(resolved_outcome_data: Dictionary, original_event_data: Dictionary) -> void:
+func _on_event_panel_resolved(resolved_outcome_data: Dictionary, _original_event_data: Dictionary) -> void:
     # Handle consequences of the event if managed by popups here
     # Example: Apply damage or status effects from resolved_outcome_data
     if resolved_outcome_data.has("effects"):

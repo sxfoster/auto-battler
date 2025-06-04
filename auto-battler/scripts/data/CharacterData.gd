@@ -1,7 +1,7 @@
 extends Resource
 class_name CharacterData
 
-enum Role { Tank, Healer, Support, DPS }
+enum Role { TANK, HEALER, SUPPORT, DPS }
 
 @export var character_name: String = ""
 @export var role: Role = Role.Tank

@@ -12,7 +12,7 @@ func _ready() -> void:
     # Setup any combat UI or data structures here.
     pass
 
-func initialize_combat(party_data: Array, enemy_data: Array) -> void:
+func initialize_combat(_party_data: Array, _enemy_data: Array) -> void:
     # GameManager provides combatants for both sides.
     pass
 

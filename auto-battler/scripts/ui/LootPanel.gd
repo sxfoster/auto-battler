@@ -120,7 +120,7 @@ func get_rarity_string(rarity_val: int) -> String:
 		3: return "Epic"
 		_: return "Unknown Rarity"
 
-func _on_add_item_button_pressed(item_data: Dictionary, button_node: Button, item_entry_node: HBoxContainer):
+func _on_add_item_button_pressed(item_data: Dictionary, button_node: Button, _item_entry_node: HBoxContainer):
 	print("Add to inventory button pressed for: ", item_data.name)
 	emit_signal("add_item_to_inventory", item_data)
 

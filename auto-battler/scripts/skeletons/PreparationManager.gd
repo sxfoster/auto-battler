@@ -12,7 +12,7 @@ func _ready() -> void:
     # Connect UI signals or load initial data here.
     pass
 
-func start_preparation(party_data: Array) -> void:
+func start_preparation(_party_data: Array) -> void:
     # GameManager calls this to provide current party information.
     # Set up internal data structures or UI based on party_data.
     pass

@@ -14,7 +14,7 @@ func _ready() -> void:
     # Called when added to the scene tree.
     pass
 
-func process_post_battle(combat_results: Dictionary, party_state: Array) -> void:
+func process_post_battle(_combat_results: Dictionary, _party_state: Array) -> void:
     # Apply survival penalties, distribute XP and loot here.
     pass
 
