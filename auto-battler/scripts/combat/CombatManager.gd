@@ -9,6 +9,8 @@ class_name AutoCombatManager
 signal combat_victory(results: Dictionary)
 # Signal emitted when combat ends in defeat
 signal combat_defeat(results: Dictionary)
+# Signal emitted when combat resolution is complete
+signal combat_ended(victory: bool)
 
 var party_members: Array[Combatant] = []  # Array of Combatant objects for the player's party
 var enemies: Array[Combatant] = []        # Array of Combatant objects for the enemy side
@@ -254,6 +256,7 @@ func _finalize_combat() -> void:
         emit_signal("combat_defeat", results)
         if gm and gm.has_method("on_combat_end"):
             gm.on_combat_end(false, results)
+        emit_signal("combat_ended", false)
     elif enemies_defeated:
         _log("Party is victorious!")
         _distribute_loot_and_xp() # Calculate loot and XP
@@ -265,6 +268,7 @@ func _finalize_combat() -> void:
         emit_signal("combat_victory", results)
         if gm and gm.has_method("on_combat_end"):
             gm.on_combat_end(true, results)
+        emit_signal("combat_ended", true)
     else:
         # This case (neither side defeated, e.g. from round limit) might be a draw or special scenario
         _log("Combat ended inconclusively (e.g., round limit reached).")
@@ -274,6 +278,7 @@ func _finalize_combat() -> void:
         emit_signal("combat_defeat", results) # Or a specific "combat_draw" signal
         if gm and gm.has_method("on_combat_end"):
             gm.on_combat_end(false, results)
+        emit_signal("combat_ended", false)
 
 
 ## Gathers the final state of party members (HP, statuses, etc.).
