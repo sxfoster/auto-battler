@@ -3,7 +3,7 @@ extends Control
 @onready var ready_button: Button = $PreparationManager/ReadyButton
 
 func _ready() -> void:
-    ready_button.connect("pressed", self, "_on_ReadyButton_pressed")
+    ready_button.pressed.connect(_on_ReadyButton_pressed)
 
 func _on_ReadyButton_pressed() -> void:
     var party_selection := gather_selected_party()
