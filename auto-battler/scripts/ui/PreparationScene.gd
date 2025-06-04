@@ -1,9 +1,11 @@
+# res://scripts/ui/PreparationScene.gd
 extends Control
 
 @onready var ready_button = $PreparationManager/ReadyButton
 
 func _ready():
-    ready_button.connect("pressed", self, "_on_ReadyButton_pressed")
+    # Godot 4 requires a Callable instead of "self, method_name"
+    ready_button.connect("pressed", Callable(self, "_on_ReadyButton_pressed"))
 
 func _on_ReadyButton_pressed():
     var party_selection = gather_selected_party()
