@@ -435,5 +435,16 @@ func on_rest_exit_dungeon(updated_party_data: Array) -> void:
     # Save progress and return to main menu or a summary screen
     end_current_run("autosave", true)
 
+# Temporary transition helper for scripts that still call change_to_combat().
+func change_to_combat() -> void:
+    get_tree().change_scene_to_file("res://scenes/CombatScene.tscn")
+    await get_tree().process_frame
+    var combat_mgr = get_tree().current_scene.get_node("CombatManager")
+    if not combat_mgr.combat_ended.is_connected(self, "on_combat_ended"):
+        combat_mgr.connect("combat_ended", self, "on_combat_ended")
+
+func on_combat_ended(victory: bool) -> void:
+    on_combat_end(victory, {})
+
 # Remove old scene transition logic if fully replaced.
 # The old on_combat_finished, on_loot_complete, on_rest_complete are now handled by the new signal system.
