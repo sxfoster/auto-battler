@@ -30,7 +30,7 @@ var current_party_status := {
 
 func _ready() -> void:
     for btn in $MapContainer.get_children():
-        btn.connect("pressed", self, "_on_Node_pressed", [btn.name])
+        btn.pressed.connect(_on_Node_pressed.bind(btn.name))
 
 
 ## Generates the procedural map data.
