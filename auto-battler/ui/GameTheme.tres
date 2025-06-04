@@ -1,5 +1,8 @@
 [gd_resource type="Theme" format=3]
-[sub_resource type="StyleBoxFlat" id="PanelStyle"]
+
+[ext_resource path="res://fonts/Inter-Regular.otf" type="FontFile" id="1"]
+
+[sub_resource type="StyleBoxFlat" id="Panel"]
 bg_color = Color(0.15, 0.15, 0.15, 1)
 border_color = Color(0.25, 0.25, 0.25, 1)
 border_width_left = 2
@@ -32,11 +35,12 @@ border_width_right = 2
 border_width_bottom = 2
 
 [resource]
-colors/background = Color(0.10, 0.10, 0.10, 1)
-colors/accent_color = Color(0.80, 0.80, 0.20, 1)
+fonts/default_font = ExtResource("1")
+colors/ThemeColorBackground = Color(0.10, 0.10, 0.10, 1)
+colors/ThemeColorAccent = Color(0.80, 0.80, 0.20, 1)
 Button/styles/normal = SubResource("ButtonNormal")
 Button/styles/hover = SubResource("ButtonHover")
 Button/styles/pressed = SubResource("ButtonPressed")
-Panel/styles/panel = SubResource("PanelStyle")
-PanelContainer/styles/panel = SubResource("PanelStyle")
+Panel/styles/panel = SubResource("Panel")
+PanelContainer/styles/panel = SubResource("Panel")
 Label/colors/font_color = Color(0.90, 0.90, 0.90, 1)
