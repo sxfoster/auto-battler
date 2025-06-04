@@ -1,5 +1,5 @@
 extends Node
 
 func _ready() -> void:
-    print("Bootstrap loaded")
-    GameManager.start_run()
+    # Let the GameManager autoload handle initial scene setup.
+    pass

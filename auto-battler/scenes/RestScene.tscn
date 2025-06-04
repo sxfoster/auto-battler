@@ -38,7 +38,7 @@ visible = false
 [node name="ContinueButton" type="Button" parent="VBox"]
 text = "Continue"
 
-[connection signal="pressed" from="ContinueButton" to="." method="_on_Continue_pressed"]
+[connection signal="pressed" from="ContinueButton" to="." method="_on_continue_button_pressed"]
 [connection signal="pressed" from="ItemButtons/UseFoodButton" to="." method="_on_use_food_button_pressed"]
 [connection signal="pressed" from="ItemButtons/UseDrinkButton" to="." method="_on_use_drink_button_pressed"]
 [connection signal="pressed" from="ItemButtons/CraftButton" to="." method="_on_craft_button_pressed"]
