@@ -1,4 +1,3 @@
-class_name GameManager
 extends Node
 
 var party_data
