@@ -32,3 +32,7 @@ When a party has been finalized in the React UI, clicking **Start Game** will
 serialize the party using the shared TypeScript interfaces and store it under the
 `partyData` key in `localStorage`. The Phaser game reads this value on load and
 displays the chosen characters and their decks inside the battle scene.
+
+## License
+
+This project is licensed under the [MIT License](LICENSE).
