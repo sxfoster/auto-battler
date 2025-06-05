@@ -82,8 +82,6 @@ const PartySetupScreen: React.FC = () => {
 
   const handleStartGame = () => {
     const partyData: Party = {
-      // Transform selectedCharacters to match the structure expected by the game
-      // This might involve mapping `assignedCards` to the `deck` property or similar
       characters: selectedCharacters.map(pc => ({
         id: pc.id,
         name: pc.name,
@@ -91,14 +89,16 @@ const PartySetupScreen: React.FC = () => {
         portrait: pc.portrait,
         description: pc.description,
         stats: pc.stats,
-        deck: pc.assignedCards, // Assuming assignedCards directly translates to deck
+        deck: pc.assignedCards,
         survival: pc.survival,
       })),
     };
 
     try {
       localStorage.setItem('partyData', JSON.stringify(partyData));
-      navigate('/game');
+      // Navigate directly to the Phaser game. React Router does not have a /game
+      // route so we perform a full page change.
+      window.location.href = '/game';
     } catch (error) {
       console.error('Error storing party data:', error);
       // Handle error, e.g., show a notification to the user

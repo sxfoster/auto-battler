@@ -14,7 +14,10 @@ export default class BattleScene extends Phaser.Scene {
     const partyDataJSON = localStorage.getItem('partyData')
     if (partyDataJSON) {
       try {
-        this.party = JSON.parse(partyDataJSON)
+        const parsed = JSON.parse(partyDataJSON)
+        // Support both the legacy array format and the Party interface which
+        // stores characters under a `characters` field.
+        this.party = Array.isArray(parsed) ? parsed : parsed.characters || []
       } catch (error) {
         console.error('Error parsing party data:', error)
         this.party = []
