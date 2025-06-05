@@ -1,16 +1,6 @@
 import Phaser from 'phaser'
 import { enemies } from 'shared/models'
 
-function loadParty() {
-  const data = localStorage.getItem('partyData')
-  if (!data) return null
-  try {
-    return JSON.parse(data)
-  } catch {
-    return null
-  }
-}
-
 export default class BattleScene extends Phaser.Scene {
   constructor() {
     super('battle')
@@ -21,7 +11,18 @@ export default class BattleScene extends Phaser.Scene {
   }
 
   create() {
-    this.party = loadParty() || []
+    const partyDataJSON = localStorage.getItem('partyData')
+    if (partyDataJSON) {
+      try {
+        this.party = JSON.parse(partyDataJSON)
+      } catch (error) {
+        console.error('Error parsing party data:', error)
+        this.party = []
+      }
+    } else {
+      console.warn('No party data found in localStorage.')
+      this.party = []
+    }
     this.createPartyDisplay()
     this.createEnemyDisplay()
 
