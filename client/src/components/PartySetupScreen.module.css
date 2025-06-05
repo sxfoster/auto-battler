@@ -1,0 +1,112 @@
+/* client/src/components/PartySetupScreen.module.css */
+.screen {
+  padding: 20px;
+  font-family: Arial, sans-serif;
+  background-color: #f0f0f0; /* Light gray background for the whole screen */
+  color: #333;
+  min-height: 100vh;
+}
+
+.title {
+  text-align: center;
+  color: #2c3e50; /* Dark blue/grey */
+  margin-bottom: 30px;
+  font-size: 2.5em;
+}
+
+.sectionTitle {
+  color: #34495e; /* Slightly lighter blue/grey */
+  border-bottom: 2px solid #3498db; /* Blue accent */
+  padding-bottom: 5px;
+  margin-top: 20px;
+  margin-bottom: 15px;
+  font-size: 1.8em;
+}
+
+.characterSelectionArea {
+  margin-bottom: 30px;
+}
+
+.characterSelectionGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px; /* Space between character cards */
+  justify-content: center; /* Center cards if they don't fill the row */
+  margin-bottom: 20px;
+}
+
+.selectedCharactersArea {
+  margin-top: 20px;
+}
+
+.selectedCharacterPanel {
+  background-color: #ecf0f1; /* Light greyish blue */
+  padding: 15px;
+  margin-bottom: 15px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.characterPanelHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.characterPanelHeader h3 {
+  margin: 0;
+  color: #2980b9; /* Blue */
+  font-size: 1.4em;
+}
+
+/* Basic button style for remove character - can be expanded */
+.removeButton {
+  padding: 8px 12px;
+  font-size: 0.9em;
+  color: white;
+  background-color: #e74c3c; /* Red */
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.removeButton:hover {
+  background-color: #c0392b; /* Darker red on hover */
+}
+
+
+.startGameButton {
+  display: block;
+  width: 100%;
+  max-width: 300px;
+  margin: 40px auto 20px; /* Increased top margin */
+  padding: 15px 20px; /* Increased padding */
+  font-size: 1.2em; /* Slightly larger font */
+  color: white;
+  background-color: #27ae60; /* Green */
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  text-align: center;
+  font-weight: bold;
+}
+
+.startGameButton:disabled {
+  background-color: #95a5a6; /* Grey when disabled */
+  cursor: not-allowed;
+}
+
+.startGameButton:hover:not(:disabled) {
+  background-color: #2ecc71; /* Lighter green on hover */
+}
+
+.infoText {
+  font-style: italic;
+  color: #7f8c8d; /* Grey text */
+  text-align: center;
+  margin-bottom: 20px; /* Increased margin */
+  font-size: 1.1em;
+}

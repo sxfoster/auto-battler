@@ -5,6 +5,7 @@ import MainMenu from './components/MainMenu.jsx'
 import NewGame from './components/NewGame.jsx'
 import LoadGame from './components/LoadGame.jsx'
 import Settings from './components/Settings.jsx'
+import PartySetupScreen from './components/PartySetupScreen.tsx'; // Import the new screen
 
 function App() {
   const location = useLocation()
@@ -20,6 +21,7 @@ function App() {
         <Routes location={location}>
           <Route path="/" element={<MainMenu />} />
           <Route path="/new-game" element={<NewGame />} />
+          <Route path="/party-setup" element={<PartySetupScreen />} /> {/* Add this route */}
           <Route path="/load-game" element={<LoadGame />} />
           <Route path="/settings" element={<Settings />} />
         </Routes>

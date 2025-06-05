@@ -29,6 +29,10 @@ export interface Character {
   name: string
   /** Character class or role */
   class: string
+  /** Path or URL to the character's portrait image */
+  portrait: string // Added
+  /** A brief description of the character */
+  description: string // Added
   /** Primary combat stats */
   stats: Stats
   /** Deck of cards assigned to this character */
