@@ -6,3 +6,5 @@ export * from './Character';
 export * from './Enemy';
 export * from './Party';
 export * from './Resource';
+// Sample enemies used by the game during early development
+export { enemies } from './enemies.js';
