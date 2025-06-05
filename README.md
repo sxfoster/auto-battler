@@ -10,6 +10,22 @@ Each package contains minimal build and start scripts. Run `npm install` in the
 root and then `npm start` inside either the `client` or `game` folder to launch
 their development servers.
 
+## Development Setup
+
+1. Install dependencies in the project root:
+   ```bash
+   npm install
+   ```
+2. Start the React UI:
+   ```bash
+   cd client && npm start
+   ```
+3. Start the Phaser game in a separate terminal:
+   ```bash
+   cd game && npm start
+   ```
+4. Visit `http://localhost:3000` for the client and `http://localhost:8080` for the game.
+
 ## Data Flow Between React and Phaser
 
 When a party has been finalized in the React UI, clicking **Start Game** will

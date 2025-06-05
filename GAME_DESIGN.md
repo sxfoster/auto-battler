@@ -12,6 +12,7 @@ Players control a party of **1–5 characters**, assigning **up to 4 ability car
 
 ---
 
+
 ## ⚔️ Combat System
 
 ### 🔁 Core Combat Loop
@@ -215,3 +216,7 @@ public string[] preferredComboTags;
 
 ---
 
+
+## Implementation Notes
+
+The repository contains an early prototype of the systems described above. Many features are stubbed out or simplified for demonstration purposes. Refer to the source code for the current state of the card system and combat logic.
