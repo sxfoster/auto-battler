@@ -1,6 +1,21 @@
 
 # 🧭 Survival Dungeon CCG Auto-Battler — Game Design Document (GDD)
 
+## Table of Contents
+- [Game Concept](#game-concept)
+- [Combat System](#combat-system)
+- [Card System](#card-system)
+- [Crafting System](#crafting-system)
+- [Economy](#economy)
+- [Classes & Roles](#classes--roles)
+- [Enemy Design: Fungal Depths](#enemy-design-fungal-depths)
+- [Encounter Flow](#encounter-flow)
+- [Core Data Models](#core-data-models)
+- [Biome Synergy Bonuses](#biome-synergy-bonuses)
+- [Floor-Wide Dynamic Events](#floor-wide-dynamic-events)
+- [Combo-Aware Enemy AI](#combo-aware-enemy-ai)
+- [Implementation Notes](#implementation-notes)
+
 ## 🎯 Game Concept
 
 A **tactical survival dungeon crawler** built on **collectible card game (CCG)** mechanics and **auto-battler combat**.  
