@@ -3,8 +3,11 @@
 This monorepo hosts a small web based game split into three workspaces:
 
 - **client** – a React UI powered by Vite for menus and interface elements.
+  See [client/README.md](client/README.md) for available scripts.
 - **game** – Phaser&nbsp;3 scenes for the dungeon and battle logic.
+  See [game/README.md](game/README.md) for available scripts.
 - **shared** – common models and utilities used by both stacks.
+  See [shared/README.md](shared/README.md).
 
 ## Requirements
 
