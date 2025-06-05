@@ -1,52 +1,48 @@
-# 🧭 Survival Dungeon CCG Auto-Battler
+# RogueEngine - Tactical Card Game Engine
 
-A tactical survival dungeon crawler with collectible card game (CCG) mechanics and auto-battler combat, built in Godot.  
-Players guide a party of adventurers through procedural dungeon biomes, surviving by managing hunger, thirst, fatigue, and tactical card resources.
+RogueEngine is a tactical card game engine built with Unity. It provides a foundation for creating roguelike/roguelite deck-builder games with strategic combat and deep card customization.
 
-Navigation now runs through a simple dungeon map. Nodes may lead to combat, loot, random events, rest points, or traps. The `DungeonMapManager` script handles node generation and scene transitions.
+## Key Features
 
----
+- **Card System:** Design and implement diverse cards, categorized into types like Ability, Equipment, etc., with varying rarities.
+- **Combat System:** Engage in turn-based tactical combat, where strategic card play and positioning are key to victory.
+- **Character Classes & Roles:** Create unique character classes with distinct roles, such as Tanks (absorbing damage), Healers (restoring health), DPS (dealing damage), and Support (providing buffs/debuffs).
+- **Crafting System:** Implement a robust crafting system, allowing players to create items through skills like Cooking, Smithing, and Alchemy.
+- **Economy:** Develop in-game currency and market systems to manage resources and trade.
+- **Procedural Dungeons:** Explore dynamically generated dungeons with diverse biome themes and unpredictable events. (Refer to GAME_DESIGN.md for more details on specific biomes and events).
 
-## 🚀 Getting Started
+## Getting Started
 
 ### Requirements
-- [Godot Engine 4.x](https://godotengine.org/download)
+
+- Unity (Specify version if known, otherwise use the latest stable version)
 - Git
 
-### Cloning the Project
+### Cloning
+
+To get a local copy up and running, follow these simple steps:
 
 ```bash
-git clone https://github.com/sxfoster/auto-battler.git
-cd auto-battler
+git clone https://github.com/your_username/RogueEngine.git
+cd RogueEngine
 ```
-
-The Godot project files are located within the `auto-battler` directory of this repository.
 
 ### Running
 
-1. Open `project.godot` with **Godot 4.x**.
-2. Run the `Main.tscn` scene. Most scenes are placeholders so game functionality is limited.
+1. Open the Unity Hub.
+2. Click on "Projects" and then "Add".
+3. Navigate to the cloned `RogueEngine` directory and select it.
+4. Once the project is open in the Unity Editor, locate the main scene (e.g., `MainMenuScene` or `GameScene` in the `Assets/Scenes` folder) and double-click to open it.
+5. Press the Play button in the Unity Editor to run the game.
 
-For AI Contributors
-Before generating, editing, or refactoring any code, always read and reference GAME_DESIGN.md.
+## Game Design Document
 
-Align all code, class/data structures, and naming conventions with the systems described in GAME_DESIGN.md.
+For detailed information about the game's design, mechanics, and systems, please refer to the [GAME_DESIGN.md](GAME_DESIGN.md) file.
 
-If a data model, mechanic, or term is unclear, check GAME_DESIGN.md first before proceeding.
+## Contributing
 
-Use the latest core data field lists for resource and script generation.
+We welcome contributions! Please refer to `CONTRIBUTING.md` (if it existed) or open an issue to discuss changes.
 
-If adding or updating content (e.g., new card, enemy, or mechanic), ensure it matches the structure and intent in the design document.
+## License
 
-When generating documentation, docstrings, or comments, base them on the terminology and intent described in GAME_DESIGN.md.
-
-### Documentation
-
-Additional developer notes are available in [docs/TECHNICAL_OVERVIEW.md](docs/TECHNICAL_OVERVIEW.md). The full game design outline is in [GAME_DESIGN.md](GAME_DESIGN.md).
-
-This repository is a prototype for demonstration purposes. Many scenes and scripts are incomplete and subject to change.
-
-## Formatting
-
-All GDScript files must be formatted using [gdformat](https://github.com/Scony/godot-gdscript-toolkit). A GitHub Actions workflow automatically checks formatting on pushes and pull requests. Run `gdformat .` before committing changes to avoid CI failures.
-
+This project is currently not under a specific license. All rights reserved by the creators.
