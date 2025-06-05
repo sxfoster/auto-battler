@@ -1,0 +1,75 @@
+import Phaser from 'phaser'
+import { party, enemies } from 'shared/models'
+
+export default class BattleScene extends Phaser.Scene {
+  constructor() {
+    super('battle')
+  }
+
+  preload() {
+    // Placeholder preload - no external assets yet
+  }
+
+  create() {
+    this.createPartyDisplay()
+    this.createEnemyDisplay()
+
+    // Prepare turn sequence placeholders
+    this.turnIndex = 0
+    this.turnOrder = [...party, ...enemies]
+  }
+
+  createPartyDisplay() {
+    const startX = 50
+    const startY = 100
+    const offsetY = 120
+
+    party.forEach((member, index) => {
+      const y = startY + index * offsetY
+
+      // Placeholder rectangle for character
+      this.add.rectangle(startX, y, 80, 80, 0x6699ff).setOrigin(0)
+
+      this.add.text(startX + 90, y, member.name, { fontSize: '16px' })
+      this.add.text(startX + 90, y + 20, `HP: ${member.hp}`)
+      this.add.text(startX + 90, y + 40, `Energy: ${member.energy}`)
+
+      member.cards.forEach((card, cIndex) => {
+        const cardX = startX + cIndex * 60
+        const cardY = y + 90
+        // Placeholder rectangle for card
+        this.add.rectangle(cardX, cardY, 50, 70, 0xcccccc).setOrigin(0)
+        this.add.text(cardX + 5, cardY + 5, card.name, { fontSize: '12px' })
+      })
+    })
+  }
+
+  createEnemyDisplay() {
+    const startX = 500
+    const startY = 100
+    const offsetY = 120
+
+    enemies.forEach((enemy, index) => {
+      const y = startY + index * offsetY
+
+      // Placeholder rectangle for character
+      this.add.rectangle(startX, y, 80, 80, 0xff6666).setOrigin(0)
+
+      this.add.text(startX + 90, y, enemy.name, { fontSize: '16px' })
+      this.add.text(startX + 90, y + 20, `HP: ${enemy.hp}`)
+      this.add.text(startX + 90, y + 40, `Energy: ${enemy.energy}`)
+
+      enemy.cards.forEach((card, cIndex) => {
+        const cardX = startX + cIndex * 60
+        const cardY = y + 90
+        // Placeholder rectangle for card
+        this.add.rectangle(cardX, cardY, 50, 70, 0xcccccc).setOrigin(0)
+        this.add.text(cardX + 5, cardY + 5, card.name, { fontSize: '12px' })
+      })
+    })
+  }
+
+  update() {
+    // Future turn sequencing logic will go here
+  }
+}
