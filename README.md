@@ -39,6 +39,27 @@ their development servers.
    ```
 4. Visit `http://localhost:3000` for the client and `http://localhost:8080` for the game.
 
+## Building and Linting
+
+To create a production bundle of the React client run:
+
+```bash
+cd client && npm run build
+```
+
+You can also lint the client source with:
+
+```bash
+cd client && npm run lint
+```
+
+The Phaser game package supports building as well:
+
+```bash
+cd game && npm run build
+```
+
+
 ## Data Flow Between React and Phaser
 
 When a party has been finalized in the React UI, clicking **Start Game** will
