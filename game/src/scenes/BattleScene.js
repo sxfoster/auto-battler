@@ -1,5 +1,15 @@
 import Phaser from 'phaser'
-import { party, enemies } from 'shared/models'
+import { enemies } from 'shared/models'
+
+function loadParty() {
+  const data = localStorage.getItem('partyData')
+  if (!data) return null
+  try {
+    return JSON.parse(data)
+  } catch {
+    return null
+  }
+}
 
 export default class BattleScene extends Phaser.Scene {
   constructor() {
@@ -11,12 +21,13 @@ export default class BattleScene extends Phaser.Scene {
   }
 
   create() {
+    this.party = loadParty() || []
     this.createPartyDisplay()
     this.createEnemyDisplay()
 
     // Prepare turn sequence placeholders
     this.turnIndex = 0
-    this.turnOrder = [...party, ...enemies]
+    this.turnOrder = [...this.party, ...enemies]
   }
 
   createPartyDisplay() {
@@ -24,7 +35,7 @@ export default class BattleScene extends Phaser.Scene {
     const startY = 100
     const offsetY = 120
 
-    party.forEach((member, index) => {
+    this.party.forEach((member, index) => {
       const y = startY + index * offsetY
 
       // Placeholder rectangle for character
@@ -34,7 +45,8 @@ export default class BattleScene extends Phaser.Scene {
       this.add.text(startX + 90, y + 20, `HP: ${member.hp}`)
       this.add.text(startX + 90, y + 40, `Energy: ${member.energy}`)
 
-      member.cards.forEach((card, cIndex) => {
+      const cards = member.deck || member.cards || []
+      cards.forEach((card, cIndex) => {
         const cardX = startX + cIndex * 60
         const cardY = y + 90
         // Placeholder rectangle for card
@@ -59,7 +71,8 @@ export default class BattleScene extends Phaser.Scene {
       this.add.text(startX + 90, y + 20, `HP: ${enemy.hp}`)
       this.add.text(startX + 90, y + 40, `Energy: ${enemy.energy}`)
 
-      enemy.cards.forEach((card, cIndex) => {
+      const cards = enemy.cards || enemy.deck || []
+      cards.forEach((card, cIndex) => {
         const cardX = startX + cIndex * 60
         const cardY = y + 90
         // Placeholder rectangle for card

@@ -40,6 +40,31 @@ function PartyBuilder() {
     )
   }
 
+  function startGame() {
+    const fullParty = party.map((char) => ({
+      id: char.id,
+      name: char.name,
+      class: '',
+      stats: { hp: 100, energy: 3 },
+      deck: char.cards.map((cid) => {
+        const card = sampleCards.find((c) => c.id === cid)
+        return {
+          id: cid,
+          name: card ? card.name : cid,
+          type: 'basic',
+          cost: 0,
+          effects: [],
+        }
+      }),
+      survival: { hunger: 0, thirst: 0, fatigue: 0 },
+    }))
+
+    localStorage.setItem('partyData', JSON.stringify(fullParty))
+    // Navigate to the Phaser game. In a production app this could be a route
+    // change or modal. For simplicity we load the bundled game directly.
+    window.location.href = '/game'
+  }
+
   return (
     <div className="party-builder">
       <div className="selection">
@@ -101,6 +126,11 @@ function PartyBuilder() {
             </li>
           ))}
         </ul>
+      </div>
+      <div className="start-game">
+        <button disabled={party.length === 0} onClick={startGame}>
+          Start Game
+        </button>
       </div>
     </div>
   )

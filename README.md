@@ -9,3 +9,10 @@ This monorepo hosts a small web based game split into three workspaces:
 Each package contains minimal build and start scripts. Run `npm install` in the
 root and then `npm start` inside either the `client` or `game` folder to launch
 their development servers.
+
+## Data Flow Between React and Phaser
+
+When a party has been finalized in the React UI, clicking **Start Game** will
+serialize the party using the shared TypeScript interfaces and store it under the
+`partyData` key in `localStorage`. The Phaser game reads this value on load and
+displays the chosen characters and their decks inside the battle scene.
