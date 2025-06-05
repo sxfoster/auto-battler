@@ -1,5 +1,6 @@
 import Phaser from 'phaser'
 import type { DungeonData } from '../utils/generateDungeon'
+import { enemies } from 'shared/models'
 
 type SceneData = {
   dungeon: DungeonData
@@ -17,6 +18,7 @@ export default class DungeonScene extends Phaser.Scene {
   private highlightGraphics!: Phaser.GameObjects.Graphics
   private player!: Phaser.GameObjects.Rectangle
   private cursors!: Phaser.Types.Input.Keyboard.CursorKeys
+  private battleStarted = false
 
   constructor() {
     super('dungeon')
@@ -72,6 +74,14 @@ export default class DungeonScene extends Phaser.Scene {
           detail: { position: this.playerPos, explored: Array.from(this.explored) },
         }),
       )
+      if (
+        !this.battleStarted &&
+        this.playerPos.x === this.dungeon.end.x &&
+        this.playerPos.y === this.dungeon.end.y
+      ) {
+        this.battleStarted = true
+        this.scene.start('battle', { enemyIndex: 0 })
+      }
     }
   }
 

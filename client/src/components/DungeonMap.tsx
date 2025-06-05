@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react'
 import Phaser from 'phaser'
 import DungeonScene from '../phaser/DungeonScene'
+import BattleScene from '../phaser/BattleScene'
 import type { DungeonData } from '../utils/generateDungeon'
 
 interface Props {
@@ -17,10 +18,10 @@ export default function DungeonMap({ dungeon, playerPos, explored, onMove }: Pro
     if (!containerRef.current) return
     const game = new Phaser.Game({
       type: Phaser.AUTO,
-      width: dungeon.width * 32,
-      height: dungeon.height * 32,
+      width: 800,
+      height: 600,
       parent: containerRef.current,
-      scene: DungeonScene,
+      scene: [DungeonScene, BattleScene],
     })
     game.scene.start('dungeon', { dungeon, playerPos, explored })
     const handler = (e: any) => {
