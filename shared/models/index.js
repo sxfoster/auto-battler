@@ -8,5 +8,8 @@ export * from './Party';
 export * from './Resource';
 export * from './Room';
 export * from './DungeonMap';
+export * from './LootItem';
+export * from './Inventory';
+export * from './Encounter';
 // Sample enemies used by the game during early development
 export { enemies } from './enemies.js';

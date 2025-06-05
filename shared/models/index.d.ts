@@ -7,4 +7,7 @@ export * from './Party'; // Added
 export * from './Resource'
 export * from './Room'
 export * from './DungeonMap'
+export * from './LootItem'
+export * from './Inventory'
+export * from './Encounter'
 export const enemies: Enemy[]
