@@ -1,0 +1,9 @@
+.panel {
+  padding: 10px;
+  background-color: #333;
+  color: #fff;
+}
+
+.stat {
+  margin-bottom: 0.5rem;
+}

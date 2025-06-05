@@ -1,0 +1,16 @@
+.container {
+  display: flex;
+  height: 100vh;
+}
+
+.mapArea {
+  flex: 1;
+  background: #000;
+}
+
+.sidebar {
+  width: 250px;
+  background: #222;
+  color: #fff;
+  overflow-y: auto;
+}

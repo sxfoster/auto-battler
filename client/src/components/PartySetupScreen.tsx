@@ -96,9 +96,7 @@ const PartySetupScreen: React.FC = () => {
 
     try {
       localStorage.setItem('partyData', JSON.stringify(partyData));
-      // Navigate directly to the Phaser game. React Router does not have a /game
-      // route so we perform a full page change.
-      window.location.href = '/game';
+      navigate('/dungeon');
     } catch (error) {
       console.error('Error storing party data:', error);
       // Handle error, e.g., show a notification to the user
