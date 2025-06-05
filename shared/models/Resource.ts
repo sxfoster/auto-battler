@@ -2,9 +2,9 @@ import { Effect } from './Card';
 
 export interface Resource {
   id: string;
-  name: string; // e.g., 'Health Potion', 'Gold Coin', 'Wood'
-  effect: Effect | string; // Can be an Effect object or a string describing its use
+  name: string;
+  effect: Effect | string;
   quantity: number;
   description: string;
-  type: string; // e.g., 'Consumable', 'Currency', 'Material'
+  type: string;
 }

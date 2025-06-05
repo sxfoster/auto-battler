@@ -2,13 +2,13 @@ import { Card } from './Card';
 import { Stats } from './Character';
 
 export interface AIProfile {
-  behavior: string; // e.g., 'Aggressive', 'Defensive', 'Random'
-  preferredTargets?: string[]; // e.g., ['PlayerCharacter', 'Summon']
+  behavior: string;
+  preferredTargets?: string[];
 }
 
 export interface Enemy {
   id: string;
-  archetype: string; // e.g., 'Goblin', 'Dragon', 'Bandit'
+  archetype: string;
   stats: Stats;
   deck: Card[];
   aiProfile: AIProfile;

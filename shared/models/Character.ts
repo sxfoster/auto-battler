@@ -5,24 +5,24 @@ export interface Stats {
   maxHealth: number;
   attack: number;
   defense: number;
-  speed?: number; // Optional stat
-  mana?: number; // Optional stat
-  maxMana?: number; // Optional stat
+  speed?: number;
+  mana?: number;
+  maxMana?: number;
 }
 
 export interface SurvivalStats {
   hunger: number;
-  maxHunger?: number; // Optional
+  maxHunger?: number;
   thirst: number;
-  maxThirst?: number; // Optional
-  energy?: number; // Optional
-  maxEnergy?: number; // Optional
+  maxThirst?: number;
+  energy?: number;
+  maxEnergy?: number;
 }
 
 export interface Character {
   id: string;
   name: string;
-  class: string; // Consider creating a CharacterClass enum later
+  class: string;
   stats: Stats;
   deck: Card[];
   survivalStats: SurvivalStats;
