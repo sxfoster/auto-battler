@@ -59,10 +59,14 @@ function PartyBuilder() {
       survival: { hunger: 0, thirst: 0, fatigue: 0 },
     }))
 
-    localStorage.setItem('partyData', JSON.stringify(fullParty))
-    // Navigate to the Phaser game. In a production app this could be a route
-    // change or modal. For simplicity we load the bundled game directly.
-    window.location.href = '/game'
+    try {
+      localStorage.setItem('partyData', JSON.stringify(fullParty))
+      // Navigate to the Phaser game. In a production app this could be a route
+      // change or modal. For simplicity we load the bundled game directly.
+      window.location.href = '/game'
+    } catch (error) {
+      console.error('Error storing party data:', error)
+    }
   }
 
   return (
