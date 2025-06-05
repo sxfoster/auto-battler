@@ -6,6 +6,7 @@ import NewGame from './components/NewGame.jsx'
 import LoadGame from './components/LoadGame.jsx'
 import Settings from './components/Settings.jsx'
 import PartySetupScreen from './components/PartySetupScreen.tsx'; // Import the new screen
+import DungeonPage from './components/DungeonPage.tsx';
 
 function App() {
   const location = useLocation()
@@ -24,6 +25,7 @@ function App() {
           <Route path="/party-setup" element={<PartySetupScreen />} /> {/* Add this route */}
           <Route path="/load-game" element={<LoadGame />} />
           <Route path="/settings" element={<Settings />} />
+          <Route path="/dungeon" element={<DungeonPage />} />
         </Routes>
       </CSSTransition>
     </SwitchTransition>
