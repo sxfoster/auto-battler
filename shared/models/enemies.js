@@ -4,15 +4,15 @@ export const enemies = [
   {
     id: 'goblin',
     name: 'Goblin',
-    hp: 20,
-    energy: 2,
-    cards: [sampleCards[0], sampleCards[3]],
+    stats: { hp: 20, energy: 2, speed: 2 },
+    deck: [sampleCards[0], sampleCards[3]],
+    aiProfile: { behavior: 'aggressive', aggressiveness: 0.8 },
   },
   {
     id: 'skeleton',
     name: 'Skeleton',
-    hp: 25,
-    energy: 1,
-    cards: [sampleCards[0], sampleCards[4]],
+    stats: { hp: 25, energy: 1, speed: 1 },
+    deck: [sampleCards[0], sampleCards[4]],
+    aiProfile: { behavior: 'aggressive', aggressiveness: 0.6 },
   },
 ]
