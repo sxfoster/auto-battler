@@ -6,6 +6,16 @@ This monorepo hosts a small web based game split into three workspaces:
 - **game** – Phaser&nbsp;3 scenes for the dungeon and battle logic.
 - **shared** – common models and utilities used by both stacks.
 
+## Requirements
+
+This project has been tested with **Node.js >=18**. We recommend using
+[nvm](https://github.com/nvm-sh/nvm) to manage Node.js versions:
+
+```bash
+nvm install 18
+nvm use 18
+```
+
 Each package contains minimal build and start scripts. Run `npm install` in the
 root and then `npm start` inside either the `client` or `game` folder to launch
 their development servers.
