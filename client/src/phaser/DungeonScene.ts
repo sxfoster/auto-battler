@@ -1,16 +1,22 @@
 import Phaser from 'phaser'
-import type { DungeonMap } from 'shared/models'
+import type { DungeonData } from '../utils/generateDungeon'
 
-interface SceneData {
-  dungeon: DungeonMap
-  currentRoom: string
+type SceneData = {
+  dungeon: DungeonData
+  playerPos: { x: number; y: number }
+  explored: Set<string>
 }
 
 export default class DungeonScene extends Phaser.Scene {
-  private dungeon!: DungeonMap
-  private currentRoom!: string
+  private dungeon!: DungeonData
+  private playerPos!: { x: number; y: number }
+  private explored!: Set<string>
+  private tileSize = 32
+  private mapGraphics!: Phaser.GameObjects.Graphics
+  private fogGraphics!: Phaser.GameObjects.Graphics
+  private highlightGraphics!: Phaser.GameObjects.Graphics
+  private player!: Phaser.GameObjects.Rectangle
   private cursors!: Phaser.Types.Input.Keyboard.CursorKeys
-  private roomRect?: Phaser.GameObjects.Rectangle
 
   constructor() {
     super('dungeon')
@@ -18,25 +24,27 @@ export default class DungeonScene extends Phaser.Scene {
 
   init(data: SceneData) {
     this.dungeon = data.dungeon
-    this.currentRoom = data.currentRoom
+    this.playerPos = { ...data.playerPos }
+    this.explored = new Set(data.explored)
   }
 
   create() {
     this.cursors = this.input.keyboard.createCursorKeys()
-    this.drawRoom()
-  }
+    this.mapGraphics = this.add.graphics()
+    this.fogGraphics = this.add.graphics()
+    this.highlightGraphics = this.add.graphics()
 
-  private drawRoom() {
-    if (this.roomRect) this.roomRect.destroy()
-    const room = this.dungeon.rooms[this.currentRoom]
-    const colors: Record<string, number> = {
-      enemy: 0xff0000,
-      treasure: 0xffff00,
-      trap: 0xff00ff,
-      empty: 0x666666,
-    }
-    this.roomRect = this.add.rectangle(200, 200, 300, 300, colors[room.type] || 0x666666)
-    this.add.text(16, 16, `Room: ${room.id}`, { color: '#ffffff' })
+    this.drawMap()
+    this.player = this.add
+      .rectangle(0, 0, this.tileSize * 0.8, this.tileSize * 0.8, 0x00ff00)
+      .setOrigin(0)
+    this.updatePlayer()
+
+    this.input.on('pointerdown', (p: Phaser.Input.Pointer) => {
+      const x = Math.floor(p.worldX / this.tileSize)
+      const y = Math.floor(p.worldY / this.tileSize)
+      this.attemptMove(x - this.playerPos.x, y - this.playerPos.y)
+    })
   }
 
   update() {
@@ -52,31 +60,99 @@ export default class DungeonScene extends Phaser.Scene {
   }
 
   private attemptMove(dx: number, dy: number) {
-    const current = this.dungeon.rooms[this.currentRoom]
-    const target = Object.values(this.dungeon.rooms).find(
-      (r) => r.x === current.x + dx && r.y === current.y + dy,
-    )
-    if (target && current.connections.includes(target.id)) {
-      this.currentRoom = target.id
-      this.drawRoom()
-      window.dispatchEvent(new CustomEvent('roomEnter', { detail: target.id }))
-      this.triggerEvent(target.type)
+    if (Math.abs(dx) + Math.abs(dy) !== 1) return
+    const nx = this.playerPos.x + dx
+    const ny = this.playerPos.y + dy
+    if (this.isWalkable(nx, ny)) {
+      this.playerPos = { x: nx, y: ny }
+      this.updatePlayer()
+      this.reveal(nx, ny)
+      window.dispatchEvent(
+        new CustomEvent('playerMove', {
+          detail: { position: this.playerPos, explored: Array.from(this.explored) },
+        }),
+      )
     }
   }
 
-  private triggerEvent(type: string) {
-    switch (type) {
-      case 'enemy':
-        console.log('Enemy encountered!')
-        break
-      case 'treasure':
-        console.log('Treasure found!')
-        break
-      case 'trap':
-        console.log('A trap is sprung!')
-        break
-      default:
-        break
+  private updatePlayer() {
+    this.player.setPosition(this.playerPos.x * this.tileSize, this.playerPos.y * this.tileSize)
+    this.updateReachable()
+  }
+
+  private drawMap() {
+    const { width, height, tiles } = this.dungeon
+    this.mapGraphics.clear()
+    for (let y = 0; y < height; y++) {
+      for (let x = 0; x < width; x++) {
+        const tile = tiles[y][x]
+        const color = tile === 'wall' ? 0x333333 : 0x888888
+        this.mapGraphics.fillStyle(color, 1)
+        this.mapGraphics.fillRect(x * this.tileSize, y * this.tileSize, this.tileSize, this.tileSize)
+        this.mapGraphics.lineStyle(1, 0x000000, 0.2)
+        this.mapGraphics.strokeRect(x * this.tileSize, y * this.tileSize, this.tileSize, this.tileSize)
+      }
     }
+    this.reveal(this.playerPos.x, this.playerPos.y)
+  }
+
+  private reveal(x: number, y: number) {
+    const id = `${x},${y}`
+    if (!this.explored.has(id)) this.explored.add(id)
+    ;[
+      [1, 0],
+      [-1, 0],
+      [0, 1],
+      [0, -1],
+    ].forEach(([dx, dy]) => {
+      const nx = x + dx
+      const ny = y + dy
+      if (nx >= 0 && nx < this.dungeon.width && ny >= 0 && ny < this.dungeon.height) {
+        this.explored.add(`${nx},${ny}`)
+      }
+    })
+    this.drawFog()
+  }
+
+  private drawFog() {
+    const { width, height } = this.dungeon
+    this.fogGraphics.clear()
+    for (let y = 0; y < height; y++) {
+      for (let x = 0; x < width; x++) {
+        const id = `${x},${y}`
+        if (!this.explored.has(id)) {
+          this.fogGraphics.fillStyle(0x000000, 0.6)
+          this.fogGraphics.fillRect(x * this.tileSize, y * this.tileSize, this.tileSize, this.tileSize)
+        }
+      }
+    }
+  }
+
+  private updateReachable() {
+    const dirs = [
+      [1, 0],
+      [-1, 0],
+      [0, 1],
+      [0, -1],
+    ]
+    this.highlightGraphics.clear()
+    dirs.forEach(([dx, dy]) => {
+      const nx = this.playerPos.x + dx
+      const ny = this.playerPos.y + dy
+      if (this.isWalkable(nx, ny)) {
+        this.highlightGraphics.lineStyle(2, 0xffff00)
+        this.highlightGraphics.strokeRect(nx * this.tileSize, ny * this.tileSize, this.tileSize, this.tileSize)
+      }
+    })
+  }
+
+  private isWalkable(x: number, y: number) {
+    return (
+      x >= 0 &&
+      x < this.dungeon.width &&
+      y >= 0 &&
+      y < this.dungeon.height &&
+      this.dungeon.tiles[y][x] === 'floor'
+    )
   }
 }
