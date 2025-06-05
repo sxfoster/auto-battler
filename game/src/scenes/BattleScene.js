@@ -83,9 +83,23 @@ export default class BattleScene extends Phaser.Scene {
       // Placeholder rectangle for character
       this.add.rectangle(startX, y, 80, 80, 0xff6666).setOrigin(0)
 
-      this.add.text(startX + 90, y, enemy.name, { fontSize: '16px' })
-      this.add.text(startX + 90, y + 20, `HP: ${enemy.hp}`)
-      this.add.text(startX + 90, y + 40, `Energy: ${enemy.energy}`)
+      const name = enemy.name || enemy.archetype || enemy.id
+      const hp =
+        enemy.hp !== undefined
+          ? enemy.hp
+          : enemy.stats && enemy.stats.hp !== undefined
+            ? enemy.stats.hp
+            : 0
+      const energy =
+        enemy.energy !== undefined
+          ? enemy.energy
+          : enemy.stats && enemy.stats.energy !== undefined
+            ? enemy.stats.energy
+            : 0
+
+      this.add.text(startX + 90, y, name, { fontSize: '16px' })
+      this.add.text(startX + 90, y + 20, `HP: ${hp}`)
+      this.add.text(startX + 90, y + 40, `Energy: ${energy}`)
 
       const cards = enemy.cards || enemy.deck || []
       cards.forEach((card, cIndex) => {
