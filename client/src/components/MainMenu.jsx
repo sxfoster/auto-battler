@@ -9,6 +9,7 @@ function MainMenu() {
         <Link className={styles.button} to="/new-game">Start New Game</Link>
         <Link className={styles.button} to="/load-game">Load Game</Link>
         <Link className={styles.button} to="/settings">Settings</Link>
+        <Link className={styles.button} to="/pouch">Magical Pouch</Link>
       </nav>
     </main>
   )

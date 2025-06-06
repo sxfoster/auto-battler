@@ -86,6 +86,8 @@ export interface BaseCard {
   rarity: Rarity
   /** Category */
   category: CardCategory
+  /** Optional crafter tag for crafted items */
+  craftedBy?: string
 }
 
 export interface AbilityCard extends BaseCard {

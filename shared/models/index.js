@@ -13,5 +13,10 @@ export * from './Inventory';
 export * from './Encounter';
 export * from './GameState';
 export * from './DecisionPoint';
+export { sampleRecipes } from './recipes.js';
+export * from './Profession';
+export * from './Recipe';
+export * from './CraftingAttempt';
+export * from './Player';
 // Sample enemies used by the game during early development
 export { enemies } from './enemies.js';
