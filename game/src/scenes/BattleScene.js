@@ -39,6 +39,16 @@ export default class BattleScene extends Phaser.Scene {
     return Math.round(dmg)
   }
 
+  draw(combatant, count = 1) {
+    if (!combatant.data.hand) {
+      combatant.data.hand = []
+    }
+    for (let i = 0; i < count; i++) {
+      const card = Phaser.Math.RND.pick(combatant.data.deck)
+      combatant.data.hand.push(card)
+    }
+  }
+
   init(data) {
     this.roomIndex = data.roomIndex || 0
   }
@@ -143,6 +153,8 @@ export default class BattleScene extends Phaser.Scene {
     })
 
     if (this.current.type === 'player') {
+      this.current.data.hand = []
+      this.draw(this.current, 2)
       this.showPlayerCards()
     } else {
       this.time.delayedCall(500, () => {
@@ -153,7 +165,7 @@ export default class BattleScene extends Phaser.Scene {
 
   showPlayerCards() {
     this.clearCards()
-    const hand = this.current.data.deck
+    const hand = this.current.data.hand || []
     hand.forEach((card, idx) => {
       const txt = this.add
         .text(100 + idx * 120, 500, card.name, { fontSize: '16px', backgroundColor: '#ddd', padding: 5 })
