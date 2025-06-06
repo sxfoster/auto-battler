@@ -18,4 +18,6 @@ export interface Room {
   type: RoomType
   /** Adjacent room ids */
   connections: string[]
+  /** Optional event affecting this room */
+  event?: import('./DungeonEvent').DungeonEvent | null
 }

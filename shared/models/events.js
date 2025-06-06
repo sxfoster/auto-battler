@@ -72,3 +72,30 @@ export const dungeonEvents = [
     duration: 'floor',
   },
 ]
+
+export const roomEvents = [
+  {
+    id: 'healing-fountain',
+    name: 'Healing Fountain',
+    description: 'A mystical spring restores your vigor.',
+    effectType: 'heal',
+    effectDetails: { fatigue: 2, hp: 5 },
+    duration: 'room',
+  },
+  {
+    id: 'poison-gas',
+    name: 'Poison Gas',
+    description: 'Toxic fumes drain your strength.',
+    effectType: 'damage',
+    effectDetails: { hp: 2 },
+    duration: 'room',
+  },
+  {
+    id: 'ambush',
+    name: 'Ambush',
+    description: 'Hidden enemies spring an attack.',
+    effectType: 'ambush',
+    effectDetails: {},
+    duration: 'instant',
+  },
+]

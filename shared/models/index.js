@@ -26,5 +26,6 @@ export { classes } from './classes.js';
 export { enemies } from './enemies.js';
 export { biomes } from './biomes.js';
 export { dungeonEvents } from './events.js';
+export { roomEvents } from './events.js';
 export * from './DungeonEvent';
 export * from './VisualEffect';
