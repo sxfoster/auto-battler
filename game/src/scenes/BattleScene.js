@@ -1,6 +1,7 @@
 import Phaser from 'phaser'
 import { applyRolePenalty, getSynergyBonuses } from 'shared/systems/classRole.js'
 import { applyBiomeBonuses, getCurrentBiome } from 'shared/systems/biome.js'
+import { applyEventEffects } from 'shared/systems/floorEvents.js'
 import { loadGameState } from '../state'
 
 export default class BattleScene extends Phaser.Scene {
@@ -33,6 +34,7 @@ export default class BattleScene extends Phaser.Scene {
     const state = loadGameState()
     const biome = getCurrentBiome(state)
     applyBiomeBonuses(biome, this.enemies)
+    this.activeEvent = state.activeEvent || null
 
     this.combatants = [
       ...this.party.map((c) => ({ type: 'player', data: c, hp: c.stats.hp, speed: c.stats.speed })),
@@ -40,6 +42,8 @@ export default class BattleScene extends Phaser.Scene {
     ]
     this.turnOrder = this.combatants.sort((a, b) => b.speed - a.speed)
     this.turnIndex = 0
+    this.turnNumber = 0
+    this.isFirstCard = true
 
     this.drawBattlefield()
     this.startTurn()
@@ -66,6 +70,9 @@ export default class BattleScene extends Phaser.Scene {
     })
 
     this.turnText = this.add.text(350, 50, '', { fontSize: '20px' })
+    if (this.activeEvent) {
+      this.add.text(350, 20, this.activeEvent.name, { fontSize: '16px', color: '#ffff00' }).setOrigin(0.5)
+    }
     this.cardTexts = []
     this.updateHealth()
   }
@@ -85,6 +92,14 @@ export default class BattleScene extends Phaser.Scene {
     if (this.checkEnd()) return
     this.current = this.turnOrder[this.turnIndex % this.turnOrder.length]
     this.turnText.setText(`${this.current.data.name}'s turn`)
+    this.turnNumber += 1
+    this.isFirstCard = true
+    applyEventEffects(this.activeEvent, {
+      phase: 'turnStart',
+      turn: this.turnNumber,
+      party: this.turnOrder.filter((c) => c.type === 'player'),
+      enemies: this.turnOrder.filter((c) => c.type === 'enemy'),
+    })
 
     if (this.current.type === 'player') {
       this.showPlayerCards()
@@ -117,10 +132,21 @@ export default class BattleScene extends Phaser.Scene {
   enemyAction() {
     const card = this.current.data.deck[0]
     const target = this.party[0]
-    this.resolveCard(card, this.current, this.turnOrder.find((c) => c.data.id === target.id))
+    this.resolveCard(
+      card,
+      this.current,
+      this.turnOrder.find((c) => c.data.id === target.id)
+    )
   }
 
   resolveCard(card, actor, target) {
+    const preContext = { phase: 'beforeCard' }
+    applyEventEffects(this.activeEvent, preContext)
+    if (preContext.cancel) {
+      this.clearCards()
+      this.nextTurn()
+      return
+    }
     const effects = []
     if (card.effect) effects.push(card.effect)
     if (Array.isArray(card.effects)) effects.push(...card.effects)
@@ -139,6 +165,13 @@ export default class BattleScene extends Phaser.Scene {
       }
     })
     this.updateHealth()
+    const postContext = { phase: 'afterCard', isFirstCard: this.isFirstCard }
+    applyEventEffects(this.activeEvent, postContext)
+    this.isFirstCard = false
+    if (postContext.repeat) {
+      this.resolveCard(card, actor, target)
+      return
+    }
     this.clearCards()
     this.nextTurn()
   }

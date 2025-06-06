@@ -13,6 +13,9 @@ export default class DungeonScene extends Phaser.Scene {
     const biome = getCurrentBiome(this.gameState)
     this.add.text(400, 50, `Floor ${this.gameState.currentFloor}`, { fontSize: '20px' }).setOrigin(0.5)
     this.add.text(400, 80, biome.name, { fontSize: '18px' }).setOrigin(0.5)
+    if (this.gameState.activeEvent) {
+      this.add.text(400, 110, this.gameState.activeEvent.name, { fontSize: '16px', color: '#ffff00' }).setOrigin(0.5)
+    }
 
     // simple two room layout
     this.rooms = [

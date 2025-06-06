@@ -20,4 +20,6 @@ export interface GameState {
   inventory: import('./LootItem').LootItem[]
   /** Current location */
   location: 'dungeon' | 'town'
+  /** Event currently affecting the floor */
+  activeEvent?: import('./DungeonEvent').DungeonEvent | null
 }

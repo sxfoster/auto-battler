@@ -14,6 +14,7 @@ export function loadGameState() {
     playerStatus: { fatigue: 0, hunger: 0, thirst: 0 },
     inventory: [],
     location: 'town',
+    activeEvent: null,
   }
 }
 
