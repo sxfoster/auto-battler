@@ -27,6 +27,7 @@ export const classes: {
   description: string
   role: import('./Card').Role
   allowedCards: string[]
+  portrait?: string
 }[]
 export const biomes: Biome[]
 export const dungeonEvents: DungeonEvent[]

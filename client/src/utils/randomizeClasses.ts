@@ -7,6 +7,7 @@ export interface GameClass {
   description: string
   role: Role
   allowedCards: string[]
+  portrait?: string
 }
 
 /**
