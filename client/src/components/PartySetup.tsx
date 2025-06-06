@@ -117,6 +117,11 @@ const PartySetup: React.FC = () => {
     navigate('/dungeon')
   };
 
+  const isPartyValid =
+    selectedCharacters.length > 0 &&
+    selectedCharacters.length <= 5 &&
+    selectedCharacters.every(pc => pc.assignedCards.length <= 4);
+
   // Basic JSX structure - will be expanded in subsequent steps
   return (
     <div className={styles.screen}> {/* Apply .screen class */}
@@ -167,10 +172,10 @@ const PartySetup: React.FC = () => {
         </button>
         <button
           onClick={handleStartGame}
-          disabled={selectedCharacters.length === 0 || selectedCharacters.some(pc => pc.assignedCards.length !== 4)}
+          disabled={!isPartyValid}
           className={styles.startGameButton}
         >
-          Start Adventure
+          Enter Dungeon
         </button>
       </div>
     </div>
