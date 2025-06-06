@@ -18,11 +18,13 @@ const roleColors: Record<string, string> = {
 
 const getRole = (classId: string): string => {
   const cls = allClasses.find(c => c.id === classId);
+  if (!cls) console.warn(`Unknown class id: ${classId}`);
   return cls?.role ?? 'Unknown';
 };
 
 const getClassName = (classId: string): string => {
   const cls = allClasses.find(c => c.id === classId);
+  if (!cls) console.warn(`Unknown class id: ${classId}`);
   return cls?.name ?? classId;
 };
 

@@ -12,7 +12,7 @@ export const sampleCards = [
     synergyTag: 'Frenzy',
     synergyEffect: { type: 'extra_attack', magnitude: 1 },
     isComboStarter: true,
-    classRestriction: 'Warrior', // Level 1
+    classRestriction: 'warrior', // Level 1
   },
   {
     id: 'heal',
@@ -24,7 +24,7 @@ export const sampleCards = [
     cooldown: 0,
     effect: { type: 'heal', magnitude: 4, target: 'ally' },
     roleTag: 'Healer',
-    classRestriction: 'Cleric', // Level 1
+    classRestriction: 'cleric', // Level 1
   },
   {
     id: 'inspire',
@@ -36,7 +36,7 @@ export const sampleCards = [
     cooldown: 0,
     effect: { type: 'buff', magnitude: 2, duration: 2, target: 'ally', stat: 'attack' },
     roleTag: 'Support',
-    classRestriction: 'Bard', // Level 1
+    classRestriction: 'bard', // Level 1
   },
   {
     id: 'iron_sword',
@@ -49,7 +49,7 @@ export const sampleCards = [
     effect: { type: 'damage', magnitude: 4, target: 'enemy' },
     notes: '-1 DEF for 2 turns',
     roleTag: 'DPS',
-    classRestriction: 'Warrior', // Level 1
+    classRestriction: 'warrior', // Level 1
   },
   {
     id: 'herb',
@@ -76,7 +76,7 @@ export const sampleCards = [
     rarity: 'Uncommon',
     effects: [{ type: 'speed', magnitude: 1, duration: 3 }],
     duration: 3,
-    classRestriction: 'Herbalist', // Level 1
+    classRestriction: 'herbalist', // Level 1
   },
   {
     id: 'campfire',
@@ -99,7 +99,7 @@ export const sampleCards = [
     roleTag: 'Support',
     synergyTag: 'Execute',
     isComboStarter: true,
-    classes: ['Ranger'], // Level 1
+    classes: ['ranger'], // Level 1
   },
   {
     id: 'shadow_execution',
@@ -113,7 +113,7 @@ export const sampleCards = [
     roleTag: 'DPS',
     synergyTag: 'Execute',
     isComboFinisher: true,
-    classRestriction: 'Shadowblade', // Level 1
+    classRestriction: 'shadowblade', // Level 1
   },
   {
     id: 'fireball',
@@ -126,7 +126,7 @@ export const sampleCards = [
     effect: { type: 'damage', magnitude: 2, target: 'all_enemies', element: 'fire', duration: 2 },
     notes: 'Burn 1 dmg/turn for 2 turns',
     roleTag: 'DPS',
-    classRestriction: 'Pyromancer', // Level 1
+    classRestriction: 'pyromancer', // Level 1
   },
   {
     id: 'shield_wall',
@@ -138,7 +138,7 @@ export const sampleCards = [
     cooldown: 1,
     effect: { type: 'shield', magnitude: 5, duration: 1, target: 'party' },
     roleTag: 'Tank',
-    classRestriction: 'Warrior', // Level 1
+    classRestriction: 'warrior', // Level 1
   },
   {
     id: 'taunt',
@@ -150,7 +150,7 @@ export const sampleCards = [
     cooldown: 1,
     effect: { type: 'taunt', magnitude: 1, duration: 1, target: 'enemies' },
     roleTag: 'Tank',
-    classRestriction: 'Warrior', // Level 1
+    classRestriction: 'warrior', // Level 1
   },
   {
     id: 'power_strike',
@@ -162,7 +162,7 @@ export const sampleCards = [
     cooldown: 0,
     effect: { type: 'damage', magnitude: 7 },
     roleTag: 'Tank',
-    classRestriction: 'Warrior',
+    classRestriction: 'warrior',
     level: 2,
   },
   {
@@ -175,7 +175,7 @@ export const sampleCards = [
     cooldown: 2,
     effect: { type: 'buff', magnitude: 1, duration: 2, target: 'party' },
     roleTag: 'Tank',
-    classRestriction: 'Warrior',
+    classRestriction: 'warrior',
     level: 2,
   },
   {
@@ -189,7 +189,7 @@ export const sampleCards = [
     effect: { type: 'damage', magnitude: 2, target: 'all_enemies', duration: 1 },
     notes: '50% chance to Stun',
     roleTag: 'Tank',
-    classRestriction: 'RunestoneSentinel',
+    classRestriction: 'runestone-sentinel',
   },
   {
     id: 'stone_guard',
@@ -201,7 +201,7 @@ export const sampleCards = [
     cooldown: 1,
     effect: { type: 'shield', magnitude: 5, duration: 2, target: 'self' },
     roleTag: 'Tank',
-    classRestriction: 'RunestoneSentinel',
+    classRestriction: 'runestone-sentinel',
   },
   {
     id: 'holy_light',
@@ -213,7 +213,7 @@ export const sampleCards = [
     cooldown: 0,
     effect: { type: 'heal', magnitude: 6 },
     roleTag: 'Healer',
-    classRestriction: 'Cleric',
+    classRestriction: 'cleric',
   },
   {
     id: 'smite',
@@ -225,7 +225,7 @@ export const sampleCards = [
     cooldown: 0,
     effect: { type: 'damage', magnitude: 4, element: 'holy' },
     roleTag: 'Healer',
-    classRestriction: 'Cleric',
+    classRestriction: 'cleric',
   },
   {
     id: 'healing_herbs',
@@ -237,7 +237,7 @@ export const sampleCards = [
     cooldown: 0,
     effect: { type: 'heal', magnitude: 5 },
     roleTag: 'Healer',
-    classRestriction: 'Herbalist',
+    classRestriction: 'herbalist',
   },
   {
     id: 'toxic_spores',
@@ -249,7 +249,7 @@ export const sampleCards = [
     cooldown: 1,
     effect: { type: 'damage', magnitude: 3, duration: 2, element: 'poison' },
     roleTag: 'Healer',
-    classRestriction: 'Herbalist',
+    classRestriction: 'herbalist',
   },
   {
     id: 'blood_leech',
@@ -262,7 +262,7 @@ export const sampleCards = [
     effect: { type: 'damage', magnitude: 2, target: 'enemy' },
     notes: 'Heal self 2',
     roleTag: 'Healer',
-    classRestriction: 'Bloodweaver',
+    classRestriction: 'bloodweaver',
     synergyTag: 'Drain',
   },
   {
@@ -276,7 +276,7 @@ export const sampleCards = [
     effect: { type: 'heal', magnitude: 4, target: 'ally' },
     notes: 'User loses 2 HP',
     roleTag: 'Healer',
-    classRestriction: 'Bloodweaver',
+    classRestriction: 'bloodweaver',
   },
   {
     id: 'song_of_swiftness',
@@ -288,7 +288,7 @@ export const sampleCards = [
     cooldown: 1,
     effect: { type: 'initiative', magnitude: 1, duration: 1, target: 'party' },
     roleTag: 'Support',
-    classRestriction: 'Bard',
+    classRestriction: 'bard',
   },
   {
     id: 'time_warp',
@@ -300,7 +300,7 @@ export const sampleCards = [
     cooldown: 2,
     effect: { type: 'extra_action', magnitude: 1, duration: 1, target: 'ally' },
     roleTag: 'Support',
-    classRestriction: 'Chronomancer',
+    classRestriction: 'chronomancer',
   },
   {
     id: 'temporal_strike',
@@ -313,7 +313,7 @@ export const sampleCards = [
     effect: { type: 'damage', magnitude: 3, target: 'enemy', duration: 1 },
     notes: 'Delays target action by 1 turn',
     roleTag: 'Support',
-    classRestriction: 'Chronomancer',
+    classRestriction: 'chronomancer',
   },
   {
     id: 'totem_of_vitality',
@@ -325,7 +325,7 @@ export const sampleCards = [
     cooldown: 2,
     effect: { type: 'heal', magnitude: 1, duration: 2, target: 'party' },
     roleTag: 'Support',
-    classRestriction: 'TotemWarden',
+    classRestriction: 'totem-warden',
   },
   {
     id: 'totem_of_fury',
@@ -337,7 +337,7 @@ export const sampleCards = [
     cooldown: 2,
     effect: { type: 'buff', magnitude: 1, duration: 2, target: 'party', stat: 'attack' },
     roleTag: 'Support',
-    classRestriction: 'TotemWarden',
+    classRestriction: 'totem-warden',
   },
   {
     id: 'quick_slash',
@@ -350,7 +350,7 @@ export const sampleCards = [
     effect: { type: 'damage', magnitude: 3, target: 'enemy' },
     notes: '+1 initiative',
     roleTag: 'DPS',
-    classRestriction: 'Blademaster',
+    classRestriction: 'blademaster',
   },
   {
     id: 'blade_fury',
@@ -362,7 +362,7 @@ export const sampleCards = [
     cooldown: 1,
     effect: { type: 'multi_attack', magnitude: 2, hits: 2, target: 'enemy' },
     roleTag: 'DPS',
-    classRestriction: 'Blademaster',
+    classRestriction: 'blademaster',
   },
   {
     id: 'arcane_bolt',
@@ -374,7 +374,7 @@ export const sampleCards = [
     cooldown: 0,
     effect: { type: 'damage', magnitude: 5, element: 'arcane' },
     roleTag: 'DPS',
-    classRestriction: 'Wizard',
+    classRestriction: 'wizard',
   },
   {
     id: 'mana_shield',
@@ -386,7 +386,7 @@ export const sampleCards = [
     cooldown: 1,
     effect: { type: 'buff', magnitude: 4, duration: 2 },
     roleTag: 'DPS',
-    classRestriction: 'Wizard',
+    classRestriction: 'wizard',
   },
   {
     id: 'backstab',
@@ -399,7 +399,7 @@ export const sampleCards = [
     effect: { type: 'damage', magnitude: 4, target: 'enemy' },
     notes: '2 damage if detected',
     roleTag: 'DPS',
-    classRestriction: 'Shadowblade',
+    classRestriction: 'shadowblade',
   },
   {
     id: 'smoke_bomb',
@@ -412,7 +412,7 @@ export const sampleCards = [
     effect: { type: 'stealth', magnitude: 1, duration: 1, target: 'self' },
     notes: 'Next attack +2 damage',
     roleTag: 'DPS',
-    classRestriction: 'Shadowblade',
+    classRestriction: 'shadowblade',
   },
   {
     id: 'shadowstep',
@@ -425,7 +425,7 @@ export const sampleCards = [
     effect: { type: 'position', magnitude: 1, duration: 2, target: 'self' },
     notes: '+2 crit chance',
     roleTag: 'DPS',
-    classRestriction: 'Shadowblade',
+    classRestriction: 'shadowblade',
   },
   {
     id: 'arrow_shot',
@@ -437,7 +437,7 @@ export const sampleCards = [
     cooldown: 0,
     effect: { type: 'damage', magnitude: 3, target: 'enemy' },
     roleTag: 'DPS',
-    classRestriction: 'Ranger',
+    classRestriction: 'ranger',
   },
   {
     id: 'entangling_trap',
@@ -449,7 +449,7 @@ export const sampleCards = [
     cooldown: 1,
     effect: { type: 'root', magnitude: 1, duration: 1, target: 'enemy' },
     roleTag: 'DPS',
-    classRestriction: 'Ranger',
+    classRestriction: 'ranger',
   },
   {
     id: 'flame_shield',
@@ -462,7 +462,7 @@ export const sampleCards = [
     effect: { type: 'shield', magnitude: 5, duration: 2, target: 'self' },
     notes: 'Reflect 1 fire dmg/attack',
     roleTag: 'DPS',
-    classRestriction: 'Pyromancer',
+    classRestriction: 'pyromancer',
   },
   // ----- Added Level 1 cards -----
   {
@@ -475,7 +475,7 @@ export const sampleCards = [
     cooldown: 1,
     effect: { type: 'damage_reduction', magnitude: 30, duration: 1 },
     roleTag: 'Tank',
-    classRestriction: 'Guardian', // Level 1
+    classRestriction: 'guardian', // Level 1
   },
   {
     id: 'intervene',
@@ -487,7 +487,7 @@ export const sampleCards = [
     cooldown: 2,
     effect: { type: 'redirect', magnitude: 1, duration: 1 },
     roleTag: 'Tank',
-    classRestriction: 'Guardian', // Level 1
+    classRestriction: 'guardian', // Level 1
   },
   {
     id: 'guards_challenge',
@@ -499,7 +499,7 @@ export const sampleCards = [
     cooldown: 2,
     effect: { type: 'taunt', magnitude: 1, duration: 1, target: 'enemies' },
     roleTag: 'Tank',
-    classRestriction: 'Guardian', // Level 1
+    classRestriction: 'guardian', // Level 1
   },
   {
     id: 'bulwark',
@@ -511,7 +511,7 @@ export const sampleCards = [
     cooldown: 2,
     effect: { type: 'shield', magnitude: 8, duration: 1, target: 'party' },
     roleTag: 'Tank',
-    classRestriction: 'Guardian', // Level 1
+    classRestriction: 'guardian', // Level 1
   },
   {
     id: 'earthen_grasp',
@@ -523,7 +523,7 @@ export const sampleCards = [
     cooldown: 1,
     effect: { type: 'root', magnitude: 1, duration: 1, target: 'enemy' },
     roleTag: 'Tank',
-    classRestriction: 'RunestoneSentinel', // Level 1
+    classRestriction: 'runestone-sentinel', // Level 1
   },
   {
     id: 'runic_pulse',
@@ -536,7 +536,7 @@ export const sampleCards = [
     effect: { type: 'damage', magnitude: 3, element: 'arcane', target: 'enemy' },
     notes: 'Self gains 2 Shield for 1 turn',
     roleTag: 'Tank',
-    classRestriction: 'RunestoneSentinel', // Level 1
+    classRestriction: 'runestone-sentinel', // Level 1
   },
   {
     id: 'sanctuary',
@@ -548,7 +548,7 @@ export const sampleCards = [
     cooldown: 2,
     effect: { type: 'damage_reduction', magnitude: 2, duration: 1, target: 'party' },
     roleTag: 'Healer',
-    classRestriction: 'Cleric', // Level 1
+    classRestriction: 'cleric', // Level 1
   },
   {
     id: 'growth_burst',
@@ -560,7 +560,7 @@ export const sampleCards = [
     cooldown: 1,
     effect: { type: 'initiative', magnitude: 2, duration: 1, target: 'ally' },
     roleTag: 'Healer',
-    classRestriction: 'Herbalist', // Level 1
+    classRestriction: 'herbalist', // Level 1
   },
   {
     id: 'hemorrhage',
@@ -572,7 +572,7 @@ export const sampleCards = [
     cooldown: 1,
     effect: { type: 'damage', magnitude: 2, duration: 2, element: 'bleed' },
     roleTag: 'Healer',
-    classRestriction: 'Bloodweaver', // Level 1
+    classRestriction: 'bloodweaver', // Level 1
   },
   {
     id: 'blood_pact',
@@ -584,7 +584,7 @@ export const sampleCards = [
     cooldown: 2,
     effect: { type: 'swap_hp', target: 'ally' },
     roleTag: 'Healer',
-    classRestriction: 'Bloodweaver', // Level 1
+    classRestriction: 'bloodweaver', // Level 1
   },
   {
     id: 'lullaby',
@@ -596,7 +596,7 @@ export const sampleCards = [
     cooldown: 2,
     effect: { type: 'sleep', magnitude: 1, duration: 1 },
     roleTag: 'Support',
-    classRestriction: 'Bard', // Level 1
+    classRestriction: 'bard', // Level 1
   },
   {
     id: 'motivational_tune',
@@ -608,7 +608,7 @@ export const sampleCards = [
     cooldown: 1,
     effect: { type: 'energize', magnitude: 2, target: 'party' },
     roleTag: 'Support',
-    classRestriction: 'Bard', // Level 1
+    classRestriction: 'bard', // Level 1
   },
   {
     id: 'rewind',
@@ -620,7 +620,7 @@ export const sampleCards = [
     cooldown: 2,
     effect: { type: 'heal', magnitude: 2, target: 'ally' },
     roleTag: 'Support',
-    classRestriction: 'Chronomancer', // Level 1
+    classRestriction: 'chronomancer', // Level 1
   },
   {
     id: 'accelerate',
@@ -632,7 +632,7 @@ export const sampleCards = [
     cooldown: 1,
     effect: { type: 'initiative', magnitude: 2, duration: 1, target: 'party' },
     roleTag: 'Support',
-    classRestriction: 'Chronomancer', // Level 1
+    classRestriction: 'chronomancer', // Level 1
   },
   {
     id: 'totem_of_stoneskin',
@@ -644,7 +644,7 @@ export const sampleCards = [
     cooldown: 2,
     effect: { type: 'buff', magnitude: 2, duration: 2, target: 'party', stat: 'defense' },
     roleTag: 'Support',
-    classRestriction: 'TotemWarden', // Level 1
+    classRestriction: 'totem-warden', // Level 1
   },
   {
     id: 'totem_recall',
@@ -656,7 +656,7 @@ export const sampleCards = [
     cooldown: 3,
     effect: { type: 'trigger_totems', target: 'party' },
     roleTag: 'Support',
-    classRestriction: 'TotemWarden', // Level 1
+    classRestriction: 'totem-warden', // Level 1
   },
   {
     id: 'deflect',
@@ -668,7 +668,7 @@ export const sampleCards = [
     cooldown: 1,
     effect: { type: 'block', magnitude: 1, duration: 1, target: 'self' },
     roleTag: 'DPS',
-    classRestriction: 'Blademaster', // Level 1
+    classRestriction: 'blademaster', // Level 1
   },
   {
     id: 'deadly_focus',
@@ -680,7 +680,7 @@ export const sampleCards = [
     cooldown: 1,
     effect: { type: 'buff', magnitude: 3, duration: 1, target: 'self' },
     roleTag: 'DPS',
-    classRestriction: 'Blademaster', // Level 1
+    classRestriction: 'blademaster', // Level 1
   },
   {
     id: 'frost_nova',
@@ -693,7 +693,7 @@ export const sampleCards = [
     effect: { type: 'damage', magnitude: 2, target: 'all_enemies', element: 'cold', duration: 1 },
     notes: 'Enemies -1 initiative for 1 turn',
     roleTag: 'DPS',
-    classRestriction: 'Wizard', // Level 1
+    classRestriction: 'wizard', // Level 1
   },
   {
     id: 'energize',
@@ -705,7 +705,7 @@ export const sampleCards = [
     cooldown: 2,
     effect: { type: 'mana', magnitude: 3, target: 'self' },
     roleTag: 'DPS',
-    classRestriction: 'Wizard', // Level 1
+    classRestriction: 'wizard', // Level 1
   },
   {
     id: 'eagle_eye',
@@ -717,7 +717,7 @@ export const sampleCards = [
     cooldown: 2,
     effect: { type: 'buff', magnitude: 25, duration: 2 },
     roleTag: 'DPS',
-    classRestriction: 'Ranger', // Level 1
+    classRestriction: 'ranger', // Level 1
   },
   {
     id: 'ignite',
@@ -730,7 +730,7 @@ export const sampleCards = [
     effect: { type: 'damage', magnitude: 2, element: 'fire', target: 'enemy', duration: 2 },
     notes: 'Burn 1 dmg/turn for 2 turns',
     roleTag: 'DPS',
-    classRestriction: 'Pyromancer', // Level 1
+    classRestriction: 'pyromancer', // Level 1
   },
   {
     id: 'cauterize',
@@ -743,6 +743,6 @@ export const sampleCards = [
     effect: { type: 'heal', magnitude: 3, target: 'self' },
     notes: 'Removes one debuff',
     roleTag: 'DPS',
-    classRestriction: 'Pyromancer', // Level 1
+    classRestriction: 'pyromancer', // Level 1
   },
 ]
