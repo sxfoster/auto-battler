@@ -59,6 +59,16 @@ The Phaser game package supports building as well:
 cd game && npm run build
 ```
 
+## Testing
+
+Run the shared unit tests with Node's built-in test runner:
+
+```bash
+npm test
+```
+
+This executes `*.test.js` files across the workspaces, such as the helpers in
+`shared/systems`.
 
 ## Data Flow Between React and Phaser
 
