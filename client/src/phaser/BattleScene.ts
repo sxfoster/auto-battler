@@ -2,6 +2,7 @@ import Phaser from 'phaser'
 import { enemies } from 'shared/models'
 import { chooseEnemyAction, trackEnemyActions, chooseTarget } from 'shared/systems/enemyAI.js'
 import { canUseAbility, applyCooldown, tickCooldowns } from 'shared/systems/abilities.js'
+import { InitiativeQueue } from 'shared/initiativeQueue.js'
 import { floatingText } from './effects'
 
 interface SceneData {
@@ -24,6 +25,7 @@ export default class BattleScene extends Phaser.Scene {
   private turnText!: Phaser.GameObjects.Text
   private cardTexts: Phaser.GameObjects.Text[] = []
   private current: any
+  private initiativeQueue!: InitiativeQueue
   private emitState(msg?: string) {
     const detail: any = msg
       ? { type: 'log', message: msg }
@@ -65,6 +67,41 @@ export default class BattleScene extends Phaser.Scene {
     }
   }
 
+  private getPlayerUnits() {
+    return this.combatants.filter((c) => c.type === 'player')
+  }
+
+  private getEnemyUnits() {
+    return this.combatants.filter((c) => c.type === 'enemy')
+  }
+
+  private selectTarget(unit: any) {
+    const opponents = unit.type === 'player' ? this.getEnemyUnits() : this.getPlayerUnits()
+    return opponents.find((o) => o.hp > 0)
+  }
+
+  private performCardAction(card: any, target: any) {
+    if (!card || !target) return
+    if (card.effect?.type === 'damage') {
+      const dmg = card.effect.magnitude ?? card.effect.value ?? 0
+      target.hp -= dmg
+      this.showFloat(`-${dmg}`, target, '#ff4444')
+    }
+    if (card.effect?.type === 'heal') {
+      const heal = card.effect.magnitude ?? card.effect.value ?? 0
+      this.current.hp = Math.min(this.current.data.stats.hp, this.current.hp + heal)
+      this.showFloat(`+${heal}`, this.current, '#44ff44')
+    }
+    this.updateHealth()
+  }
+
+  private performAction(attacker: any, target: any) {
+    if (!attacker || !target) return
+    const card = attacker.data.deck?.[0]
+    this.current = attacker
+    this.performCardAction(card, target)
+  }
+
   constructor() {
     super('battle')
   }
@@ -87,8 +124,15 @@ export default class BattleScene extends Phaser.Scene {
     this.turnOrder = this.combatants.sort((a, b) => b.speed - a.speed)
     this.turnIndex = 0
 
+    this.initiativeQueue = new InitiativeQueue()
+    const playerUnits = this.getPlayerUnits()
+    const enemyUnits = this.getEnemyUnits()
+    ;[...playerUnits, ...enemyUnits].forEach((unit) => {
+      const initialDelay = 1000 / unit.speed
+      this.initiativeQueue.add(unit, initialDelay)
+    })
+
     this.drawBattlefield()
-    this.startTurn()
   }
 
   private drawBattlefield() {
@@ -241,6 +285,32 @@ export default class BattleScene extends Phaser.Scene {
       return true
     }
     return false
+  }
+
+  update(time: number, delta: number) {
+    if (!this.initiativeQueue) return
+    this.initiativeQueue.update(delta)
+    const readyUnits = this.initiativeQueue.getReadyUnits()
+    readyUnits.forEach((entry) => {
+      const { unit } = entry
+      if (unit.hp > 0) {
+        const target = this.selectTarget(unit)
+        if (target) {
+          this.performAction(unit, target)
+          const newDelay = 1000 / unit.speed
+          this.initiativeQueue.add(unit, newDelay)
+        }
+      }
+      this.initiativeQueue.remove(unit)
+    })
+
+    if (readyUnits.length) {
+      this.updateHealth()
+    }
+
+    if (this.checkEnd()) {
+      // battle ended
+    }
   }
 }
 
