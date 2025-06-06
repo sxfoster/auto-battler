@@ -4,6 +4,8 @@ This codex lists every playable class and their Level 1 cards with concise techn
 
 For overall design goals see [../GAME_DESIGN.md](../GAME_DESIGN.md).
 
+**IDs**: Each class is identified by a lowercase hyphenated id. When referencing a class in code use this id (e.g. `cleric`). The first four cards listed for each class are guaranteed to be draftable.
+
 ## Guardian
 
 Sturdy protector that draws enemy attacks and shields allies.
