@@ -1,0 +1,42 @@
+.overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+.party, .enemies {
+  display: flex;
+  gap: 10px;
+  padding: 10px;
+}
+.combatant {
+  background: rgba(255,255,255,0.8);
+  border-radius: 4px;
+  padding: 4px 8px;
+}
+.bar {
+  background: #ccc;
+  height: 6px;
+  width: 100px;
+  margin-top: 2px;
+  position: relative;
+}
+.bar span {
+  display: block;
+  background: #4caf50;
+  height: 100%;
+  width: 0;
+}
+.log {
+  background: rgba(0,0,0,0.5);
+  color: #fff;
+  padding: 4px;
+  font-size: 0.8em;
+  max-height: 100px;
+  overflow-y: auto;
+}

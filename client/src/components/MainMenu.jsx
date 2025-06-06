@@ -10,6 +10,9 @@ function MainMenu() {
         <Link className={styles.button} to="/load-game">Load Game</Link>
         <Link className={styles.button} to="/settings">Settings</Link>
         <Link className={styles.button} to="/pouch">Magical Pouch</Link>
+        <Link className={styles.button} to="/inventory">Inventory</Link>
+        <Link className={styles.button} to="/cards">Card Collection</Link>
+        <Link className={styles.button} to="/battle">Combat Demo</Link>
       </nav>
     </main>
   )

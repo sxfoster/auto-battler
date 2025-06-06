@@ -21,6 +21,20 @@ export default class BattleScene extends Phaser.Scene {
   private turnText!: Phaser.GameObjects.Text
   private cardTexts: Phaser.GameObjects.Text[] = []
   private current: any
+  private emitState(msg?: string) {
+    const detail: any = msg
+      ? { type: 'log', message: msg }
+      : {
+          type: 'state',
+          players: this.turnOrder
+            .filter((c) => c.type === 'player')
+            .map((c) => ({ id: c.data.id, name: c.data.name, hp: c.hp })),
+          enemies: this.turnOrder
+            .filter((c) => c.type === 'enemy')
+            .map((c) => ({ id: c.data.id, name: c.data.name, hp: c.hp })),
+        }
+    window.dispatchEvent(new CustomEvent('battleState', { detail }))
+  }
 
   constructor() {
     super('battle')
@@ -78,6 +92,7 @@ export default class BattleScene extends Phaser.Scene {
 
     this.turnText = this.add.text(350, 50, '', { fontSize: '20px' })
     this.cardTexts = []
+    this.emitState()
     this.updateHealth()
   }
 
@@ -90,6 +105,7 @@ export default class BattleScene extends Phaser.Scene {
       const combat = this.turnOrder.find((c) => c.type === 'enemy' && c.data.id === sprite.data.id)
       sprite.hpText.setText(`HP: ${combat.hp}`)
     })
+    this.emitState()
   }
 
   private startTurn() {
@@ -97,6 +113,7 @@ export default class BattleScene extends Phaser.Scene {
     this.current = this.turnOrder[this.turnIndex % this.turnOrder.length]
     this.turnNumber += 1
     this.turnText.setText(`${this.current.data.name}'s turn`)
+    this.emitState(`${this.current.data.name}'s turn`)
 
     if (this.current.type === 'player') {
       this.showPlayerCards()
@@ -150,6 +167,7 @@ export default class BattleScene extends Phaser.Scene {
         actor.hp = Math.min(actor.data.stats.hp, actor.hp + effect.value)
       }
     })
+    this.emitState(`${actor.data.name} used ${card.name}`)
     this.updateHealth()
     this.clearCards()
     this.nextTurn()
@@ -167,6 +185,7 @@ export default class BattleScene extends Phaser.Scene {
       this.clearCards()
       const text = !playersAlive ? 'Defeat' : 'Victory'
       this.add.text(360, 300, text, { fontSize: '32px' }).setOrigin(0.5)
+      this.emitState(text)
       this.time.delayedCall(1500, () => {
         this.scene.start('dungeon')
       })

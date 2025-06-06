@@ -8,6 +8,9 @@ import Settings from './components/Settings.jsx'
 import PartySetupScreen from './components/PartySetupScreen.tsx'; // Import the new screen
 import DungeonPage from './components/DungeonPage.tsx';
 import MagicalPouch from './components/MagicalPouch.tsx';
+import InventoryScreen from './components/InventoryScreen.tsx'
+import CardCollection from './components/CardCollection.tsx'
+import CombatPage from './components/CombatPage.tsx'
 
 const demoProfession = { name: 'Cooking', level: 1, experience: 0, unlockedRecipes: [], professionOnlyCards: [] };
 const demoPlayer = { id: '1', name: 'Hero', professions: { Cooking: demoProfession }, discoveredRecipes: [] };
@@ -31,6 +34,9 @@ function App() {
           <Route path="/settings" element={<Settings />} />
           <Route path="/dungeon" element={<DungeonPage />} />
           <Route path="/pouch" element={<MagicalPouch player={demoPlayer} profession={demoProfession} />} />
+          <Route path="/inventory" element={<InventoryScreen />} />
+          <Route path="/cards" element={<CardCollection />} />
+          <Route path="/battle" element={<CombatPage />} />
         </Routes>
       </CSSTransition>
     </SwitchTransition>
