@@ -96,6 +96,21 @@ an enemy room briefly displays an "encounter" banner before the battle overlay
 opens. After victory or defeat, you return to the map with your explored rooms
 intact.
 
+## Party Setup and Card Drafting
+
+The React client includes a revamped party setup flow. Players can reroll
+available classes and then draft a starting deck of ability cards for each
+character before entering the dungeon. These features live under the
+`PartySetup` route and make early game decisions more dynamic.
+
+## Codex Reference
+
+Lists of all playable classes and enemy archetypes are maintained under the
+[`docs`](docs) directory. See
+[`docs/ClassCodex.md`](docs/ClassCodex.md) and
+[`docs/EnemyCodex.md`](docs/EnemyCodex.md) for the currently implemented
+Level&nbsp;1 cards.
+
 
 ## License
 

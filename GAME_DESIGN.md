@@ -14,6 +14,7 @@
 - [Biome Synergy Bonuses](#biome-synergy-bonuses)
 - [Floor-Wide Dynamic Events](#floor-wide-dynamic-events)
 - [Combo-Aware Enemy AI](#combo-aware-enemy-ai)
+- [Party Setup & Drafting](#party-setup--drafting)
 - [Implementation Notes](#implementation-notes)
 
 ## 🎯 Game Concept
@@ -266,6 +267,18 @@ public string[] preferredComboTags;
 
 - **Turn 1**: Spore Witch casts "Mark Target" (isComboStarter, synergyTag: Execute)
 - **Turn 2**: Mushroom Shaman casts "Shadow Execution" (isComboFinisher, synergyTag: Execute)
+
+---
+
+## Party Setup & Drafting
+
+Before entering the dungeon, players choose their party composition in a
+dedicated setup screen. Available classes can be rerolled and each selected
+character drafts a small hand of Level&nbsp;1 ability cards. These early choices
+set the tone for the run and encourage experimentation.
+
+Codex files in the repository provide reference tables for all classes and
+enemies at Level&nbsp;1.
 
 ---
 
