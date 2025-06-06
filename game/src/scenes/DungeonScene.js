@@ -1,5 +1,6 @@
 import Phaser from 'phaser'
 import { enemies } from 'shared/models'
+import { getCurrentBiome } from 'shared/systems/biome.js'
 import { loadGameState } from '../state'
 
 export default class DungeonScene extends Phaser.Scene {
@@ -9,7 +10,9 @@ export default class DungeonScene extends Phaser.Scene {
 
   create() {
     this.gameState = loadGameState()
+    const biome = getCurrentBiome(this.gameState)
     this.add.text(400, 50, `Floor ${this.gameState.currentFloor}`, { fontSize: '20px' }).setOrigin(0.5)
+    this.add.text(400, 80, biome.name, { fontSize: '18px' }).setOrigin(0.5)
 
     // simple two room layout
     this.rooms = [

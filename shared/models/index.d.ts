@@ -1,8 +1,10 @@
 import type { Character } from './Character'
 import type { Enemy } from './Enemy'
+import type { Biome } from './Biome'
 export * from './Card'
 export * from './Character'
 export * from './Enemy'
+export * from './Biome'
 export * from './Party'; // Added
 export * from './Resource'
 export * from './Room'
@@ -23,3 +25,4 @@ export const classes: {
   role: import('./Card').Role
   allowedCards: string[]
 }[]
+export const biomes: Biome[]

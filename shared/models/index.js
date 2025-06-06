@@ -24,3 +24,4 @@ export * from './MarketListing';
 export { classes } from './classes.js';
 // Sample enemies used by the game during early development
 export { enemies } from './enemies.js';
+export { biomes } from './biomes.js';

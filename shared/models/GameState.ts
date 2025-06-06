@@ -12,6 +12,8 @@ export interface GameState {
   currentFloor: number
   /** Difficulty scaling for the dungeon */
   dungeonDifficulty: number
+  /** Active biome identifier */
+  currentBiome: string
   /** Survival stats for the player or party */
   playerStatus: PlayerStatus
   /** Inventory items held */
