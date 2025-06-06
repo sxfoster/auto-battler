@@ -62,10 +62,17 @@ cd game && npm run build
 
 ## Data Flow Between React and Phaser
 
-When a party has been finalized in the React UI, clicking **Start Game** will
-serialize the party using the shared TypeScript interfaces and store it under the
-`partyData` key in `localStorage`. The Phaser game reads this value on load and
-displays the chosen characters and their decks inside the battle scene.
+When a party has been finalized in the React UI, clicking **Start Game**
+stores the party under the `partyData` key in `localStorage`. Basic dungeon
+progress is also saved for the session. The Phaser scenes read these values on
+load to render the map and launch battles using the chosen characters.
+
+## Interactive Dungeon Map
+
+A grid-based map lets you explore each floor by clicking adjacent rooms. Entering
+an enemy room briefly displays an "encounter" banner before the battle overlay
+opens. After victory or defeat, you return to the map with your explored rooms
+intact.
 
 
 ## License
