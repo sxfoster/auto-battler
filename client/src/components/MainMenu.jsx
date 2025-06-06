@@ -25,13 +25,13 @@ function MainMenu() {
       <nav className={styles.menu}>
         <button
           className={styles.button}
-          onClick={() => navigate('/party-setup')}
+          onClick={() => navigate('/town')}
         >
           New Game
         </button>
         <button
           className={styles.button}
-          onClick={() => showPlaceholder('Continue feature coming soon!')}
+          onClick={() => navigate('/town')}
         >
           Continue
         </button>
