@@ -1,6 +1,17 @@
 import React from 'react'
 import type { Card } from '../../../shared/models/Card'
 import placeholderArt from '../assets/placeholder-card-art.svg'
+
+const abilityImages = import.meta.glob('../../../shared/images/ability_*.png', {
+  eager: true,
+  import: 'default',
+}) as Record<string, string>
+
+const getAbilityImage = (cardName: string): string => {
+  const key = cardName.toLowerCase().replace(/ /g, '_')
+  const path = `../../../shared/images/ability_${key}.png`
+  return abilityImages[path] || abilityImages['../../../shared/images/ability_default.png'] || placeholderArt
+}
 import styles from './CardDisplay.module.css'
 
 interface CardDisplayProps {
@@ -29,7 +40,7 @@ const CardDisplay: React.FC<CardDisplayProps> = ({ card, onSelect, isSelected, i
     }
   }
 
-  const art = (card as any).image || placeholderArt
+  const art = getAbilityImage(card.name)
   const classText = (card as any).classRestriction || (card as any).roleTag
   return (
     <div
