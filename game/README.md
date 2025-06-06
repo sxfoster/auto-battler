@@ -7,6 +7,10 @@ The game is structured into several key Phaser scenes:
 - **`DungeonScene.js`**: Manages the procedural generation of dungeon floors, player movement on the map, fog-of-war effects, and interactions with map nodes (e.g., initiating combat, finding loot, triggering events). It reads initial party data from `localStorage`.
 - **`BattleScene.js`**: Handles the auto-battler combat logic. It takes the player's party and encountered enemies, then executes turns based on character speed and assigned abilities. This scene is typically rendered within the `CombatOverlay` in the React client. It also reports battle outcomes.
 - **`UIScene.js`**: (If applicable, or integrated into other scenes) Manages in-game UI elements that are part of the Phaser canvas, such as health bars, turn indicators, or temporary combat messages.
+- **`TownScene.js`**: A simple hub where players can access markets before
+  returning to the dungeon.
+- **`DecisionScene.js`**: Appears after clearing a floor and lets the player
+  advance deeper or retreat back to town.
 
 These scenes can run independently for development purposes or be embedded and controlled by the React client via the `GameView` component. The `game` package relies on the `shared` package for data models (characters, cards) and core system logic (AI, combat rules).
 

@@ -31,6 +31,11 @@ The `systems` directory provides helper modules for various game mechanics.
 -   **Progression (`progression.js`)**: Governs character leveling, unlocking card rarities, and profession skill advancement.
 -   **Room Events (`roomEvents.js`)**: Logic for various non-combat encounters or discoveries that can occur when navigating dungeon map nodes.
 
+Class and enemy definitions used by these systems are cataloged in the
+[`docs`](../docs) directory under
+[`ClassCodex.md`](../docs/ClassCodex.md) and
+[`EnemyCodex.md`](../docs/EnemyCodex.md).
+
 Developers should refer to JSDoc comments within these modules for detailed API information.
 
 ## Contributing

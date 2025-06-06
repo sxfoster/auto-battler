@@ -8,6 +8,10 @@ Key components include:
 - **`DungeonMap.js`**: Renders the interactive grid-based dungeon map. Players click on rooms in this component to navigate the dungeon.
 - **`CombatOverlay.js`**: Displays when a battle starts, showing character statuses, enemy information, and combat logs. It overlays the `GameView` where the actual Phaser battle scene is running.
 - **Various UI components**: For displaying player inventory, party selection, crafting menus, and interacting with different game systems.
+- **`PartySetup` screens**: Allow rerolling available classes and drafting a
+  starting deck of cards for each character.
+- **`TownView` and `MarketScreen`**: Provide an interface to interact with the
+  in-game markets before delving back into the dungeon.
 
 The UI communicates with the Phaser game primarily through `localStorage` for game state like party composition and dungeon progress, as described in the main repository README.
 
