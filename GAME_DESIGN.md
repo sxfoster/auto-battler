@@ -99,19 +99,15 @@ Each profession has a **level 1–10 progression system** with rewards such as:
 
 ### 💵 Currency
 
-- **Gold** — Used for Town Market & basic goods
-- **Guild Credits** — Earned via commissions, raid participation, or investment
+- **Gold** — Earned from dungeons, quests and the sale of common goods. Used primarily in the Town Marketplace and for lower tier items.
+- **Guild Credits** — Earned through guild commissions, raids and investments. Required for high tier items and all Guild Exchange transactions.
 
 ### 🛒 Market Systems
 
-1. **Town Marketplace** — Basic starter items and low-tier cards only
-2. **Black Market** — Rare, cursed, or risky cards
-3. **Guild Exchange** — Shared trading within guilds
-4. **Auction House** *(Player Economy)*:
-   - **Primary economic engine**
-   - Players buy/sell crafted and looted cards
-   - Only **Common** cards are purchasable with Gold
-   - Everything else flows through player listings
+1. **Town Marketplace** — Basic starter items and common cards. Uses **Gold** only and has limited stock that periodically refreshes.
+2. **Black Market** — Offers rare or cursed cards with time limited rotations. Accepts either currency.
+3. **Guild Exchange** — Player run listings restricted to guild members. All trades consume **Guild Credits**.
+4. **Auction House** *(Player Economy)* — Global bidding system for crafted and looted cards. Common items use **Gold** while higher rarities require **Guild Credits**.
 
 ---
 

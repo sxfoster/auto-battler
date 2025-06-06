@@ -18,5 +18,8 @@ export * from './Profession';
 export * from './Recipe';
 export * from './CraftingAttempt';
 export * from './Player';
+export * from './Currency';
+export * from './MarketItem';
+export * from './MarketListing';
 // Sample enemies used by the game during early development
 export { enemies } from './enemies.js';

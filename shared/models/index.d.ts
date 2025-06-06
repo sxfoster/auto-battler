@@ -12,4 +12,8 @@ export * from './Inventory'
 export * from './Encounter'
 export * from './GameState'
 export * from './DecisionPoint'
+export * from './Player'
+export * from './Currency'
+export * from './MarketItem'
+export * from './MarketListing'
 export const enemies: Enemy[]

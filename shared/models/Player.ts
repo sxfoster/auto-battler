@@ -9,4 +9,6 @@ export interface Player {
   professions: Record<string, Profession>
   /** Discovered recipe ids */
   discoveredRecipes: string[]
+  /** Currency balances */
+  currencies: Record<import('./Currency').CurrencyType, number>
 }
