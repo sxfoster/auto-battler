@@ -1,6 +1,14 @@
 import React from 'react'
 import styles from './UnitCard.module.css'
 
+const STATUS_ICONS: Record<string, { icon: string; color: string }> = {
+  poison: { icon: '☠', color: '#88ff88' },
+  stun: { icon: '💫', color: '#ff66ff' },
+  defense: { icon: '🛡', color: '#99ccff' },
+  attack: { icon: '⚔', color: '#ffcc66' },
+  marked: { icon: '🎯', color: '#ff8844' },
+}
+
 interface Action {
   label: string
   onClick: () => void
@@ -12,6 +20,7 @@ interface UnitCardProps {
   hp: number
   maxHp: number
   status?: string
+  statuses?: { type: string; value?: number }[]
   actions?: Action[]
   isActive?: boolean
   isDisabled?: boolean
@@ -23,6 +32,7 @@ const UnitCard: React.FC<UnitCardProps> = ({
   hp,
   maxHp,
   status,
+  statuses = [],
   actions = [],
   isActive = false,
   isDisabled = false,
@@ -64,6 +74,23 @@ const UnitCard: React.FC<UnitCardProps> = ({
         {hp} / {maxHp}
       </div>
       <div className={styles.status}>{status}</div>
+      {statuses.length > 0 && (
+        <div className={styles.statusRow} aria-hidden="true">
+          {statuses.map((s, i) => {
+            const meta = STATUS_ICONS[s.type] || { icon: s.type[0], color: '#fff' }
+            return (
+              <span
+                key={i}
+                className={styles.statusIcon}
+                style={{ color: meta.color }}
+                title={s.type}
+              >
+                {meta.icon}
+              </span>
+            )
+          })}
+        </div>
+      )}
       {actions.length > 0 && (
         <div className={styles.actions}>
           {actions.map((a, i) => (

@@ -6,6 +6,12 @@ import { chooseEnemyAction, trackEnemyActions, chooseTarget } from 'shared/syste
 import { canUseAbility, applyCooldown, tickCooldowns } from 'shared/systems/abilities.js'
 import { floatingText } from '../effects.js'
 import { loadGameState } from '../state'
+import {
+  STATUS_META,
+  addStatusEffect,
+  getStatusValue,
+  applyStatusTick,
+} from '../statusSystem.js'
 
 
 export default class BattleScene extends Phaser.Scene {
@@ -32,8 +38,47 @@ export default class BattleScene extends Phaser.Scene {
     }
   }
 
+  updateStatusIcons(combatant) {
+    const sprite = this.getSprite(combatant)
+    if (!sprite) return
+    sprite.statusIcons = sprite.statusIcons || {}
+    const active = combatant.statusEffects.map((s) => s.type)
+    // remove missing
+    Object.keys(sprite.statusIcons).forEach((type) => {
+      if (!active.includes(type)) {
+        const icon = sprite.statusIcons[type]
+        this.tweens.add({
+          targets: icon,
+          alpha: 0,
+          duration: 300,
+          onComplete: () => icon.destroy(),
+        })
+        delete sprite.statusIcons[type]
+      }
+    })
+    active.forEach((type, idx) => {
+      let icon = sprite.statusIcons[type]
+      const meta = STATUS_META[type] || {}
+      if (!icon) {
+        icon = this.add
+          .text(0, 0, meta.icon || type[0], {
+            fontSize: '14px',
+            color: meta.color || '#ffffff',
+          })
+          .setAlpha(0)
+        this.tweens.add({ targets: icon, alpha: 1, duration: 300 })
+        sprite.statusIcons[type] = icon
+      }
+      icon.setText(meta.icon || type[0])
+      icon.setPosition(sprite.rect.x - 20 + idx * 20, sprite.rect.y - 50)
+    })
+  }
+
   calculateDamage(effect, attacker, defender) {
     let dmg = effect.magnitude || effect.value || 0
+    dmg += getStatusValue(attacker, 'attack')
+    dmg -= getStatusValue(defender, 'defense')
+    dmg += getStatusValue(defender, 'marked')
     if (effect.element === 'fire') {
       if (attacker.data?.stats?.firePower) {
         dmg += attacker.data.stats.firePower
@@ -42,27 +87,16 @@ export default class BattleScene extends Phaser.Scene {
         dmg *= 1 - defender.data.stats.fireResist
       }
     }
+    if (dmg < 0) dmg = 0
     return Math.round(dmg)
   }
 
   applyStatusEffects(combatant) {
-    combatant.statusEffects = combatant.statusEffects || []
-    let skip = false
-    const remaining = []
-    combatant.statusEffects.forEach((eff) => {
-      if (eff.type === 'poison') {
-        combatant.hp -= eff.value
-        this.showFloat(`-${eff.value}`, combatant, '#88ff88')
-      }
-      if (eff.type === 'stun') {
-        skip = true
-        this.showFloat('Stunned', combatant, '#ff66ff')
-      }
-      eff.duration -= 1
-      if (eff.duration > 0) remaining.push(eff)
-    })
-    combatant.statusEffects = remaining
+    const skip = applyStatusTick(this, combatant, (t, c, col) =>
+      this.showFloat(t, c, col)
+    )
     this.updateHealth()
+    this.updateStatusIcons(combatant)
     return skip
   }
 
@@ -144,14 +178,14 @@ export default class BattleScene extends Phaser.Scene {
       const y = startY + i * offsetY
       const rect = this.add.rectangle(150, y, 60, 60, 0x6699ff).setOrigin(0.5)
       const hpText = this.add.text(110, y + 40, '', { fontSize: '16px' })
-      this.playerSprites.push({ rect, hpText, data: p })
+      this.playerSprites.push({ rect, hpText, data: p, statusIcons: {} })
     })
 
     this.enemies.forEach((e, i) => {
       const y = startY + i * offsetY
       const rect = this.add.rectangle(650, y, 60, 60, 0xff6666).setOrigin(0.5)
       const hpText = this.add.text(610, y + 40, '', { fontSize: '16px' })
-      this.enemySprites.push({ rect, hpText, data: e })
+      this.enemySprites.push({ rect, hpText, data: e, statusIcons: {} })
     })
 
     this.turnText = this.add.text(350, 50, '', { fontSize: '20px' })
@@ -169,6 +203,7 @@ export default class BattleScene extends Phaser.Scene {
     }
     this.cardTexts = []
     this.updateHealth()
+    this.combatants.forEach((c) => this.updateStatusIcons(c))
   }
 
   updateHealth() {
@@ -288,12 +323,32 @@ export default class BattleScene extends Phaser.Scene {
         this.showFloat(`+${heal}`, actor, '#44ff44')
       }
       if (effect.type === 'status') {
-        target.statusEffects.push({
+        addStatusEffect(target, {
           type: effect.statusType,
           duration: effect.duration || 1,
           value: effect.magnitude || effect.value || 0,
         })
-        this.showFloat(effect.statusType, target, '#ffaa88')
+        this.updateStatusIcons(target)
+        this.showFloat(effect.statusType, target, STATUS_META[effect.statusType]?.color || '#ffaa88')
+      }
+      if (effect.type === 'buff') {
+        const tgt = effect.target === 'self' ? actor : target
+        addStatusEffect(tgt, {
+          type: effect.stat || 'attack',
+          duration: effect.duration || 1,
+          value: effect.magnitude || effect.value || 0,
+        })
+        this.updateStatusIcons(tgt)
+        this.showFloat(`+${effect.stat || 'buff'}`, tgt, STATUS_META[effect.stat]?.color || '#66ccff')
+      }
+      if (effect.type === 'debuff') {
+        addStatusEffect(target, {
+          type: 'marked',
+          duration: effect.duration || 1,
+          value: effect.magnitude || effect.value || 0,
+        })
+        this.updateStatusIcons(target)
+        this.showFloat('Marked', target, STATUS_META.marked.color)
       }
     })
     applyCooldown(actor.data, card)
