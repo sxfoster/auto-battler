@@ -11,3 +11,17 @@ export function rest(party: Character[], duration: number): void
 export function handleAdvance(state: import('../models').GameState): void
 export function handleRetreat(state: import('../models').GameState): void
 export function presentDecisionPoint(): void
+export function attemptCraft(
+  profession: import('../models').Profession,
+  usedCards: import('../models').Card[],
+  recipes: import('../models').Recipe[],
+): import('../models').CraftingAttempt
+export function getAvailableRecipes(
+  profession: import('../models').Profession,
+  recipes: import('../models').Recipe[],
+): import('../models').Recipe[]
+export function levelUpProfession(profession: import('../models').Profession, exp: number): void
+export function registerRecipeDiscovery(
+  player: import('../models').Player,
+  recipe: import('../models').Recipe,
+): void

@@ -1,0 +1,47 @@
+export const sampleRecipes = [
+  {
+    id: 'cooked_meat',
+    ingredients: ['herb', 'bread'],
+    result: {
+      id: 'cooked_meat',
+      name: 'Cooked Meat',
+      description: 'Restores hunger and grants small buff.',
+      rarity: 'Common',
+      category: 'FoodDrink',
+      restoreHunger: 10,
+      restoreThirst: 0,
+    },
+    profession: 'Cooking',
+    levelRequirement: 1,
+  },
+  {
+    id: 'flame_sword',
+    ingredients: ['iron_sword', 'herb'],
+    result: {
+      id: 'flame_sword',
+      name: 'Flame Sword',
+      description: 'A sword engulfed in flames.',
+      rarity: 'Uncommon',
+      category: 'Equipment',
+      statModifiers: [{ stat: 'attack', value: 4 }],
+      slot: 'Weapon',
+    },
+    profession: 'Smithing',
+    levelRequirement: 2,
+  },
+  {
+    id: 'healing_elixir',
+    ingredients: ['herb', 'herb'],
+    result: {
+      id: 'healing_elixir',
+      name: 'Healing Elixir',
+      description: 'Restores health during dungeon runs.',
+      rarity: 'Uncommon',
+      category: 'Elixir',
+      effects: [{ type: 'heal', magnitude: 10 }],
+      duration: 1,
+    },
+    profession: 'Alchemy',
+    levelRequirement: 1,
+  },
+]

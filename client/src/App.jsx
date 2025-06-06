@@ -7,6 +7,10 @@ import LoadGame from './components/LoadGame.jsx'
 import Settings from './components/Settings.jsx'
 import PartySetupScreen from './components/PartySetupScreen.tsx'; // Import the new screen
 import DungeonPage from './components/DungeonPage.tsx';
+import MagicalPouch from './components/MagicalPouch.tsx';
+
+const demoProfession = { name: 'Cooking', level: 1, experience: 0, unlockedRecipes: [], professionOnlyCards: [] };
+const demoPlayer = { id: '1', name: 'Hero', professions: { Cooking: demoProfession }, discoveredRecipes: [] };
 
 function App() {
   const location = useLocation()
@@ -26,6 +30,7 @@ function App() {
           <Route path="/load-game" element={<LoadGame />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/dungeon" element={<DungeonPage />} />
+          <Route path="/pouch" element={<MagicalPouch player={demoPlayer} profession={demoProfession} />} />
         </Routes>
       </CSSTransition>
     </SwitchTransition>
