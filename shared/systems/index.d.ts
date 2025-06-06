@@ -25,3 +25,38 @@ export function registerRecipeDiscovery(
   player: import('../models').Player,
   recipe: import('../models').Recipe,
 ): void
+export function updatePlayerBalance(
+  playerId: string,
+  currency: import('../models').CurrencyType,
+  amount: number,
+): void
+export function getAvailableListings(
+  marketType: import('../models').MarketType,
+  filters?: Record<string, any>,
+): import('../models').MarketListing[]
+export function buyItem(
+  playerId: string,
+  marketType: import('../models').MarketType,
+  itemId: string,
+): boolean
+export function sellItem(
+  playerId: string,
+  marketType: import('../models').MarketType,
+  item: import('../models').MarketItem,
+  price: number,
+  currency: import('../models').CurrencyType,
+): import('../models').MarketListing
+export function placeBid(
+  playerId: string,
+  itemId: string,
+  amount: number,
+): boolean
+export function restockMarketplace(
+  marketType: import('../models').MarketType,
+  newItems?: import('../models').MarketItem[],
+): void
+export function listGuildItem(
+  playerId: string,
+  item: import('../models').MarketItem,
+  price: number,
+): import('../models').MarketListing

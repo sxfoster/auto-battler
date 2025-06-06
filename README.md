@@ -76,3 +76,15 @@ This project is licensed under the [MIT License](LICENSE).
 
 For a deeper look at gameplay mechanics and planned features, see the
 [GAME_DESIGN.md](GAME_DESIGN.md) document.
+
+## Economy and Markets
+
+The shared package now includes basic utilities to model the in‑game economy.
+Two currencies are tracked:
+
+- **Gold** for common purchases.
+- **Guild Credits** for guild and high tier items.
+
+Four market types are supported: Town, Black, Guild Exchange and Auction House.
+Helper functions in `shared/systems/market.js` manage listings, player balances
+and bidding logic.
