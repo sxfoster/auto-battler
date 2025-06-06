@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useGameState } from '../GameStateProvider.jsx'
+import { useGameStore } from '../store/gameStore'
 import { generateDungeonMap } from '../utils/generateDungeonMap'
 import { triggerRoomEvent } from 'shared/systems'
 import GameView from './GameView'
@@ -19,16 +19,16 @@ const roomColors: Record<string, string> = {
 }
 
 export default function DungeonMap() {
-  const party = useGameState(s => s.party)
-  const dungeonMap = useGameState(s => s.dungeonMap)
-  const setDungeonMap = useGameState(s => s.setDungeonMap)
-  const currentRoom = useGameState(s => s.currentRoom)
-  const setCurrentRoom = useGameState(s => s.setCurrentRoom)
-  const explored = useGameState(s => s.explored)
-  const setExplored = useGameState(s => s.setExplored)
-  const gameState = useGameState(s => s.gameState)
-  const updateGameState = useGameState(s => s.updateGameState)
-  const save = useGameState(s => s.save)
+  const party = useGameStore(state => state.party)
+  const dungeonMap = useGameStore(state => state.dungeonMap)
+  const setDungeonMap = useGameStore(state => state.setDungeonMap)
+  const currentRoom = useGameStore(state => state.currentRoom)
+  const setCurrentRoom = useGameStore(state => state.setCurrentRoom)
+  const explored = useGameStore(state => state.explored)
+  const setExplored = useGameStore(state => state.setExplored)
+  const gameState = useGameStore(state => state.gameState)
+  const updateGameState = useGameStore(state => state.updateGameState)
+  const save = useGameStore(state => state.save)
   
   const navigate = useNavigate()
   const [battleRoom, setBattleRoom] = useState<string | null>(null)
