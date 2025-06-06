@@ -105,7 +105,8 @@ intact.
 
 The React client includes a revamped party setup flow. Players can reroll
 available classes and then draft a starting deck of ability cards for each
-character before entering the dungeon. These features live under the
+character before entering the dungeon. Only **two** of these cards are
+drawn at the start of a battle, so choose wisely. These features live under the
 `PartySetup` route and make early game decisions more dynamic.
 
 ## Codex Reference

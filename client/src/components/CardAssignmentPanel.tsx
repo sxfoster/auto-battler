@@ -115,8 +115,11 @@ const CardAssignmentPanel: React.FC<CardAssignmentPanelProps> = ({ character, av
 
   return (
     <div style={panelStyle}>
-      <h5 style={subSectionTitleStyle}>
-        Selected Cards: {character.assignedCards.length}/4
+      <h5
+        style={subSectionTitleStyle}
+        title="Only two cards will be available at the start of battle"
+      >
+        Battle Deck (draws 2): {character.assignedCards.length}/4
       </h5>
       {character.assignedCards.length === 0 && (
         <p style={{ fontStyle: 'italic', color: '#7f8c8d' }}>No cards assigned yet.</p>

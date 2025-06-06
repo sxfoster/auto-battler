@@ -103,3 +103,11 @@
 .actionButton:hover {
   color: #e74c3c;
 }
+
+.cardNote {
+  text-align: center;
+  font-size: 0.9em;
+  margin-top: -10px;
+  margin-bottom: 10px;
+  color: #ccc;
+}
