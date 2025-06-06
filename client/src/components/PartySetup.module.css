@@ -223,3 +223,12 @@
   margin-bottom: 20px; /* Increased margin */
   font-size: 1.1em;
 }
+
+.disabledCard {
+  opacity: 0.3;
+  pointer-events: none;
+}
+
+.undoButton {
+  margin-left: 1rem;
+}
