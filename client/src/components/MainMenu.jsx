@@ -41,6 +41,12 @@ function MainMenu() {
         >
           Settings
         </button>
+        <button
+          className={styles.button}
+          onClick={() => navigate('/decks')}
+        >
+          Deck Manager
+        </button>
         {import.meta.env.DEV && (
           <button
             className={styles.button}
