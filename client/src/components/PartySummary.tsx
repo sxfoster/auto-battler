@@ -14,9 +14,14 @@ const roleColors: Record<string, string> = {
   DPS: '#e74c3c',
 };
 
-const getRole = (className: string): string => {
-  const cls = allClasses.find(c => c.name === className);
+const getRole = (classId: string): string => {
+  const cls = allClasses.find(c => c.id === classId);
   return cls?.role ?? 'Unknown';
+};
+
+const getClassName = (classId: string): string => {
+  const cls = allClasses.find(c => c.id === classId);
+  return cls?.name ?? classId;
 };
 
 const calculateAverage = (values: Array<number | undefined>): string => {
@@ -88,7 +93,7 @@ const PartySummary: React.FC<PartySummaryProps> = ({ selectedCharacters }) => {
             <div>
               <strong>{character.name}</strong>
               <div>
-                {character.class}
+                {getClassName(character.class)}
                 <span className={styles.roleBadge} style={badgeStyle}>{role}</span>
               </div>
               <ul className={styles.cardList}>
