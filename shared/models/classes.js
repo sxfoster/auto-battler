@@ -20,7 +20,7 @@ export const Role = {
 
 export const classes = [
   {
-    id: 'Guardian',
+    id: 'guardian',
     name: 'Guardian',
     description: 'Sturdy protector that draws enemy attacks and shields allies.',
     role: Role.Tank,
@@ -33,7 +33,7 @@ export const classes = [
     portrait: guardianPortrait,
   },
   {
-    id: 'Warrior',
+    id: 'warrior',
     name: 'Warrior',
     description: 'Aggressive melee combatant excelling at frontline skirmishes.',
     role: Role.Tank,
@@ -41,7 +41,7 @@ export const classes = [
     portrait: warriorPortrait,
   },
   {
-    id: 'RunestoneSentinel',
+    id: 'runestone-sentinel',
     name: 'Runestone Sentinel',
     description: 'Tank that channels rune magic to harden defenses.',
     role: Role.Tank,
@@ -49,7 +49,7 @@ export const classes = [
     portrait: defaultPortrait,
   },
   {
-    id: 'Cleric',
+    id: 'cleric',
     name: 'Cleric',
     description: 'Devout healer who mends wounds with holy magic.',
     role: Role.Healer,
@@ -57,7 +57,7 @@ export const classes = [
     portrait: clericPortrait,
   },
   {
-    id: 'Herbalist',
+    id: 'herbalist',
     name: 'Herbalist',
     description: 'Nature healer brewing restorative and toxic concoctions.',
     role: Role.Healer,
@@ -65,7 +65,7 @@ export const classes = [
     portrait: herbalistPortrait,
   },
   {
-    id: 'Bloodweaver',
+    id: 'bloodweaver',
     name: 'Bloodweaver',
     description: 'Mystic manipulating life essence to heal or harm.',
     role: Role.Healer,
@@ -73,7 +73,7 @@ export const classes = [
     portrait: bloodweaverPortrait,
   },
   {
-    id: 'Bard',
+    id: 'bard',
     name: 'Bard',
     description: 'Inspirational performer empowering allies through song.',
     role: Role.Support,
@@ -81,7 +81,7 @@ export const classes = [
     portrait: defaultPortrait,
   },
   {
-    id: 'Chronomancer',
+    id: 'chronomancer',
     name: 'Chronomancer',
     description: 'Temporal magician bending time to aid the party.',
     role: Role.Support,
@@ -89,7 +89,7 @@ export const classes = [
     portrait: chronomancerPortrait,
   },
   {
-    id: 'TotemWarden',
+    id: 'totem-warden',
     name: 'Totem Warden',
     description: 'Places totems that bolster friends or weaken foes.',
     role: Role.Support,
@@ -97,7 +97,7 @@ export const classes = [
     portrait: totemWardenPortrait,
   },
   {
-    id: 'Blademaster',
+    id: 'blademaster',
     name: 'Blademaster',
     description: 'Master of blades delivering relentless attacks.',
     role: Role.DPS,
@@ -105,7 +105,7 @@ export const classes = [
     portrait: blademasterPortrait,
   },
   {
-    id: 'Wizard',
+    id: 'wizard',
     name: 'Wizard',
     description: 'Arcane caster wielding destructive and protective spells.',
     role: Role.DPS,
@@ -113,7 +113,7 @@ export const classes = [
     portrait: defaultPortrait,
   },
   {
-    id: 'Shadowblade',
+    id: 'shadowblade',
     name: 'Shadowblade',
     description: 'Stealthy assassin striking from the darkness.',
     role: Role.DPS,
@@ -121,7 +121,7 @@ export const classes = [
     portrait: shadowbladePortrait,
   },
   {
-    id: 'Ranger',
+    id: 'ranger',
     name: 'Ranger',
     description: 'Expert archer adept at controlling the battlefield.',
     role: Role.DPS,
@@ -129,7 +129,7 @@ export const classes = [
     portrait: rangerPortrait,
   },
   {
-    id: 'Pyromancer',
+    id: 'pyromancer',
     name: 'Pyromancer',
     description: 'Sorcerer harnessing fire for offense and defense.',
     role: Role.DPS,

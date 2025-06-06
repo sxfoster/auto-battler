@@ -6,20 +6,20 @@ const blademasterPortrait = new URL('../images/blademaster-portrait.png', import
 const defaultPortrait = new URL('../images/default-portrait.png', import.meta.url).href
 
 export const Class = {
-  Guardian: 'Guardian',
-  Warrior: 'Warrior',
-  RunestoneSentinel: 'RunestoneSentinel',
-  Cleric: 'Cleric',
-  Herbalist: 'Herbalist',
-  Bloodweaver: 'Bloodweaver',
-  Bard: 'Bard',
-  Chronomancer: 'Chronomancer',
-  TotemWarden: 'TotemWarden',
-  Blademaster: 'Blademaster',
-  Wizard: 'Wizard',
-  Shadowblade: 'Shadowblade',
-  Ranger: 'Ranger',
-  Pyromancer: 'Pyromancer',
+  Guardian: 'guardian',
+  Warrior: 'warrior',
+  RunestoneSentinel: 'runestone-sentinel',
+  Cleric: 'cleric',
+  Herbalist: 'herbalist',
+  Bloodweaver: 'bloodweaver',
+  Bard: 'bard',
+  Chronomancer: 'chronomancer',
+  TotemWarden: 'totem-warden',
+  Blademaster: 'blademaster',
+  Wizard: 'wizard',
+  Shadowblade: 'shadowblade',
+  Ranger: 'ranger',
+  Pyromancer: 'pyromancer',
 }
 
 export const sampleCharacters = [

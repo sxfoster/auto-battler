@@ -285,9 +285,9 @@ const PartySetup: React.FC = () => {
           </p>
         )}
         {selectedCharacters.map(pc => {
-          const clsDef = allClasses.find(c => c.id === pc.class || c.name === pc.class);
+          const clsDef = allClasses.find(c => c.id === pc.class);
           if (!clsDef) {
-            console.error(`Unknown class id: ${pc.class}`);
+            console.warn(`Unknown class id: ${pc.class}`);
           }
           return (
             <div key={pc.id} className={styles.selectedCharacterPanel}> {/* Apply .selectedCharacterPanel */}
