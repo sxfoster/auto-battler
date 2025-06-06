@@ -2,12 +2,13 @@ import React, { useEffect, useRef, useState } from 'react'
 import Phaser from 'phaser'
 import BattleScene from '../phaser/BattleScene'
 import CombatOverlay from './CombatOverlay'
-import type { Card } from '../../../shared/models/Card'
+import { useGame } from '../GameContext'
 
 interface Combatant { id: string; name: string; hp: number }
 
 export default function CombatPage() {
   const containerRef = useRef<HTMLDivElement | null>(null)
+  const { party } = useGame()
   const [players, setPlayers] = useState<Combatant[]>([])
   const [enemies, setEnemies] = useState<Combatant[]>([])
   const [log, setLog] = useState<string[]>([])
@@ -19,8 +20,8 @@ export default function CombatPage() {
       width: 800,
       height: 600,
       parent: containerRef.current,
-      scene: [BattleScene],
     })
+    game.scene.add('battle', BattleScene, true, { party: party?.characters || [] })
     const handler = (e: any) => {
       if (e.detail.type === 'state') {
         setPlayers(e.detail.players)

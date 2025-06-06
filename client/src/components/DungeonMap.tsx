@@ -8,10 +8,11 @@ interface Props {
   dungeon: DungeonData
   playerPos: { x: number; y: number }
   explored: Set<string>
+  party: any[]
   onMove: (pos: { x: number; y: number }, explored: Set<string>) => void
 }
 
-export default function DungeonMap({ dungeon, playerPos, explored, onMove }: Props) {
+export default function DungeonMap({ dungeon, playerPos, explored, party, onMove }: Props) {
   const containerRef = useRef<HTMLDivElement | null>(null)
 
   useEffect(() => {
@@ -23,7 +24,7 @@ export default function DungeonMap({ dungeon, playerPos, explored, onMove }: Pro
       parent: containerRef.current,
       scene: [DungeonScene, BattleScene],
     })
-    game.scene.start('dungeon', { dungeon, playerPos, explored })
+    game.scene.start('dungeon', { dungeon, playerPos, explored, party })
     const handler = (e: any) => {
       onMove(e.detail.position, new Set(e.detail.explored))
     }
@@ -32,7 +33,7 @@ export default function DungeonMap({ dungeon, playerPos, explored, onMove }: Pro
       window.removeEventListener('playerMove', handler)
       game.destroy(true)
     }
-  }, [dungeon])
+  }, [dungeon, party])
 
   return <div ref={containerRef} />
 }

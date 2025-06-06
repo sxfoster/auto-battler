@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useGame } from '../GameContext';
 // Import data models. Adjust paths if necessary.
 import type { Character } from '../../../shared/models/Character';
 import type { Card } from '../../../shared/models/Card';
@@ -25,6 +26,7 @@ const PartySetupScreen: React.FC = () => {
   const [availableCards, setAvailableCards] = useState<Card[]>([]);
 
   const navigate = useNavigate();
+  const { setParty } = useGame();
 
   useEffect(() => {
     // Initialize available characters and cards
@@ -94,13 +96,8 @@ const PartySetupScreen: React.FC = () => {
       })),
     };
 
-    try {
-      localStorage.setItem('partyData', JSON.stringify(partyData));
-      navigate('/dungeon');
-    } catch (error) {
-      console.error('Error storing party data:', error);
-      // Handle error, e.g., show a notification to the user
-    }
+    setParty(partyData)
+    navigate('/dungeon')
   };
 
   // Basic JSX structure - will be expanded in subsequent steps

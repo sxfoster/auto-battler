@@ -5,6 +5,7 @@ import { floatingText } from './effects'
 
 interface SceneData {
   enemyIndex?: number
+  party?: any[]
 }
 
 export default class BattleScene extends Phaser.Scene {
@@ -57,19 +58,11 @@ export default class BattleScene extends Phaser.Scene {
 
   init(data: SceneData) {
     this.enemyIndex = data.enemyIndex || 0
+    this.party = data.party || []
   }
 
   create() {
-    const partyDataJSON = localStorage.getItem('partyData')
-    if (partyDataJSON) {
-      try {
-        const parsed = JSON.parse(partyDataJSON)
-        this.party = Array.isArray(parsed) ? parsed : parsed.characters || []
-      } catch (e) {
-        console.error('Failed to parse party data', e)
-        this.party = []
-      }
-    }
+    // party populated from init
 
     this.enemy = enemies[this.enemyIndex]
     this.enemies = [JSON.parse(JSON.stringify(this.enemy))]
