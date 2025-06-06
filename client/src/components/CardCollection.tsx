@@ -25,24 +25,26 @@ export default function CardCollection() {
           {rarities.map(r => (<option key={r} value={r}>{r}</option>))}
         </select>
       </div>
-      <div className={styles.grid}>
-        {filtered.map(card => (
-          <div key={card.id} className={styles.cardWrapper}>
-            <input
-              type="checkbox"
-              checked={selected.includes(card.id)}
-              onChange={() => toggle(card.id)}
-              className={styles.checkbox}
-              aria-label={`Select ${card.name}`}
-            />
-            <CardDisplay
-              card={card}
-              onSelect={() => toggle(card.id)}
-              isSelected={selected.includes(card.id)}
-              isDisabled={false}
-            />
-          </div>
-        ))}
+      <div className={styles.panel}>
+        <div className={styles.grid}>
+          {filtered.map(card => (
+            <div key={card.id} className={styles.cardWrapper}>
+              <input
+                type="checkbox"
+                checked={selected.includes(card.id)}
+                onChange={() => toggle(card.id)}
+                className={styles.checkbox}
+                aria-label={`Select ${card.name}`}
+              />
+              <CardDisplay
+                card={card}
+                onSelect={() => toggle(card.id)}
+                isSelected={selected.includes(card.id)}
+                isDisabled={false}
+              />
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   )
