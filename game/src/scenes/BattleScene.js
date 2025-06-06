@@ -105,19 +105,21 @@ export default class BattleScene extends Phaser.Scene {
     this.activeEvent = state.activeEvent || null
 
     this.combatants = [
-      ...this.party.map((c) => ({
+      ...this.party.map((c, idx) => ({
         type: 'player',
         data: c,
         hp: c.stats.hp,
         speed: c.stats.speed,
         statusEffects: [],
+        position: idx,
       })),
-      ...this.enemies.map((e) => ({
+      ...this.enemies.map((e, idx) => ({
         type: 'enemy',
         data: e,
         hp: e.stats.hp,
         speed: e.stats.speed,
         statusEffects: [],
+        position: idx,
       })),
     ]
     this.turnOrder = this.combatants.sort((a, b) => b.speed - a.speed)
@@ -227,9 +229,15 @@ export default class BattleScene extends Phaser.Scene {
   }
 
   enemyAction() {
-    const context = { currentTurn: this.turnNumber, group: this.enemyGroup }
-    const card = chooseEnemyAction(this.current.data, context)
     const players = this.turnOrder.filter((c) => c.type === 'player')
+    const context = {
+      currentTurn: this.turnNumber,
+      group: this.enemyGroup,
+      enemyHP: this.current.hp,
+      enemyMaxHP: this.current.data.stats.hp,
+      players,
+    }
+    const card = chooseEnemyAction(this.current.data, context)
     const targetCombat = chooseTarget(players) || players[0]
     if (card.isComboFinisher) {
       console.log(`${this.current.data.name} executes combo ${card.synergyTag}`)

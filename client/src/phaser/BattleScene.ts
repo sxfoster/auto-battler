@@ -78,8 +78,8 @@ export default class BattleScene extends Phaser.Scene {
     this.enemies = [JSON.parse(JSON.stringify(this.enemy))]
 
     this.combatants = [
-      ...this.party.map((c: any) => ({ type: 'player', data: c, hp: c.stats.hp, speed: c.stats.speed })),
-      ...this.enemies.map((e: any) => ({ type: 'enemy', data: e, hp: e.stats.hp, speed: e.stats.speed })),
+      ...this.party.map((c: any, idx: number) => ({ type: 'player', data: c, hp: c.stats.hp, speed: c.stats.speed, position: idx })),
+      ...this.enemies.map((e: any, idx: number) => ({ type: 'enemy', data: e, hp: e.stats.hp, speed: e.stats.speed, position: idx })),
     ]
     this.turnOrder = this.combatants.sort((a, b) => b.speed - a.speed)
     this.turnIndex = 0
@@ -169,9 +169,15 @@ export default class BattleScene extends Phaser.Scene {
   }
 
   private enemyAction() {
-    const context = { currentTurn: this.turnNumber, group: this.enemyGroup }
-    const card = chooseEnemyAction(this.current.data, context)
     const players = this.turnOrder.filter((c) => c.type === 'player')
+    const context = {
+      currentTurn: this.turnNumber,
+      group: this.enemyGroup,
+      enemyHP: this.current.hp,
+      enemyMaxHP: this.current.data.stats.hp,
+      players,
+    }
+    const card = chooseEnemyAction(this.current.data, context)
     const targetCombat = chooseTarget(players) || players[0]
     if (card.isComboFinisher) {
       console.log(`${this.current.data.name} executes combo ${card.synergyTag}`)

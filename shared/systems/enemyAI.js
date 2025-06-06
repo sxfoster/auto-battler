@@ -1,5 +1,19 @@
 /** Enemy AI utilities supporting combo tracking and execution */
 
+let debugListener = null
+
+/**
+ * Register a debug listener to receive AI decision details.
+ * @param {(info: any) => void} fn
+ */
+export function setAIDebugListener(fn) {
+  debugListener = typeof fn === 'function' ? fn : null
+}
+
+function debug(info) {
+  if (debugListener) debugListener(info)
+}
+
 /**
  * Record a card usage for combo tracking.
  * @param {import('../models').Enemy} enemy
@@ -31,6 +45,21 @@ export function findComboFinisher(cards, comboTag) {
   return cards.find((c) => c.isComboFinisher && c.synergyTag === comboTag) || null
 }
 
+/** Basic card scoring based on health and effect */
+export function evaluateCard(enemy, card, context = {}) {
+  let score = 0
+  const effect = card.effect || card.effects?.[0] || {}
+  const hp = context.enemyHP ?? enemy.stats.hp
+  const max = context.enemyMaxHP ?? enemy.stats.hp
+  if (effect.type === 'heal') {
+    score += Math.max(0, max - hp)
+  }
+  if (effect.type === 'damage') {
+    score += effect.magnitude || effect.value || 0
+  }
+  return score
+}
+
 /** Determine if the enemy should try to execute a combo finisher */
 export function shouldExecuteCombo(enemy, context) {
   const profile = enemy.aiProfile
@@ -56,7 +85,10 @@ export function chooseEnemyAction(enemy, context) {
       .reverse()
       .find((r) => r.card.isComboStarter && turn - r.turn <= window)
     const finisher = findComboFinisher(enemy.deck, recent.card.synergyTag)
-    if (finisher) return finisher
+    if (finisher) {
+      debug({ enemyId: enemy.id, turn: context.currentTurn, decision: 'comboFinisher', card: finisher.id })
+      return finisher
+    }
   }
 
   if (profile.enableComboAwareness) {
@@ -69,16 +101,28 @@ export function chooseEnemyAction(enemy, context) {
         return bPref - aPref
       })
       const best = starters.find((s) => findComboFinisher(enemy.deck, s.synergyTag))
-      if (best) return best
-      return starters[0]
+      const chosen = best || starters[0]
+      debug({ enemyId: enemy.id, turn: context.currentTurn, decision: 'comboStarter', card: chosen.id })
+      return chosen
     }
   }
 
-  return enemy.deck[0]
+  const scored = enemy.deck.map((c) => ({ card: c, score: evaluateCard(enemy, c, context) }))
+  scored.sort((a, b) => b.score - a.score)
+  const choice = scored[0]?.card || enemy.deck[0]
+  debug({ enemyId: enemy.id, turn: context.currentTurn, decision: 'scored', card: choice?.id })
+  return choice
 }
 
 /** Select a target from the player party */
 export function chooseTarget(players) {
   if (!players.length) return null
-  return players.reduce((low, p) => (p.hp < low.hp ? p : low), players[0])
+  return players.reduce((best, p) => {
+    if (!best) return p
+    if (p.hp < best.hp) return p
+    if (p.hp === best.hp && p.position != null && best.position != null) {
+      return p.position < best.position ? p : best
+    }
+    return best
+  }, null)
 }

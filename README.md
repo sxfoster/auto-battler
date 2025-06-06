@@ -71,6 +71,10 @@ chains. Enemies remember recently played starter cards and will prioritize
 playing matching finishers within the combo window. When no finisher is
 available the AI will attempt to start a preferred combo. Targeting also adapts
 to focus the lowest health party member for a more dynamic challenge.
+The AI now scores available actions based on unit health and ability effects,
+allowing enemies to choose healing or defensive options when injured. A debug
+listener can be registered via `setAIDebugListener` to inspect each decision
+during development.
 
 ## Testing
 
