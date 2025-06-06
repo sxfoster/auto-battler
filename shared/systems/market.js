@@ -58,7 +58,7 @@ export function getAvailableListings(marketType, filters = {}) {
  * @param {number} price
  * @param {CurrencyType} currencyType
  */
-export function sellItem(playerId, marketType, item, price, currencyType) {
+export function sellItem(playerId, item, marketType, price, currencyType) {
   const listing = {
     item,
     marketType,
@@ -120,5 +120,5 @@ export function restockMarketplace(marketType, newItems = []) {
 
 /** Add a guild only listing */
 export function listGuildItem(playerId, item, price) {
-  return sellItem(playerId, 'Guild', item, price, 'GuildCredit')
+  return sellItem(playerId, item, 'Guild', price, 'GuildCredit')
 }
