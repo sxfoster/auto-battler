@@ -1,8 +1,8 @@
 import React, { useState } from 'react'
-import DungeonMap from './DungeonMap'
 import PlayerStatsPanel from './PlayerStatsPanel'
 import { generateDungeon } from '../utils/generateDungeon'
 import { useGame } from '../GameContext'
+import GameView from './GameView'
 
 export default function DungeonPage() {
   const [dungeon] = useState(() => generateDungeon())
@@ -17,7 +17,14 @@ export default function DungeonPage() {
 
   return (
     <div style={{ display: 'flex', gap: 20 }}>
-      <DungeonMap dungeon={dungeon} playerPos={playerPos} explored={explored} party={party?.characters || []} onMove={handleMove} />
+      <GameView
+        scene="dungeon"
+        dungeon={dungeon}
+        playerPos={playerPos}
+        explored={explored}
+        party={party?.characters || []}
+        onPlayerMove={handleMove}
+      />
       <PlayerStatsPanel position={playerPos} />
     </div>
   )
