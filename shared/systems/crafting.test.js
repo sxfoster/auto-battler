@@ -24,7 +24,6 @@ test('craftWithInventory crafts item and updates progression', () => {
 })
 
 import { attemptCraft } from './crafting.js'
-import { sampleRecipes } from '../models/recipes.js'
 
 const dummyCards = {
   herb: { id: 'herb', name: 'Herb' },
