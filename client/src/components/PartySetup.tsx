@@ -299,7 +299,11 @@ const PartySetup: React.FC = () => {
       </div>
 
       {/* Party Summary Section */}
-      <PartySummary selectedCharacters={selectedCharacters} /> {/* PartySummary will have its own internal styling or use passed classNames */}
+      <PartySummary
+        selectedCharacters={selectedCharacters}
+        onRemoveCharacter={handleClassRemove}
+      />
+      {/* PartySummary will have its own internal styling or use passed classNames */}
 
       <div className={styles.navigationButtons}>
         <button onClick={() => navigate('/')} className={styles.backButton}>

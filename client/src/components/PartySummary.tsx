@@ -6,6 +6,7 @@ import styles from './PartySummary.module.css';
 
 interface PartySummaryProps {
   selectedCharacters: PartyCharacter[];
+  onRemoveCharacter?: (id: string) => void;
 }
 
 const roleColors: Record<string, string> = {
@@ -45,7 +46,10 @@ const handlePortraitError = (
   }
 };
 
-const PartySummary: React.FC<PartySummaryProps> = ({ selectedCharacters }) => {
+const PartySummary: React.FC<PartySummaryProps> = ({
+  selectedCharacters,
+  onRemoveCharacter,
+}) => {
   if (selectedCharacters.length === 0) {
     return (
       <div className={styles.summaryContainer} aria-live="polite" aria-atomic="true">
@@ -116,7 +120,13 @@ const PartySummary: React.FC<PartySummaryProps> = ({ selectedCharacters }) => {
               </ul>
             </div>
             <div className={styles.characterActions}>
-              <button className={styles.actionButton} aria-label={`Remove ${character.name}`}>❌</button>
+              <button
+                className={styles.actionButton}
+                aria-label={`Remove ${character.name}`}
+                onClick={() => onRemoveCharacter?.(character.id)}
+              >
+                ❌
+              </button>
               <button className={styles.actionButton} aria-label={`Edit ${character.name}`}>✏️</button>
             </div>
           </div>
