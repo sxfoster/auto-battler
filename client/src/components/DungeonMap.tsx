@@ -54,12 +54,14 @@ export default function DungeonMap() {
 
   return (
     <div style={{ padding: 20 }}>
-      <button
-        onClick={handleBack}
-        style={{ position: 'fixed', top: 20, left: 20, zIndex: 100 }}
-      >
-        Back
-      </button>
+      {import.meta.env.DEV && (
+        <button
+          onClick={handleBack}
+          style={{ position: 'fixed', top: 20, left: 20, zIndex: 100 }}
+        >
+          Back
+        </button>
+      )}
       <h2>Dungeon - Floor {gameState.currentFloor}</h2>
       <div style={{ display: 'flex', gap: '2rem' }}>
         <div>{renderGrid()}</div>
