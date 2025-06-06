@@ -11,7 +11,7 @@
  * @param {import('../models').Recipe[]} recipes
  * @returns {import('../models').CraftingAttempt}
  */
-export function attemptCraft(profession, usedCards, recipes) {
+export function attemptCraft(profession, usedCards, recipes, player) {
   const ingredientIds = usedCards.map((c) => c.id).sort().join('|')
   const recipe = recipes.find(
     (r) =>
@@ -21,6 +21,13 @@ export function attemptCraft(profession, usedCards, recipes) {
   )
 
   if (recipe) {
+    if (recipe.cost && player) {
+      const bal = player.currencies[recipe.cost.currency] || 0
+      if (bal < recipe.cost.amount) {
+        return { usedCards, result: null, success: false, newRecipeDiscovered: false }
+      }
+      player.currencies[recipe.cost.currency] = bal - recipe.cost.amount
+    }
     const crafted = { ...recipe.result, id: `${recipe.result.id}_${Date.now()}` }
     return {
       usedCards,

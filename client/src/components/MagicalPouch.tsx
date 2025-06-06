@@ -43,7 +43,7 @@ const MagicalPouch: React.FC<{ player: Player; profession: Profession }> = ({ pl
 
   const craft = () => {
     const used = slots.filter(Boolean) as Card[]
-    const attempt = attemptCraft(profession, used, sampleRecipes)
+    const attempt = attemptCraft(profession, used, sampleRecipes, player)
     if (attempt.success && attempt.result) {
       attempt.result.craftedBy = player.name
       setResult(`Crafted: ${attempt.result.name}`)

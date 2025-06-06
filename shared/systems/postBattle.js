@@ -35,6 +35,30 @@ export function generateLoot(encounter) {
 }
 
 /**
+ * Generate currency rewards for an encounter
+ * @param {import('../models').Encounter} encounter
+ * @returns {{Gold:number, GuildCredit:number}}
+ */
+export function generateCurrencyReward(encounter) {
+  const gold = Math.floor(encounter.difficulty * 5)
+  const guildCredit = Math.random() < 0.1 * encounter.difficulty ? 1 : 0
+  return { Gold: gold, GuildCredit: guildCredit }
+}
+
+/**
+ * Apply currency rewards to a player
+ * @param {import('../models').Player} player
+ * @param {{Gold:number, GuildCredit:number}} reward
+ */
+export function awardCurrency(player, reward) {
+  if (reward.Gold)
+    player.currencies.Gold = (player.currencies.Gold || 0) + reward.Gold
+  if (reward.GuildCredit)
+    player.currencies.GuildCredit =
+      (player.currencies.GuildCredit || 0) + reward.GuildCredit
+}
+
+/**
  * Add loot items to the inventory
  * @param {import('../models').LootItem[]} loot
  * @param {import('../models').Inventory} inventory

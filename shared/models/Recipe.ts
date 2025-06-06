@@ -12,4 +12,6 @@ export interface Recipe {
   profession: ProfessionName
   /** Minimum profession level required */
   levelRequirement: number
+  /** Currency cost to craft */
+  cost?: { amount: number; currency: import('./Currency').CurrencyType }
 }
