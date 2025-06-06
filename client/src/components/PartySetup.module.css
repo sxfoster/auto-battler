@@ -77,6 +77,11 @@
   cursor: pointer;
 }
 
+.rerollButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 .rerollButton::before {
   content: '🎲';
   position: absolute;
@@ -231,4 +236,25 @@
 
 .undoButton {
   margin-left: 1rem;
+}
+
+/* Counters for remaining actions */
+.actionCounter {
+  font-size: 0.9rem;
+  color: #ccc;
+  margin-left: 0.5rem;
+}
+
+/* Visual flash when a button becomes disabled */
+.disabledFlash {
+  animation: flashDisable 0.5s ease;
+}
+
+@keyframes flashDisable {
+  from {
+    box-shadow: 0 0 0 2px #f39c12;
+  }
+  to {
+    box-shadow: none;
+  }
 }
