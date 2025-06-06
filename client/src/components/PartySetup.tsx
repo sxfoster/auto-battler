@@ -13,6 +13,7 @@ import { sampleCards } from '../../../shared/models/cards.js';
 import CharacterCard from './CharacterCard'; // Import CharacterCard
 import CardAssignmentPanel from './CardAssignmentPanel'; // Import
 import PartySummary from './PartySummary'; // Import PartySummary
+import { useModal } from './ModalManager.jsx';
 import styles from './PartySetup.module.css';
 
 // Make sure PartyCharacter is exported
@@ -99,6 +100,8 @@ const PartySetup: React.FC = () => {
     }));
   };
 
+  const { open, close } = useModal();
+
   const handleStartGame = () => {
     const partyData: Party = {
       characters: selectedCharacters.map(pc => ({
@@ -113,8 +116,17 @@ const PartySetup: React.FC = () => {
       })),
     };
 
-    setParty(partyData)
-    navigate('/dungeon')
+    setParty(partyData);
+
+    const id = open(
+      <div style={{ textAlign: 'center' }}>
+        <p>Entering the Dungeon…</p>
+        <button onClick={() => close(id)}>Continue</button>
+      </div>
+    );
+
+    setTimeout(() => close(id), 1500);
+    navigate('/dungeon');
   };
 
   const isPartyValid =

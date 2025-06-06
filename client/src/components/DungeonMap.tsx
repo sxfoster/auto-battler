@@ -1,12 +1,21 @@
 import React, { useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useGameState } from '../GameStateProvider.jsx'
 import { generateDungeon } from '../utils/generateDungeon'
 
 export default function DungeonMap() {
+  const navigate = useNavigate()
   const party = useGameState(state => state.party)
   const gameState = useGameState(state => state.gameState)
   const dungeon = useGameState(state => state.dungeon)
   const setDungeon = useGameState(state => state.setDungeon)
+
+  const handleBack = () => {
+    if (window.confirm('Return to party setup? This will reset your dungeon progress.')) {
+      setDungeon(null)
+      navigate('/party-setup')
+    }
+  }
 
   useEffect(() => {
     if (!dungeon) {
@@ -45,6 +54,12 @@ export default function DungeonMap() {
 
   return (
     <div style={{ padding: 20 }}>
+      <button
+        onClick={handleBack}
+        style={{ position: 'fixed', top: 20, left: 20, zIndex: 100 }}
+      >
+        Back
+      </button>
       <h2>Dungeon - Floor {gameState.currentFloor}</h2>
       <div style={{ display: 'flex', gap: '2rem' }}>
         <div>{renderGrid()}</div>
