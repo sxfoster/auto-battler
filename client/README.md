@@ -15,11 +15,16 @@ Key components include:
 
 The UI communicates with the Phaser game primarily through `localStorage` for game state like party composition and dungeon progress, as described in the main repository README.
 
+See [GAME_DESIGN.md](../GAME_DESIGN.md) for a broader overview of the
+gameplay systems this UI interacts with.
+
 ## Scripts
 
 - `npm start` – start the Vite dev server.
 - `npm run build` – create a production build in `dist/`.
 - `npm run lint` – run ESLint over the source files.
+
+These scripts assume **Node.js 20** or later is installed.
 
 ## Contributing
 

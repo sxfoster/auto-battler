@@ -2,6 +2,8 @@
 
 This codex lists each monster archetype and their Level 1 ability cards in a concise format.
 
+For overall design goals see [../GAME_DESIGN.md](../GAME_DESIGN.md).
+
 ## Blood Witch
 
 Dark support caster specializing in curses and lifedrain.

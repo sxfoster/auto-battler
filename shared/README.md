@@ -4,6 +4,8 @@ This package is crucial as it contains common data models, core game logic, and 
 
 This package does not have its own build step or executable scripts; it's primarily a library of modules.
 
+All modules target **Node.js 20** and are documented with JSDoc comments.
+
 ## Key Directories
 
 -   **`models/`**: Contains definitions for all primary data structures used in the game. This includes schemas for:
@@ -35,6 +37,9 @@ Class and enemy definitions used by these systems are cataloged in the
 [`docs`](../docs) directory under
 [`ClassCodex.md`](../docs/ClassCodex.md) and
 [`EnemyCodex.md`](../docs/EnemyCodex.md).
+
+For a high level explanation of these systems see
+[../GAME_DESIGN.md](../GAME_DESIGN.md).
 
 Developers should refer to JSDoc comments within these modules for detailed API information.
 

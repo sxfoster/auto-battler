@@ -2,6 +2,8 @@
 
 This codex lists every playable class and their Level 1 cards with concise technical data.
 
+For overall design goals see [../GAME_DESIGN.md](../GAME_DESIGN.md).
+
 ## Guardian
 
 Sturdy protector that draws enemy attacks and shields allies.

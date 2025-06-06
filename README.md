@@ -2,21 +2,26 @@
 
 This monorepo hosts a small web based game split into three workspaces:
 
+## Workspace Overview
+
 - **client** – a React UI powered by Vite for menus and interface elements.
   See [client/README.md](client/README.md) for available scripts.
 - **game** – Phaser 3 scenes for the dungeon and battle logic.
   See [game/README.md](game/README.md) for available scripts.
 - **shared** – common models and utilities used by both stacks.
-  See [shared/README.md](shared/README.md).
+  See [shared/README.md](shared/README.md) for module details.
+
+For an in-depth look at the gameplay vision and mechanics consult the
+[GAME_DESIGN.md](GAME_DESIGN.md) document.
 
 ## Requirements
 
-This project has been tested with **Node.js >=18**. We recommend using
+This project has been tested with **Node.js >=20**. We recommend using
 [nvm](https://github.com/nvm-sh/nvm) to manage Node.js versions:
 
 ```bash
-nvm install 18
-nvm use 18
+nvm install 20
+nvm use 20
 ```
 
 Each package contains minimal build and start scripts. Run `npm install` in the
