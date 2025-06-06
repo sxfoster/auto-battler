@@ -45,6 +45,16 @@
   font-size: 0.75rem;
   margin-top: 0.25rem;
 }
+.statusRow {
+  margin-top: 2px;
+  display: flex;
+  justify-content: center;
+  gap: 2px;
+  font-size: 0.9rem;
+}
+.statusIcon {
+  transition: transform 0.2s;
+}
 .actions {
   margin-top: 0.5rem;
   display: flex;
