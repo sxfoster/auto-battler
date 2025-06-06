@@ -6,7 +6,7 @@ import styles from './TownFeaturePage.module.css'
 export default function CollectionPage() {
   return (
     <div className={styles.container}>
-      <Link to="/town" className={styles.back}>Back to Town</Link>
+      <Link to="/town" className={styles.back}>🏠 Back to Town</Link>
       <CardCollection />
     </div>
   )
