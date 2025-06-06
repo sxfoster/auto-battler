@@ -59,6 +59,14 @@ The Phaser game package supports building as well:
 cd game && npm run build
 ```
 
+## Advanced Enemy AI
+
+Battles use an AI system that can track card synergies and execute combo
+chains. Enemies remember recently played starter cards and will prioritize
+playing matching finishers within the combo window. When no finisher is
+available the AI will attempt to start a preferred combo. Targeting also adapts
+to focus the lowest health party member for a more dynamic challenge.
+
 ## Testing
 
 Run the shared unit tests with Node's built-in test runner:
