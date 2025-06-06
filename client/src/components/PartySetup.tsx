@@ -191,44 +191,9 @@ const PartySetup: React.FC = () => {
   const { open, close } = useModal();
   const { notify } = useNotification();
 
-  const handleStartGame = () => {
-    const missing = selectedCharacters.find(pc => pc.assignedCards.length < 2)
-    if (missing) {
-      notify(`${missing.name} needs 2 cards assigned`, 'error')
-      return
-    }
-    const partyData: Party = {
-      characters: selectedCharacters.map(pc => ({
-        id: pc.id,
-        name: pc.name,
-        class: pc.class,
-        portrait: pc.portrait,
-        description: pc.description,
-        stats: pc.stats,
-        deck: pc.assignedCards,
-        survival: pc.survival,
-      })),
-    };
-
-    setParty(partyData);
-    updateGameState({ location: 'dungeon', currentFloor: 1 })
-    save()
-
-    const id = open(
-      <div style={{ textAlign: 'center' }}>
-        <p>Entering the Dungeon…</p>
-        <button onClick={() => close(id)}>Continue</button>
-      </div>
-    );
-
-    setTimeout(() => close(id), 1500);
-    navigate('/dungeon');
-  };
-
-  const isPartyValid =
-    selectedCharacters.length > 0 &&
-    selectedCharacters.length <= 5 &&
-    selectedCharacters.every(pc => pc.assignedCards.length === 2);
+  // Party setup no longer launches the dungeon directly. The player
+  // configures their party here and then returns to town to begin the
+  // adventure from there.
 
   // Basic JSX structure - will be expanded in subsequent steps
   return (
@@ -316,13 +281,6 @@ const PartySetup: React.FC = () => {
       <div className={styles.navigationButtons}>
         <button onClick={() => navigate('/town')} className={styles.backButton}>
           Back to Town
-        </button>
-        <button
-          onClick={handleStartGame}
-          disabled={!isPartyValid}
-          className={styles.startGameButton}
-        >
-          Enter Dungeon
         </button>
       </div>
       </div>
