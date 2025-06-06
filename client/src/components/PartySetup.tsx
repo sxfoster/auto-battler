@@ -192,6 +192,11 @@ const PartySetup: React.FC = () => {
   const { notify } = useNotification();
 
   const handleStartGame = () => {
+    const missing = selectedCharacters.find(pc => pc.assignedCards.length < 4)
+    if (missing) {
+      notify(`${missing.name} needs 4 cards assigned`, 'error')
+      return
+    }
     const partyData: Party = {
       characters: selectedCharacters.map(pc => ({
         id: pc.id,
@@ -223,7 +228,7 @@ const PartySetup: React.FC = () => {
   const isPartyValid =
     selectedCharacters.length > 0 &&
     selectedCharacters.length <= 5 &&
-    selectedCharacters.every(pc => pc.assignedCards.length <= 4);
+    selectedCharacters.every(pc => pc.assignedCards.length === 4);
 
   // Basic JSX structure - will be expanded in subsequent steps
   return (
