@@ -28,7 +28,9 @@ The `systems` directory provides helper modules for various game mechanics.
 -   **Market (`market.js`)**: Handles all economic transactions, including player balances for Gold and Guild Credits, and interactions with different market types (Town, Black Market, Guild Exchange, Auction House).
 -   **Biome (`biome.js`)**: Implements biome-specific synergy bonuses that affect enemies within particular dungeon environments.
 -   **Floor Events (`floorEvents.js`)**: Manages dynamic, floor-wide events that can alter combat flow and add variety to dungeon runs.
--   **Enemy AI (`enemyAI.js`)**: Contains the logic for combo-aware enemy behavior, including tracking card synergies and prioritizing finishers.
+-   **Enemy AI (`enemyAI.js`)**: Provides modular logic for enemy decision making.
+    It tracks card synergies, evaluates actions based on health, and exposes a
+    debugging hook for monitoring AI choices.
 -   **Post Battle (`postBattle.js`)**: Handles the resolution of combat, including awarding loot, and applying fatigue, hunger, and thirst to party members.
 -   **Progression (`progression.js`)**: Governs character leveling, unlocking card rarities, and profession skill advancement.
 -   **Room Events (`roomEvents.js`)**: Logic for various non-combat encounters or discoveries that can occur when navigating dungeon map nodes.

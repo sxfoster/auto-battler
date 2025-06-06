@@ -110,12 +110,24 @@ export function trackEnemyActions(
 ): void
 export function findComboStarter(cards: import('../models').Card[], comboTag: string): import('../models').Card | null
 export function findComboFinisher(cards: import('../models').Card[], comboTag: string): import('../models').Card | null
+export function evaluateCard(
+  enemy: import('../models').Enemy,
+  card: import('../models').Card,
+  context?: { enemyHP?: number; enemyMaxHP?: number },
+): number
 export function shouldExecuteCombo(
   enemy: import('../models').Enemy,
   context: { currentTurn: number; group?: { lastUsedCards?: { card: import('../models').Card; turn: number }[] } },
 ): boolean
 export function chooseEnemyAction(
   enemy: import('../models').Enemy,
-  context: { currentTurn: number; group?: { lastUsedCards?: { card: import('../models').Card; turn: number }[] } },
+  context: {
+    currentTurn: number
+    group?: { lastUsedCards?: { card: import('../models').Card; turn: number }[] }
+    enemyHP?: number
+    enemyMaxHP?: number
+    players?: { hp: number; position?: number }[]
+  },
 ): import('../models').Card
-export function chooseTarget(players: { hp: number }[]): any
+export function chooseTarget(players: { hp: number; position?: number }[]): any
+export function setAIDebugListener(fn: (info: any) => void): void
