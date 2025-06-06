@@ -9,5 +9,6 @@
   ],
   "scripts": {
     "test": "node --test"
-  }
+  },
+  "type": "module"
 }
