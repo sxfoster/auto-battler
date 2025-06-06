@@ -1,9 +1,12 @@
 import { dungeonEvents } from '../models/events.js'
 
 /**
- * Assign a random event eligible for the floor's biome
- * @param {{ biome: string, activeEvent?: any }} floor
- * @param {import('../models').DungeonEvent[]} [eventPool]
+ * Assigns a random dungeon event to a floor, based on the floor's biome and an optional event pool.
+ * The chosen event is deep cloned and set as the `activeEvent` on the floor object.
+ *
+ * @param {{ biome: string, activeEvent?: any }} floor - The floor object to assign an event to. This object is mutated.
+ * @param {import('../models').DungeonEvent[]} [eventPool=dungeonEvents] - An optional pool of dungeon events to choose from. Defaults to all dungeonEvents.
+ * @returns {import('../models').DungeonEvent | null} The chosen event object, or null if no eligible event is found.
  */
 export function assignRandomEventToFloor(floor, eventPool = dungeonEvents) {
   const pool = eventPool.filter(
@@ -19,10 +22,11 @@ export function assignRandomEventToFloor(floor, eventPool = dungeonEvents) {
 }
 
 /**
- * Apply event effects to the provided context.
- * Only a subset of effect types are implemented for the demo.
- * @param {import('../models').DungeonEvent} event
- * @param {any} context
+ * A map of event effect type handlers. Each handler function takes an event and a context object,
+ * and applies the event's specific effect based on the context's phase and other properties.
+ * Supported effects include `missChance`, `doubleCastChance`, and `periodicDamage`.
+ *
+ * @type {Object.<string, function(event: import('../models').DungeonEvent, context: any): void>}
  */
 const eventEffectHandlers = {
   missChance: (event, context) => {
@@ -76,6 +80,18 @@ const eventEffectHandlers = {
   // },
 };
 
+/**
+ * Applies the effects of a given dungeon event based on the current game context.
+ * It looks up the appropriate handler in `eventEffectHandlers` based on `event.effectType`
+ * and executes it.
+ *
+ * @param {import('../models').DungeonEvent} event - The dungeon event whose effects are to be applied.
+ * @param {any} context - The current game context object. This object may be mutated by the event handler.
+ *                        Expected properties on context can vary based on `event.effectType` and `context.phase`.
+ *                        Common context properties include `phase` (e.g., 'beforeCard', 'afterCard', 'turnStart'),
+ *                        `cancel` (boolean, to cancel an action), `repeat` (boolean, to repeat an action),
+ *                        `isFirstCard` (boolean), `turn` (number), `party` (Character[]), `enemies` (Enemy[]).
+ */
 export function applyEventEffects(event, context) {
   if (!event || !event.effectType) return;
 
@@ -89,8 +105,9 @@ export function applyEventEffects(event, context) {
 }
 
 /**
- * Remove the active event from a floor
- * @param {{ activeEvent?: any }} floor
+ * Removes the active event from a floor by setting its `activeEvent` property to null.
+ *
+ * @param {{ activeEvent?: any }} floor - The floor object to remove the event from. This object is mutated.
  */
 export function removeEventFromFloor(floor) {
   floor.activeEvent = null

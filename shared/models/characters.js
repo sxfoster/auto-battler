@@ -2,6 +2,18 @@ import { sampleCards } from './cards.js';
 // import { classes } from './classes.js'; // classes import seems unused here, consider removing if not needed for other logic
 import { Class } from './Card.js'; // Import Class enum from Card.ts
 
+/**
+ * @fileoverview This file contains a list of sample characters for the game.
+ * Each character is an object with the following properties:
+ *  - id: string - A unique identifier for the character.
+ *  - name: string - The display name of the character.
+ *  - class: string - The class of the character (e.g., "Warrior", "Cleric", "Blademaster").
+ *  - portrait: string - The path to the character's portrait image.
+ *  - description: string - A short description of the character.
+ *  - stats: object - The character's stats, including hp, energy, attack, defense, and speed.
+ *  - deck: Card[] - An array of Card objects representing the character's starting deck.
+ *  - survival: object - The character's survival stats, including hunger, thirst, and fatigue.
+ */
 /** @type {import('./Character').Character[]} */
 export const sampleCharacters = [
   {

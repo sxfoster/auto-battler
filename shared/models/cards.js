@@ -1,3 +1,28 @@
+/**
+ * @fileoverview This file contains a list of sample cards for the game.
+ * Each card is an object with the following properties:
+ *  - id: string - A unique identifier for the card.
+ *  - name: string - The display name of the card.
+ *  - description: string - A short description of the card.
+ *  - category: string - The category of the card (e.g., "Ability", "Equipment", "Ingredient", "FoodDrink", "Elixir", "Utility").
+ *  - rarity: string - The rarity of the card (e.g., "Common", "Uncommon").
+ *  - energyCost: number (optional) - The energy cost to use the card (for Ability cards).
+ *  - cooldown: number (optional) - The cooldown of the card in turns (for Ability cards).
+ *  - effect: object (optional) - The effect of the card (for Ability and Utility cards).
+ *  - roleTag: string (optional) - The role tag for the card (e.g., "DPS", "Healer", "Support").
+ *  - synergyTag: string (optional) - The synergy tag for the card (e.g., "Frenzy", "Execute").
+ *  - synergyEffect: object (optional) - The synergy effect of the card.
+ *  - isComboStarter: boolean (optional) - Whether the card is a combo starter.
+ *  - isComboFinisher: boolean (optional) - Whether the card is a combo finisher.
+ *  - statModifiers: object[] (optional) - A list of stat modifiers for the card (for Equipment cards).
+ *  - slot: string (optional) - The equipment slot for the card (for Equipment cards).
+ *  - ingredientType: string (optional) - The type of ingredient (for Ingredient cards).
+ *  - restoreHunger: number (optional) - The amount of hunger restored by the card (for FoodDrink cards).
+ *  - restoreThirst: number (optional) - The amount of thirst restored by the card (for FoodDrink cards).
+ *  - effects: object[] (optional) - A list of effects for the card (for Elixir cards).
+ *  - duration: number (optional) - The duration of the elixir effect in encounters (for Elixir cards).
+ *  - utilityType: string (optional) - The type of utility item (for Utility cards).
+ */
 /** @type {import('./Card').Card[]} */
 export const sampleCards = [
   {

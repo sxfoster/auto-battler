@@ -2,9 +2,14 @@ import { biomes } from '../models/biomes.js'
 import { enemies as enemyData } from '../models/enemies.js'
 
 /**
- * Apply all bonuses from a biome to a list of enemies.
- * @param {import('../models').Biome} biome
- * @param {import('../models').Enemy[]} enemies
+ * Applies all bonuses from a given biome to a list of enemies.
+ * This function deep clones enemies if bonuses haven't been applied yet,
+ * stores their base stats, and then applies stat modifiers and other effects.
+ * It marks enemies with `biomeBonusesApplied = true` after processing.
+ *
+ * @param {import('../models').Biome} biome - The biome object containing the bonuses to apply.
+ * @param {import('../models').Enemy[]} enemies - An array of enemy objects to modify.
+ * @returns {import('../models').Enemy[]} The array of enemies with biome bonuses applied. Returns original enemies if no biome is provided.
  */
 export function applyBiomeBonuses(biome, enemies) {
   if (!biome) return enemies; // Return original enemies if no biome
@@ -48,8 +53,12 @@ export function applyBiomeBonuses(biome, enemies) {
 }
 
 /**
- * Remove biome bonuses from enemies, restoring original stats.
- * @param {import('../models').Enemy[]} enemies
+ * Removes biome bonuses from a list of enemies, restoring their original stats
+ * from `baseStats` if available. It also cleans up properties related to biome effects.
+ * This function clones enemies to avoid mutating the input array's objects directly.
+ *
+ * @param {import('../models').Enemy[]} enemies - An array of enemy objects to reset.
+ * @returns {import('../models').Enemy[]} The array of enemies with biome bonuses removed and stats reset.
  */
 export function resetBiomeBonuses(enemies) {
   return enemies.map((originalEnemy) => {
@@ -68,17 +77,23 @@ export function resetBiomeBonuses(enemies) {
 }
 
 /**
- * Get the biome object for the current game state.
- * @param {import('../models').GameState} state
+ * Retrieves the biome object corresponding to the current biome ID in the game state.
+ * If the current biome ID is not found, it defaults to the first biome in the `biomes` array.
+ *
+ * @param {import('../models').GameState} state - The current game state object, which includes `currentBiome` ID.
+ * @returns {import('../models').Biome} The biome object for the current game state.
  */
 export function getCurrentBiome(state) {
   return biomes.find((b) => b.id === state.currentBiome) || biomes[0]
 }
 
 /**
- * Spawn enemies for a floor/encounter and apply biome bonuses.
- * @param {import('../models').Encounter} floor
- * @returns {import('../models').Enemy[]}
+ * Spawns enemies for a given floor or encounter configuration.
+ * It finds the biome associated with the floor, retrieves enemy templates based on `enemyTypes`,
+ * deep clones these templates, and then applies biome bonuses to the spawned enemies.
+ *
+ * @param {import('../models').Encounter} floor - The floor or encounter object, containing biome ID and enemy types.
+ * @returns {import('../models').Enemy[]} An array of enemy objects, processed with biome bonuses, ready for the encounter.
  */
 export function spawnEnemiesForFloor(floor) {
   const biome = biomes.find((b) => b.id === floor.biome)

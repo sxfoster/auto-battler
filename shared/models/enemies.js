@@ -1,5 +1,14 @@
 import { sampleCards } from './cards.js';
 
+/**
+ * @fileoverview This file contains a list of all possible enemies in the game.
+ * Each enemy is an object with the following properties:
+ *  - id: string - A unique identifier for the enemy.
+ *  - archetype: string - The archetype of the enemy (e.g., "Goblin Grunt", "Skeleton Warrior").
+ *  - stats: object - The enemy's stats, including hp, energy, speed, attack, and defense.
+ *  - deck: Card[] - An array of Card objects representing the enemy's deck.
+ *  - aiProfile: object - The enemy's AI profile, including behavior, aggressiveness, combo awareness, combo window turns, and finisher chain preference.
+ */
 /** @type {import('./Enemy').Enemy[]} */
 export const enemies = [
   {

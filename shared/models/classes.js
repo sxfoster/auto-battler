@@ -1,5 +1,13 @@
 import { Role, Class } from './Card.js'; // Import Role and Class enums
 
+/**
+ * @fileoverview This file contains a list of all possible character classes in the game.
+ * Each class is an object with the following properties:
+ *  - name: string - The name of the class (e.g., "Warrior", "Cleric", "Bard", "Blademaster").
+ *  - description: string - A short description of the class.
+ *  - role: string - The role of the class (e.g., "Tank", "Healer", "Support", "DPS").
+ *  - allowedCards: string[] - A list of card IDs that characters of this class are allowed to use.
+ */
 /** @type {{name: import('./Card').Class, description: string, role: import('./Card').Role, allowedCards: string[]}[]} */
 export const classes = [
   {

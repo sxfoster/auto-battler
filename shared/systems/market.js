@@ -5,7 +5,15 @@
 /** @typedef {import('../models').MarketListing} MarketListing */
 /** @typedef {import('../models').MarketItem} MarketItem */
 
+/**
+ * Manages market listings, player currency balances, and transactions.
+ * Supports different market types like Town, Black Market, Guild, and Auction.
+ */
 export class MarketSystem {
+  /**
+   * Initializes a new MarketSystem instance.
+   * Sets up empty listings for each market type and an empty map for player balances.
+   */
   constructor() {
     this.listings = {
       Town: [],
@@ -17,10 +25,12 @@ export class MarketSystem {
   }
 
   /**
-   * Adjust a player's currency balance.
-   * @param {string} playerId
-   * @param {CurrencyType} currency
-   * @param {number} amount
+   * Adjusts a player's currency balance for a specified currency type.
+   * If the player does not have a balance record, it initializes one.
+   *
+   * @param {string} playerId - The unique identifier for the player.
+   * @param {CurrencyType} currency - The type of currency to update (e.g., "Gold", "GuildCredit").
+   * @param {number} amount - The amount to add (positive) or subtract (negative) from the balance.
    */
   updatePlayerBalance(playerId, currency, amount) {
     const bal = this.playerBalances.get(playerId) || { Gold: 0, GuildCredit: 0 };
@@ -29,10 +39,11 @@ export class MarketSystem {
   }
 
   /**
-   * Retrieve current balance for a player
-   * @param {string} playerId
-   * @param {CurrencyType} currency
-   * @returns {number}
+   * Retrieves the current balance of a specific currency for a player.
+   *
+   * @param {string} playerId - The unique identifier for the player.
+   * @param {CurrencyType} currency - The type of currency to retrieve.
+   * @returns {number} The player's current balance for the specified currency. Returns 0 if no balance or player not found.
    */
   getBalance(playerId, currency) {
     const bal = this.playerBalances.get(playerId) || { Gold: 0, GuildCredit: 0 };
@@ -40,10 +51,11 @@ export class MarketSystem {
   }
 
   /**
-   * Get available listings for a market
-   * @param {'Town'|'Black'|'Guild'|'Auction'} marketType
-   * @param {Record<string, any>=} filters
-   * @returns {MarketListing[]}
+   * Retrieves available listings for a specified market type, with optional filters.
+   *
+   * @param {'Town'|'Black'|'Guild'|'Auction'} marketType - The type of market to get listings from.
+   * @param {Object<string, any>} [filters={}] - Optional filters to apply, e.g., { rarity: 'Common', category: 'Weapon' }.
+   * @returns {MarketListing[]} An array of market listings matching the criteria.
    */
   getAvailableListings(marketType, filters = {}) {
     if (!this.listings[marketType]) {
@@ -58,13 +70,15 @@ export class MarketSystem {
   }
 
   /**
-   * List an item for sale in a market
-   * @param {string} playerId
-   * @param {'Town'|'Black'|'Guild'|'Auction'} marketType
-   * @param {MarketItem} item
-   * @param {number} price
-   * @param {CurrencyType} currencyType
-   * @returns {MarketListing | null}
+   * Lists an item for sale in a specified market.
+   * Creates a new market listing and adds it to the appropriate market.
+   *
+   * @param {string} playerId - The ID of the player selling the item.
+   * @param {'Town'|'Black'|'Guild'|'Auction'} marketType - The market to list the item in.
+   * @param {MarketItem} item - The item to be listed. Should have properties like id, expiry, etc.
+   * @param {number} price - The price of the item.
+   * @param {CurrencyType} currencyType - The type of currency for the price.
+   * @returns {MarketListing | null} The created market listing object, or null if the market type is invalid.
    */
   sellItem(playerId, marketType, item, price, currencyType) {
     if (!this.listings[marketType]) {
@@ -85,11 +99,14 @@ export class MarketSystem {
   }
 
   /**
-   * Purchase an item from a market
-   * @param {string} playerId
-   * @param {'Town'|'Black'|'Guild'|'Auction'} marketType
-   * @param {string} itemId
-   * @returns {boolean} True if purchase was successful, false otherwise.
+   * Allows a player to purchase an item from a specified market.
+   * Checks if the market and item exist, if the player has enough balance,
+   * then updates player and seller balances and removes the item from the market.
+   *
+   * @param {string} playerId - The ID of the player purchasing the item.
+   * @param {'Town'|'Black'|'Guild'|'Auction'} marketType - The market to buy from.
+   * @param {string} itemId - The ID of the item or listing to purchase.
+   * @returns {boolean} True if the purchase was successful, false otherwise.
    */
   buyItem(playerId, marketType, itemId) {
     if (!this.listings[marketType]) {
@@ -114,11 +131,13 @@ export class MarketSystem {
   }
 
   /**
-   * Place a bid on an auction listing
-   * @param {string} playerId
-   * @param {string} itemId
-   * @param {number} amount
-   * @returns {boolean} True if bid was successful, false otherwise.
+   * Places a bid on an item listed in the Auction market.
+   * Validates if the listing exists, if the player has enough balance, and if the bid amount is higher than the current highest bid.
+   *
+   * @param {string} playerId - The ID of the player placing the bid.
+   * @param {string} itemId - The ID of the auction listing or item.
+   * @param {number} amount - The amount of the bid.
+   * @returns {boolean} True if the bid was successfully placed, false otherwise.
    */
   placeBid(playerId, itemId, amount) {
     const listing = this.listings.Auction.find((l) => l.id === itemId || l.item.id === itemId);
@@ -136,9 +155,12 @@ export class MarketSystem {
   }
 
   /**
-   * Restock the town or black markets with new items
-   * @param {'Town'|'Black'} marketType
-   * @param {MarketItem[]} newItems
+   * Restocks the Town or Black markets with a new set of items.
+   * Clears existing listings for that market type and adds new ones.
+   * Items are typically sold by 'npc' or 'system'.
+   *
+   * @param {'Town'|'Black'} marketType - The market to restock (only 'Town' or 'Black' supported).
+   * @param {MarketItem[]} [newItems=[]] - An array of new items to add to the market. Each item should have price, currencyType, expiry, and id.
    */
   restockMarketplace(marketType, newItems = []) {
     if (marketType !== 'Town' && marketType !== 'Black') {
@@ -157,11 +179,13 @@ export class MarketSystem {
   }
 
   /**
-   * Add a guild only listing
-   * @param {string} playerId
-   * @param {MarketItem} item
-   * @param {number} price
-   * @returns {MarketListing | null}
+   * Lists an item specifically in the Guild market, using GuildCredit as the currency.
+   * This is a convenience method that calls `sellItem` with 'Guild' market type and 'GuildCredit'.
+   *
+   * @param {string} playerId - The ID of the player listing the item.
+   * @param {MarketItem} item - The item to be listed.
+   * @param {number} price - The price of the item in GuildCredit.
+   * @returns {MarketListing | null} The created market listing object, or null if listing fails.
    */
   listGuildItem(playerId, item, price) {
     return this.sellItem(playerId, 'Guild', item, price, 'GuildCredit');
