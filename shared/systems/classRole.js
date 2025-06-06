@@ -4,7 +4,7 @@ import { classes } from '../models/classes.js'
  * Get the class definition for a character
  */
 function getClassDef(character) {
-  return classes.find(c => c.name === character.class)
+  return classes.find(c => c.id === character.class)
 }
 
 /**

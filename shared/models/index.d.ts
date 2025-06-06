@@ -22,6 +22,7 @@ export * from './MarketListing'
 export * from './DungeonEvent'
 export const enemies: Enemy[]
 export const classes: {
+  id: string
   name: string
   description: string
   role: import('./Card').Role
