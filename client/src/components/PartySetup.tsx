@@ -281,9 +281,6 @@ const PartySetup: React.FC = () => {
         )}
         {selectedCharacters.map(pc => {
           const clsDef = allClasses.find(c => c.id === pc.class);
-          if (!clsDef) {
-            console.warn(`Class ID "${pc.class}" not found in classes definition.`);
-          }
           return (
             <div key={pc.id} className={styles.selectedCharacterPanel}> {/* Apply .selectedCharacterPanel */}
               <div className={styles.characterPanelHeader}> {/* Apply .characterPanelHeader */}
