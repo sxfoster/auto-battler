@@ -1,5 +1,5 @@
 import React from 'react';
-import type { PartyCharacter } from './PartySetupScreen'; // Assuming PartyCharacter is exported or defined appropriately
+import type { PartyCharacter } from './PartySetup';
 import type { Card } from '../../../shared/models/Card';
 import CardDisplay from './CardDisplay';
 import { canUseCard } from '../../../shared/systems/classRole.js';
@@ -16,7 +16,7 @@ const CardAssignmentPanel: React.FC<CardAssignmentPanelProps> = ({ character, av
   const canAssignMoreCards = character.assignedCards.length < 4;
 
   const panelStyle: React.CSSProperties = {
-    // Using existing styles from PartySetupScreen.module.css for selectedCharacterPanel as a base
+    // Using existing styles from PartySetup.module.css for selectedCharacterPanel as a base
     // backgroundColor: '#ecf0f1', // Already handled by parent
     // padding: '15px', // Already handled by parent
     // marginBottom: '15px', // Already handled by parent
@@ -73,7 +73,7 @@ const CardAssignmentPanel: React.FC<CardAssignmentPanelProps> = ({ character, av
 
   return (
     <div style={panelStyle}>
-      {/* Character's name and card count is now part of characterPanelHeader in PartySetupScreen.tsx */}
+      {/* Character's name and card count is now part of characterPanelHeader in PartySetup.tsx */}
       {/* This h4 can be removed if redundant: <h4>{character.name}'s Cards ({character.assignedCards.length}/4)</h4> */}
 
       <h5 style={subSectionTitleStyle}>Assigned Cards:</h5>

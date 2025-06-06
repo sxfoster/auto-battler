@@ -1,5 +1,5 @@
 import React from 'react';
-import type { PartyCharacter } from './PartySetupScreen'; // Assuming PartyCharacter is imported
+import type { PartyCharacter } from './PartySetup';
 
 interface PartySummaryProps {
   selectedCharacters: PartyCharacter[];
@@ -16,8 +16,8 @@ const PartySummary: React.FC<PartySummaryProps> = ({ selectedCharacters }) => {
   };
 
   const titleStyle: React.CSSProperties = {
-    color: '#34495e', // From PartySetupScreen.module.css sectionTitle
-    borderBottom: '2px solid #3498db', // From PartySetupScreen.module.css sectionTitle
+    color: '#34495e', // From PartySetup.module.css sectionTitle
+    borderBottom: '2px solid #3498db', // From PartySetup.module.css sectionTitle
     paddingBottom: '5px',
     marginBottom: '20px', // Increased margin
     fontSize: '1.6em', // Slightly smaller than main section titles
