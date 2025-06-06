@@ -233,3 +233,10 @@ public string[] preferredComboTags;
 ## Implementation Notes
 
 The repository contains an early prototype of the systems described above. Many features are stubbed out or simplified for demonstration purposes. The React client now includes an interactive dungeon map component with a battle overlay. Economy helpers and combo-aware enemy AI are available under `shared/systems`. Refer to the source code for the current state of the card system and combat logic.
+
+## Contributing
+
+If you would like to propose changes to the game design, please start by
+opening an issue in the repository. Feedback and pull requests are
+appreciated.
+
