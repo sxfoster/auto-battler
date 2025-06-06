@@ -4,6 +4,7 @@ const guardianPortrait = new URL('../images/guardian-portrait.png', import.meta.
 const blademasterPortrait = new URL('../images/blademaster-portrait.png', import.meta.url).href
 const bloodweaverPortrait = new URL('../images/bloodweaver-portrait.png', import.meta.url).href
 const chronomancerPortrait = new URL('../images/chronomancer-portrait.png', import.meta.url).href
+const bardPortrait = new URL('../images/bard-portrait.png', import.meta.url).href
 const herbalistPortrait = new URL('../images/herbalist-portrait.png', import.meta.url).href
 const rangerPortrait = new URL('../images/ranger-portrait.png', import.meta.url).href
 const shadowbladePortrait = new URL('../images/shadowblade-portrait.png', import.meta.url).href
@@ -78,7 +79,7 @@ export const classes = [
     description: 'Inspirational performer empowering allies through song.',
     role: Role.Support,
     allowedCards: ['inspire', 'song_of_swiftness', 'lullaby', 'motivational_tune'],
-    portrait: defaultPortrait,
+    portrait: bardPortrait,
   },
   {
     id: 'chronomancer',
