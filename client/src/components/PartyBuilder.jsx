@@ -1,13 +1,13 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useGame } from '../GameContext'
+import { useGameStore } from '../store/gameStore'
 import { sampleCharacters } from 'shared/models/characters.js'
 import { sampleCards } from 'shared/models/cards.js'
 
 function PartyBuilder() {
   const [party, setParty] = useState([])
   const navigate = useNavigate()
-  const { setParty: storeParty } = useGame()
+  const storeParty = useGameStore(state => state.setParty)
   const [selectedCards, setSelectedCards] = useState({})
 
   const availableCharacters = sampleCharacters.filter(
