@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react'
 import { useGameStore } from '../store/gameStore'
 import UnitCard from './UnitCard'
 import styles from './BattleScene.module.css'
+import { loadPartyState } from '../utils/partyStorage'
+import { classes as allClasses } from '../../../shared/models/classes.js'
 
 interface Unit {
   id: string
@@ -35,6 +37,18 @@ export default function BattleScene() {
       setPlayers(chars)
       const firstAlive = chars.find(c => c.hp > 0)
       if (firstAlive) setActiveId(firstAlive.id)
+    } else {
+      const saved = loadPartyState()
+      if (saved) {
+        const chars = saved.members.map((m, i) => {
+          const cls = allClasses.find(c => c.id === m.class)
+          const name = cls ? cls.name : m.class
+          const id = `${m.class}-${i}`
+          return { id, name, hp: 30, maxHp: 30 }
+        })
+        setPlayers(chars)
+        if (chars.length) setActiveId(chars[0].id)
+      }
     }
   }, [party])
 

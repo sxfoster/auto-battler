@@ -184,6 +184,26 @@
   transition: background-color 0.3s ease, transform 0.1s ease;
 }
 
+.saveButton {
+  width: 150px;
+  padding: 15px 20px;
+  font-size: 1.2em;
+  color: white;
+  background-color: #27ae60;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.1s ease;
+}
+
+.saveButton:active {
+  transform: scale(0.96);
+}
+
+.saveButton:hover {
+  background-color: #2ecc71;
+}
+
 .backButton:active {
   transform: scale(0.96);
 }
