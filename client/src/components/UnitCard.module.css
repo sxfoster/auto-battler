@@ -1,0 +1,66 @@
+.card {
+  background: #232429;
+  color: #fff;
+  border-radius: 8px;
+  padding: 0.5rem;
+  width: 100%;
+  max-width: 120px;
+  text-align: center;
+  position: relative;
+  transition: box-shadow 0.2s, transform 0.2s;
+  cursor: pointer;
+}
+.card:hover {
+  transform: translateY(-2px);
+}
+.card.active {
+  box-shadow: 0 0 8px #646cff;
+  border: 2px solid #646cff;
+}
+.card.disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.name {
+  font-weight: bold;
+}
+.healthBar {
+  background: #555;
+  border-radius: 4px;
+  height: 6px;
+  margin-top: 4px;
+  overflow: hidden;
+}
+.health {
+  display: block;
+  background: #4caf50;
+  height: 100%;
+  width: var(--hp, 100%);
+}
+.hpText {
+  font-size: 0.75rem;
+  margin-top: 2px;
+}
+.status {
+  font-size: 0.75rem;
+  margin-top: 0.25rem;
+}
+.actions {
+  margin-top: 0.5rem;
+  display: flex;
+  gap: 4px;
+  justify-content: center;
+}
+.actions button {
+  background: #646cff;
+  border: none;
+  color: #fff;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  cursor: pointer;
+}
+.actions button:hover,
+.actions button:focus-visible {
+  background: #767aff;
+}

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { useGameStore } from '../store/gameStore'
+import UnitCard from './UnitCard'
 import styles from './BattleScene.module.css'
 
 interface Unit {
@@ -90,38 +91,37 @@ export default function BattleScene() {
       <div className={styles.grid}>
         <div className={styles.side}>
           {players.map(p => (
-            <div
+            <UnitCard
               key={p.id}
-              className={`${styles.unit} ${p.hp <= 0 ? styles.inactive : ''} ${
-                activeId === p.id ? styles.active : ''
-              }`}
-              aria-label={`${p.name} HP ${p.hp}`}
-            >
-              <strong>{p.name}</strong>
-              <div>
-                {p.hp} / {p.maxHp}
-              </div>
-              <div className={styles.status}>{p.hp <= 0 ? 'KO' : p.status}</div>
-            </div>
+              id={p.id}
+              name={p.name}
+              hp={p.hp}
+              maxHp={p.maxHp}
+              status={p.hp <= 0 ? 'KO' : p.status}
+              isActive={activeId === p.id}
+              isDisabled={p.hp <= 0}
+              actions={[{ label: 'Info', onClick: () => setLog(l => [...l, `${p.name} details`]) }]}
+            />
           ))}
         </div>
         <div className={styles.side}>
           {enemies.map(e => (
-            <div
+            <UnitCard
               key={e.id}
-              className={`${styles.unit} ${e.hp <= 0 ? styles.inactive : ''} ${
-                activeId === e.id ? styles.active : ''
-              }`}
-              onClick={() => attack(e.id)}
-              aria-label={`${e.name} HP ${e.hp}`}
-              style={{ cursor: turn === 'player' && !battleOver ? 'pointer' : 'default' }}
-            >
-              <strong>{e.name}</strong>
-              <div>
-                {e.hp} / {e.maxHp}
-              </div>
-              <div className={styles.status}>{e.hp <= 0 ? 'KO' : e.status}</div>
-            </div>
+              id={e.id}
+              name={e.name}
+              hp={e.hp}
+              maxHp={e.maxHp}
+              status={e.hp <= 0 ? 'KO' : e.status}
+              isActive={activeId === e.id}
+              isDisabled={turn !== 'player' || battleOver || e.hp <= 0}
+              onSelect={() => attack(e.id)}
+              actions={
+                turn === 'player' && !battleOver && e.hp > 0
+                  ? [{ label: 'Attack', onClick: () => attack(e.id) }]
+                  : []
+              }
+            />
           ))}
         </div>
       </div>
