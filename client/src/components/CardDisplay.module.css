@@ -50,6 +50,10 @@
   border-radius: 4px;
   font-size: 0.85rem;
   font-weight: bold;
+  cursor: pointer;
+}
+.card-title {
+  cursor: pointer;
 }
 .costBadge {
   position: absolute;
@@ -95,6 +99,10 @@
   line-height: 1.2;
   min-height: 60px;
   flex-grow: 1;
+  cursor: pointer;
+}
+.card-description {
+  cursor: pointer;
 }
 .stats {
   display: flex;

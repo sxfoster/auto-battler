@@ -10,6 +10,7 @@ import type { Party } from '../../../shared/models/Party';
 import { sampleCards } from '../../../shared/models/cards.js';
 import { classes as allClasses } from '../../../shared/models/classes.js';
 import { getRandomClasses, type GameClass } from '../utils/randomizeClasses';
+import { getClassById } from '../utils/getClassById';
 
 import ClassCard from './ClassCard';
 import CardAssignmentPanel from './CardAssignmentPanel'; // Import
@@ -285,7 +286,7 @@ const PartySetup: React.FC = () => {
           </p>
         )}
         {selectedCharacters.map(pc => {
-          const clsDef = allClasses.find(c => c.id === pc.class);
+          const clsDef = getClassById(pc.class);
           return (
             <div key={pc.id} className={styles.selectedCharacterPanel}> {/* Apply .selectedCharacterPanel */}
               <div className={styles.characterPanelHeader}> {/* Apply .characterPanelHeader */}

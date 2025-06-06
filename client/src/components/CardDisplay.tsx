@@ -47,11 +47,11 @@ const CardDisplay: React.FC<CardDisplayProps> = ({ card, onSelect, isSelected, i
         {'energyCost' in card && (
           <span className={styles.costBadge}>{(card as any).energyCost}</span>
         )}
-        <span className={styles.nameRibbon}>{card.name}</span>
+        <span className={`${styles.nameRibbon} ${styles.cardTitle}`}>{card.name}</span>
         <span className={styles.typeBadge}>{card.category}</span>
       </div>
       {classText && <span className={styles.classBanner}>{classText}</span>}
-      <div className={styles.description}>{card.description || 'No effect description.'}</div>
+      <div className={`${styles.description} ${styles.cardDescription}`}>{card.description || 'No effect description.'}</div>
       {('attack' in card || 'defense' in card) && (
         <div className={styles.stats}>
           {'attack' in card && (

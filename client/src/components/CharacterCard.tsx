@@ -1,6 +1,7 @@
 import React from 'react'
 import type { Character } from '../../../shared/models/Character'
 import { classes as allClasses } from '../../../shared/models/classes.js'
+import { getClassById } from '../utils/getClassById'
 import defaultPortrait from '../../../shared/images/default-portrait.png'
 
 interface CharacterCardProps {
@@ -18,7 +19,7 @@ const CharacterCard: React.FC<CharacterCardProps> = ({ character, onSelect, isSe
     DPS: '#e74c3c',
   }
 
-  const clsInfo = allClasses.find((c) => c.id === character.class)
+  const clsInfo = getClassById(character.class)
   const roleColor = roleColors[clsInfo?.role || 'DPS']
 
   const cardStyle: React.CSSProperties = {
