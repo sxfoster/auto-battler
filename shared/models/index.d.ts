@@ -1,6 +1,7 @@
 import type { Character } from './Character'
 import type { Enemy } from './Enemy'
 import type { Biome } from './Biome'
+import type { DungeonEvent } from './DungeonEvent'
 export * from './Card'
 export * from './Character'
 export * from './Enemy'
@@ -18,6 +19,7 @@ export * from './Player'
 export * from './Currency'
 export * from './MarketItem'
 export * from './MarketListing'
+export * from './DungeonEvent'
 export const enemies: Enemy[]
 export const classes: {
   name: string
@@ -26,3 +28,4 @@ export const classes: {
   allowedCards: string[]
 }[]
 export const biomes: Biome[]
+export const dungeonEvents: DungeonEvent[]
