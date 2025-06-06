@@ -79,9 +79,8 @@
 
 .startGameButton {
   display: block;
-  width: 100%;
-  max-width: 300px;
-  margin: 40px auto 20px; /* Increased top margin */
+  width: 150px;
+  margin-top: 40px;
   padding: 15px 20px; /* Increased padding */
   font-size: 1.2em; /* Slightly larger font */
   color: white;
@@ -101,6 +100,29 @@
 
 .startGameButton:hover:not(:disabled) {
   background-color: #2ecc71; /* Lighter green on hover */
+}
+
+.navigationButtons {
+  display: flex;
+  justify-content: space-between;
+  max-width: 320px;
+  margin: 0 auto 20px;
+}
+
+.backButton {
+  width: 150px;
+  padding: 15px 20px;
+  font-size: 1.2em;
+  color: white;
+  background-color: #7f8c8d;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.backButton:hover {
+  background-color: #95a5a6;
 }
 
 .infoText {
