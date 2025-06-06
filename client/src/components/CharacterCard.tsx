@@ -1,6 +1,7 @@
 import React from 'react'
 import type { Character } from '../../../shared/models/Character'
 import { classes as allClasses } from '../../../shared/models/classes.js'
+import defaultPortrait from '../../../shared/images/default-portrait.png'
 
 interface CharacterCardProps {
   character: Character;
@@ -87,8 +88,14 @@ const CharacterCard: React.FC<CharacterCardProps> = ({ character, onSelect, isSe
     >
       <div style={{ position: 'relative', marginBottom: '10px' }}>
         <img
-          src={character.portrait || 'default-portrait.png'}
+          src={character.portrait || defaultPortrait}
           alt={character.name}
+          title={clsInfo?.name ?? character.class}
+          onError={(e) => {
+            if (e.currentTarget.src !== defaultPortrait) {
+              e.currentTarget.src = defaultPortrait
+            }
+          }}
           style={{ width: '110px', height: '110px', objectFit: 'cover', borderRadius: '50%', border: `3px solid ${roleColor}` }}
         />
         <span style={badgeStyle}>{clsInfo?.role}</span>

@@ -14,6 +14,7 @@ import { getRandomClasses, type GameClass } from '../utils/randomizeClasses';
 import ClassCard from './ClassCard';
 import CardAssignmentPanel from './CardAssignmentPanel'; // Import
 import PartySummary from './PartySummary'; // Import PartySummary
+import defaultPortrait from '../../../shared/images/default-portrait.png';
 import { useModal } from './ModalManager.jsx';
 import styles from './PartySetup.module.css';
 
@@ -98,7 +99,7 @@ const PartySetup: React.FC = () => {
       id: `${cls.id}-${Date.now()}-${Math.random()}`,
       name: cls.name,
       class: cls.id,
-      portrait: 'default-portrait.png',
+      portrait: defaultPortrait,
       description: cls.description || 'No description available.',
       stats: { hp: 30, energy: 3 },
       deck: [],
