@@ -37,7 +37,7 @@ export const classes = [
     name: 'Warrior',
     description: 'Aggressive melee combatant excelling at frontline skirmishes.',
     role: Role.Tank,
-    allowedCards: ['power_strike', 'battle_cry'],
+    allowedCards: ['strike', 'iron_sword', 'shield_wall', 'taunt'],
     portrait: warriorPortrait,
   },
   {
@@ -45,7 +45,7 @@ export const classes = [
     name: 'Runestone Sentinel',
     description: 'Tank that channels rune magic to harden defenses.',
     role: Role.Tank,
-    allowedCards: ['rune_slam', 'stone_guard'],
+    allowedCards: ['rune_slam', 'stone_guard', 'earthen_grasp', 'runic_pulse'],
     portrait: defaultPortrait,
   },
   {
@@ -53,7 +53,7 @@ export const classes = [
     name: 'Cleric',
     description: 'Devout healer who mends wounds with holy magic.',
     role: Role.Healer,
-    allowedCards: ['holy_light', 'smite'],
+    allowedCards: ['heal', 'holy_light', 'smite', 'sanctuary'],
     portrait: clericPortrait,
   },
   {
@@ -61,7 +61,7 @@ export const classes = [
     name: 'Herbalist',
     description: 'Nature healer brewing restorative and toxic concoctions.',
     role: Role.Healer,
-    allowedCards: ['healing_herbs', 'toxic_spores'],
+    allowedCards: ['haste_elixir', 'healing_herbs', 'toxic_spores', 'growth_burst'],
     portrait: herbalistPortrait,
   },
   {
@@ -69,7 +69,7 @@ export const classes = [
     name: 'Bloodweaver',
     description: 'Mystic manipulating life essence to heal or harm.',
     role: Role.Healer,
-    allowedCards: ['blood_leech', 'sanguine_gift'],
+    allowedCards: ['blood_leech', 'sanguine_gift', 'hemorrhage', 'blood_pact'],
     portrait: bloodweaverPortrait,
   },
   {
@@ -77,7 +77,7 @@ export const classes = [
     name: 'Bard',
     description: 'Inspirational performer empowering allies through song.',
     role: Role.Support,
-    allowedCards: ['inspire', 'song_of_swiftness'],
+    allowedCards: ['inspire', 'song_of_swiftness', 'lullaby', 'motivational_tune'],
     portrait: defaultPortrait,
   },
   {
@@ -85,7 +85,7 @@ export const classes = [
     name: 'Chronomancer',
     description: 'Temporal magician bending time to aid the party.',
     role: Role.Support,
-    allowedCards: ['time_warp', 'temporal_strike'],
+    allowedCards: ['time_warp', 'temporal_strike', 'rewind', 'accelerate'],
     portrait: chronomancerPortrait,
   },
   {
@@ -101,7 +101,7 @@ export const classes = [
     name: 'Blademaster',
     description: 'Master of blades delivering relentless attacks.',
     role: Role.DPS,
-    allowedCards: ['quick_slash', 'blade_fury'],
+    allowedCards: ['quick_slash', 'blade_fury', 'deflect', 'deadly_focus'],
     portrait: blademasterPortrait,
   },
   {
@@ -109,7 +109,7 @@ export const classes = [
     name: 'Wizard',
     description: 'Arcane caster wielding destructive and protective spells.',
     role: Role.DPS,
-    allowedCards: ['arcane_bolt', 'mana_shield'],
+    allowedCards: ['arcane_bolt', 'mana_shield', 'frost_nova', 'energize'],
     portrait: defaultPortrait,
   },
   {
@@ -117,7 +117,7 @@ export const classes = [
     name: 'Shadowblade',
     description: 'Stealthy assassin striking from the darkness.',
     role: Role.DPS,
-    allowedCards: ['backstab', 'smoke_bomb'],
+    allowedCards: ['mark_target', 'shadow_execution', 'backstab', 'smoke_bomb'],
     portrait: shadowbladePortrait,
   },
   {
@@ -125,7 +125,7 @@ export const classes = [
     name: 'Ranger',
     description: 'Expert archer adept at controlling the battlefield.',
     role: Role.DPS,
-    allowedCards: ['arrow_shot', 'entangling_trap'],
+    allowedCards: ['arrow_shot', 'entangling_trap', 'mark_target', 'eagle_eye'],
     portrait: rangerPortrait,
   },
   {
@@ -133,7 +133,7 @@ export const classes = [
     name: 'Pyromancer',
     description: 'Sorcerer harnessing fire for offense and defense.',
     role: Role.DPS,
-    allowedCards: ['fireball', 'flame_shield'],
+    allowedCards: ['fireball', 'flame_shield', 'ignite', 'cauterize'],
     portrait: pyromancerPortrait,
   },
 ]
