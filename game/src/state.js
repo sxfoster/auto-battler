@@ -10,6 +10,7 @@ export function loadGameState() {
   return {
     currentFloor: 1,
     dungeonDifficulty: 1,
+    currentBiome: 'fungal-depths',
     playerStatus: { fatigue: 0, hunger: 0, thirst: 0 },
     inventory: [],
     location: 'town',

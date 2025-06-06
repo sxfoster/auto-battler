@@ -1,5 +1,7 @@
 import Phaser from 'phaser'
 import { applyRolePenalty, getSynergyBonuses } from 'shared/systems/classRole.js'
+import { applyBiomeBonuses, getCurrentBiome } from 'shared/systems/biome.js'
+import { loadGameState } from '../state'
 
 export default class BattleScene extends Phaser.Scene {
   constructor() {
@@ -28,6 +30,9 @@ export default class BattleScene extends Phaser.Scene {
     this.enemy = dungeon.rooms[this.roomIndex].enemy
     // clone enemy so we can modify stats
     this.enemies = [JSON.parse(JSON.stringify(this.enemy))]
+    const state = loadGameState()
+    const biome = getCurrentBiome(state)
+    applyBiomeBonuses(biome, this.enemies)
 
     this.combatants = [
       ...this.party.map((c) => ({ type: 'player', data: c, hp: c.stats.hp, speed: c.stats.speed })),

@@ -76,3 +76,14 @@ export function getSynergyBonuses(
   card: import('../models').Card,
   character: import('../models').Character,
 ): import('../models').Effect[]
+export function applyBiomeBonuses(
+  biome: import('../models').Biome,
+  enemies: import('../models').Enemy[],
+): void
+export function resetBiomeBonuses(enemies: import('../models').Enemy[]): void
+export function getCurrentBiome(
+  state: import('../models').GameState,
+): import('../models').Biome
+export function spawnEnemiesForFloor(
+  floor: import('../models').Encounter,
+): import('../models').Enemy[]
