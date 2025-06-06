@@ -5,8 +5,8 @@ import type { PartyCharacter } from './PartySetup'
 import type { Card } from '../../../shared/models/Card'
 import { sampleCards } from '../../../shared/models/cards.js'
 import CardAssignmentPanel from './CardAssignmentPanel'
-import { saveFormation, loadFormation } from '../../game/SetupManager'
-import type { Formation, Position } from '../../game/Formation'
+import { saveFormation, loadFormation } from '../../../src/game/SetupManager'
+import type { Formation, Position } from '../../../src/game/Formation'
 import styles from './PreBattleSetup.module.css'
 
 const GRID_SIZE = 3
