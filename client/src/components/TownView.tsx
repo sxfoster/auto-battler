@@ -64,7 +64,7 @@ export default function TownView() {
         </button>
         <button
           className={styles.card}
-          onClick={() => navigate('/battle')}
+          onClick={() => navigate('/pre-battle')}
           aria-label="Battle"
         >
           <span className={styles.icon}>⚔️</span>
