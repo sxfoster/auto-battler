@@ -3,6 +3,7 @@ import type { PartyCharacter } from './PartySetup';
 import type { Card } from '../../../shared/models/Card';
 import CardDisplay from './CardDisplay';
 import { canUseCard } from '../../../shared/systems/classRole.js';
+import { classes as allClasses } from '../../../shared/models/classes.js';
 import styles from './PartySetup.module.css';
 
 interface CardAssignmentPanelProps {
@@ -26,14 +27,23 @@ const CardAssignmentPanel: React.FC<CardAssignmentPanelProps> = ({ character, av
   }
 
   const generateDraft = () => {
-    const pool = [...getUsablePool()]
+    let pool = [...getUsablePool()]
+    // Fallback to role-based picks if no class-restricted cards exist
+    if (pool.length === 0) {
+      const cls = allClasses.find(c => c.id === character.class)
+      if (cls) {
+        pool = availableCards.filter(
+          c => c.roleTag === cls.role && !assignedCardIds.has(c.id)
+        )
+      }
+    }
     const picks: Card[] = []
     while (pool.length && picks.length < 4) {
       const idx = Math.floor(Math.random() * pool.length)
       picks.push(pool.splice(idx, 1)[0])
     }
     setDraftCards(picks)
-    setDraftKey((k) => k + 1)
+    setDraftKey(k => k + 1)
   }
 
   useEffect(() => {

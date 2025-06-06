@@ -228,7 +228,7 @@ const PartySetup: React.FC = () => {
           return (
             <div key={pc.id} className={styles.selectedCharacterPanel}> {/* Apply .selectedCharacterPanel */}
               <div className={styles.characterPanelHeader}> {/* Apply .characterPanelHeader */}
-                <h3>{pc.name} (Class: {clsDef?.name ?? pc.class})</h3>
+                <h3>{pc.name} (Class: {clsDef ? clsDef.name : pc.class || 'Unknown'})</h3>
                 <button onClick={() => handleClassRemove(pc.id)} className={styles.removeButton}>Remove Class</button>
               </div>
               <CardAssignmentPanel
