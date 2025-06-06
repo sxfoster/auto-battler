@@ -37,6 +37,7 @@ Players control a party of **1–5 characters**, assigning **up to 4 ability car
 
 ### 🔁 Core Combat Loop
 - Players assign up to **4 ability cards** per character pre-combat.
+- At the start of each battle, a character draws **two** of those cards to form their initial hand.
 - Characters act **automatically** in combat based on AI, speed, and context.
 - Combat is resolved in **turns**, ordered by each unit’s `SpeedModifier`.
 

@@ -55,6 +55,9 @@ const PartySummary: React.FC<PartySummaryProps> = ({
     return (
       <div className={styles.summaryContainer} aria-live="polite" aria-atomic="true">
         <h2 className={styles.heading}>Party Summary</h2>
+        <p className={styles.cardNote}>
+          Each character draws <strong>two</strong> of their assigned cards at battle start.
+        </p>
         <p style={{ textAlign: 'center', fontStyle: 'italic', color: '#bbb' }}>
           No characters selected yet to display a summary.
         </p>
@@ -71,6 +74,9 @@ const PartySummary: React.FC<PartySummaryProps> = ({
   return (
     <div className={styles.summaryContainer} aria-live="polite" aria-atomic="true">
       <h2 className={styles.heading}>Party Summary</h2>
+      <p className={styles.cardNote}>
+        Each character draws <strong>two</strong> of their assigned cards at battle start.
+      </p>
       <div className={styles.statsList}>
         <div className={styles.statItem} title="Average of party health points">
           <strong>Avg HP:</strong> {averageHp}
