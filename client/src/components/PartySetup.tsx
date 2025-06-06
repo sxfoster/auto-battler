@@ -144,13 +144,18 @@ const PartySetup: React.FC = () => {
       {/* Party Summary Section */}
       <PartySummary selectedCharacters={selectedCharacters} /> {/* PartySummary will have its own internal styling or use passed classNames */}
 
-      <button
-        onClick={handleStartGame}
-        disabled={selectedCharacters.length === 0 || selectedCharacters.some(pc => pc.assignedCards.length !== 4)}
-        className={styles.startGameButton} // Apply .startGameButton
-      >
-        Start Game
-      </button>
+      <div className={styles.navigationButtons}>
+        <button onClick={() => navigate('/')} className={styles.backButton}>
+          Back
+        </button>
+        <button
+          onClick={handleStartGame}
+          disabled={selectedCharacters.length === 0 || selectedCharacters.some(pc => pc.assignedCards.length !== 4)}
+          className={styles.startGameButton}
+        >
+          Start Adventure
+        </button>
+      </div>
     </div>
   );
 };
