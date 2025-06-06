@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'assert'
-import { craftWithInventory } from './crafting.js'
+import { craftWithInventory, attemptCraft } from './crafting.js'
 import { sampleCards } from '../models/cards.js'
 import { sampleRecipes } from '../models/recipes.js'
 
@@ -23,8 +23,6 @@ test('craftWithInventory crafts item and updates progression', () => {
   assert.strictEqual(profession.experience, 10)
 })
 
-import { attemptCraft } from './crafting.js'
-import { sampleRecipes } from '../models/recipes.js'
 
 const dummyCards = {
   herb: { id: 'herb', name: 'Herb' },

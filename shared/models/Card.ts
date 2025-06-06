@@ -9,6 +9,8 @@ export interface Effect {
   duration?: number
   /** Optional description of the target */
   target?: string
+  /** Optional elemental type for damage and resist interactions */
+  element?: string
 }
 
 export interface Buff {
