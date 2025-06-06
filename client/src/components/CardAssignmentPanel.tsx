@@ -2,6 +2,7 @@ import React from 'react';
 import type { PartyCharacter } from './PartySetupScreen'; // Assuming PartyCharacter is exported or defined appropriately
 import type { Card } from '../../../shared/models/Card';
 import CardDisplay from './CardDisplay';
+import { canUseCard } from '../../../shared/systems/classRole.js';
 
 interface CardAssignmentPanelProps {
   character: PartyCharacter; // Character from selectedCharacters array
@@ -103,13 +104,14 @@ const CardAssignmentPanel: React.FC<CardAssignmentPanelProps> = ({ character, av
       <div style={availableCardsListStyle}>
         {canAssignMoreCards && availableCards.map(card => {
           const isAssignedToThisCharacter = assignedCardIds.has(card.id);
+          const usable = canUseCard(character, card);
           return (
             <CardDisplay
               key={card.id}
               card={card}
               onSelect={() => onAssignCard(character.id, card)}
               isSelected={false}
-              isDisabled={isAssignedToThisCharacter}
+              isDisabled={isAssignedToThisCharacter || !usable}
             />
           );
         })}

@@ -1,10 +1,28 @@
 import { sampleCards } from './cards.js'
+import { classes } from './classes.js'
+
+export const Class = {
+  Guardian: 'Guardian',
+  Warrior: 'Warrior',
+  RunestoneSentinel: 'RunestoneSentinel',
+  Cleric: 'Cleric',
+  Herbalist: 'Herbalist',
+  Bloodweaver: 'Bloodweaver',
+  Bard: 'Bard',
+  Chronomancer: 'Chronomancer',
+  TotemWarden: 'TotemWarden',
+  Blademaster: 'Blademaster',
+  Wizard: 'Wizard',
+  Shadowblade: 'Shadowblade',
+  Ranger: 'Ranger',
+  Pyromancer: 'Pyromancer',
+}
 
 export const sampleCharacters = [
   {
     id: 'warrior',
     name: 'Warrior',
-    class: 'Warrior',
+    class: Class.Warrior,
     portrait: '',
     description: '',
     stats: { hp: 30, energy: 3, speed: 2 },
@@ -14,7 +32,7 @@ export const sampleCharacters = [
   {
     id: 'cleric',
     name: 'Cleric',
-    class: 'Cleric',
+    class: Class.Cleric,
     portrait: '',
     description: '',
     stats: { hp: 25, energy: 3, speed: 1 },
@@ -22,9 +40,9 @@ export const sampleCharacters = [
     survival: { hunger: 0, thirst: 0, fatigue: 0 },
   },
   {
-    id: 'rogue',
-    name: 'Rogue',
-    class: 'Rogue',
+    id: 'blademaster',
+    name: 'Blademaster',
+    class: Class.Blademaster,
     portrait: '',
     description: '',
     stats: { hp: 22, energy: 3, speed: 3 },

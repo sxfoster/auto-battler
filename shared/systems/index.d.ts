@@ -60,3 +60,19 @@ export function listGuildItem(
   item: import('../models').MarketItem,
   price: number,
 ): import('../models').MarketListing
+export function canUseCard(
+  character: import('../models').Character,
+  card: import('../models').Card,
+): boolean
+export function applyRolePenalty(
+  card: import('../models').Card,
+  character: import('../models').Character,
+): import('../models').Effect
+export function applyClassSynergy(
+  card: import('../models').Card,
+  character: import('../models').Character,
+): import('../models').Effect | null
+export function getSynergyBonuses(
+  card: import('../models').Card,
+  character: import('../models').Character,
+): import('../models').Effect[]
