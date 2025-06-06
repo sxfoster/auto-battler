@@ -7,6 +7,7 @@ import { canUseAbility, applyCooldown, tickCooldowns } from 'shared/systems/abil
 import { floatingText } from '../effects.js'
 import { loadGameState } from '../state'
 import { partyState, loadPartyState } from '../shared/partyState.js'
+import { InitiativeQueue } from '../../shared/initiativeQueue.js'
 import {
   STATUS_META,
   addStatusEffect,
@@ -75,6 +76,27 @@ export default class BattleScene extends Phaser.Scene {
       icon.setText(meta.icon || type[0])
       icon.setPosition(sprite.rect.x - 20 + idx * 20, sprite.rect.y - 50)
     })
+  }
+
+  getPlayerUnits() {
+    return this.combatants.filter((c) => c.type === 'player')
+  }
+
+  getEnemyUnits() {
+    return this.combatants.filter((c) => c.type === 'enemy')
+  }
+
+  selectTarget(unit) {
+    const opponents =
+      unit.type === 'player' ? this.getEnemyUnits() : this.getPlayerUnits()
+    return opponents.find((o) => o.hp > 0)
+  }
+
+  performAction(attacker, target) {
+    if (!attacker || !target) return
+    const card = attacker.data.deck?.[0]
+    this.current = attacker
+    this.performCardAction(card, target)
   }
 
   calculateDamage(effect, attacker, defender) {
@@ -212,7 +234,14 @@ export default class BattleScene extends Phaser.Scene {
     applyBiomeBonuses(biome, this.enemies)
     this.activeEvent = state.activeEvent || null
     this.initializeCombatants()
-    this.displayCardOptions()
+    this.initiativeQueue = new InitiativeQueue()
+    const playerUnits = this.getPlayerUnits()
+    const enemyUnits = this.getEnemyUnits()
+    ;[...playerUnits, ...enemyUnits].forEach((unit) => {
+      const initialDelay = 1000 / unit.speed
+      this.initiativeQueue.add(unit, initialDelay)
+    })
+    this.drawBattlefield()
   }
 
   drawBattlefield() {
@@ -443,5 +472,31 @@ export default class BattleScene extends Phaser.Scene {
       return true
     }
     return false
+  }
+
+  update(time, delta) {
+    if (!this.initiativeQueue) return
+    this.initiativeQueue.update(delta)
+    const readyUnits = this.initiativeQueue.getReadyUnits()
+    readyUnits.forEach((entry) => {
+      const { unit } = entry
+      if (unit.hp > 0) {
+        const target = this.selectTarget(unit)
+        if (target) {
+          this.performAction(unit, target)
+          const newDelay = 1000 / unit.speed
+          this.initiativeQueue.add(unit, newDelay)
+        }
+      }
+      this.initiativeQueue.remove(unit)
+    })
+
+    if (readyUnits.length) {
+      this.updateHealth()
+    }
+
+    if (this.checkEnd()) {
+      // battle ended
+    }
   }
 }
