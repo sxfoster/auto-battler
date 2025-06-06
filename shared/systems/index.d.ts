@@ -25,6 +25,13 @@ export function registerRecipeDiscovery(
   player: import('../models').Player,
   recipe: import('../models').Recipe,
 ): void
+export function craftWithInventory(
+  player: import('../models').Player,
+  profession: import('../models').Profession,
+  usedCards: import('../models').Card[],
+  recipes: import('../models').Recipe[],
+  inventory: import('../models').Inventory,
+): import('../models').CraftingAttempt
 export function updatePlayerBalance(
   playerId: string,
   currency: import('../models').CurrencyType,

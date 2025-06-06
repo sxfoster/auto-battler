@@ -9,4 +9,6 @@ export interface CraftingAttempt {
   success: boolean
   /** True if this attempt discovered a new recipe */
   newRecipeDiscovered: boolean
+  /** Id of the recipe used if crafting succeeded */
+  recipeId: string | null
 }

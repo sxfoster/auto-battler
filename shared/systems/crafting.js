@@ -27,10 +27,17 @@ export function attemptCraft(profession, usedCards, recipes) {
       result: crafted,
       success: true,
       newRecipeDiscovered: !profession.unlockedRecipes.includes(recipe.id),
+      recipeId: recipe.id,
     }
   }
 
-  return { usedCards, result: null, success: false, newRecipeDiscovered: false }
+  return {
+    usedCards,
+    result: null,
+    success: false,
+    newRecipeDiscovered: false,
+    recipeId: null,
+  }
 }
 
 /**
@@ -72,4 +79,42 @@ export function registerRecipeDiscovery(player, recipe) {
   if (prof && !prof.unlockedRecipes.includes(recipe.id)) {
     prof.unlockedRecipes.push(recipe.id)
   }
+}
+
+/**
+ * Craft items using the player's inventory. Consumes ingredients on success
+ * and stores the crafted result. Profession experience is awarded and newly
+ * discovered recipes are recorded.
+ * @param {import('../models').Player} player
+ * @param {import('../models').Profession} profession
+ * @param {import('../models').Card[]} usedCards
+ * @param {import('../models').Recipe[]} recipes
+ * @param {import('../models').Inventory} inventory
+ * @returns {import('../models').CraftingAttempt}
+ */
+export function craftWithInventory(
+  player,
+  profession,
+  usedCards,
+  recipes,
+  inventory,
+) {
+  const attempt = attemptCraft(profession, usedCards, recipes)
+  if (attempt.success && attempt.result) {
+    // remove ingredients
+    usedCards.forEach((card) => {
+      const idx = inventory.items.findIndex((i) => i.id === card.id)
+      if (idx !== -1) inventory.items.splice(idx, 1)
+    })
+    // add crafted item
+    inventory.items.push(attempt.result)
+    // record discovery
+    const recipe = recipes.find((r) => r.id === attempt.recipeId)
+    if (recipe && attempt.newRecipeDiscovered) {
+      registerRecipeDiscovery(player, recipe)
+    }
+    // grant profession experience
+    levelUpProfession(profession, 10)
+  }
+  return attempt
 }
