@@ -1,10 +1,5 @@
 import './App.css'
-import {
-  BrowserRouter,
-  Routes,
-  Route,
-  useLocation,
-} from 'react-router-dom'
+import { Routes, Route, useLocation } from 'react-router-dom'
 import { CSSTransition, SwitchTransition } from 'react-transition-group'
 import MainMenu from './components/MainMenu.jsx'
 import PartySetup from './components/PartySetup.tsx'
@@ -34,11 +29,7 @@ function AnimatedRoutes() {
 }
 
 function App() {
-  return (
-    <BrowserRouter>
-      <AnimatedRoutes />
-    </BrowserRouter>
-  )
+  return <AnimatedRoutes />
 }
 
 export default App
