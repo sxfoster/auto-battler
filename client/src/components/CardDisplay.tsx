@@ -10,18 +10,21 @@ interface CardDisplayProps {
 
 const CardDisplay: React.FC<CardDisplayProps> = ({ card, onSelect, isSelected, isDisabled }) => {
   const style: React.CSSProperties = {
-    border: isSelected ? '2px solid #27ae60' : '1px solid #e0e0e0', // Green border if selected
+    border: isSelected ? '2px solid #27ae60' : '1px solid #e0e0e0',
     padding: '10px',
     margin: '5px',
     cursor: isDisabled ? 'not-allowed' : 'pointer',
     opacity: isDisabled ? 0.5 : 1,
-    backgroundColor: isSelected ? '#e9f7ef' : '#f9f9f9', // Light green background if selected
+    backgroundColor: isSelected ? '#e9f7ef' : '#f9f9f9',
     borderRadius: '6px',
-    boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
+    boxShadow: isSelected
+      ? '0 3px 6px rgba(0,0,0,0.15)'
+      : '0 1px 3px rgba(0,0,0,0.05)',
+    transform: isSelected ? 'scale(1.05)' : 'none',
     transition: 'transform 0.2s ease, box-shadow 0.2s ease',
-    width: '150px', // Give a fixed width for better alignment in flex container
+    width: '150px',
     fontSize: '0.9em',
-  };
+  }
 
   const handleClick = () => {
     if (!isDisabled) {
