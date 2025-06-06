@@ -11,5 +11,7 @@ export * from './DungeonMap';
 export * from './LootItem';
 export * from './Inventory';
 export * from './Encounter';
+export * from './GameState';
+export * from './DecisionPoint';
 // Sample enemies used by the game during early development
 export { enemies } from './enemies.js';

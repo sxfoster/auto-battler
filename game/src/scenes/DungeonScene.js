@@ -1,5 +1,6 @@
 import Phaser from 'phaser'
 import { enemies } from 'shared/models'
+import { loadGameState } from '../state'
 
 export default class DungeonScene extends Phaser.Scene {
   constructor() {
@@ -7,6 +8,9 @@ export default class DungeonScene extends Phaser.Scene {
   }
 
   create() {
+    this.gameState = loadGameState()
+    this.add.text(400, 50, `Floor ${this.gameState.currentFloor}`, { fontSize: '20px' }).setOrigin(0.5)
+
     // simple two room layout
     this.rooms = [
       { x: 150, y: 300, enemy: null, cleared: true },
@@ -16,6 +20,8 @@ export default class DungeonScene extends Phaser.Scene {
     this.currentRoom = 0
     this.player = this.add.rectangle(0, 0, 40, 40, 0x00ff00)
     this.updatePlayerPosition()
+
+    this.events.on('wake', this.onWake, this)
 
     // show enemy rooms
     this.rooms.forEach((room, index) => {
@@ -36,12 +42,27 @@ export default class DungeonScene extends Phaser.Scene {
 
     const room = this.rooms[this.currentRoom]
     if (room.enemy && !room.cleared) {
-      this.scene.start('battle', { roomIndex: this.currentRoom })
+      this.scene.launch('battle', { roomIndex: this.currentRoom })
+      this.scene.sleep()
+    } else {
+      this.checkFloorComplete()
     }
   }
 
   updatePlayerPosition() {
     const room = this.rooms[this.currentRoom]
     this.player.setPosition(room.x, room.y)
+  }
+
+  onWake() {
+    this.updatePlayerPosition()
+    this.checkFloorComplete()
+  }
+
+  checkFloorComplete() {
+    const done = this.rooms.every((r) => r.cleared)
+    if (done) {
+      this.scene.start('decision')
+    }
   }
 }

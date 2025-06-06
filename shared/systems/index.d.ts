@@ -8,3 +8,6 @@ export function generateLoot(encounter: Encounter): LootItem[]
 export function distributeLoot(loot: LootItem[], inventory: Inventory): void
 export function useConsumable(item: LootItem, character: Character): void
 export function rest(party: Character[], duration: number): void
+export function handleAdvance(state: import('../models').GameState): void
+export function handleRetreat(state: import('../models').GameState): void
+export function presentDecisionPoint(): void
