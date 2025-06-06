@@ -47,9 +47,10 @@ const CardDisplay: React.FC<CardDisplayProps> = ({ card, onSelect, isSelected, i
           {'energyCost' in card && (
             <span className={styles.cardCost}>{(card as any).energyCost}</span>
           )}
+        </div>
+        <div className={styles.art} style={{ backgroundImage: `url(${art})` }}>
           <span className={styles.cardTitle}>{card.name}</span>
         </div>
-        <div className={styles.art} style={{ backgroundImage: `url(${art})` }} />
         {/* type badge removed per design update */}
       </div>
       {classText && <span className={styles.classBanner}>{classText}</span>}
