@@ -5,6 +5,7 @@ import { generateDungeonMap } from '../utils/generateDungeonMap'
 import { triggerRoomEvent } from 'shared/systems'
 import GameView from './GameView'
 import CombatOverlay from './CombatOverlay'
+import { useNotification } from './NotificationManager.jsx'
 import './DungeonMap.module.css'
 
 const roomColors: Record<string, string> = {
@@ -37,6 +38,7 @@ export default function DungeonMap() {
   const [banner, setBanner] = useState(false)
   const [roomEvent, setRoomEvent] = useState<any | null>(null)
   const [summary, setSummary] = useState(false)
+  const { notify } = useNotification()
 
   useEffect(() => {
     if (!dungeonMap) {
@@ -67,6 +69,7 @@ export default function DungeonMap() {
     if (next.event) {
       const ev = triggerRoomEvent(next, gameState)
       setRoomEvent(ev)
+      if (ev && ev.id === 'treasure') notify('Treasure found!', 'success')
       if (ev?.effectType === 'ambush') {
         setBanner(true)
         setTimeout(() => {
@@ -84,8 +87,10 @@ export default function DungeonMap() {
       }, 600)
     } else if (next.type === 'exit') {
       setRoomEvent('exit')
+      notify('Exit discovered', 'info')
     } else if (next.type !== 'empty') {
       setRoomEvent(next.type)
+      if (next.type === 'treasure') notify('Treasure found!', 'success')
     }
   }
 
@@ -96,6 +101,7 @@ export default function DungeonMap() {
     } else if (detail.type === 'log') {
       setLog(l => [...l.slice(-10), detail.message])
     } else if (detail === 'Victory' || detail === 'Defeat') {
+      notify(detail === 'Victory' ? 'Victory!' : 'Defeat...', detail === 'Victory' ? 'success' : 'error')
       const roomType = battleRoom ? dungeonMap?.rooms[battleRoom].type : null
       setTimeout(() => {
         setBattleRoom(null)
