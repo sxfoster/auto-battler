@@ -98,7 +98,14 @@ function PartyBuilder() {
                   const card = sampleCards.find((c) => c.id === cid)
                   return (
                     <li key={cid}>
-                      {card ? card.name : cid}{' '}
+                      <span title={card ? card.description : ''}>
+                        {card ? card.name : cid}
+                      </span>{' '}
+                      {card && (
+                        <em style={{ fontSize: '0.8em', color: '#555' }}>
+                          {' - ' + card.description}
+                        </em>
+                      )}
                       <button onClick={() => removeCard(idx, cid)}>X</button>
                     </li>
                   )
@@ -117,7 +124,7 @@ function PartyBuilder() {
                   >
                     <option value="">Select card</option>
                     {sampleCards.map((c) => (
-                      <option key={c.id} value={c.id}>
+                      <option key={c.id} value={c.id} title={c.description}>
                         {c.name}
                       </option>
                     ))}
