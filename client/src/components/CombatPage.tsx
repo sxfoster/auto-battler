@@ -1,12 +1,12 @@
 import React, { useState } from 'react'
 import CombatOverlay from './CombatOverlay'
-import { useGame } from '../GameContext'
+import { useGameStore } from '../store/gameStore'
 import GameView from './GameView'
 
 interface Combatant { id: string; name: string; hp: number }
 
 export default function CombatPage() {
-  const { party } = useGame()
+  const party = useGameStore(state => state.party)
   const [players, setPlayers] = useState<Combatant[]>([])
   const [enemies, setEnemies] = useState<Combatant[]>([])
   const [log, setLog] = useState<string[]>([])

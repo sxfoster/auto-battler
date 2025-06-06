@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useGame } from '../GameContext';
+import { useGameStore } from '../store/gameStore';
 // Import data models. Adjust paths if necessary.
 import type { Character } from '../../../shared/models/Character';
 import type { Card } from '../../../shared/models/Card';
@@ -26,7 +26,7 @@ const PartySetupScreen: React.FC = () => {
   const [availableCards, setAvailableCards] = useState<Card[]>([]);
 
   const navigate = useNavigate();
-  const { setParty } = useGame();
+  const setParty = useGameStore(state => state.setParty);
 
   useEffect(() => {
     // Initialize available characters and cards
