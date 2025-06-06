@@ -18,6 +18,7 @@ import defaultPortrait from '../../../shared/images/default-portrait.png';
 import { useModal } from './ModalManager.jsx';
 import { useNotification } from './NotificationManager.jsx';
 import styles from './PartySetup.module.css';
+import { savePartyState, loadPartyState } from '../utils/partyStorage';
 
 // Make sure PartyCharacter is exported
 export interface PartyCharacter extends Character {
@@ -76,6 +77,34 @@ const PartySetup: React.FC = () => {
       }))
     );
   }, []);
+
+  useEffect(() => {
+    const saved = loadPartyState();
+    if (saved && saved.members.length > 0 && selectedCharacters.length === 0) {
+      const chars: PartyCharacter[] = saved.members
+        .map(m => {
+          const cls = allClasses.find(c => c.id === m.class);
+          if (!cls) return null;
+          return {
+            id: `${cls.id}-${Math.random().toString(36).slice(2)}`,
+            name: cls.name,
+            class: cls.id,
+            portrait: cls.portrait || defaultPortrait,
+            description: cls.description || 'No description available.',
+            stats: { hp: 30, energy: 3 },
+            deck: [],
+            survival: { hunger: 0, thirst: 0, fatigue: 0 },
+            assignedCards: m.cards
+              .map(cid => sampleCards.find(c => c.id === cid))
+              .filter(Boolean) as Card[],
+          } as PartyCharacter;
+        })
+        .filter(Boolean) as PartyCharacter[];
+      if (chars.length) {
+        setSelectedCharacters(chars);
+      }
+    }
+  }, [selectedCharacters.length]);
 
   useEffect(() => {
     const partyData: Party = {
@@ -144,6 +173,17 @@ const PartySetup: React.FC = () => {
       }
       return pc;
     }));
+  };
+
+  const handleSaveParty = () => {
+    const state = {
+      members: selectedCharacters.map(pc => ({
+        class: pc.class,
+        cards: pc.assignedCards.map(c => c.id),
+      })),
+    };
+    savePartyState(state);
+    notify('Party saved', 'success');
   };
 
   const handleRerollClasses = () => {
@@ -279,6 +319,9 @@ const PartySetup: React.FC = () => {
       {/* PartySummary will have its own internal styling or use passed classNames */}
 
       <div className={styles.navigationButtons}>
+        <button onClick={handleSaveParty} className={styles.saveButton}>
+          Save Party
+        </button>
         <button onClick={() => navigate('/town')} className={styles.backButton}>
           Back to Town
         </button>
