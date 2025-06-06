@@ -18,6 +18,8 @@ export default class BattleScene extends Phaser.Scene {
   constructor() {
     super('battle')
     this.biome = null
+    this.selectedCard = null
+    this.cardOptionTexts = []
   }
 
   preload() {
@@ -112,6 +114,84 @@ export default class BattleScene extends Phaser.Scene {
     }
   }
 
+  displayCardOptions() {
+    const player = this.party[0]
+    if (!player) {
+      this.startBattle()
+      return
+    }
+    player.deck.forEach((card, idx) => {
+      const txt = this.add
+        .text(100 + idx * 120, 500, card.name, {
+          fontSize: '16px',
+          backgroundColor: '#ddd',
+          padding: 5,
+        })
+        .setInteractive()
+      txt.cardData = card
+      this.cardOptionTexts.push(txt)
+    })
+    this.input.on('gameobjectdown', (pointer, gameObject) => {
+      if (!this.selectedCard && gameObject.cardData) {
+        this.selectedCard = gameObject.cardData
+        this.cardOptionTexts.forEach((t) => t.destroy())
+        this.cardOptionTexts = []
+        this.startBattle()
+      }
+    })
+  }
+
+  initializeCombatants() {
+    this.combatants = [
+      ...this.party.map((c, idx) => ({
+        type: 'player',
+        data: c,
+        hp: c.stats.hp,
+        speed: c.stats.speed,
+        statusEffects: [],
+        position: idx,
+      })),
+      ...this.enemies.map((e, idx) => ({
+        type: 'enemy',
+        data: e,
+        hp: e.stats.hp,
+        speed: e.stats.speed,
+        statusEffects: [],
+        position: idx,
+      })),
+    ]
+    this.turnOrder = this.combatants.sort((a, b) => b.speed - a.speed)
+    this.turnIndex = 0
+    this.turnNumber = 0
+    this.isFirstCard = true
+  }
+
+  startBattle() {
+    this.input.off('gameobjectdown')
+    this.drawBattlefield()
+    this.startTurn()
+  }
+
+  selectEnemyTarget() {
+    return this.turnOrder.find((c) => c.type === 'enemy' && c.hp > 0)
+  }
+
+  performCardAction(card, target) {
+    if (!card || !target) return
+    // basic effect handling for automated use
+    if (card.effect?.type === 'damage') {
+      const dmg = card.effect.magnitude || card.effect.value || 0
+      target.hp -= dmg
+      this.showFloat(`-${dmg}`, target, '#ff4444')
+    }
+    if (card.effect?.type === 'heal') {
+      const heal = card.effect.magnitude || card.effect.value || 0
+      this.current.hp = Math.min(this.current.data.stats.hp, this.current.hp + heal)
+      this.showFloat(`+${heal}`, this.current, '#44ff44')
+    }
+    this.updateHealth()
+  }
+
   init(data) {
     this.roomIndex = data.roomIndex || 0
   }
@@ -140,32 +220,8 @@ export default class BattleScene extends Phaser.Scene {
     this.biome = biome
     applyBiomeBonuses(biome, this.enemies)
     this.activeEvent = state.activeEvent || null
-
-    this.combatants = [
-      ...this.party.map((c, idx) => ({
-        type: 'player',
-        data: c,
-        hp: c.stats.hp,
-        speed: c.stats.speed,
-        statusEffects: [],
-        position: idx,
-      })),
-      ...this.enemies.map((e, idx) => ({
-        type: 'enemy',
-        data: e,
-        hp: e.stats.hp,
-        speed: e.stats.speed,
-        statusEffects: [],
-        position: idx,
-      })),
-    ]
-    this.turnOrder = this.combatants.sort((a, b) => b.speed - a.speed)
-    this.turnIndex = 0
-    this.turnNumber = 0
-    this.isFirstCard = true
-
-    this.drawBattlefield()
-    this.startTurn()
+    this.initializeCombatants()
+    this.displayCardOptions()
   }
 
   drawBattlefield() {
@@ -238,9 +294,17 @@ export default class BattleScene extends Phaser.Scene {
     }
 
     if (this.current.type === 'player') {
-      this.current.data.hand = []
-      this.draw(this.current, 2)
-      this.showPlayerCards()
+      if (this.selectedCard) {
+        const target = this.selectEnemyTarget()
+        this.time.delayedCall(300, () => {
+          this.performCardAction(this.selectedCard, target)
+          this.nextTurn()
+        })
+      } else {
+        this.current.data.hand = []
+        this.draw(this.current, 2)
+        this.showPlayerCards()
+      }
     } else {
       this.time.delayedCall(500, () => {
         this.enemyAction()
