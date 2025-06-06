@@ -1,6 +1,7 @@
 import React from 'react';
 import type { PartyCharacter } from './PartySetup';
 import { classes as allClasses } from '../../../shared/models/classes.js';
+import defaultPortrait from '../../../shared/images/default-portrait.png';
 import styles from './PartySummary.module.css';
 
 interface PartySummaryProps {
@@ -29,6 +30,19 @@ const calculateAverage = (values: Array<number | undefined>): string => {
   if (valid.length === 0) return '—';
   const sum = valid.reduce((acc, v) => acc + v, 0);
   return (sum / valid.length).toFixed(2);
+};
+
+const getPortraitSrc = (character: PartyCharacter): string => {
+  return character.portrait || defaultPortrait;
+};
+
+const handlePortraitError = (
+  e: React.SyntheticEvent<HTMLImageElement, Event>,
+) => {
+  const target = e.currentTarget;
+  if (target.src !== defaultPortrait) {
+    target.src = defaultPortrait;
+  }
 };
 
 const PartySummary: React.FC<PartySummaryProps> = ({ selectedCharacters }) => {
@@ -73,23 +87,15 @@ const PartySummary: React.FC<PartySummaryProps> = ({ selectedCharacters }) => {
       {selectedCharacters.map(character => {
         const role = getRole(character.class);
         const badgeStyle = { backgroundColor: roleColors[role] } as React.CSSProperties;
-        const initials = character.name
-          .split(' ')
-          .map(w => w[0])
-          .join('')
-          .slice(0, 2)
-          .toUpperCase();
         return (
           <div key={character.id} className={styles.characterItem}>
-            {character.portrait ? (
-              <img
-                src={character.portrait}
-                alt={character.name}
-                className={styles.characterIcon}
-              />
-            ) : (
-              <div className={styles.characterIcon}>{initials}</div>
-            )}
+            <img
+              src={getPortraitSrc(character)}
+              alt={character.name}
+              title={getClassName(character.class)}
+              className={styles.characterIcon}
+              onError={handlePortraitError}
+            />
             <div>
               <strong>{character.name}</strong>
               <div>
