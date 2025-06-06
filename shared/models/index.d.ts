@@ -29,3 +29,4 @@ export const classes: {
 }[]
 export const biomes: Biome[]
 export const dungeonEvents: DungeonEvent[]
+export const roomEvents: DungeonEvent[]
