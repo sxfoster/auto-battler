@@ -33,7 +33,7 @@ export const sampleCharacters = [
     id: 'cleric',
     name: 'Cleric',
     class: Class.Cleric,
-    portrait: '',
+    portrait: '../../../shared/images/cleric-portrait.png',
     description: '',
     stats: { hp: 25, energy: 3, speed: 1 },
     deck: [sampleCards[1], sampleCards[0], sampleCards[3], sampleCards[1]],
