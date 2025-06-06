@@ -4,6 +4,7 @@ import { useEffect, useRef } from 'react'
 import { CSSTransition, SwitchTransition } from 'react-transition-group'
 import MainMenu from './components/MainMenu.jsx'
 import PartySetup from './components/PartySetup.tsx'
+import PreBattleSetup from './components/PreBattleSetup.tsx'
 import DungeonMap from './components/DungeonMap.tsx'
 import TownView from './components/TownView.tsx'
 import InventoryPage from './components/InventoryPage.tsx'
@@ -41,6 +42,7 @@ function AnimatedRoutes() {
           <Route path="/cards" element={<CollectionPage />} />
           <Route path="/crafting" element={<CraftingPage />} />
           <Route path="/shop" element={<ShopPage />} />
+          <Route path="/pre-battle" element={<PreBattleSetup />} />
           <Route path="/battle" element={<BattleScene />} />
           <Route path="/decks" element={<DeckManager />} />
         </Routes>
