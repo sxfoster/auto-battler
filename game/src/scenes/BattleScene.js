@@ -6,6 +6,7 @@ import { chooseEnemyAction, trackEnemyActions, chooseTarget } from 'shared/syste
 import { canUseAbility, applyCooldown, tickCooldowns } from 'shared/systems/abilities.js'
 import { floatingText } from '../effects.js'
 import { loadGameState } from '../state'
+import { partyState, loadPartyState } from '../shared/partyState.js'
 import {
   STATUS_META,
   addStatusEffect,
@@ -117,18 +118,8 @@ export default class BattleScene extends Phaser.Scene {
   }
 
   create() {
-    const partyDataJSON = localStorage.getItem('partyData')
-    if (partyDataJSON) {
-      try {
-        const parsed = JSON.parse(partyDataJSON)
-        this.party = Array.isArray(parsed) ? parsed : parsed.characters || []
-      } catch (e) {
-        console.error('Failed to parse party data', e)
-        this.party = []
-      }
-    } else {
-      this.party = []
-    }
+    loadPartyState()
+    this.party = partyState.members
 
     const dungeon = this.scene.get('dungeon')
     this.enemy = dungeon.rooms[this.roomIndex].enemy
