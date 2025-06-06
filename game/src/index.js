@@ -3,6 +3,7 @@ import BattleScene from './scenes/BattleScene'
 import DungeonScene from './scenes/DungeonScene'
 import DecisionScene from './scenes/DecisionScene'
 import TownScene from './scenes/TownScene'
+import { loadPartyState } from './shared/partyState.js'
 
 const config = {
   type: Phaser.AUTO,
@@ -12,4 +13,5 @@ const config = {
   scene: [TownScene, DungeonScene, BattleScene, DecisionScene],
 }
 
+loadPartyState()
 new Phaser.Game(config)
