@@ -18,7 +18,10 @@ const CharacterCard: React.FC<CharacterCardProps> = ({ character, onSelect, isSe
     DPS: '#e74c3c',
   }
 
-  const clsInfo = allClasses.find((c) => c.id === character.class)
+  const clsInfo = allClasses.find((c) => c.id === character.class || c.name === character.class)
+  if (!clsInfo) {
+    console.error(`Unknown class id: ${character.class}`)
+  }
   const roleColor = roleColors[clsInfo?.role || 'DPS']
 
   const cardStyle: React.CSSProperties = {
