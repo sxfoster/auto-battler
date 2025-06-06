@@ -40,13 +40,21 @@ const PartySetup: React.FC = () => {
   const save = useGameStore(state => state.save);
   const availableClasses = useGameStore(state => state.availableClasses);
   const setAvailableClasses = useGameStore(state => state.setAvailableClasses);
+  const load = useGameStore(state => state.load);
+
+  // Ensure game state is loaded when arriving via client-side navigation
+  useEffect(() => {
+    if (availableClasses.length === 0 && selectedCharacters.length === 0) {
+      load();
+    }
+  }, [availableClasses.length, selectedCharacters.length, load]);
 
   useEffect(() => {
     if (availableClasses.length === 0 && selectedCharacters.length < 5) {
       const remaining = allClasses.filter(c => !selectedCharacters.find(pc => pc.class === c.name));
       setAvailableClasses(getRandomClasses(Math.min(4, remaining.length), remaining));
     }
-  }, [availableClasses.length, selectedCharacters, setAvailableClasses]);
+  }, [availableClasses.length, selectedCharacters, setAvailableClasses, load]);
 
   useEffect(() => {
     setAvailableCards(
