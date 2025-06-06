@@ -116,3 +116,10 @@ active combatant, crafting attempts trigger success or failure
 notifications, and moving through the dungeon surfaces loot and
 combat results with animated toasts. These effects make it easier to
 follow the flow of battle and other game events.
+
+## Contributing
+
+Bug reports and pull requests are welcome. If you plan to make a major
+change, please open an issue first to discuss what you would like to
+modify.
+

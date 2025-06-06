@@ -12,3 +12,8 @@ combat overlay.
 - `npm start` – start the Vite dev server.
 - `npm run build` – create a production build in `dist/`.
 - `npm run lint` – run ESLint over the source files.
+
+## Contributing
+
+For contribution guidelines see the repository [README](../README.md).
+

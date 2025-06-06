@@ -11,3 +11,8 @@ auto‑battler logic shown in the client's combat overlay.
 
 - `npm start` – launch the dev server on <http://localhost:8080>.
 - `npm run build` – create a production build.
+
+## Contributing
+
+For contribution guidelines see the repository [README](../README.md).
+
