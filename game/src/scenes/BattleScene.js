@@ -2,6 +2,7 @@ import Phaser from 'phaser'
 import { applyRolePenalty, getSynergyBonuses } from 'shared/systems/classRole.js'
 import { applyBiomeBonuses, getCurrentBiome } from 'shared/systems/biome.js'
 import { applyEventEffects } from 'shared/systems/floorEvents.js'
+import { chooseEnemyAction, trackEnemyActions } from 'shared/systems/enemyAI.js'
 import { loadGameState } from '../state'
 
 export default class BattleScene extends Phaser.Scene {
@@ -31,6 +32,7 @@ export default class BattleScene extends Phaser.Scene {
     this.enemy = dungeon.rooms[this.roomIndex].enemy
     // clone enemy so we can modify stats
     this.enemies = [JSON.parse(JSON.stringify(this.enemy))]
+    this.enemyGroup = { lastUsedCards: [] }
     const state = loadGameState()
     const biome = getCurrentBiome(state)
     applyBiomeBonuses(biome, this.enemies)
@@ -130,8 +132,13 @@ export default class BattleScene extends Phaser.Scene {
   }
 
   enemyAction() {
-    const card = this.current.data.deck[0]
+    const context = { currentTurn: this.turnNumber, group: this.enemyGroup }
+    const card = chooseEnemyAction(this.current.data, context)
     const target = this.party[0]
+    if (card.isComboFinisher) {
+      console.log(`${this.current.data.name} executes combo ${card.synergyTag}`)
+    }
+    trackEnemyActions(this.current.data, card, this.turnNumber, this.enemyGroup)
     this.resolveCard(
       card,
       this.current,

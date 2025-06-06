@@ -6,6 +6,14 @@ export interface AIProfile {
   behavior: string
   /** Value from 0-1 representing how likely the enemy is to attack */
   aggressiveness: number
+  /** Whether the AI attempts to chain combo cards */
+  enableComboAwareness?: boolean
+  /** Turns within which a starter and finisher can connect */
+  comboWindowTurns?: number
+  /** If true, prefers to play finishers when possible */
+  prefersFinisherChains?: boolean
+  /** Preferred combo tags when multiple options exist */
+  preferredComboTags?: string[]
 }
 
 export interface Enemy {
@@ -19,4 +27,6 @@ export interface Enemy {
   deck: Card[]
   /** AI behavior profile */
   aiProfile: AIProfile
+  /** Memory of recently used cards for combo logic */
+  lastUsedCards?: { card: Card; turn: number }[]
 }

@@ -1,5 +1,6 @@
 import Phaser from 'phaser'
 import { enemies } from 'shared/models'
+import { chooseEnemyAction, trackEnemyActions } from 'shared/systems/enemyAI.js'
 
 interface SceneData {
   enemyIndex?: number
@@ -13,6 +14,8 @@ export default class BattleScene extends Phaser.Scene {
   private combatants: any[] = []
   private turnOrder: any[] = []
   private turnIndex = 0
+  private turnNumber = 0
+  private enemyGroup: any = { lastUsedCards: [] }
   private playerSprites: any[] = []
   private enemySprites: any[] = []
   private turnText!: Phaser.GameObjects.Text
@@ -92,6 +95,7 @@ export default class BattleScene extends Phaser.Scene {
   private startTurn() {
     if (this.checkEnd()) return
     this.current = this.turnOrder[this.turnIndex % this.turnOrder.length]
+    this.turnNumber += 1
     this.turnText.setText(`${this.current.data.name}'s turn`)
 
     if (this.current.type === 'player') {
@@ -123,9 +127,18 @@ export default class BattleScene extends Phaser.Scene {
   }
 
   private enemyAction() {
-    const card = this.current.data.deck[0]
+    const context = { currentTurn: this.turnNumber, group: this.enemyGroup }
+    const card = chooseEnemyAction(this.current.data, context)
     const target = this.party[0]
-    this.resolveCard(card, this.current, this.turnOrder.find((c) => c.data.id === target.id))
+    if (card.isComboFinisher) {
+      console.log(`${this.current.data.name} executes combo ${card.synergyTag}`)
+    }
+    trackEnemyActions(this.current.data, card, this.turnNumber, this.enemyGroup)
+    this.resolveCard(
+      card,
+      this.current,
+      this.turnOrder.find((c) => c.data.id === target.id)
+    )
   }
 
   private resolveCard(card: any, actor: any, target: any) {
