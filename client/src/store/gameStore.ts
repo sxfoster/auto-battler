@@ -3,6 +3,7 @@ import type { Party } from '../../shared/models/Party'
 import type { GameState } from '../../shared/models/GameState'
 import type { DungeonData } from '../utils/generateDungeon'
 import type { DungeonMap } from '../../shared/models/DungeonMap'
+import type { Role } from '../../shared/models/Card'
 
 const defaultState: GameState = {
   currentFloor: 1,
@@ -33,6 +34,11 @@ interface Store {
   explored: Set<string>
   setExplored: (explored: Set<string>) => void
 
+  availableClasses: { name: string; description: string; role: Role; allowedCards: string[] }[]
+  setAvailableClasses: (
+    classes: { name: string; description: string; role: Role; allowedCards: string[] }[],
+  ) => void
+
   save: () => void
   load: () => void
 }
@@ -57,8 +63,20 @@ export const useGameStore = create<Store>((set, get) => ({
   explored: new Set<string>(),
   setExplored: (explored) => set({ explored }),
 
+  availableClasses: [],
+  setAvailableClasses: (classes) => set({ availableClasses: classes }),
+
   save: () => {
-    const { party, gameState, dungeon, dungeonMap, currentRoom, playerPos, explored } = get()
+    const {
+      party,
+      gameState,
+      dungeon,
+      dungeonMap,
+      currentRoom,
+      playerPos,
+      explored,
+      availableClasses,
+    } = get()
     const data = {
       party,
       gameState,
@@ -67,6 +85,7 @@ export const useGameStore = create<Store>((set, get) => ({
       currentRoom,
       playerPos,
       explored: Array.from(explored),
+      availableClasses,
     }
     localStorage.setItem('gameData', JSON.stringify(data))
   },
@@ -83,6 +102,7 @@ export const useGameStore = create<Store>((set, get) => ({
         currentRoom: data.currentRoom ?? null,
         playerPos: data.playerPos ?? null,
         explored: new Set<string>(data.explored || []),
+        availableClasses: data.availableClasses ?? [],
       })
     } catch (e) {
       console.error('Failed to load game data', e)

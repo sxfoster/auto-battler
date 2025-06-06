@@ -9,6 +9,8 @@ import type { Party } from '../../../shared/models/Party';
 // Mock data for characters and cards - replace with actual data fetching or imports
 import { sampleCharacters } from '../../../shared/models/characters.js';
 import { sampleCards } from '../../../shared/models/cards.js';
+import { classes as allClasses } from '../../../shared/models/classes.js';
+import { getRandomClasses } from '../utils/randomizeClasses';
 
 import CharacterCard from './CharacterCard'; // Import CharacterCard
 import CardAssignmentPanel from './CardAssignmentPanel'; // Import
@@ -30,25 +32,36 @@ const PartySetup: React.FC = () => {
   const setParty = useGameStore(state => state.setParty);
   const updateGameState = useGameStore(state => state.updateGameState);
   const save = useGameStore(state => state.save);
+  const availableClasses = useGameStore(state => state.availableClasses);
+  const setAvailableClasses = useGameStore(state => state.setAvailableClasses);
 
   useEffect(() => {
-    // Initialize available characters and cards
-    // In a real app, this might involve fetching data from an API
-    setAvailableCharacters(sampleCharacters.map(sc => ({
-      ...sc,
-      // Ensure all fields from the Character interface are present
-      portrait: sc.portrait || 'default-portrait.png', // Provide a default if not present
-      description: sc.description || 'No description available.', // Default description
-      stats: sc.stats || { hp: 0, energy: 0 }, // Default stats
-      deck: sc.deck || [], // Default deck
-      survival: sc.survival || { hunger: 0, thirst: 0, fatigue: 0 } // Default survival stats
-    })));
-    setAvailableCards(sampleCards.map(sc => ({
-      ...sc,
-      // Ensure all fields from the Card interface are present
-      description: sc.description || 'No effect description.' // Default description
-    })));
-  }, []);
+    if (availableClasses.length === 0) {
+      setAvailableClasses(getRandomClasses(4, allClasses));
+    }
+  }, [availableClasses, setAvailableClasses]);
+
+  useEffect(() => {
+    const allowed = new Set(availableClasses.map(c => c.name));
+    setAvailableCharacters(
+      sampleCharacters
+        .filter(sc => allowed.has(sc.class))
+        .map(sc => ({
+          ...sc,
+          portrait: sc.portrait || 'default-portrait.png',
+          description: sc.description || 'No description available.',
+          stats: sc.stats || { hp: 0, energy: 0 },
+          deck: sc.deck || [],
+          survival: sc.survival || { hunger: 0, thirst: 0, fatigue: 0 },
+        }))
+    );
+    setAvailableCards(
+      sampleCards.map(sc => ({
+        ...sc,
+        description: sc.description || 'No effect description.',
+      }))
+    );
+  }, [availableClasses]);
 
   useEffect(() => {
     const partyData: Party = {
@@ -102,6 +115,11 @@ const PartySetup: React.FC = () => {
     }));
   };
 
+  const handleRerollClasses = () => {
+    setAvailableClasses(getRandomClasses(4, allClasses));
+    setSelectedCharacters([]);
+  };
+
   const { open, close } = useModal();
 
   const handleStartGame = () => {
@@ -142,6 +160,10 @@ const PartySetup: React.FC = () => {
   return (
     <div className={styles.screen}> {/* Apply .screen class */}
       <h1 className={styles.title}>Party Setup</h1> {/* Apply .title class */}
+      <div style={{ textAlign: 'center', marginBottom: '1rem' }}>
+        <p>Available Classes: {availableClasses.map(c => c.name).join(', ')}</p>
+        <button onClick={handleRerollClasses}>Reroll Classes</button>
+      </div>
 
       {/* Character Selection Section */}
       <div className={styles.characterSelectionArea}>
