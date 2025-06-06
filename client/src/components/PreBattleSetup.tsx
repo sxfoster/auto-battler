@@ -8,6 +8,7 @@ import CardAssignmentPanel from './CardAssignmentPanel'
 import { saveFormation, loadFormation } from '../../../src/game/SetupManager'
 import type { Formation, Position } from '../../../src/game/Formation'
 import styles from './PreBattleSetup.module.css'
+import defaultPortrait from '../../../shared/images/default-portrait.png'
 
 const GRID_SIZE = 3
 
@@ -106,12 +107,22 @@ const PreBattleSetup: React.FC = () => {
                       draggable
                       onDragStart={() => handleDragStart(occupant.id)}
                       onClick={() => setSelectedId(occupant.id)}
-                      className={`${styles.unit} ${selectedId === occupant.id ? styles.unitSelected : ''}`}
+                      className={`${styles.unitCard} ${selectedId === occupant.id ? styles.unitSelected : ''}`}
                     >
-                      {occupant.name}
+                      <img
+                        src={occupant.portrait || defaultPortrait}
+                        alt={occupant.name}
+                        className={styles.portrait}
+                        onError={e => {
+                          if ((e.currentTarget as HTMLImageElement).src !== defaultPortrait) {
+                            (e.currentTarget as HTMLImageElement).src = defaultPortrait
+                          }
+                        }}
+                      />
+                      <span className={styles.unitName}>{occupant.name}</span>
                     </div>
                   ) : (
-                    'Empty'
+                    <div className={styles.emptySlot}>+</div>
                   )}
                 </div>
               )
@@ -127,7 +138,17 @@ const PreBattleSetup: React.FC = () => {
               onClick={() => setSelectedId(c.id)}
               className={`${styles.unit} ${selectedId === c.id ? styles.unitSelected : ''}`}
             >
-              {c.name}
+              <img
+                src={c.portrait || defaultPortrait}
+                alt={c.name}
+                className={styles.portraitSmall}
+                onError={e => {
+                  if ((e.currentTarget as HTMLImageElement).src !== defaultPortrait) {
+                    (e.currentTarget as HTMLImageElement).src = defaultPortrait
+                  }
+                }}
+              />
+              <span className={styles.unitName}>{c.name}</span>
             </div>
           ))}
         </div>
