@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useGameState } from '../GameStateProvider.jsx'
 import { generateDungeonMap } from '../utils/generateDungeonMap'
+import { triggerRoomEvent } from 'shared/systems'
 import GameView from './GameView'
 import CombatOverlay from './CombatOverlay'
 import './DungeonMap.module.css'
@@ -34,7 +35,7 @@ export default function DungeonMap() {
   const [enemies, setEnemies] = useState([])
   const [log, setLog] = useState<string[]>([])
   const [banner, setBanner] = useState(false)
-  const [roomEvent, setRoomEvent] = useState<string | null>(null)
+  const [roomEvent, setRoomEvent] = useState<any | null>(null)
   const [summary, setSummary] = useState(false)
 
   useEffect(() => {
@@ -63,6 +64,18 @@ export default function DungeonMap() {
     setCurrentRoom(id)
     setExplored(new Set([...Array.from(explored), id]))
     const next = dungeonMap.rooms[id]
+    if (next.event) {
+      const ev = triggerRoomEvent(next, gameState)
+      setRoomEvent(ev)
+      if (ev?.effectType === 'ambush') {
+        setBanner(true)
+        setTimeout(() => {
+          setBanner(false)
+          setBattleRoom(id)
+        }, 600)
+        return
+      }
+    }
     if (next.type === 'enemy' || next.type === 'boss') {
       setBanner(true)
       setTimeout(() => {
@@ -177,13 +190,20 @@ export default function DungeonMap() {
         <div className="battle-overlay">
           <div style={{ background: '#222', padding: 20, borderRadius: 8 }}>
             <p>
-              {roomEvent === 'treasure' && 'You found treasure!'}
-              {roomEvent === 'trap' && 'A trap sprung!'}
-              {roomEvent === 'rest' && 'You take a moment to rest.'}
-              {roomEvent === 'exit' && 'You found the exit!'}
+              {typeof roomEvent === 'string' && roomEvent === 'treasure' && 'You found treasure!'}
+              {typeof roomEvent === 'string' && roomEvent === 'trap' && 'A trap sprung!'}
+              {typeof roomEvent === 'string' && roomEvent === 'rest' && 'You take a moment to rest.'}
+              {typeof roomEvent === 'string' && roomEvent === 'exit' && 'You found the exit!'}
+              {typeof roomEvent !== 'string' && (
+                <>
+                  <strong>{roomEvent.name}</strong>
+                  <br />
+                  {roomEvent.description}
+                </>
+              )}
             </p>
             <div style={{ textAlign: 'center', marginTop: 10 }}>
-              <button onClick={() => { setRoomEvent(null); if (roomEvent === 'exit') setSummary(true) }}>Continue</button>
+              <button onClick={() => { setRoomEvent(null); if (roomEvent === 'exit' || roomEvent?.id === 'exit') setSummary(true) }}>Continue</button>
             </div>
           </div>
         </div>

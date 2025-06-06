@@ -1,4 +1,5 @@
-import type { DungeonMap, Room, RoomType } from 'shared/models'
+import type { DungeonMap, Room, RoomType, DungeonEvent } from 'shared/models'
+import { roomEvents } from 'shared/models'
 
 export function generateDungeonMap(size = 5): DungeonMap {
   const rooms: Record<string, Room> = {}
@@ -25,7 +26,12 @@ export function generateDungeonMap(size = 5): DungeonMap {
       } else {
         type = types[Math.floor(Math.random() * types.length)] as RoomType
       }
-      rooms[id] = { id, x, y, type, connections }
+      let event: DungeonEvent | null = null
+      if (id !== '0-0' && Math.random() < 0.2) {
+        const ev = roomEvents[Math.floor(Math.random() * roomEvents.length)]
+        event = JSON.parse(JSON.stringify(ev))
+      }
+      rooms[id] = { id, x, y, type, connections, event }
     }
   }
   return { rooms, startRoomId: '0-0' }
