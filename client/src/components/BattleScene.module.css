@@ -17,28 +17,6 @@
   gap: 0.5rem;
   justify-items: center;
 }
-.unit {
-  background: #232429;
-  color: #fff;
-  border-radius: 8px;
-  padding: 0.5rem;
-  width: 100%;
-  max-width: 120px;
-  text-align: center;
-  position: relative;
-  transition: box-shadow 0.2s, transform 0.2s;
-}
-.unit.active {
-  box-shadow: 0 0 8px #646cff;
-  border: 2px solid #646cff;
-}
-.unit.inactive {
-  opacity: 0.4;
-}
-.status {
-  font-size: 0.75rem;
-  margin-top: 0.25rem;
-}
 .controls {
   margin-top: 1rem;
 }
