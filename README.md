@@ -60,24 +60,19 @@ cd game && npm run build
 ```
 
 
-## Encounter Flow and Data
+## Data Flow Between React and Phaser
 
-The game progresses through a defined encounter flow:
+When a party has been finalized in the React UI, clicking **Start Game**
+stores the party under the `partyData` key in `localStorage`. Basic dungeon
+progress is also saved for the session. The Phaser scenes read these values on
+load to render the map and launch battles using the chosen characters.
 
-1.  **Card Assignment Phase (React UI)**: The player equips ability, equipment, and other cards to each character in their party within the React-based interface.
-2.  **Enter Dungeon (React UI to Phaser)**: Clicking "Start Game" in the React UI stores the `partyData` (including assigned cards and character stats) and any existing dungeon progress in `localStorage`.
-3.  **Navigate Map (Phaser)**: The Phaser game instance reads `localStorage` to initialize the dungeon. Players navigate a procedurally generated map, node by node. Nodes can trigger:
-    *   Combat encounters
-    *   Loot discovery
-    *   Random events
-    *   Rest spots
-    *   Traps
-4.  **Combat Phase (Phaser)**: When a combat node is entered, an auto-battle sequence begins. Character actions are determined by their assigned cards, AI logic, speed, and in-game context.
-5.  **Post-Battle (Phaser to React UI/localStorage)**: After combat resolution (victory or defeat), characters gain loot. Fatigue, Hunger, and Thirst stats are updated. This updated game state is saved back to `localStorage`.
-6.  **Rest (Phaser/React UI)**: Players can use Food/Drink cards to recover character stats or apply temporary buffs. This can occur on designated rest spot nodes in Phaser or potentially managed via the React UI between dungeon runs.
-7.  **Continue or Exit (Phaser/React UI)**: Players can choose to advance to deeper dungeon floors (Phaser) or exit the current dungeon run, returning to the main React UI.
+## Interactive Dungeon Map
 
-The React client primarily handles party setup, card management, and overall game state display, while Phaser manages the interactive dungeon exploration, combat mechanics, and immediate post-battle updates. `localStorage` acts as the bridge for transferring critical game data between these two components.
+A grid-based map lets you explore each floor by clicking adjacent rooms. Entering
+an enemy room briefly displays an "encounter" banner before the battle overlay
+opens. After victory or defeat, you return to the map with your explored rooms
+intact.
 
 
 ## License

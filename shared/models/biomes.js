@@ -1,15 +1,3 @@
-/**
- * @fileoverview This file contains a list of all possible biomes in the game.
- * Each biome is an object with the following properties:
- *  - id: string - A unique identifier for the biome.
- *  - name: string - The display name of the biome.
- *  - description: string - A short description of the biome.
- *  - bonuses: object[] - A list of bonuses that apply in this biome. Each bonus object has the following properties:
- *    - type: string - The type of bonus (e.g., "EffectModifier", "StatModifier", "Trigger", "Immunity", "ResourceChange").
- *    - target: string - Who the bonus applies to (e.g., "all", "undead", "caster", "aquatic", "shadow").
- *    - effectDetails: object - Details of the bonus effect, which varies depending on the bonus type.
- */
-/** @type {import('./Biome').Biome[]} */
 export const biomes = [
   {
     id: 'fungal-depths',

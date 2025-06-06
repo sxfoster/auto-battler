@@ -29,6 +29,3 @@ export const classes: {
 }[]
 export const biomes: Biome[]
 export const dungeonEvents: DungeonEvent[]
-export const sampleCards: import('./Card').Card[]
-export const sampleCharacters: Character[]
-export const sampleRecipes: import('./Recipe').Recipe[]
