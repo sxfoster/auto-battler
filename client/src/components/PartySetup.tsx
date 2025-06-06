@@ -16,6 +16,7 @@ import CardAssignmentPanel from './CardAssignmentPanel'; // Import
 import PartySummary from './PartySummary'; // Import PartySummary
 import defaultPortrait from '../../../shared/images/default-portrait.png';
 import { useModal } from './ModalManager.jsx';
+import { useNotification } from './NotificationManager.jsx';
 import styles from './PartySetup.module.css';
 
 // Make sure PartyCharacter is exported
@@ -27,6 +28,10 @@ const PartySetup: React.FC = () => {
   const [selectedCharacters, setSelectedCharacters] = useState<PartyCharacter[]>([]);
   const [availableCards, setAvailableCards] = useState<Card[]>([]);
   const [isRerolling, setIsRerolling] = useState(false);
+  const [rerollCount, setRerollCount] = useState(0);
+  const [undoCount, setUndoCount] = useState(0);
+  const [rerollFlash, setRerollFlash] = useState(false);
+  const [undoFlash, setUndoFlash] = useState(false);
 
   const roleColors: Record<string, string> = {
     Tank: '#2980b9',
@@ -42,6 +47,12 @@ const PartySetup: React.FC = () => {
   const availableClasses = useGameStore(state => state.availableClasses);
   const setAvailableClasses = useGameStore(state => state.setAvailableClasses);
   const load = useGameStore(state => state.load);
+
+  // Reset limits when starting a new setup session
+  useEffect(() => {
+    setRerollCount(0);
+    setUndoCount(0);
+  }, []);
 
   // Ensure game state is loaded when arriving via client-side navigation
   useEffect(() => {
@@ -136,14 +147,49 @@ const PartySetup: React.FC = () => {
   };
 
   const handleRerollClasses = () => {
+    if (rerollCount >= 2) {
+      notify('Maximum rerolls reached', 'error');
+      setRerollFlash(true);
+      setTimeout(() => setRerollFlash(false), 500);
+      return;
+    }
     if (isRerolling) return;
     setIsRerolling(true);
     const remaining = allClasses.filter(c => !selectedCharacters.find(pc => pc.class === c.id));
     setAvailableClasses(getRandomClasses(Math.min(4, remaining.length), remaining));
     setTimeout(() => setIsRerolling(false), 500);
+    setRerollCount(c => {
+      const next = c + 1;
+      if (next >= 2) {
+        setRerollFlash(true);
+        setTimeout(() => setRerollFlash(false), 500);
+      }
+      return next;
+    });
+  };
+
+  const handleUndoLastPick = () => {
+    if (undoCount >= 2) {
+      notify('Maximum undos reached', 'error');
+      setUndoFlash(true);
+      setTimeout(() => setUndoFlash(false), 500);
+      return;
+    }
+    const last = selectedCharacters[selectedCharacters.length - 1];
+    if (!last) return;
+    handleClassRemove(last.id);
+    setUndoCount(c => {
+      const next = c + 1;
+      if (next >= 2) {
+        setUndoFlash(true);
+        setTimeout(() => setUndoFlash(false), 500);
+      }
+      return next;
+    });
   };
 
   const { open, close } = useModal();
+  const { notify } = useNotification();
 
   const handleStartGame = () => {
     const partyData: Party = {
@@ -194,14 +240,17 @@ const PartySetup: React.FC = () => {
             />
           ))}
           {availableClasses.length > 0 && (
-            <button
-              className={styles.rerollButton}
-              onClick={handleRerollClasses}
-              disabled={isRerolling}
-              title="Try a new set of classes for your adventure!"
-            >
-              Reroll Classes
-            </button>
+            <>
+              <button
+                className={`${styles.rerollButton} ${rerollFlash ? styles.disabledFlash : ''}`}
+                onClick={handleRerollClasses}
+                disabled={isRerolling || rerollCount >= 2}
+                title={rerollCount >= 2 ? 'Maximum rerolls reached' : 'Try a new set of classes for your adventure!'}
+              >
+                Reroll Classes
+              </button>
+              <span className={styles.actionCounter}>Rerolls left: {2 - rerollCount}</span>
+            </>
           )}
         </div>
 
@@ -210,9 +259,15 @@ const PartySetup: React.FC = () => {
       </p>
       {selectedCharacters.length > 0 && (
         <div style={{ textAlign: 'center', marginBottom: '1rem' }}>
-          <button className={`${styles.rerollButton} ${styles.undoButton}`} onClick={() => handleClassRemove(selectedCharacters[selectedCharacters.length - 1].id)}>
+          <button
+            className={`${styles.rerollButton} ${styles.undoButton} ${undoFlash ? styles.disabledFlash : ''}`}
+            onClick={handleUndoLastPick}
+            disabled={undoCount >= 2}
+            title={undoCount >= 2 ? 'Maximum undos reached' : 'Remove the most recently added class'}
+          >
             Undo Last Pick
           </button>
+          <span className={styles.actionCounter}>Undos left: {2 - undoCount}</span>
         </div>
       )}
 
