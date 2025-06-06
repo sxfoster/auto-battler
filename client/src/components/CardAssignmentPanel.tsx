@@ -18,7 +18,7 @@ const CardAssignmentPanel: React.FC<CardAssignmentPanelProps> = ({ character, av
   const [draftKey, setDraftKey] = useState(0)
 
   const assignedCardIds = new Set(character.assignedCards.map((c) => c.id))
-  const canAssignMoreCards = character.assignedCards.length < 4
+  const canAssignMoreCards = character.assignedCards.length < 2
 
   const getUsablePool = () => {
     return availableCards.filter(
@@ -122,7 +122,7 @@ const CardAssignmentPanel: React.FC<CardAssignmentPanelProps> = ({ character, av
         style={subSectionTitleStyle}
         title="Only two cards will be available at the start of battle"
       >
-        Battle Deck (draws 2): {character.assignedCards.length}/4
+        Battle Deck: {character.assignedCards.length}/2
       </h5>
       {character.assignedCards.length === 0 && (
         <p style={{ fontStyle: 'italic', color: '#7f8c8d' }}>No cards assigned yet.</p>
