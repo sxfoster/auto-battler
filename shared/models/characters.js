@@ -1,49 +1,52 @@
-import { sampleCards } from './cards.js';
-// import { classes } from './classes.js'; // classes import seems unused here, consider removing if not needed for other logic
-import { Class } from './Card.js'; // Import Class enum from Card.ts
+import { sampleCards } from './cards.js'
+import { classes } from './classes.js'
 
-/**
- * @fileoverview This file contains a list of sample characters for the game.
- * Each character is an object with the following properties:
- *  - id: string - A unique identifier for the character.
- *  - name: string - The display name of the character.
- *  - class: string - The class of the character (e.g., "Warrior", "Cleric", "Blademaster").
- *  - portrait: string - The path to the character's portrait image.
- *  - description: string - A short description of the character.
- *  - stats: object - The character's stats, including hp, energy, attack, defense, and speed.
- *  - deck: Card[] - An array of Card objects representing the character's starting deck.
- *  - survival: object - The character's survival stats, including hunger, thirst, and fatigue.
- */
-/** @type {import('./Character').Character[]} */
+export const Class = {
+  Guardian: 'Guardian',
+  Warrior: 'Warrior',
+  RunestoneSentinel: 'RunestoneSentinel',
+  Cleric: 'Cleric',
+  Herbalist: 'Herbalist',
+  Bloodweaver: 'Bloodweaver',
+  Bard: 'Bard',
+  Chronomancer: 'Chronomancer',
+  TotemWarden: 'TotemWarden',
+  Blademaster: 'Blademaster',
+  Wizard: 'Wizard',
+  Shadowblade: 'Shadowblade',
+  Ranger: 'Ranger',
+  Pyromancer: 'Pyromancer',
+}
+
 export const sampleCharacters = [
   {
-    id: 'warrior_01', // Changed id to be more unique if there were multiple warriors
-    name: 'Valerius',
+    id: 'warrior',
+    name: 'Warrior',
     class: Class.Warrior,
-    portrait: 'portraits/valerius_warrior.png',
-    description: 'A stalwart warrior, known for his unyielding defense and powerful blows. He seeks glory and treasure in the dark depths.',
-    stats: { hp: 30, energy: 3, attack: 7, defense: 5, speed: 2 }, // Added attack/defense
-    deck: [sampleCards.find(c => c.id === 'strike'), sampleCards.find(c => c.id === 'iron_sword'), sampleCards.find(c => c.id === 'strike'), sampleCards.find(c => c.id === 'strike')],
+    portrait: '',
+    description: '',
+    stats: { hp: 30, energy: 3, speed: 2 },
+    deck: [sampleCards[0], sampleCards[3], sampleCards[0], sampleCards[0]],
     survival: { hunger: 0, thirst: 0, fatigue: 0 },
   },
   {
-    id: 'cleric_01',
-    name: 'Seraphina',
+    id: 'cleric',
+    name: 'Cleric',
     class: Class.Cleric,
-    portrait: 'portraits/seraphina_cleric.png',
-    description: 'A devoted cleric wielding the power of light to mend wounds and smite darkness. She adventures to bring solace to the afflicted.',
-    stats: { hp: 25, energy: 3, attack: 4, defense: 3, speed: 1 },
-    deck: [sampleCards.find(c => c.id === 'heal'), sampleCards.find(c => c.id === 'strike'), sampleCards.find(c => c.id === 'iron_sword'), sampleCards.find(c => c.id === 'heal')],
+    portrait: '',
+    description: '',
+    stats: { hp: 25, energy: 3, speed: 1 },
+    deck: [sampleCards[1], sampleCards[0], sampleCards[3], sampleCards[1]],
     survival: { hunger: 0, thirst: 0, fatigue: 0 },
   },
   {
-    id: 'blademaster_01',
-    name: 'Kael',
+    id: 'blademaster',
+    name: 'Blademaster',
     class: Class.Blademaster,
-    portrait: 'portraits/kael_blademaster.png',
-    description: 'A swift blademaster whose flashing strikes carve through enemies. He dances with death, seeking the ultimate challenge.',
-    stats: { hp: 22, energy: 3, attack: 8, defense: 2, speed: 3 },
-    deck: [sampleCards.find(c => c.id === 'strike'), sampleCards.find(c => c.id === 'herb'), sampleCards.find(c => c.id === 'strike'), sampleCards.find(c => c.id === 'bread')], // Blademaster using herb and bread? Might need more thematic cards
+    portrait: '',
+    description: '',
+    stats: { hp: 22, energy: 3, speed: 3 },
+    deck: [sampleCards[0], sampleCards[4], sampleCards[0], sampleCards[5]],
     survival: { hunger: 0, thirst: 0, fatigue: 0 },
   },
 ]
