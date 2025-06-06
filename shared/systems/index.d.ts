@@ -118,3 +118,4 @@ export function chooseEnemyAction(
   enemy: import('../models').Enemy,
   context: { currentTurn: number; group?: { lastUsedCards?: { card: import('../models').Card; turn: number }[] } },
 ): import('../models').Card
+export function chooseTarget(players: { hp: number }[]): any

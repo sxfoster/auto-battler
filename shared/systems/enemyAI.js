@@ -47,15 +47,38 @@ export function shouldExecuteCombo(enemy, context) {
 
 /** Choose which card the enemy should play next */
 export function chooseEnemyAction(enemy, context) {
+  const profile = enemy.aiProfile || {}
   if (shouldExecuteCombo(enemy, context)) {
     const memory = context.group?.lastUsedCards || enemy.lastUsedCards || []
     const turn = context.currentTurn
-    const window = enemy.aiProfile.comboWindowTurns || 2
+    const window = profile.comboWindowTurns || 2
     const recent = [...memory]
       .reverse()
       .find((r) => r.card.isComboStarter && turn - r.turn <= window)
     const finisher = findComboFinisher(enemy.deck, recent.card.synergyTag)
     if (finisher) return finisher
   }
+
+  if (profile.enableComboAwareness) {
+    const starters = enemy.deck.filter((c) => c.isComboStarter)
+    if (starters.length) {
+      const preferred = profile.preferredComboTags || []
+      starters.sort((a, b) => {
+        const aPref = preferred.includes(a.synergyTag) ? 1 : 0
+        const bPref = preferred.includes(b.synergyTag) ? 1 : 0
+        return bPref - aPref
+      })
+      const best = starters.find((s) => findComboFinisher(enemy.deck, s.synergyTag))
+      if (best) return best
+      return starters[0]
+    }
+  }
+
   return enemy.deck[0]
+}
+
+/** Select a target from the player party */
+export function chooseTarget(players) {
+  if (!players.length) return null
+  return players.reduce((low, p) => (p.hp < low.hp ? p : low), players[0])
 }

@@ -2,7 +2,7 @@ import Phaser from 'phaser'
 import { applyRolePenalty, getSynergyBonuses } from 'shared/systems/classRole.js'
 import { applyBiomeBonuses, getCurrentBiome } from 'shared/systems/biome.js'
 import { applyEventEffects } from 'shared/systems/floorEvents.js'
-import { chooseEnemyAction, trackEnemyActions } from 'shared/systems/enemyAI.js'
+import { chooseEnemyAction, trackEnemyActions, chooseTarget } from 'shared/systems/enemyAI.js'
 import { floatingText } from '../effects.js'
 import { loadGameState } from '../state'
 
@@ -173,16 +173,13 @@ export default class BattleScene extends Phaser.Scene {
   enemyAction() {
     const context = { currentTurn: this.turnNumber, group: this.enemyGroup }
     const card = chooseEnemyAction(this.current.data, context)
-    const target = this.party[0]
+    const players = this.turnOrder.filter((c) => c.type === 'player')
+    const targetCombat = chooseTarget(players) || players[0]
     if (card.isComboFinisher) {
       console.log(`${this.current.data.name} executes combo ${card.synergyTag}`)
     }
     trackEnemyActions(this.current.data, card, this.turnNumber, this.enemyGroup)
-    this.resolveCard(
-      card,
-      this.current,
-      this.turnOrder.find((c) => c.data.id === target.id)
-    )
+    this.resolveCard(card, this.current, targetCombat)
   }
 
   resolveCard(card, actor, target) {
