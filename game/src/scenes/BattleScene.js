@@ -145,7 +145,8 @@ export default class BattleScene extends Phaser.Scene {
         dungeon.rooms[this.roomIndex].cleared = true
       }
       this.time.delayedCall(1500, () => {
-        this.scene.start('dungeon')
+        this.scene.stop()
+        this.scene.wake('dungeon')
       })
       return true
     }

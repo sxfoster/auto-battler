@@ -10,4 +10,6 @@ export * from './DungeonMap'
 export * from './LootItem'
 export * from './Inventory'
 export * from './Encounter'
+export * from './GameState'
+export * from './DecisionPoint'
 export const enemies: Enemy[]
