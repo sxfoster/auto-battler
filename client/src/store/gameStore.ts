@@ -4,6 +4,7 @@ import type { GameState } from '../../shared/models/GameState'
 import type { DungeonData } from '../utils/generateDungeon'
 import type { DungeonMap } from '../../shared/models/DungeonMap'
 import type { Role } from '../../shared/models/Card'
+import type { Deck } from '../../shared/models/Deck'
 
 const defaultState: GameState = {
   currentFloor: 1,
@@ -39,6 +40,13 @@ interface Store {
     classes: { id: string; name: string; description: string; role: Role; allowedCards: string[] }[],
   ) => void
 
+  decks: Deck[]
+  activeDeckId: string | null
+  addDeck: (deck: Deck) => void
+  removeDeck: (id: string) => void
+  updateDeck: (id: string, cards: string[]) => void
+  selectDeck: (id: string) => void
+
   save: () => void
   load: () => void
 }
@@ -66,6 +74,14 @@ export const useGameStore = create<Store>((set, get) => ({
   availableClasses: [],
   setAvailableClasses: (classes) => set({ availableClasses: classes }),
 
+  decks: [],
+  activeDeckId: null,
+  addDeck: (deck) => set({ decks: [...get().decks, deck] }),
+  removeDeck: (id) => set({ decks: get().decks.filter((d) => d.id !== id) }),
+  updateDeck: (id, cards) =>
+    set({ decks: get().decks.map((d) => (d.id === id ? { ...d, cards } : d)) }),
+  selectDeck: (id) => set({ activeDeckId: id }),
+
   save: () => {
     const {
       party,
@@ -76,6 +92,8 @@ export const useGameStore = create<Store>((set, get) => ({
       playerPos,
       explored,
       availableClasses,
+      decks,
+      activeDeckId,
     } = get()
     const data = {
       party,
@@ -86,6 +104,8 @@ export const useGameStore = create<Store>((set, get) => ({
       playerPos,
       explored: Array.from(explored),
       availableClasses,
+      decks,
+      activeDeckId,
     }
     localStorage.setItem('gameData', JSON.stringify(data))
   },
@@ -103,6 +123,8 @@ export const useGameStore = create<Store>((set, get) => ({
         playerPos: data.playerPos ?? null,
         explored: new Set<string>(data.explored || []),
         availableClasses: data.availableClasses ?? [],
+        decks: data.decks ?? [],
+        activeDeckId: data.activeDeckId ?? null,
       })
     } catch (e) {
       console.error('Failed to load game data', e)
