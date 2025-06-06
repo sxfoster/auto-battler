@@ -34,6 +34,9 @@ export default function DungeonMap() {
   const [battleRoom, setBattleRoom] = useState<string | null>(null)
   const [players, setPlayers] = useState([])
   const [enemies, setEnemies] = useState([])
+  const [hand, setHand] = useState<any[]>([])
+  const [turn, setTurn] = useState(0)
+  const [active, setActive] = useState<string | null>(null)
   const [log, setLog] = useState<string[]>([])
   const [banner, setBanner] = useState(false)
   const [roomEvent, setRoomEvent] = useState<any | null>(null)
@@ -98,6 +101,9 @@ export default function DungeonMap() {
     if (detail.type === 'state') {
       setPlayers(detail.players)
       setEnemies(detail.enemies)
+      setHand(detail.hand || [])
+      setTurn(detail.turn)
+      setActive(detail.current || null)
     } else if (detail.type === 'log') {
       setLog(l => [...l.slice(-10), detail.message])
     } else if (detail === 'Victory' || detail === 'Defeat') {
@@ -129,6 +135,18 @@ export default function DungeonMap() {
     setSummary(false)
     save()
     navigate('/town')
+  }
+
+  const playCard = (id: string) => {
+    window.dispatchEvent(
+      new CustomEvent('battleCommand', { detail: { action: 'playCard', cardId: id } }),
+    )
+  }
+
+  const endTurn = () => {
+    window.dispatchEvent(
+      new CustomEvent('battleCommand', { detail: { action: 'endTurn' } }),
+    )
   }
 
   if (!party) return <p>No party selected.</p>
@@ -189,7 +207,16 @@ export default function DungeonMap() {
             enemyIndex={0}
             onBattleEvent={handleBattleEvent}
           />
-          <CombatOverlay players={players} enemies={enemies} log={log} />
+          <CombatOverlay
+            players={players}
+            enemies={enemies}
+            hand={hand}
+            log={log}
+            turn={turn}
+            active={active}
+            onPlayCard={playCard}
+            onEndTurn={endTurn}
+          />
         </div>
       )}
       {roomEvent && (

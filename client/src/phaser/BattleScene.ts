@@ -23,11 +23,31 @@ export default class BattleScene extends Phaser.Scene {
   private turnText!: Phaser.GameObjects.Text
   private cardTexts: Phaser.GameObjects.Text[] = []
   private current: any
+  private handleCommand = (e: any) => {
+    const { action, cardId } = e.detail || {}
+    if (action === 'playCard' && this.current?.type === 'player') {
+      const hand = this.current.data.hand || []
+      const idx = hand.findIndex((c: any) => c.id === cardId)
+      if (idx !== -1) {
+        const card = hand.splice(idx, 1)[0]
+        this.resolveCard(card, this.current, this.enemies[0])
+        this.emitState()
+      }
+    } else if (action === 'endTurn' && this.current?.type === 'player') {
+      this.clearCards()
+      this.nextTurn()
+    }
+  }
+
   private emitState(msg?: string) {
     const detail: any = msg
       ? { type: 'log', message: msg }
       : {
           type: 'state',
+          turn: this.turnNumber,
+          current: this.current?.data?.id,
+          hand:
+            this.current?.type === 'player' ? this.current.data.hand || [] : [],
           players: this.turnOrder
             .filter((c) => c.type === 'player')
             .map((c) => ({ id: c.data.id, name: c.data.name, hp: c.hp })),
@@ -85,6 +105,10 @@ export default class BattleScene extends Phaser.Scene {
     this.turnIndex = 0
 
     this.drawBattlefield()
+    window.addEventListener('battleCommand', this.handleCommand)
+    this.events.once('shutdown', () => {
+      window.removeEventListener('battleCommand', this.handleCommand)
+    })
     this.startTurn()
   }
 
@@ -146,21 +170,7 @@ export default class BattleScene extends Phaser.Scene {
 
   private showPlayerCards() {
     this.clearCards()
-    const hand = this.current.data.hand || []
-    hand.forEach((card: any, idx: number) => {
-      const txt = this.add
-        .text(
-          100 + idx * 120,
-          500,
-          `${card.name}\n${card.description}`,
-          { fontSize: '16px', backgroundColor: '#ddd', padding: 5, align: 'center' },
-        )
-        .setInteractive()
-        .on('pointerdown', () => {
-          this.resolveCard(card, this.current, this.enemies[0])
-        })
-      this.cardTexts.push(txt)
-    })
+    this.emitState()
   }
 
   private clearCards() {

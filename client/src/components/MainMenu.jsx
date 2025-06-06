@@ -1,23 +1,23 @@
-import { useNavigate } from 'react-router-dom'
-import { useModal } from './ModalManager.jsx'
-import styles from './MainMenu.module.css'
+import { useNavigate } from "react-router-dom";
+import { useModal } from "./ModalManager.jsx";
+import styles from "./MainMenu.module.css";
 
 function MainMenu() {
-  const navigate = useNavigate()
-  const { open, close } = useModal()
+  const navigate = useNavigate();
+  const { open, close } = useModal();
 
   const showPlaceholder = (message) => {
     const id = open(
       <div>
         <p>{message}</p>
-        <div style={{ textAlign: 'center', marginTop: '1rem' }}>
+        <div style={{ textAlign: "center", marginTop: "1rem" }}>
           <button className={styles.button} onClick={() => close(id)}>
             Close
           </button>
         </div>
-      </div>
-    )
-  }
+      </div>,
+    );
+  };
 
   return (
     <main className={styles.container}>
@@ -25,25 +25,28 @@ function MainMenu() {
       <nav className={styles.menu}>
         <button
           className={styles.button}
-          onClick={() => navigate('/party-setup')}
+          onClick={() => navigate("/party-setup")}
         >
           New Game
         </button>
+        <button className={styles.button} onClick={() => navigate("/battle")}>
+          Battle
+        </button>
         <button
           className={styles.button}
-          onClick={() => showPlaceholder('Continue feature coming soon!')}
+          onClick={() => showPlaceholder("Continue feature coming soon!")}
         >
           Continue
         </button>
         <button
           className={styles.button}
-          onClick={() => showPlaceholder('Settings are not available yet.')}
+          onClick={() => showPlaceholder("Settings are not available yet.")}
         >
           Settings
         </button>
       </nav>
     </main>
-  )
+  );
 }
 
-export default MainMenu
+export default MainMenu;

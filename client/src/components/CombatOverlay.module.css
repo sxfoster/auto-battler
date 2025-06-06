@@ -1,24 +1,81 @@
 .overlay {
   position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.turnInfo {
+  position: absolute;
   top: 0;
   left: 0;
-  right: 0;
-  bottom: 0;
+  right: 200px;
+  text-align: center;
+  padding: 4px;
+  color: #fff;
+  background: rgba(0, 0, 0, 0.5);
   pointer-events: none;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
 }
-.party, .enemies {
+
+.enemies {
+  position: absolute;
+  top: 40px;
+  left: 0;
+  right: 200px;
   display: flex;
+  justify-content: center;
   gap: 10px;
   padding: 10px;
+  pointer-events: auto;
 }
+
+.party {
+  position: absolute;
+  bottom: 110px;
+  left: 0;
+  right: 200px;
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  padding: 10px;
+  pointer-events: auto;
+}
+
+.hand {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 200px;
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  padding: 10px;
+  pointer-events: auto;
+}
+
+.log {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: 0;
+  width: 200px;
+  background: rgba(0, 0, 0, 0.6);
+  color: #fff;
+  padding: 6px;
+  font-size: 0.8em;
+  overflow-y: auto;
+  pointer-events: auto;
+}
+
 .combatant {
-  background: rgba(255,255,255,0.8);
+  background: rgba(255, 255, 255, 0.8);
   border-radius: 4px;
   padding: 4px 8px;
 }
+
+.combatant.active {
+  outline: 2px solid gold;
+}
+
 .bar {
   background: #ccc;
   height: 6px;
@@ -26,17 +83,19 @@
   margin-top: 2px;
   position: relative;
 }
+
 .bar span {
   display: block;
   background: #4caf50;
   height: 100%;
   width: 0;
 }
-.log {
-  background: rgba(0,0,0,0.5);
-  color: #fff;
-  padding: 4px;
-  font-size: 0.8em;
-  max-height: 100px;
-  overflow-y: auto;
+
+.endTurn {
+  margin-left: 10px;
+  pointer-events: auto;
+}
+
+.cardWrapper {
+  pointer-events: auto;
 }

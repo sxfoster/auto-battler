@@ -1,22 +1,23 @@
-import './App.css'
-import { Routes, Route, useLocation } from 'react-router-dom'
-import { useEffect, useRef } from 'react'
-import { CSSTransition, SwitchTransition } from 'react-transition-group'
-import MainMenu from './components/MainMenu.jsx'
-import PartySetup from './components/PartySetup.tsx'
-import DungeonMap from './components/DungeonMap.tsx'
-import TownView from './components/TownView.tsx'
+import "./App.css";
+import { Routes, Route, useLocation } from "react-router-dom";
+import { useEffect, useRef } from "react";
+import { CSSTransition, SwitchTransition } from "react-transition-group";
+import MainMenu from "./components/MainMenu.jsx";
+import PartySetup from "./components/PartySetup.tsx";
+import DungeonMap from "./components/DungeonMap.tsx";
+import TownView from "./components/TownView.tsx";
+import CombatPage from "./components/CombatPage.tsx";
 
 function AnimatedRoutes() {
-  const location = useLocation()
-  const previousPath = useRef(location.pathname)
+  const location = useLocation();
+  const previousPath = useRef(location.pathname);
 
   useEffect(() => {
     if (previousPath.current !== location.pathname) {
-      window.location.reload()
+      window.location.reload();
     }
-    previousPath.current = location.pathname
-  }, [location.pathname])
+    previousPath.current = location.pathname;
+  }, [location.pathname]);
 
   return (
     <SwitchTransition>
@@ -29,16 +30,17 @@ function AnimatedRoutes() {
         <Routes location={location}>
           <Route path="/" element={<MainMenu />} />
           <Route path="/party-setup" element={<PartySetup />} />
+          <Route path="/battle" element={<CombatPage />} />
           <Route path="/dungeon" element={<DungeonMap />} />
           <Route path="/town" element={<TownView />} />
         </Routes>
       </CSSTransition>
     </SwitchTransition>
-  )
+  );
 }
 
 function App() {
-  return <AnimatedRoutes />
+  return <AnimatedRoutes />;
 }
 
-export default App
+export default App;
