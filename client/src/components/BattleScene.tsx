@@ -7,6 +7,7 @@ interface Unit {
   name: string
   hp: number
   maxHp: number
+  status?: string
 }
 
 const enemyData: Unit[] = [
@@ -20,6 +21,7 @@ export default function BattleScene() {
   const [enemies, setEnemies] = useState<Unit[]>(enemyData)
   const [turn, setTurn] = useState<'player' | 'enemy'>('player')
   const [log, setLog] = useState<string[]>([])
+  const [activeId, setActiveId] = useState<string | null>(null)
 
   useEffect(() => {
     if (party) {
@@ -30,11 +32,15 @@ export default function BattleScene() {
         maxHp: c.stats.hp,
       }))
       setPlayers(chars)
+      const firstAlive = chars.find(c => c.hp > 0)
+      if (firstAlive) setActiveId(firstAlive.id)
     }
   }, [party])
 
   const attack = (targetId: string) => {
     if (turn !== 'player') return
+    const attacker = players.find(p => p.hp > 0)
+    if (attacker) setActiveId(attacker.id)
     setEnemies(prev =>
       prev.map(e =>
         e.id === targetId ? { ...e, hp: Math.max(0, e.hp - 5) } : e,
@@ -49,6 +55,7 @@ export default function BattleScene() {
       const enemy = enemies.find(e => e.hp > 0)
       const target = players.find(p => p.hp > 0)
       if (enemy && target) {
+        setActiveId(enemy.id)
         const dmg = 3
         setTimeout(() => {
           setPlayers(p =>
@@ -65,6 +72,13 @@ export default function BattleScene() {
     }
   }, [turn, enemies, players])
 
+  useEffect(() => {
+    if (turn === 'player') {
+      const active = players.find(p => p.hp > 0)
+      setActiveId(active ? active.id : null)
+    }
+  }, [turn, players])
+
   const battleOver =
     players.every(p => p.hp <= 0) || enemies.every(e => e.hp <= 0)
 
@@ -76,11 +90,18 @@ export default function BattleScene() {
       <div className={styles.grid}>
         <div className={styles.side}>
           {players.map(p => (
-            <div key={p.id} className={styles.unit} aria-label={`${p.name} HP ${p.hp}`}> 
+            <div
+              key={p.id}
+              className={`${styles.unit} ${p.hp <= 0 ? styles.inactive : ''} ${
+                activeId === p.id ? styles.active : ''
+              }`}
+              aria-label={`${p.name} HP ${p.hp}`}
+            >
               <strong>{p.name}</strong>
               <div>
                 {p.hp} / {p.maxHp}
               </div>
+              <div className={styles.status}>{p.hp <= 0 ? 'KO' : p.status}</div>
             </div>
           ))}
         </div>
@@ -88,7 +109,9 @@ export default function BattleScene() {
           {enemies.map(e => (
             <div
               key={e.id}
-              className={styles.unit}
+              className={`${styles.unit} ${e.hp <= 0 ? styles.inactive : ''} ${
+                activeId === e.id ? styles.active : ''
+              }`}
               onClick={() => attack(e.id)}
               aria-label={`${e.name} HP ${e.hp}`}
               style={{ cursor: turn === 'player' && !battleOver ? 'pointer' : 'default' }}
@@ -97,6 +120,7 @@ export default function BattleScene() {
               <div>
                 {e.hp} / {e.maxHp}
               </div>
+              <div className={styles.status}>{e.hp <= 0 ? 'KO' : e.status}</div>
             </div>
           ))}
         </div>
