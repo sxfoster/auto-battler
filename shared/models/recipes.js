@@ -13,6 +13,7 @@ export const sampleRecipes = [
     },
     profession: 'Cooking',
     levelRequirement: 1,
+    cost: { amount: 5, currency: 'Gold' },
   },
   {
     id: 'flame_sword',
@@ -28,6 +29,7 @@ export const sampleRecipes = [
     },
     profession: 'Smithing',
     levelRequirement: 2,
+    cost: { amount: 1, currency: 'GuildCredit' },
   },
   {
     id: 'healing_elixir',
@@ -43,5 +45,6 @@ export const sampleRecipes = [
     },
     profession: 'Alchemy',
     levelRequirement: 1,
+    cost: { amount: 10, currency: 'Gold' },
   },
 ]

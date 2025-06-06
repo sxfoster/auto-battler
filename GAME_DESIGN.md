@@ -109,6 +109,8 @@ Each profession has a **level 1–10 progression system** with rewards such as:
 3. **Guild Exchange** — Player run listings restricted to guild members. All trades consume **Guild Credits**.
 4. **Auction House** *(Player Economy)* — Global bidding system for crafted and looted cards. Common items use **Gold** while higher rarities require **Guild Credits**.
 
+Crafting recipes consume currency based on rarity and profession expertise. Loot drops award Gold and occasionally Guild Credits, ensuring a steady flow of money into the economy while keeping high tier currency scarce.
+
 ---
 
 ## 🧑‍🤝‍🧑 Classes & Roles
