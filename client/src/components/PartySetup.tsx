@@ -314,8 +314,8 @@ const PartySetup: React.FC = () => {
       {/* PartySummary will have its own internal styling or use passed classNames */}
 
       <div className={styles.navigationButtons}>
-        <button onClick={() => navigate('/')} className={styles.backButton}>
-          Back
+        <button onClick={() => navigate('/town')} className={styles.backButton}>
+          Back to Town
         </button>
         <button
           onClick={handleStartGame}
