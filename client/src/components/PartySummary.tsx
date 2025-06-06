@@ -142,6 +142,7 @@ const PartySummary: React.FC<PartySummaryProps> = ({
                 className={styles.actionButton}
                 aria-label={`Remove ${character.name}`}
                 onClick={() => onRemoveCharacter?.(character.id)}
+                disabled={selectedCharacters.length === 1}
               >
                 ❌
               </button>

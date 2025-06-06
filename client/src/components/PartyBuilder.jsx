@@ -20,7 +20,11 @@ function PartyBuilder() {
   }
 
   function removeCharacter(id) {
-    setParty(party.filter((c) => c.id !== id))
+    if (party.length > 1) {
+      setParty(party.filter((c) => c.id !== id))
+    } else {
+      alert('Your party must have at least one member.')
+    }
   }
 
   function addCard(index) {
@@ -92,7 +96,12 @@ function PartyBuilder() {
           {party.map((char, idx) => (
             <li key={char.id}>
               <strong>{char.name}</strong>{' '}
-              <button onClick={() => removeCharacter(char.id)}>Remove</button>
+              <button
+                onClick={() => removeCharacter(char.id)}
+                disabled={party.length === 1}
+              >
+                Remove
+              </button>
               <ul>
                 {char.cards.map((cid) => {
                   const card = sampleCards.find((c) => c.id === cid)
