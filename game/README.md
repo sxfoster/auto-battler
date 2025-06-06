@@ -14,10 +14,15 @@ The game is structured into several key Phaser scenes:
 
 These scenes can run independently for development purposes or be embedded and controlled by the React client via the `GameView` component. The `game` package relies on the `shared` package for data models (characters, cards) and core system logic (AI, combat rules).
 
+For a full description of the underlying systems see
+[../GAME_DESIGN.md](../GAME_DESIGN.md).
+
 ## Scripts
 
 - `npm start` – launch the dev server on <http://localhost:8080>.
 - `npm run build` – create a production build.
+
+The commands above assume **Node.js 20** or newer is available.
 
 ## Contributing
 

@@ -1,6 +1,10 @@
 
 # 🧭 Survival Dungeon CCG Auto-Battler — Game Design Document (GDD)
 
+This living document describes the intended gameplay systems and data flow for
+the project. Refer to the codex files in [`docs/`](docs) for detailed lists of
+playable classes and enemy archetypes.
+
 ## Table of Contents
 - [Game Concept](#game-concept)
 - [Combat System](#combat-system)
@@ -314,4 +318,6 @@ Data exchange between the React client and the Phaser game primarily utilizes th
 If you would like to propose changes to the game design, please start by
 opening an issue in the repository. Feedback and pull requests are
 appreciated.
+
+*Last updated: 2024*
 

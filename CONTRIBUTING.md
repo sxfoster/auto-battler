@@ -25,8 +25,9 @@ If you'd like to contribute code to the project, please follow these steps:
 2.  Create a new branch for your changes.
 3.  Make your changes, including clear comments and tests (if applicable).
 4.  Ensure that your code adheres to the project's coding style guidelines (see below).
-5.  Run the tests to make sure they all pass (`npm test`).
-6.  Submit a pull request for review.
+5.  Use **Node.js 20** or newer to match the project's tooling.
+6.  Run the tests to make sure they all pass (`npm test`).
+7.  Submit a pull request for review.
 
 ## Coding Style Guidelines
 
