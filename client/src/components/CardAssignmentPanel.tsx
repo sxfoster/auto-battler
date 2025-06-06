@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import type { PartyCharacter } from './PartySetup';
 import type { Card } from '../../../shared/models/Card';
 import CardDisplay from './CardDisplay';
 import { canUseCard } from '../../../shared/systems/classRole.js';
+import styles from './PartySetup.module.css';
 
 interface CardAssignmentPanelProps {
   character: PartyCharacter; // Character from selectedCharacters array
@@ -12,8 +13,33 @@ interface CardAssignmentPanelProps {
 }
 
 const CardAssignmentPanel: React.FC<CardAssignmentPanelProps> = ({ character, availableCards, onAssignCard, onRemoveCard }) => {
-  const assignedCardIds = new Set(character.assignedCards.map(c => c.id));
-  const canAssignMoreCards = character.assignedCards.length < 4;
+  const [draftCards, setDraftCards] = useState<Card[]>([])
+  const [draftKey, setDraftKey] = useState(0)
+
+  const assignedCardIds = new Set(character.assignedCards.map((c) => c.id))
+  const canAssignMoreCards = character.assignedCards.length < 4
+
+  const getUsablePool = () => {
+    return availableCards.filter(
+      (c) => canUseCard(character, c) && !assignedCardIds.has(c.id)
+    )
+  }
+
+  const generateDraft = () => {
+    const pool = [...getUsablePool()]
+    const picks: Card[] = []
+    while (pool.length && picks.length < 4) {
+      const idx = Math.floor(Math.random() * pool.length)
+      picks.push(pool.splice(idx, 1)[0])
+    }
+    setDraftCards(picks)
+    setDraftKey((k) => k + 1)
+  }
+
+  useEffect(() => {
+    generateDraft()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [character.id, character.class, character.assignedCards.length, availableCards])
 
   const panelStyle: React.CSSProperties = {
     // Using existing styles from PartySetup.module.css for selectedCharacterPanel as a base
@@ -71,27 +97,29 @@ const CardAssignmentPanel: React.FC<CardAssignmentPanelProps> = ({ character, av
     borderRadius: '4px',
   };
 
+  const handleDraftPick = (card: Card) => {
+    if (!canAssignMoreCards) return
+    onAssignCard(character.id, card)
+    generateDraft()
+  }
+
   return (
     <div style={panelStyle}>
-      {/* Character's name and card count is now part of characterPanelHeader in PartySetup.tsx */}
-      {/* This h4 can be removed if redundant: <h4>{character.name}'s Cards ({character.assignedCards.length}/4)</h4> */}
-
-      <h5 style={subSectionTitleStyle}>Assigned Cards:</h5>
-      {character.assignedCards.length === 0 && <p style={{fontStyle: 'italic', color: '#7f8c8d'}}>No cards assigned yet.</p>}
+      <h5 style={subSectionTitleStyle}>
+        Selected Cards: {character.assignedCards.length}/4
+      </h5>
+      {character.assignedCards.length === 0 && (
+        <p style={{ fontStyle: 'italic', color: '#7f8c8d' }}>No cards assigned yet.</p>
+      )}
       <div style={cardListStyle}>
-        {character.assignedCards.map(card => (
+        {character.assignedCards.map((card) => (
           <div key={card.id} style={assignedCardWrapperStyle}>
-            <CardDisplay
-              card={card}
-              onSelect={() => {}}
-              isSelected={true} // Visually mark as "selected" or "active" in this context
-              isDisabled={true}
-            />
+            <CardDisplay card={card} onSelect={() => {}} isSelected={true} isDisabled={true} />
             <button
               onClick={() => onRemoveCard(character.id, card.id)}
               style={removeCardButtonStyle}
-              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#c0392b'}
-              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#e74c3c'}
+              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#c0392b')}
+              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#e74c3c')}
             >
               Remove
             </button>
@@ -99,26 +127,30 @@ const CardAssignmentPanel: React.FC<CardAssignmentPanelProps> = ({ character, av
         ))}
       </div>
 
-      <h5 style={subSectionTitleStyle}>Available Cards to Assign (Pick up to 4):</h5>
-      {!canAssignMoreCards && <p style={{fontStyle: 'italic', color: '#7f8c8d'}}>Maximum cards assigned for this character.</p>}
-      <div style={availableCardsListStyle}>
-        {canAssignMoreCards && availableCards.map(card => {
-          const isAssignedToThisCharacter = assignedCardIds.has(card.id);
-          const usable = canUseCard(character, card);
-          return (
-            <CardDisplay
-              key={card.id}
-              card={card}
-              onSelect={() => onAssignCard(character.id, card)}
-              isSelected={false}
-              isDisabled={isAssignedToThisCharacter || !usable}
-            />
-          );
-        })}
-         {canAssignMoreCards && availableCards.filter(c => !assignedCardIds.has(c.id)).length === 0 && <p style={{fontStyle: 'italic', color: '#7f8c8d'}}>No more unique cards available to assign.</p>}
-      </div>
+      {canAssignMoreCards && (
+        <>
+          <h5 style={subSectionTitleStyle}>Draft a Card</h5>
+          <div style={availableCardsListStyle} className={styles.fade} key={draftKey}>
+            {draftCards.map((card) => (
+              <CardDisplay
+                key={card.id}
+                card={card}
+                onSelect={() => handleDraftPick(card)}
+                isSelected={false}
+                isDisabled={false}
+              />
+            ))}
+            {draftCards.length === 0 && (
+              <p style={{ fontStyle: 'italic', color: '#7f8c8d' }}>No more cards available.</p>
+            )}
+          </div>
+        </>
+      )}
+      {!canAssignMoreCards && (
+        <p style={{ fontStyle: 'italic', color: '#7f8c8d' }}>Draft complete for this character.</p>
+      )}
     </div>
-  );
+  )
 };
 
 export default CardAssignmentPanel;
