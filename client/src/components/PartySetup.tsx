@@ -184,9 +184,9 @@ const PartySetup: React.FC = () => {
       <div className={styles.setupCard}>
         <h1 className={styles.title}>Party Setup</h1>
         <div className={styles.classList}>
-          {availableClasses.map(cls => (
+          {availableClasses.map((cls, index) => (
             <ClassCard
-              key={cls.id}
+              key={`${cls.id}-${index}`}
               cls={cls}
               onSelect={handleClassSelect}
               disabled={!!selectedCharacters.find(c => c.class === cls.id)}
