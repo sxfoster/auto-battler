@@ -105,4 +105,15 @@ export const sampleCards = [
     synergyTag: 'Execute',
     isComboFinisher: true,
   },
+  {
+    id: 'fireball',
+    name: 'Fireball',
+    description: 'Hurl a fiery orb that deals 6 fire damage.',
+    category: 'Ability',
+    rarity: 'Common',
+    energyCost: 1,
+    cooldown: 0,
+    effect: { type: 'damage', magnitude: 6, element: 'fire' },
+    roleTag: 'DPS',
+  },
 ]

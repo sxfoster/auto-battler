@@ -18,7 +18,7 @@ export const enemies = [
     id: 'skeleton',
     name: 'Skeleton',
     stats: { hp: 25, energy: 1, speed: 1 },
-    deck: [sampleCards[0], sampleCards[4], sampleCards[9]],
+    deck: [sampleCards[0], sampleCards[10], sampleCards[9]],
     aiProfile: {
       behavior: 'aggressive',
       aggressiveness: 0.6,

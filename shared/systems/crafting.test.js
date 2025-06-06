@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'assert'
-import { craftWithInventory } from './crafting.js'
+import { craftWithInventory, attemptCraft } from './crafting.js'
 import { sampleCards } from '../models/cards.js'
 import { sampleRecipes } from '../models/recipes.js'
 

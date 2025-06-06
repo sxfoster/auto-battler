@@ -8,6 +8,20 @@ import { loadGameState } from '../state'
 export default class BattleScene extends Phaser.Scene {
   constructor() {
     super('battle')
+    this.biome = null
+  }
+
+  calculateDamage(effect, attacker, defender) {
+    let dmg = effect.magnitude || effect.value || 0
+    if (effect.element === 'fire') {
+      if (attacker.data?.stats?.firePower) {
+        dmg += attacker.data.stats.firePower
+      }
+      if (defender.data?.stats?.fireResist) {
+        dmg *= 1 - defender.data.stats.fireResist
+      }
+    }
+    return Math.round(dmg)
   }
 
   init(data) {
@@ -35,6 +49,7 @@ export default class BattleScene extends Phaser.Scene {
     this.enemyGroup = { lastUsedCards: [] }
     const state = loadGameState()
     const biome = getCurrentBiome(state)
+    this.biome = biome
     applyBiomeBonuses(biome, this.enemies)
     this.activeEvent = state.activeEvent || null
 
@@ -72,8 +87,17 @@ export default class BattleScene extends Phaser.Scene {
     })
 
     this.turnText = this.add.text(350, 50, '', { fontSize: '20px' })
+    if (this.biome) {
+      this.add.text(350, 20, this.biome.name, { fontSize: '16px' }).setOrigin(0.5)
+    }
     if (this.activeEvent) {
-      this.add.text(350, 20, this.activeEvent.name, { fontSize: '16px', color: '#ffff00' }).setOrigin(0.5)
+      this.add.text(350, 40, this.activeEvent.name, { fontSize: '16px', color: '#ffff00' }).setOrigin(0.5)
+    }
+    if (this.biome) {
+      const bonusText = this.biome.bonuses.map((b) => b.description).filter(Boolean).join('\n')
+      if (bonusText) {
+        this.add.text(350, 70, bonusText, { fontSize: '14px', color: '#ffaa00', align: 'center' }).setOrigin(0.5)
+      }
     }
     this.cardTexts = []
     this.updateHealth()
@@ -165,7 +189,8 @@ export default class BattleScene extends Phaser.Scene {
 
     finalEffects.forEach((effect) => {
       if (effect.type === 'damage') {
-        target.hp -= effect.magnitude || effect.value || 0
+        const dmg = this.calculateDamage(effect, actor, target)
+        target.hp -= dmg
       }
       if (effect.type === 'heal') {
         actor.hp = Math.min(actor.data.stats.hp, actor.hp + (effect.magnitude || effect.value || 0))

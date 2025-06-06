@@ -5,6 +5,8 @@ export interface BiomeBonus {
   target: string
   /** Implementation specific effect details */
   effectDetails: Record<string, any>
+  /** Text describing the bonus to players */
+  description?: string
 }
 
 export interface Biome {
