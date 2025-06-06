@@ -88,7 +88,7 @@ const CharacterCard: React.FC<CharacterCardProps> = ({ character, onSelect, isSe
     >
       <div style={{ position: 'relative', marginBottom: '10px' }}>
         <img
-          src={character.portrait || defaultPortrait}
+          src={character.portrait || clsInfo?.portrait || defaultPortrait}
           alt={character.name}
           title={clsInfo?.name ?? character.class}
           onError={(e) => {

@@ -33,7 +33,8 @@ const calculateAverage = (values: Array<number | undefined>): string => {
 };
 
 const getPortraitSrc = (character: PartyCharacter): string => {
-  return character.portrait || defaultPortrait;
+  const cls = allClasses.find(c => c.id === character.class);
+  return character.portrait || cls?.portrait || defaultPortrait;
 };
 
 const handlePortraitError = (

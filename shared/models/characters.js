@@ -1,5 +1,7 @@
 import { sampleCards } from './cards.js'
 import { classes } from './classes.js'
+const clericPortrait = new URL('../images/cleric-portrait.png', import.meta.url).href
+const defaultPortrait = new URL('../images/default-portrait.png', import.meta.url).href
 
 export const Class = {
   Guardian: 'Guardian',
@@ -23,7 +25,7 @@ export const sampleCharacters = [
     id: 'warrior',
     name: 'Warrior',
     class: Class.Warrior,
-    portrait: '',
+    portrait: defaultPortrait,
     description: '',
     stats: { hp: 30, energy: 3, speed: 2 },
     deck: [sampleCards[0], sampleCards[3], sampleCards[0], sampleCards[0]],
@@ -33,7 +35,7 @@ export const sampleCharacters = [
     id: 'cleric',
     name: 'Cleric',
     class: Class.Cleric,
-    portrait: '../../../shared/images/cleric-portrait.png',
+    portrait: clericPortrait,
     description: '',
     stats: { hp: 25, energy: 3, speed: 1 },
     deck: [sampleCards[1], sampleCards[0], sampleCards[3], sampleCards[1]],
@@ -43,7 +45,7 @@ export const sampleCharacters = [
     id: 'blademaster',
     name: 'Blademaster',
     class: Class.Blademaster,
-    portrait: '',
+    portrait: defaultPortrait,
     description: '',
     stats: { hp: 22, energy: 3, speed: 3 },
     deck: [sampleCards[0], sampleCards[4], sampleCards[0], sampleCards[5]],
