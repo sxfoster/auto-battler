@@ -155,7 +155,11 @@ export default class BattleScene extends Phaser.Scene {
       const text = !playersAlive ? 'Defeat' : 'Victory'
       this.add.text(360, 300, text, { fontSize: '32px' }).setOrigin(0.5)
       this.time.delayedCall(1500, () => {
-        this.scene.start('dungeon')
+        if (playersAlive) {
+          this.scene.start('decision')
+        } else {
+          this.scene.start('dungeon')
+        }
       })
       return true
     }

@@ -145,7 +145,11 @@ export default class BattleScene extends Phaser.Scene {
         dungeon.rooms[this.roomIndex].cleared = true
       }
       this.time.delayedCall(1500, () => {
-        this.scene.start('dungeon')
+        if (playersAlive) {
+          this.scene.start('decision')
+        } else {
+          this.scene.start('dungeon')
+        }
       })
       return true
     }

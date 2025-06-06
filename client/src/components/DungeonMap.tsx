@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from 'react'
 import Phaser from 'phaser'
 import DungeonScene from '../phaser/DungeonScene'
 import BattleScene from '../phaser/BattleScene'
+import DecisionScene from '../phaser/DecisionScene'
 import type { DungeonData } from '../utils/generateDungeon'
 
 interface Props {
@@ -21,7 +22,7 @@ export default function DungeonMap({ dungeon, playerPos, explored, onMove }: Pro
       width: 800,
       height: 600,
       parent: containerRef.current,
-      scene: [DungeonScene, BattleScene],
+      scene: [DungeonScene, BattleScene, DecisionScene],
     })
     game.scene.start('dungeon', { dungeon, playerPos, explored })
     const handler = (e: any) => {
