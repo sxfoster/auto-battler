@@ -1,9 +1,13 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { useGame } from '../GameContext'
 import { sampleCharacters } from 'shared/models/characters.js'
 import { sampleCards } from 'shared/models/cards.js'
 
 function PartyBuilder() {
   const [party, setParty] = useState([])
+  const navigate = useNavigate()
+  const { setParty: storeParty } = useGame()
   const [selectedCards, setSelectedCards] = useState({})
 
   const availableCharacters = sampleCharacters.filter(
@@ -59,14 +63,8 @@ function PartyBuilder() {
       survival: { hunger: 0, thirst: 0, fatigue: 0 },
     }))
 
-    try {
-      localStorage.setItem('partyData', JSON.stringify(fullParty))
-      // Navigate to the Phaser game. In a production app this could be a route
-      // change or modal. For simplicity we load the bundled game directly.
-      window.location.href = '/game'
-    } catch (error) {
-      console.error('Error storing party data:', error)
-    }
+    storeParty({ characters: fullParty })
+    navigate('/dungeon')
   }
 
   return (

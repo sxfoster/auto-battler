@@ -22,7 +22,7 @@ function App() {
     <SwitchTransition>
       <CSSTransition
         key={location.pathname}
-        classNames="fade"
+        classNames="slide"
         timeout={300}
         unmountOnExit
       >

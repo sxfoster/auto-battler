@@ -6,12 +6,14 @@ type SceneData = {
   dungeon: DungeonData
   playerPos: { x: number; y: number }
   explored: Set<string>
+  party?: any[]
 }
 
 export default class DungeonScene extends Phaser.Scene {
   private dungeon!: DungeonData
   private playerPos!: { x: number; y: number }
   private explored!: Set<string>
+  private party: any[] = []
   private tileSize = 32
   private mapGraphics!: Phaser.GameObjects.Graphics
   private fogGraphics!: Phaser.GameObjects.Graphics
@@ -28,6 +30,7 @@ export default class DungeonScene extends Phaser.Scene {
     this.dungeon = data.dungeon
     this.playerPos = { ...data.playerPos }
     this.explored = new Set(data.explored)
+    this.party = data.party || []
   }
 
   create() {
@@ -80,7 +83,7 @@ export default class DungeonScene extends Phaser.Scene {
         this.playerPos.y === this.dungeon.end.y
       ) {
         this.battleStarted = true
-        this.scene.start('battle', { enemyIndex: 0 })
+        this.scene.start('battle', { enemyIndex: 0, party: this.party })
       }
     }
   }
