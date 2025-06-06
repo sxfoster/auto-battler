@@ -6,10 +6,15 @@ import { chooseEnemyAction, trackEnemyActions, chooseTarget } from 'shared/syste
 import { floatingText } from '../effects.js'
 import { loadGameState } from '../state'
 
+
 export default class BattleScene extends Phaser.Scene {
   constructor() {
     super('battle')
     this.biome = null
+  }
+
+  preload() {
+    // audio assets removed
   }
 
   getSprite(combatant) {
@@ -37,6 +42,27 @@ export default class BattleScene extends Phaser.Scene {
       }
     }
     return Math.round(dmg)
+  }
+
+  applyStatusEffects(combatant) {
+    combatant.statusEffects = combatant.statusEffects || []
+    let skip = false
+    const remaining = []
+    combatant.statusEffects.forEach((eff) => {
+      if (eff.type === 'poison') {
+        combatant.hp -= eff.value
+        this.showFloat(`-${eff.value}`, combatant, '#88ff88')
+      }
+      if (eff.type === 'stun') {
+        skip = true
+        this.showFloat('Stunned', combatant, '#ff66ff')
+      }
+      eff.duration -= 1
+      if (eff.duration > 0) remaining.push(eff)
+    })
+    combatant.statusEffects = remaining
+    this.updateHealth()
+    return skip
   }
 
   draw(combatant, count = 1) {
@@ -79,8 +105,20 @@ export default class BattleScene extends Phaser.Scene {
     this.activeEvent = state.activeEvent || null
 
     this.combatants = [
-      ...this.party.map((c) => ({ type: 'player', data: c, hp: c.stats.hp, speed: c.stats.speed })),
-      ...this.enemies.map((e) => ({ type: 'enemy', data: e, hp: e.stats.hp, speed: e.stats.speed })),
+      ...this.party.map((c) => ({
+        type: 'player',
+        data: c,
+        hp: c.stats.hp,
+        speed: c.stats.speed,
+        statusEffects: [],
+      })),
+      ...this.enemies.map((e) => ({
+        type: 'enemy',
+        data: e,
+        hp: e.stats.hp,
+        speed: e.stats.speed,
+        statusEffects: [],
+      })),
     ]
     this.turnOrder = this.combatants.sort((a, b) => b.speed - a.speed)
     this.turnIndex = 0
@@ -152,6 +190,12 @@ export default class BattleScene extends Phaser.Scene {
       enemies: this.turnOrder.filter((c) => c.type === 'enemy'),
     })
 
+    const skip = this.applyStatusEffects(this.current)
+    if (skip) {
+      this.time.delayedCall(300, () => this.nextTurn())
+      return
+    }
+
     if (this.current.type === 'player') {
       this.current.data.hand = []
       this.draw(this.current, 2)
@@ -222,6 +266,14 @@ export default class BattleScene extends Phaser.Scene {
         const heal = effect.magnitude || effect.value || 0
         actor.hp = Math.min(actor.data.stats.hp, actor.hp + heal)
         this.showFloat(`+${heal}`, actor, '#44ff44')
+      }
+      if (effect.type === 'status') {
+        target.statusEffects.push({
+          type: effect.statusType,
+          duration: effect.duration || 1,
+          value: effect.magnitude || effect.value || 0,
+        })
+        this.showFloat(effect.statusType, target, '#ffaa88')
       }
     })
     this.updateHealth()
