@@ -43,15 +43,17 @@ const CardDisplay: React.FC<CardDisplayProps> = ({ card, onSelect, isSelected, i
       aria-label={`Select card ${card.name}, type ${card.category}. ${card.description || 'No effect description.'}`}
     >
       <div className={styles.frame}>
+        <div className={styles.cardTop}>
+          {'energyCost' in card && (
+            <span className={styles.cardCost}>{(card as any).energyCost}</span>
+          )}
+          <span className={styles.cardTitle}>{card.name}</span>
+        </div>
         <div className={styles.art} style={{ backgroundImage: `url(${art})` }} />
-        {'energyCost' in card && (
-          <span className={styles.costBadge}>{(card as any).energyCost}</span>
-        )}
-        <span className={styles.nameRibbon}>{card.name}</span>
-        <span className={styles.typeBadge}>{card.category}</span>
+        {/* type badge removed per design update */}
       </div>
       {classText && <span className={styles.classBanner}>{classText}</span>}
-      <div className={styles.description}>{card.description || 'No effect description.'}</div>
+      <div className={styles.cardDescription}>{card.description || 'No effect description.'}</div>
       {('attack' in card || 'defense' in card) && (
         <div className={styles.stats}>
           {'attack' in card && (
