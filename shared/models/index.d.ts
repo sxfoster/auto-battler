@@ -17,3 +17,9 @@ export * from './Currency'
 export * from './MarketItem'
 export * from './MarketListing'
 export const enemies: Enemy[]
+export const classes: {
+  name: string
+  description: string
+  role: import('./Card').Role
+  allowedCards: string[]
+}[]

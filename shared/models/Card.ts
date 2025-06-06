@@ -102,6 +102,10 @@ export interface AbilityCard extends BaseCard {
   roleTag: Role
   /** Optional class restriction */
   classRestriction?: Class
+  /** Optional synergy identifier */
+  synergyTag?: string
+  /** Bonus effect if synergy conditions met */
+  synergyEffect?: Effect
 }
 
 export interface EquipmentCard extends BaseCard {

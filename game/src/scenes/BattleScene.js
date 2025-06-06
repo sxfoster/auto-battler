@@ -1,4 +1,5 @@
 import Phaser from 'phaser'
+import { applyRolePenalty, getSynergyBonuses } from 'shared/systems/classRole.js'
 
 export default class BattleScene extends Phaser.Scene {
   constructor() {
@@ -115,12 +116,21 @@ export default class BattleScene extends Phaser.Scene {
   }
 
   resolveCard(card, actor, target) {
-    card.effects.forEach((effect) => {
+    const effects = []
+    if (card.effect) effects.push(card.effect)
+    if (Array.isArray(card.effects)) effects.push(...card.effects)
+
+    const baseEffects = effects.map((e) => ({ ...e }))
+    const penalized = baseEffects.map((e) => applyRolePenalty({ effect: e, roleTag: card.roleTag }, actor.data))
+    const synergy = getSynergyBonuses(card, actor.data)
+    const finalEffects = penalized.concat(synergy)
+
+    finalEffects.forEach((effect) => {
       if (effect.type === 'damage') {
-        target.hp -= effect.value
+        target.hp -= effect.magnitude || effect.value || 0
       }
       if (effect.type === 'heal') {
-        actor.hp = Math.min(actor.data.stats.hp, actor.hp + effect.value)
+        actor.hp = Math.min(actor.data.stats.hp, actor.hp + (effect.magnitude || effect.value || 0))
       }
     })
     this.updateHealth()

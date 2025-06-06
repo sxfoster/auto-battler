@@ -6,5 +6,8 @@
     "client",
     "game",
     "shared"
-  ]
+  ],
+  "scripts": {
+    "test": "node --test"
+  }
 }
