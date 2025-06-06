@@ -1,6 +1,18 @@
+/**
+ * @fileoverview This file contains a list of all possible dungeon events in the game.
+ * Each event is an object with the following properties:
+ *  - id: string - A unique identifier for the event.
+ *  - name: string - The display name of the event.
+ *  - description: string - A short description of the event.
+ *  - biomeEligibility: string[] - A list of biome IDs where this event can occur.
+ *  - effectType: string - The type of effect this event has (e.g., "missChance", "energyRegenPenalty", "periodicDamage").
+ *  - effectDetails: object - Details of the event effect, which varies depending on the effect type.
+ *  - duration: string - How long the event lasts (e.g., "floor").
+ */
+/** @type {import('./DungeonEvent').DungeonEvent[]} */
 export const dungeonEvents = [
   {
-    id: 'spore-bloom',
+    id: 'spore-bloom', // ID is present in JS but not in DungeonEvent.ts, will be an extra property
     name: 'Spore Bloom',
     description: 'All combatants suffer 15% miss chance for the first 3 turns.',
     biomeEligibility: ['fungal-depths'],

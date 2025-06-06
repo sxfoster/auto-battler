@@ -1,4 +1,6 @@
 export interface DungeonEvent {
+  /** Unique event id */
+  id: string;
   /** Display name */
   name: string
   /** Description shown to the player */
