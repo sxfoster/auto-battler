@@ -117,6 +117,10 @@ Lists of all playable classes and enemy archetypes are maintained under the
 [`docs/EnemyCodex.md`](docs/EnemyCodex.md) for the currently implemented
 Level&nbsp;1 cards.
 
+## Data Integrity Rules
+
+All playable classes are referenced by a lowercase id using hyphens (e.g. `runestone-sentinel`). When assigning classes to characters store this `id`, never the display name. Each class must have at least two draftable cards with matching restrictions. The test suite validates these constraints.
+
 
 ## License
 
