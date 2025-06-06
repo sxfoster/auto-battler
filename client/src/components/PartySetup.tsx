@@ -166,9 +166,13 @@ const PartySetup: React.FC = () => {
   };
 
   const handleClassRemove = (characterId: string) => {
-    const newParty = selectedCharacters.filter(c => c.id !== characterId);
-    setSelectedCharacters(newParty);
-    rerollAvailableClasses(newParty);
+    if (selectedCharacters.length > 1) {
+      const newParty = selectedCharacters.filter(c => c.id !== characterId);
+      setSelectedCharacters(newParty);
+      rerollAvailableClasses(newParty);
+    } else {
+      notify('Your party must have at least one member.', 'error');
+    }
   };
 
   const handleCardAssign = (characterId: string, card: Card) => {
@@ -312,7 +316,13 @@ const PartySetup: React.FC = () => {
             <div key={pc.id} className={styles.selectedCharacterPanel}> {/* Apply .selectedCharacterPanel */}
               <div className={styles.characterPanelHeader}> {/* Apply .characterPanelHeader */}
                 <h3>{pc.name} (Class: {clsDef ? clsDef.name : 'Unknown'})</h3>
-                <button onClick={() => handleClassRemove(pc.id)} className={styles.removeButton}>Remove Class</button>
+                <button
+                  onClick={() => handleClassRemove(pc.id)}
+                  disabled={selectedCharacters.length === 1}
+                  className={styles.removeButton}
+                >
+                  Remove Class
+                </button>
               </div>
               <CardAssignmentPanel
                 character={pc}
