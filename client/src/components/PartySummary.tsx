@@ -17,19 +17,21 @@ const roleColors: Record<string, string> = {
 };
 
 const getRole = (classId: string): string => {
-  const cls = allClasses.find(c => c.id === classId || c.name === classId);
+  const cls = allClasses.find(c => c.id === classId);
   if (!cls) {
-    console.error(`Unknown class id: ${classId}`);
+    console.warn(`Unknown class id: ${classId}`);
+    return 'Unknown';
   }
-  return cls?.role ?? 'Unknown';
+  return cls.role;
 };
 
 const getClassName = (classId: string): string => {
-  const cls = allClasses.find(c => c.id === classId || c.name === classId);
+  const cls = allClasses.find(c => c.id === classId);
   if (!cls) {
-    console.error(`Unknown class id: ${classId}`);
+    console.warn(`Unknown class id: ${classId}`);
+    return classId;
   }
-  return cls?.name ?? classId;
+  return cls.name;
 };
 
 const calculateAverage = (values: Array<number | undefined>): string => {
@@ -40,9 +42,9 @@ const calculateAverage = (values: Array<number | undefined>): string => {
 };
 
 const getPortraitSrc = (character: PartyCharacter): string => {
-  const cls = allClasses.find(c => c.id === character.class || c.name === character.class);
+  const cls = allClasses.find(c => c.id === character.class);
   if (!cls) {
-    console.error(`Unknown class id: ${character.class}`);
+    console.warn(`Unknown class id: ${character.class}`);
   }
   return character.portrait || cls?.portrait || defaultPortrait;
 };
