@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import { useNotification } from './NotificationManager.jsx'
 import { sampleCards } from '../../../shared/models/cards.js'
 import styles from './InventoryScreen.module.css'
 
@@ -18,6 +19,7 @@ const allItems: InventoryItem[] = sampleCards.map(c => ({
 
 export default function InventoryScreen() {
   const [filter, setFilter] = useState('All')
+  const { notify } = useNotification()
 
   const items = allItems.filter(i => filter === 'All' || i.type === filter)
 
@@ -46,9 +48,9 @@ export default function InventoryScreen() {
             <strong>{item.name}</strong>
             <span className={styles.meta}>{item.rarity}</span>
             <div className={styles.actions}>
-              <button>Use</button>
-              <button>Equip</button>
-              <button>Sell</button>
+              <button onClick={() => notify(`Used ${item.name}`, 'success')}>Use</button>
+              <button onClick={() => notify(`Equipped ${item.name}`, 'success')}>Equip</button>
+              <button onClick={() => notify(`Sold ${item.name}`, 'success')}>Sell</button>
             </div>
           </div>
         ))}

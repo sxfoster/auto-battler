@@ -4,6 +4,8 @@ import { BrowserRouter } from 'react-router-dom'
 import './index.css'
 import App from './App.jsx'
 import { useGameStore } from './store/gameStore'
+import { ModalProvider } from './components/ModalManager.jsx'
+import { NotificationProvider } from './components/NotificationManager.jsx'
 
 // Load any saved state before the app renders
 useGameStore.getState().load()
@@ -11,7 +13,11 @@ useGameStore.getState().load()
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <BrowserRouter>
-      <App />
+      <ModalProvider>
+        <NotificationProvider>
+          <App />
+        </NotificationProvider>
+      </ModalProvider>
     </BrowserRouter>
   </StrictMode>,
 )
