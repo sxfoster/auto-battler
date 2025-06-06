@@ -1,77 +1,56 @@
-import React, { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import React from 'react'
+import { Link } from 'react-router-dom'
 import { useGameState } from '../GameStateProvider.jsx'
-import InventoryScreen from './InventoryScreen.tsx'
-import CardCollection from './CardCollection.tsx'
-import MagicalPouch from './MagicalPouch.tsx'
-import MarketScreen from './MarketScreen.tsx'
 import styles from './TownView.module.css'
 
 export default function TownView() {
-  const navigate = useNavigate()
-  const updateGameState = useGameState(s => s.updateGameState)
-  const save = useGameState(s => s.save)
+  const party = useGameState(s => s.party)
 
-  const [tab, setTab] = useState<'inventory' | 'cards' | 'craft' | 'market'>('inventory')
-
-  const handleReturn = () => {
-    updateGameState({ location: 'dungeon' })
-    save()
-    navigate('/dungeon')
-  }
-
-  const renderContent = () => {
-    switch (tab) {
-      case 'inventory':
-        return <InventoryScreen />
-      case 'cards':
-        return <CardCollection />
-      case 'craft':
-        return <MagicalPouch player={{ id: 'p1', name: 'Hero' }} profession={{ id: 'p', name: 'Crafter', description: '' }} />
-      case 'market':
-        return <MarketScreen marketType="Town" playerId="p1" />
-      default:
-        return null
-    }
-  }
+  const members = party?.characters.map(c => c.name).join(', ') || 'No party'
 
   return (
     <div className={styles.container}>
-      <h2>Town Hub</h2>
-      <nav className={styles.nav} aria-label="Town navigation">
-        <button
-          onClick={() => setTab('inventory')}
-          aria-selected={tab === 'inventory'}
-          title="View your items"
+      <header className={styles.header}>
+        <h2>Town Hub</h2>
+        <p className={styles.summary}>Party: {members}</p>
+        <Link to="/" className={styles.mainMenu}>Return to Main Menu</Link>
+      </header>
+      <div className={styles.grid}>
+        <Link to="/party-setup" className={styles.card} aria-label="Manage party">
+          <span className={styles.icon}>⚔️</span>
+          <h3>Party</h3>
+          <p>Manage your heroes</p>
+        </Link>
+        <Link to="/inventory" className={styles.card} aria-label="View inventory">
+          <span className={styles.icon}>🎒</span>
+          <h3>Inventory</h3>
+          <p>View your items</p>
+        </Link>
+        <Link to="/cards" className={styles.card} aria-label="Browse cards">
+          <span className={styles.icon}>📜</span>
+          <h3>Cards</h3>
+          <p>Browse your card collection</p>
+        </Link>
+        <Link to="/crafting" className={styles.card} aria-label="Craft items">
+          <span className={styles.icon}>🛠️</span>
+          <h3>Crafting</h3>
+          <p>Prepare for battle</p>
+        </Link>
+        <Link to="/shop" className={styles.card} aria-label="Visit shop">
+          <span className={styles.icon}>🛒</span>
+          <h3>Shop</h3>
+          <p>Browse wares</p>
+        </Link>
+        <Link
+          to="/dungeon"
+          className={`${styles.card} ${!party ? styles.disabled : ''}`}
+          aria-label="Enter dungeon"
         >
-          Inventory
-        </button>
-        <button
-          onClick={() => setTab('cards')}
-          aria-selected={tab === 'cards'}
-          title="Browse your card collection"
-        >
-          Cards
-        </button>
-        <button
-          onClick={() => setTab('craft')}
-          aria-selected={tab === 'craft'}
-          title="Open crafting interface"
-        >
-          Crafting
-        </button>
-        <button
-          onClick={() => setTab('market')}
-          aria-selected={tab === 'market'}
-          title="Trade items at the market"
-        >
-          Market
-        </button>
-        <button onClick={handleReturn} style={{ marginLeft: 'auto' }} title="Return to the dungeon">
-          Return
-        </button>
-      </nav>
-      <div className={styles.content}>{renderContent()}</div>
+          <span className={styles.icon}>🏰</span>
+          <h3>Enter Dungeon</h3>
+          <p>Begin an adventure</p>
+        </Link>
+      </div>
     </div>
   )
 }

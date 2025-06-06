@@ -6,6 +6,10 @@ import MainMenu from './components/MainMenu.jsx'
 import PartySetup from './components/PartySetup.tsx'
 import DungeonMap from './components/DungeonMap.tsx'
 import TownView from './components/TownView.tsx'
+import InventoryPage from './components/InventoryPage.tsx'
+import CollectionPage from './components/CollectionPage.tsx'
+import CraftingPage from './components/CraftingPage.tsx'
+import ShopPage from './components/ShopPage.tsx'
 
 function AnimatedRoutes() {
   const location = useLocation()
@@ -31,6 +35,10 @@ function AnimatedRoutes() {
           <Route path="/party-setup" element={<PartySetup />} />
           <Route path="/dungeon" element={<DungeonMap />} />
           <Route path="/town" element={<TownView />} />
+          <Route path="/inventory" element={<InventoryPage />} />
+          <Route path="/cards" element={<CollectionPage />} />
+          <Route path="/crafting" element={<CraftingPage />} />
+          <Route path="/shop" element={<ShopPage />} />
         </Routes>
       </CSSTransition>
     </SwitchTransition>
