@@ -90,7 +90,10 @@ const PartySummary: React.FC<PartySummaryProps> = ({ selectedCharacters }) => {
           <strong style={{color: '#2980b9', fontSize: '1.1em'}}>{character.name} ({character.class})</strong>
           <ul style={cardListStyle}>
             {character.assignedCards.map(card => (
-              <li key={card.id} style={{marginBottom: '3px'}}>{card.name}</li>
+              <li key={card.id} style={{marginBottom: '3px'}}>
+                <span title={card.description}>{card.name}</span>
+                <em style={{fontSize: '0.8em', color: '#555'}}> - {card.description}</em>
+              </li>
             ))}
             {character.assignedCards.length === 0 && <li style={{fontStyle: 'italic'}}>No cards assigned</li>}
           </ul>

@@ -137,7 +137,12 @@ export default class BattleScene extends Phaser.Scene {
     const hand = this.current.data.deck
     hand.forEach((card: any, idx: number) => {
       const txt = this.add
-        .text(100 + idx * 120, 500, card.name, { fontSize: '16px', backgroundColor: '#ddd', padding: 5 })
+        .text(
+          100 + idx * 120,
+          500,
+          `${card.name}\n${card.description}`,
+          { fontSize: '16px', backgroundColor: '#ddd', padding: 5, align: 'center' },
+        )
         .setInteractive()
         .on('pointerdown', () => {
           this.resolveCard(card, this.current, this.enemies[0])

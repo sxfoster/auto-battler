@@ -25,6 +25,12 @@
   flex-direction: column;
   align-items: center;
 }
+.desc {
+  font-size: 0.8em;
+  color: #555;
+  text-align: center;
+  margin: 4px 0;
+}
 .meta {
   font-size: 0.8em;
   color: #666;

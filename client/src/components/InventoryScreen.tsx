@@ -8,6 +8,7 @@ interface InventoryItem {
   name: string
   type: string
   rarity: string
+  description: string
 }
 
 const allItems: InventoryItem[] = sampleCards.map(c => ({
@@ -15,6 +16,7 @@ const allItems: InventoryItem[] = sampleCards.map(c => ({
   name: c.name,
   type: c.category || c.type || 'Unknown',
   rarity: c.rarity || 'Common',
+  description: c.description || ''
 }))
 
 export default function InventoryScreen() {
@@ -44,9 +46,15 @@ export default function InventoryScreen() {
       </div>
       <div className={styles.grid}>
         {items.map(item => (
-          <div key={item.id} className={styles.item} tabIndex={0} aria-label={`${item.name} ${item.rarity} ${item.type}`}>
+          <div
+            key={item.id}
+            className={styles.item}
+            tabIndex={0}
+            aria-label={`${item.name} ${item.rarity} ${item.type}. ${item.description}`}
+          >
             <strong>{item.name}</strong>
             <span className={styles.meta}>{item.rarity}</span>
+            <p className={styles.desc}>{item.description}</p>
             <div className={styles.actions}>
               <button onClick={() => notify(`Used ${item.name}`, 'success')}>Use</button>
               <button onClick={() => notify(`Equipped ${item.name}`, 'success')}>Equip</button>

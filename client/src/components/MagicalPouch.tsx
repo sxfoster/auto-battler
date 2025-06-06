@@ -75,8 +75,10 @@ const MagicalPouch: React.FC<{ player: Player; profession: Profession }> = ({ pl
               key={card.id}
               style={{ border: '1px solid #ccc', margin: 4, padding: 4, cursor: 'pointer' }}
               onClick={() => handleAdd(card)}
+              title={card.description}
             >
-              {card.name}
+              <strong>{card.name}</strong>
+              <p style={{ fontSize: '0.75em', margin: 0 }}>{card.description}</p>
             </div>
           ))}
       </div>

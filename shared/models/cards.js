@@ -2,6 +2,7 @@ export const sampleCards = [
   {
     id: 'strike',
     name: 'Strike',
+    description: 'Deal 5 damage and begins a Frenzy combo.',
     category: 'Ability',
     rarity: 'Common',
     energyCost: 1,
@@ -15,6 +16,7 @@ export const sampleCards = [
   {
     id: 'heal',
     name: 'Heal',
+    description: 'Restore 5 health to an ally.',
     category: 'Ability',
     rarity: 'Common',
     energyCost: 1,
@@ -25,6 +27,7 @@ export const sampleCards = [
   {
     id: 'inspire',
     name: 'Inspire',
+    description: "Boost an ally's stats by 1.",
     category: 'Ability',
     rarity: 'Common',
     energyCost: 1,
@@ -35,6 +38,7 @@ export const sampleCards = [
   {
     id: 'iron_sword',
     name: 'Iron Sword',
+    description: 'Weapon that increases attack by 2.',
     category: 'Equipment',
     rarity: 'Common',
     statModifiers: [{ stat: 'attack', value: 2 }],
@@ -43,6 +47,7 @@ export const sampleCards = [
   {
     id: 'herb',
     name: 'Medicinal Herb',
+    description: 'Ingredient for basic remedies.',
     category: 'Ingredient',
     rarity: 'Common',
     ingredientType: 'Herb',
@@ -50,6 +55,7 @@ export const sampleCards = [
   {
     id: 'bread',
     name: 'Stale Bread',
+    description: 'Slightly restores hunger.',
     category: 'FoodDrink',
     rarity: 'Common',
     restoreHunger: 5,
@@ -58,6 +64,7 @@ export const sampleCards = [
   {
     id: 'haste_elixir',
     name: 'Haste Elixir',
+    description: 'Gain +1 speed for 3 turns.',
     category: 'Elixir',
     rarity: 'Uncommon',
     effects: [{ type: 'speed', magnitude: 1, duration: 3 }],
@@ -66,6 +73,7 @@ export const sampleCards = [
   {
     id: 'campfire',
     name: 'Campfire Kit',
+    description: 'Rest to recover 5 health.',
     category: 'Utility',
     rarity: 'Common',
     utilityType: 'Campfire',
@@ -74,6 +82,7 @@ export const sampleCards = [
   {
     id: 'mark_target',
     name: 'Mark Target',
+    description: 'Debuff an enemy to enable Execute combo.',
     category: 'Ability',
     rarity: 'Common',
     energyCost: 1,
@@ -86,6 +95,7 @@ export const sampleCards = [
   {
     id: 'shadow_execution',
     name: 'Shadow Execution',
+    description: 'Deal 8 damage as the Execute finisher.',
     category: 'Ability',
     rarity: 'Common',
     energyCost: 1,
