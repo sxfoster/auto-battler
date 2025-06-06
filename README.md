@@ -104,4 +104,6 @@ Two currencies are tracked:
 
 Four market types are supported: Town, Black, Guild Exchange and Auction House.
 Helper functions in `shared/systems/market.js` manage listings, player balances
-and bidding logic.
+and bidding logic. Crafting recipes include a currency cost which is deducted
+when a craft succeeds. Loot generation now awards Gold and occasionally Guild
+Credits that can be applied to a player's balances via `awardCurrency`.

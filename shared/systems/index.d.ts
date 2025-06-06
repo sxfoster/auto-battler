@@ -5,6 +5,13 @@ import type { Encounter } from '../models/Encounter'
 
 export function applySurvivalPenalties(party: Character[]): void
 export function generateLoot(encounter: Encounter): LootItem[]
+export function generateCurrencyReward(
+  encounter: Encounter,
+): { Gold: number; GuildCredit: number }
+export function awardCurrency(
+  player: import('../models').Player,
+  reward: { Gold: number; GuildCredit: number },
+): void
 export function distributeLoot(loot: LootItem[], inventory: Inventory): void
 export function useConsumable(item: LootItem, character: Character): void
 export function rest(party: Character[], duration: number): void
@@ -15,6 +22,7 @@ export function attemptCraft(
   profession: import('../models').Profession,
   usedCards: import('../models').Card[],
   recipes: import('../models').Recipe[],
+  player: import('../models').Player,
 ): import('../models').CraftingAttempt
 export function getAvailableRecipes(
   profession: import('../models').Profession,
