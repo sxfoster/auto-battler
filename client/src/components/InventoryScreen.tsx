@@ -1,0 +1,58 @@
+import React, { useState } from 'react'
+import { sampleCards } from '../../../shared/models/cards.js'
+import styles from './InventoryScreen.module.css'
+
+interface InventoryItem {
+  id: string
+  name: string
+  type: string
+  rarity: string
+}
+
+const allItems: InventoryItem[] = sampleCards.map(c => ({
+  id: c.id,
+  name: c.name,
+  type: c.category || c.type || 'Unknown',
+  rarity: c.rarity || 'Common',
+}))
+
+export default function InventoryScreen() {
+  const [filter, setFilter] = useState('All')
+
+  const items = allItems.filter(i => filter === 'All' || i.type === filter)
+
+  const uniqueTypes = Array.from(new Set(allItems.map(i => i.type)))
+
+  return (
+    <div className={styles.container}>
+      <h1 className={styles.title}>Inventory</h1>
+      <div className={styles.filterRow}>
+        <label htmlFor="filter">Filter:</label>
+        <select
+          id="filter"
+          value={filter}
+          onChange={e => setFilter(e.target.value)}
+          className={styles.select}
+        >
+          <option value="All">All</option>
+          {uniqueTypes.map(t => (
+            <option key={t} value={t}>{t}</option>
+          ))}
+        </select>
+      </div>
+      <div className={styles.grid}>
+        {items.map(item => (
+          <div key={item.id} className={styles.item} tabIndex={0} aria-label={`${item.name} ${item.rarity} ${item.type}`}>
+            <strong>{item.name}</strong>
+            <span className={styles.meta}>{item.rarity}</span>
+            <div className={styles.actions}>
+              <button>Use</button>
+              <button>Equip</button>
+              <button>Sell</button>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
