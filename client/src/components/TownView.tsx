@@ -6,7 +6,7 @@ import styles from './TownView.module.css'
 export default function TownView() {
   const party = useGameState(s => s.party)
 
-  const members = party?.characters.map(c => c.name).join(', ') || 'No party'
+  const members = party?.characters?.map(c => c.name).join(', ') || 'No party'
 
   return (
     <div className={styles.container}>

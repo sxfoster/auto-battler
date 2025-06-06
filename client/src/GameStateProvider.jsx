@@ -4,16 +4,18 @@ import { useGameStore } from './store/gameStore'
 const GameStateContext = createContext(null)
 
 export const GameStateProvider = ({ children }) => {
-  const store = useGameStore()
+  // Provide the useGameStore hook itself so consumers can select slices
   return (
-    <GameStateContext.Provider value={store}>{children}</GameStateContext.Provider>
+    <GameStateContext.Provider value={useGameStore}>
+      {children}
+    </GameStateContext.Provider>
   )
 }
 
-export const useGameState = () => {
-  const ctx = useContext(GameStateContext)
-  if (!ctx) {
+export const useGameState = selector => {
+  const useStore = useContext(GameStateContext)
+  if (!useStore) {
     throw new Error('useGameState must be used within a GameStateProvider')
   }
-  return ctx
+  return useStore(selector)
 }
