@@ -1,3 +1,6 @@
+const clericPortrait = new URL('../images/cleric-portrait.png', import.meta.url).href
+const defaultPortrait = new URL('../images/default-portrait.png', import.meta.url).href
+
 export const Role = {
   Tank: 'Tank',
   Healer: 'Healer',
@@ -17,6 +20,7 @@ export const classes = [
       'guards_challenge',
       'bulwark',
     ],
+    portrait: defaultPortrait,
   },
   {
     id: 'Warrior',
@@ -24,6 +28,7 @@ export const classes = [
     description: 'Aggressive melee combatant excelling at frontline skirmishes.',
     role: Role.Tank,
     allowedCards: ['power_strike', 'battle_cry'],
+    portrait: defaultPortrait,
   },
   {
     id: 'RunestoneSentinel',
@@ -31,6 +36,7 @@ export const classes = [
     description: 'Tank that channels rune magic to harden defenses.',
     role: Role.Tank,
     allowedCards: ['rune_slam', 'stone_guard'],
+    portrait: defaultPortrait,
   },
   {
     id: 'Cleric',
@@ -38,7 +44,7 @@ export const classes = [
     description: 'Devout healer who mends wounds with holy magic.',
     role: Role.Healer,
     allowedCards: ['holy_light', 'smite'],
-    portrait: '../../../shared/images/cleric-portrait.png',
+    portrait: clericPortrait,
   },
   {
     id: 'Herbalist',
@@ -46,6 +52,7 @@ export const classes = [
     description: 'Nature healer brewing restorative and toxic concoctions.',
     role: Role.Healer,
     allowedCards: ['healing_herbs', 'toxic_spores'],
+    portrait: defaultPortrait,
   },
   {
     id: 'Bloodweaver',
@@ -53,6 +60,7 @@ export const classes = [
     description: 'Mystic manipulating life essence to heal or harm.',
     role: Role.Healer,
     allowedCards: ['blood_leech', 'sanguine_gift'],
+    portrait: defaultPortrait,
   },
   {
     id: 'Bard',
@@ -60,6 +68,7 @@ export const classes = [
     description: 'Inspirational performer empowering allies through song.',
     role: Role.Support,
     allowedCards: ['inspire', 'song_of_swiftness'],
+    portrait: defaultPortrait,
   },
   {
     id: 'Chronomancer',
@@ -67,6 +76,7 @@ export const classes = [
     description: 'Temporal magician bending time to aid the party.',
     role: Role.Support,
     allowedCards: ['time_warp', 'temporal_strike'],
+    portrait: defaultPortrait,
   },
   {
     id: 'TotemWarden',
@@ -74,6 +84,7 @@ export const classes = [
     description: 'Places totems that bolster friends or weaken foes.',
     role: Role.Support,
     allowedCards: ['totem_of_vitality', 'totem_of_fury', 'totem_of_stoneskin', 'totem_recall'],
+    portrait: defaultPortrait,
   },
   {
     id: 'Blademaster',
@@ -81,6 +92,7 @@ export const classes = [
     description: 'Master of blades delivering relentless attacks.',
     role: Role.DPS,
     allowedCards: ['quick_slash', 'blade_fury'],
+    portrait: defaultPortrait,
   },
   {
     id: 'Wizard',
@@ -88,6 +100,7 @@ export const classes = [
     description: 'Arcane caster wielding destructive and protective spells.',
     role: Role.DPS,
     allowedCards: ['arcane_bolt', 'mana_shield'],
+    portrait: defaultPortrait,
   },
   {
     id: 'Shadowblade',
@@ -95,6 +108,7 @@ export const classes = [
     description: 'Stealthy assassin striking from the darkness.',
     role: Role.DPS,
     allowedCards: ['backstab', 'smoke_bomb'],
+    portrait: defaultPortrait,
   },
   {
     id: 'Ranger',
@@ -102,6 +116,7 @@ export const classes = [
     description: 'Expert archer adept at controlling the battlefield.',
     role: Role.DPS,
     allowedCards: ['arrow_shot', 'entangling_trap'],
+    portrait: defaultPortrait,
   },
   {
     id: 'Pyromancer',
@@ -109,5 +124,6 @@ export const classes = [
     description: 'Sorcerer harnessing fire for offense and defense.',
     role: Role.DPS,
     allowedCards: ['fireball', 'flame_shield'],
+    portrait: defaultPortrait,
   },
 ]
