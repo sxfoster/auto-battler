@@ -49,8 +49,8 @@ const CardDisplay: React.FC<CardDisplayProps> = ({ card, onSelect, isSelected, i
         )}
         <span className={styles.nameRibbon}>{card.name}</span>
         <span className={styles.typeBadge}>{card.category}</span>
-        {classText && <span className={styles.classBanner}>{classText}</span>}
       </div>
+      {classText && <span className={styles.classBanner}>{classText}</span>}
       <div className={styles.description}>{card.description || 'No effect description.'}</div>
       {('attack' in card || 'defense' in card) && (
         <div className={styles.stats}>

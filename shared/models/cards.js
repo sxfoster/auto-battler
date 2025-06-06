@@ -99,7 +99,7 @@ export const sampleCards = [
     roleTag: 'Support',
     synergyTag: 'Execute',
     isComboStarter: true,
-    classes: ['Shadowblade', 'Ranger'], // Level 1
+    classes: ['Ranger'], // Level 1
   },
   {
     id: 'shadow_execution',

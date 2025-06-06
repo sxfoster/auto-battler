@@ -117,7 +117,7 @@ export const classes = [
     name: 'Shadowblade',
     description: 'Stealthy assassin striking from the darkness.',
     role: Role.DPS,
-    allowedCards: ['mark_target', 'shadow_execution', 'backstab', 'smoke_bomb'],
+    allowedCards: ['shadow_execution', 'backstab', 'smoke_bomb', 'shadowstep'],
     portrait: shadowbladePortrait,
   },
   {
