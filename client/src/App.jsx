@@ -1,5 +1,6 @@
 import './App.css'
 import { Routes, Route, useLocation } from 'react-router-dom'
+import { useEffect, useRef } from 'react'
 import { CSSTransition, SwitchTransition } from 'react-transition-group'
 import MainMenu from './components/MainMenu.jsx'
 import PartySetup from './components/PartySetup.tsx'
@@ -8,6 +9,14 @@ import TownView from './components/TownView.tsx'
 
 function AnimatedRoutes() {
   const location = useLocation()
+  const previousPath = useRef(location.pathname)
+
+  useEffect(() => {
+    if (previousPath.current !== location.pathname) {
+      window.location.reload()
+    }
+    previousPath.current = location.pathname
+  }, [location.pathname])
 
   return (
     <SwitchTransition>
