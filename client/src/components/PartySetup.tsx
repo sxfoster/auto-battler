@@ -27,6 +27,14 @@ const PartySetup: React.FC = () => {
   const [selectedCharacters, setSelectedCharacters] = useState<PartyCharacter[]>([]);
   const [availableCharacters, setAvailableCharacters] = useState<Character[]>([]);
   const [availableCards, setAvailableCards] = useState<Card[]>([]);
+  const [isRerolling, setIsRerolling] = useState(false);
+
+  const roleColors: Record<string, string> = {
+    Tank: '#2980b9',
+    Healer: '#27ae60',
+    Support: '#9b59b6',
+    DPS: '#e74c3c',
+  }
 
   const navigate = useNavigate();
   const setParty = useGameStore(state => state.setParty);
@@ -116,8 +124,11 @@ const PartySetup: React.FC = () => {
   };
 
   const handleRerollClasses = () => {
+    if (isRerolling) return;
+    setIsRerolling(true);
     setAvailableClasses(getRandomClasses(4, allClasses));
     setSelectedCharacters([]);
+    setTimeout(() => setIsRerolling(false), 500);
   };
 
   const { open, close } = useModal();
@@ -158,17 +169,40 @@ const PartySetup: React.FC = () => {
 
   // Basic JSX structure - will be expanded in subsequent steps
   return (
-    <div className={styles.screen}> {/* Apply .screen class */}
-      <h1 className={styles.title}>Party Setup</h1> {/* Apply .title class */}
-      <div style={{ textAlign: 'center', marginBottom: '1rem' }}>
-        <p>Available Classes: {availableClasses.map(c => c.name).join(', ')}</p>
-        <button onClick={handleRerollClasses}>Reroll Classes</button>
-      </div>
+    <div className={styles.screen}>
+      <div className={styles.setupCard}>
+        <h1 className={styles.title}>Party Setup</h1>
+        <div className={styles.classList}>
+          {availableClasses.map(cls => (
+            <div
+              key={cls.name}
+              className={styles.classCard}
+              style={{ '--role-color': roleColors[cls.role] } as React.CSSProperties}
+            >
+              <span className={styles.roleBadge}>{cls.role}</span>
+              <strong>{cls.name}</strong>
+              <p style={{ fontStyle: cls.description ? 'normal' : 'italic', fontSize: '0.8rem' }}>
+                {cls.description || 'No description available.'}
+              </p>
+            </div>
+          ))}
+          <button
+            className={styles.rerollButton}
+            onClick={handleRerollClasses}
+            disabled={isRerolling}
+            title="Try a new set of classes for your adventure!"
+          >
+            Reroll Classes
+          </button>
+        </div>
 
       {/* Character Selection Section */}
       <div className={styles.characterSelectionArea}>
         <h2 className={styles.sectionTitle}>Select Characters (up to 5)</h2>
-        <div className={styles.characterSelectionGrid}> {/* Apply .characterSelectionGrid */}
+        <div
+          key={availableClasses.map(c => c.name).join('-')}
+          className={`${styles.characterSelectionGrid} ${isRerolling ? styles.fade : ''}`}
+        >
           {availableCharacters.filter(ac => !selectedCharacters.find(sc => sc.id === ac.id)).map(character => (
             <CharacterCard
               key={character.id}
@@ -215,6 +249,7 @@ const PartySetup: React.FC = () => {
         >
           Enter Dungeon
         </button>
+      </div>
       </div>
     </div>
   );

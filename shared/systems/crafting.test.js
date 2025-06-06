@@ -23,7 +23,6 @@ test('craftWithInventory crafts item and updates progression', () => {
   assert.strictEqual(profession.experience, 10)
 })
 
-
 const dummyCards = {
   herb: { id: 'herb', name: 'Herb' },
   bread: { id: 'bread', name: 'Bread' },
