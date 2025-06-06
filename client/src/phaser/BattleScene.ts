@@ -1,6 +1,7 @@
 import Phaser from 'phaser'
 import { enemies } from 'shared/models'
 import { chooseEnemyAction, trackEnemyActions, chooseTarget } from 'shared/systems/enemyAI.js'
+import { canUseAbility, applyCooldown, tickCooldowns } from 'shared/systems/abilities.js'
 import { floatingText } from './effects'
 
 interface SceneData {
@@ -49,8 +50,10 @@ export default class BattleScene extends Phaser.Scene {
     if (!combatant.data.hand) {
       combatant.data.hand = []
     }
+    const available = combatant.data.deck.filter((c: any) => canUseAbility(combatant.data, c))
     for (let i = 0; i < count; i++) {
-      const card = Phaser.Math.RND.pick(combatant.data.deck)
+      const pool = available.length ? available : combatant.data.deck
+      const card = Phaser.Math.RND.pick(pool)
       combatant.data.hand.push(card)
     }
   }
@@ -131,6 +134,7 @@ export default class BattleScene extends Phaser.Scene {
     this.current = this.turnOrder[this.turnIndex % this.turnOrder.length]
     this.turnNumber += 1
     this.turnText.setText(`${this.current.data.name}'s turn`)
+    this.turnOrder.forEach((c) => tickCooldowns(c.data))
     this.emitState(`${this.current.data.name}'s turn`)
 
     if (this.current.type === 'player') {
@@ -148,17 +152,21 @@ export default class BattleScene extends Phaser.Scene {
     this.clearCards()
     const hand = this.current.data.hand || []
     hand.forEach((card: any, idx: number) => {
-      const txt = this.add
-        .text(
-          100 + idx * 120,
-          500,
-          `${card.name}\n${card.description}`,
-          { fontSize: '16px', backgroundColor: '#ddd', padding: 5, align: 'center' },
-        )
-        .setInteractive()
-        .on('pointerdown', () => {
+      const cd = this.current.data.cooldowns?.[card.id] || 0
+      const label = cd > 0 ? `${card.name} (${cd})` : `${card.name}\n${card.description}`
+      const txt = this.add.text(100 + idx * 120, 500, label, {
+        fontSize: '16px',
+        backgroundColor: '#ddd',
+        padding: 5,
+        align: 'center',
+      })
+      if (cd === 0) {
+        txt.setInteractive().on('pointerdown', () => {
           this.resolveCard(card, this.current, this.enemies[0])
         })
+      } else {
+        txt.setFill('#777777')
+      }
       this.cardTexts.push(txt)
     })
   }
@@ -177,7 +185,11 @@ export default class BattleScene extends Phaser.Scene {
       enemyMaxHP: this.current.data.stats.hp,
       players,
     }
-    const card = chooseEnemyAction(this.current.data, context)
+    let card = chooseEnemyAction(this.current.data, context)
+    if (!canUseAbility(this.current.data, card)) {
+      const available = this.current.data.deck.filter((c: any) => canUseAbility(this.current.data, c))
+      card = available.length ? Phaser.Math.RND.pick(available) : card
+    }
     const targetCombat = chooseTarget(players) || players[0]
     if (card.isComboFinisher) {
       console.log(`${this.current.data.name} executes combo ${card.synergyTag}`)
@@ -202,6 +214,7 @@ export default class BattleScene extends Phaser.Scene {
         this.showFloat(`+${effect.value}`, actor, '#44ff44')
       }
     })
+    applyCooldown(actor.data, card)
     this.emitState(`${actor.data.name} used ${card.name}`)
     this.updateHealth()
     this.clearCards()

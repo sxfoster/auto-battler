@@ -131,3 +131,7 @@ export function chooseEnemyAction(
 ): import('../models').Card
 export function chooseTarget(players: { hp: number; position?: number }[]): any
 export function setAIDebugListener(fn: (info: any) => void): void
+export function initCooldowns(character: Character): void
+export function canUseAbility(character: Character, card: import('../models').Card): boolean
+export function applyCooldown(character: Character, card: import('../models').Card): void
+export function tickCooldowns(character: Character): void
