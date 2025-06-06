@@ -3,12 +3,27 @@ import { applyRolePenalty, getSynergyBonuses } from 'shared/systems/classRole.js
 import { applyBiomeBonuses, getCurrentBiome } from 'shared/systems/biome.js'
 import { applyEventEffects } from 'shared/systems/floorEvents.js'
 import { chooseEnemyAction, trackEnemyActions } from 'shared/systems/enemyAI.js'
+import { floatingText } from '../effects.js'
 import { loadGameState } from '../state'
 
 export default class BattleScene extends Phaser.Scene {
   constructor() {
     super('battle')
     this.biome = null
+  }
+
+  getSprite(combatant) {
+    return (
+      this.playerSprites.find((s) => s.data.id === combatant.data.id) ||
+      this.enemySprites.find((s) => s.data.id === combatant.data.id)
+    )
+  }
+
+  showFloat(text, combatant, color) {
+    const sprite = this.getSprite(combatant)
+    if (sprite) {
+      floatingText(this, text, sprite.rect.x, sprite.rect.y - 40, color)
+    }
   }
 
   calculateDamage(effect, attacker, defender) {
@@ -178,6 +193,7 @@ export default class BattleScene extends Phaser.Scene {
       this.nextTurn()
       return
     }
+    this.showFloat(card.name, actor, '#ffff66')
     const effects = []
     if (card.effect) effects.push(card.effect)
     if (Array.isArray(card.effects)) effects.push(...card.effects)
@@ -191,9 +207,12 @@ export default class BattleScene extends Phaser.Scene {
       if (effect.type === 'damage') {
         const dmg = this.calculateDamage(effect, actor, target)
         target.hp -= dmg
+        this.showFloat(`-${dmg}`, target, '#ff4444')
       }
       if (effect.type === 'heal') {
-        actor.hp = Math.min(actor.data.stats.hp, actor.hp + (effect.magnitude || effect.value || 0))
+        const heal = effect.magnitude || effect.value || 0
+        actor.hp = Math.min(actor.data.stats.hp, actor.hp + heal)
+        this.showFloat(`+${heal}`, actor, '#44ff44')
       }
     })
     this.updateHealth()
@@ -220,6 +239,7 @@ export default class BattleScene extends Phaser.Scene {
       this.clearCards()
       const text = !playersAlive ? 'Defeat' : 'Victory'
       this.add.text(360, 300, text, { fontSize: '32px' }).setOrigin(0.5)
+      this.showFloat(text, this.current, text === 'Victory' ? '#44ff44' : '#ff4444')
       if (enemiesAlive === false) {
         const dungeon = this.scene.get('dungeon')
         dungeon.rooms[this.roomIndex].cleared = true

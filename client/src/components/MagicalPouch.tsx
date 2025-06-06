@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import { useNotification } from './NotificationManager.jsx'
 import type { Card } from '../../../shared/models/Card'
 import { sampleCards } from '../../../shared/models/cards.js'
 import { sampleRecipes } from '../../../shared/models/recipes.js'
@@ -25,6 +26,7 @@ const Slot: React.FC<SlotProps> = ({ card, onRemove }) => {
 const MagicalPouch: React.FC<{ player: Player; profession: Profession }> = ({ player, profession }) => {
   const [slots, setSlots] = useState<(Card | null)[]>(Array(5).fill(null))
   const [result, setResult] = useState<string>('')
+  const { notify } = useNotification()
 
   const handleAdd = (card: Card) => {
     const idx = slots.findIndex((s) => s === null)
@@ -47,11 +49,13 @@ const MagicalPouch: React.FC<{ player: Player; profession: Profession }> = ({ pl
     if (attempt.success && attempt.result) {
       attempt.result.craftedBy = player.name
       setResult(`Crafted: ${attempt.result.name}`)
+      notify(`Crafted ${attempt.result.name}`, 'success')
       if (attempt.newRecipeDiscovered) {
         registerRecipeDiscovery(player, sampleRecipes.find(r => r.id === attempt.result?.id.split('_')[0])!)
       }
     } else {
       setResult('Experiment failed')
+      notify('Crafting failed', 'error')
     }
     setSlots(Array(5).fill(null))
   }
