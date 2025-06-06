@@ -11,6 +11,7 @@ import CollectionPage from './components/CollectionPage.tsx'
 import CraftingPage from './components/CraftingPage.tsx'
 import ShopPage from './components/ShopPage.tsx'
 import DeckManager from './components/DeckManager.jsx'
+import BattleScene from './components/BattleScene.tsx'
 
 function AnimatedRoutes() {
   const location = useLocation()
@@ -40,6 +41,7 @@ function AnimatedRoutes() {
           <Route path="/cards" element={<CollectionPage />} />
           <Route path="/crafting" element={<CraftingPage />} />
           <Route path="/shop" element={<ShopPage />} />
+          <Route path="/battle" element={<BattleScene />} />
           <Route path="/decks" element={<DeckManager />} />
         </Routes>
       </CSSTransition>

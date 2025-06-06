@@ -63,6 +63,15 @@ export default function TownView() {
           <span className={styles.subtitle}>Browse wares</span>
         </button>
         <button
+          className={styles.card}
+          onClick={() => navigate('/battle')}
+          aria-label="Battle"
+        >
+          <span className={styles.icon}>⚔️</span>
+          <span className={styles.title}>Battle</span>
+          <span className={styles.subtitle}>Skirmish test</span>
+        </button>
+        <button
           className={`${styles.card} ${!party ? styles.disabled : ''}`}
           onClick={() => party && navigate('/dungeon')}
           aria-label="Enter Dungeon"

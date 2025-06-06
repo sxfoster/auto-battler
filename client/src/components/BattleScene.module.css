@@ -1,0 +1,41 @@
+.container {
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+  width: 100%;
+  max-width: 600px;
+}
+.side {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.unit {
+  background: #232429;
+  color: #fff;
+  border-radius: 8px;
+  padding: 0.5rem;
+  margin: 0.25rem;
+  width: 100px;
+  text-align: center;
+}
+.controls {
+  margin-top: 1rem;
+}
+.log {
+  margin-top: 1rem;
+  background: #222;
+  color: #fff;
+  padding: 0.5rem;
+  max-height: 150px;
+  overflow-y: auto;
+  width: 100%;
+  max-width: 600px;
+  text-align: left;
+}
