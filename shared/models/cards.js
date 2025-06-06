@@ -12,6 +12,7 @@ export const sampleCards = [
     synergyTag: 'Frenzy',
     synergyEffect: { type: 'extra_attack', magnitude: 1 },
     isComboStarter: true,
+    classRestriction: 'Warrior', // Level 1
   },
   {
     id: 'heal',
@@ -23,6 +24,7 @@ export const sampleCards = [
     cooldown: 0,
     effect: { type: 'heal', magnitude: 5 },
     roleTag: 'Healer',
+    classRestriction: 'Cleric', // Level 1
   },
   {
     id: 'inspire',
@@ -34,6 +36,7 @@ export const sampleCards = [
     cooldown: 0,
     effect: { type: 'buff', magnitude: 1, target: 'ally' },
     roleTag: 'Support',
+    classRestriction: 'Bard', // Level 1
   },
   {
     id: 'iron_sword',
@@ -43,6 +46,7 @@ export const sampleCards = [
     rarity: 'Common',
     statModifiers: [{ stat: 'attack', value: 2 }],
     slot: 'Weapon',
+    classRestriction: 'Warrior', // Level 1
   },
   {
     id: 'herb',
@@ -69,6 +73,7 @@ export const sampleCards = [
     rarity: 'Uncommon',
     effects: [{ type: 'speed', magnitude: 1, duration: 3 }],
     duration: 3,
+    classRestriction: 'Herbalist', // Level 1
   },
   {
     id: 'campfire',
@@ -91,6 +96,7 @@ export const sampleCards = [
     roleTag: 'Support',
     synergyTag: 'Execute',
     isComboStarter: true,
+    classes: ['Shadowblade', 'Ranger'], // Level 1
   },
   {
     id: 'shadow_execution',
@@ -104,6 +110,7 @@ export const sampleCards = [
     roleTag: 'DPS',
     synergyTag: 'Execute',
     isComboFinisher: true,
+    classRestriction: 'Shadowblade', // Level 1
   },
   {
     id: 'fireball',
@@ -115,6 +122,7 @@ export const sampleCards = [
     cooldown: 0,
     effect: { type: 'damage', magnitude: 6, element: 'fire' },
     roleTag: 'DPS',
+    classRestriction: 'Pyromancer', // Level 1
   },
   {
     id: 'shield_wall',
@@ -126,7 +134,7 @@ export const sampleCards = [
     cooldown: 1,
     effect: { type: 'buff', magnitude: 3, duration: 2 },
     roleTag: 'Tank',
-    classRestriction: 'Guardian',
+    classRestriction: 'Warrior', // Level 1
   },
   {
     id: 'taunt',
@@ -138,7 +146,7 @@ export const sampleCards = [
     cooldown: 1,
     effect: { type: 'debuff', magnitude: 1, target: 'enemy' },
     roleTag: 'Tank',
-    classRestriction: 'Guardian',
+    classRestriction: 'Warrior', // Level 1
   },
   {
     id: 'power_strike',
@@ -151,6 +159,7 @@ export const sampleCards = [
     effect: { type: 'damage', magnitude: 7 },
     roleTag: 'Tank',
     classRestriction: 'Warrior',
+    level: 2,
   },
   {
     id: 'battle_cry',
@@ -163,6 +172,7 @@ export const sampleCards = [
     effect: { type: 'buff', magnitude: 1, duration: 2, target: 'party' },
     roleTag: 'Tank',
     classRestriction: 'Warrior',
+    level: 2,
   },
   {
     id: 'rune_slam',
@@ -428,5 +438,282 @@ export const sampleCards = [
     effect: { type: 'buff', magnitude: 2, duration: 2 },
     roleTag: 'DPS',
     classRestriction: 'Pyromancer',
+  },
+  // ----- Added Level 1 cards -----
+  {
+    id: 'fortified_stance',
+    name: 'Fortified Stance',
+    description: 'Reduce all damage taken by 30% for one turn.',
+    category: 'Ability',
+    rarity: 'Common',
+    energyCost: 1,
+    cooldown: 1,
+    effect: { type: 'damage_reduction', magnitude: 30, duration: 1 },
+    roleTag: 'Tank',
+    classRestriction: 'Guardian', // Level 1
+  },
+  {
+    id: 'intervene',
+    name: 'Intervene',
+    description: 'Redirect the next attack against an ally to yourself.',
+    category: 'Ability',
+    rarity: 'Common',
+    energyCost: 1,
+    cooldown: 2,
+    effect: { type: 'redirect', magnitude: 1, duration: 1 },
+    roleTag: 'Tank',
+    classRestriction: 'Guardian', // Level 1
+  },
+  {
+    id: 'guards_challenge',
+    name: "Guard's Challenge",
+    description: 'Taunt all enemies for one turn.',
+    category: 'Ability',
+    rarity: 'Common',
+    energyCost: 1,
+    cooldown: 2,
+    effect: { type: 'taunt', magnitude: 1, duration: 1, target: 'enemies' },
+    roleTag: 'Tank',
+    classRestriction: 'Guardian', // Level 1
+  },
+  {
+    id: 'bulwark',
+    name: 'Bulwark',
+    description: 'Shield self and allies for 8 points for one turn.',
+    category: 'Ability',
+    rarity: 'Common',
+    energyCost: 2,
+    cooldown: 2,
+    effect: { type: 'shield', magnitude: 8, duration: 1, target: 'party' },
+    roleTag: 'Tank',
+    classRestriction: 'Guardian', // Level 1
+  },
+  {
+    id: 'earthen_grasp',
+    name: 'Earthen Grasp',
+    description: 'Immobilize one enemy for a turn.',
+    category: 'Ability',
+    rarity: 'Common',
+    energyCost: 1,
+    cooldown: 1,
+    effect: { type: 'debuff', magnitude: 1, duration: 1 },
+    roleTag: 'Tank',
+    classRestriction: 'RunestoneSentinel', // Level 1
+  },
+  {
+    id: 'runic_pulse',
+    name: 'Runic Pulse',
+    description: 'Deal 2–4 magic damage and shield self for 1 turn.',
+    category: 'Ability',
+    rarity: 'Common',
+    energyCost: 1,
+    cooldown: 1,
+    effect: { type: 'damage', magnitude: 3, element: 'arcane' },
+    roleTag: 'Tank',
+    classRestriction: 'RunestoneSentinel', // Level 1
+  },
+  {
+    id: 'sanctuary',
+    name: 'Sanctuary',
+    description: 'Reduce all incoming damage to allies by 20% for one turn.',
+    category: 'Ability',
+    rarity: 'Common',
+    energyCost: 1,
+    cooldown: 2,
+    effect: { type: 'damage_reduction', magnitude: 20, duration: 1, target: 'party' },
+    roleTag: 'Healer',
+    classRestriction: 'Cleric', // Level 1
+  },
+  {
+    id: 'growth_burst',
+    name: 'Growth Burst',
+    description: 'Boost an ally\'s speed by 25% for 1 turn.',
+    category: 'Ability',
+    rarity: 'Common',
+    energyCost: 1,
+    cooldown: 1,
+    effect: { type: 'buff', magnitude: 25, duration: 1, target: 'ally' },
+    roleTag: 'Healer',
+    classRestriction: 'Herbalist', // Level 1
+  },
+  {
+    id: 'hemorrhage',
+    name: 'Hemorrhage',
+    description: 'Inflict 2 bleeding damage per turn for 2 turns.',
+    category: 'Ability',
+    rarity: 'Common',
+    energyCost: 1,
+    cooldown: 1,
+    effect: { type: 'damage', magnitude: 2, duration: 2, element: 'bleed' },
+    roleTag: 'Healer',
+    classRestriction: 'Bloodweaver', // Level 1
+  },
+  {
+    id: 'blood_pact',
+    name: 'Blood Pact',
+    description: 'Swap HP percentages with an ally.',
+    category: 'Ability',
+    rarity: 'Common',
+    energyCost: 1,
+    cooldown: 2,
+    effect: { type: 'swap_hp' },
+    roleTag: 'Healer',
+    classRestriction: 'Bloodweaver', // Level 1
+  },
+  {
+    id: 'lullaby',
+    name: 'Lullaby',
+    description: 'Put an enemy to sleep for 1 turn.',
+    category: 'Ability',
+    rarity: 'Common',
+    energyCost: 1,
+    cooldown: 2,
+    effect: { type: 'sleep', magnitude: 1, duration: 1 },
+    roleTag: 'Support',
+    classRestriction: 'Bard', // Level 1
+  },
+  {
+    id: 'motivational_tune',
+    name: 'Motivational Tune',
+    description: 'Restore 2 energy to all allies.',
+    category: 'Ability',
+    rarity: 'Common',
+    energyCost: 1,
+    cooldown: 1,
+    effect: { type: 'energize', magnitude: 2, target: 'party' },
+    roleTag: 'Support',
+    classRestriction: 'Bard', // Level 1
+  },
+  {
+    id: 'rewind',
+    name: 'Rewind',
+    description: 'Undo the last 4 damage taken by an ally.',
+    category: 'Ability',
+    rarity: 'Common',
+    energyCost: 1,
+    cooldown: 2,
+    effect: { type: 'heal', magnitude: 4 },
+    roleTag: 'Support',
+    classRestriction: 'Chronomancer', // Level 1
+  },
+  {
+    id: 'accelerate',
+    name: 'Accelerate',
+    description: 'Speed up all allies by 1 initiative for 1 turn.',
+    category: 'Ability',
+    rarity: 'Common',
+    energyCost: 1,
+    cooldown: 1,
+    effect: { type: 'buff', magnitude: 1, duration: 1, target: 'party' },
+    roleTag: 'Support',
+    classRestriction: 'Chronomancer', // Level 1
+  },
+  {
+    id: 'totem_of_stoneskin',
+    name: 'Totem of Stoneskin',
+    description: 'Totem grants +3 defense to allies for 2 turns.',
+    category: 'Ability',
+    rarity: 'Common',
+    energyCost: 1,
+    cooldown: 2,
+    effect: { type: 'buff', magnitude: 3, duration: 2, target: 'party' },
+    roleTag: 'Support',
+    classRestriction: 'TotemWarden', // Level 1
+  },
+  {
+    id: 'totem_recall',
+    name: 'Totem Recall',
+    description: 'Trigger all totem effects immediately.',
+    category: 'Ability',
+    rarity: 'Common',
+    energyCost: 1,
+    cooldown: 3,
+    effect: { type: 'trigger_totems' },
+    roleTag: 'Support',
+    classRestriction: 'TotemWarden', // Level 1
+  },
+  {
+    id: 'deflect',
+    name: 'Deflect',
+    description: 'Block the next attack this turn.',
+    category: 'Ability',
+    rarity: 'Common',
+    energyCost: 1,
+    cooldown: 1,
+    effect: { type: 'block', magnitude: 1, duration: 1 },
+    roleTag: 'DPS',
+    classRestriction: 'Blademaster', // Level 1
+  },
+  {
+    id: 'deadly_focus',
+    name: 'Deadly Focus',
+    description: 'Next attack this turn deals +4 damage.',
+    category: 'Ability',
+    rarity: 'Common',
+    energyCost: 1,
+    cooldown: 1,
+    effect: { type: 'buff', magnitude: 4, duration: 1 },
+    roleTag: 'DPS',
+    classRestriction: 'Blademaster', // Level 1
+  },
+  {
+    id: 'frost_nova',
+    name: 'Frost Nova',
+    description: 'Deal 2 cold damage and slow enemies by 1 initiative for 1 turn.',
+    category: 'Ability',
+    rarity: 'Common',
+    energyCost: 1,
+    cooldown: 1,
+    effect: { type: 'damage', magnitude: 2, element: 'cold', duration: 1 },
+    roleTag: 'DPS',
+    classRestriction: 'Wizard', // Level 1
+  },
+  {
+    id: 'energize',
+    name: 'Energize',
+    description: 'Restore 3 mana to self.',
+    category: 'Ability',
+    rarity: 'Common',
+    energyCost: 0,
+    cooldown: 2,
+    effect: { type: 'mana', magnitude: 3, target: 'self' },
+    roleTag: 'DPS',
+    classRestriction: 'Wizard', // Level 1
+  },
+  {
+    id: 'eagle_eye',
+    name: 'Eagle Eye',
+    description: 'Increase critical hit chance by 25% for 2 turns.',
+    category: 'Ability',
+    rarity: 'Common',
+    energyCost: 1,
+    cooldown: 2,
+    effect: { type: 'buff', magnitude: 25, duration: 2 },
+    roleTag: 'DPS',
+    classRestriction: 'Ranger', // Level 1
+  },
+  {
+    id: 'ignite',
+    name: 'Ignite',
+    description: 'Burn a target for 2 fire damage per turn for 2 turns.',
+    category: 'Ability',
+    rarity: 'Common',
+    energyCost: 1,
+    cooldown: 1,
+    effect: { type: 'damage', magnitude: 2, duration: 2, element: 'fire' },
+    roleTag: 'DPS',
+    classRestriction: 'Pyromancer', // Level 1
+  },
+  {
+    id: 'cauterize',
+    name: 'Cauterize',
+    description: 'Remove one debuff or heal self for 3 HP.',
+    category: 'Ability',
+    rarity: 'Common',
+    energyCost: 1,
+    cooldown: 2,
+    effect: { type: 'heal', magnitude: 3 },
+    roleTag: 'DPS',
+    classRestriction: 'Pyromancer', // Level 1
   },
 ]
