@@ -9,7 +9,7 @@ import type { Party } from '../../../shared/models/Party';
 // Mock data for characters and cards - replace with actual data fetching or imports
 import { sampleCards } from '../../../shared/models/cards.js';
 import { classes as allClasses } from '../../../shared/models/classes.js';
-import { getRandomClasses } from '../utils/randomizeClasses';
+import { getRandomClasses, type GameClass } from '../utils/randomizeClasses';
 
 import ClassCard from './ClassCard';
 import CardAssignmentPanel from './CardAssignmentPanel'; // Import
@@ -51,7 +51,7 @@ const PartySetup: React.FC = () => {
 
   useEffect(() => {
     if (availableClasses.length === 0 && selectedCharacters.length < 5) {
-      const remaining = allClasses.filter(c => !selectedCharacters.find(pc => pc.class === c.name));
+      const remaining = allClasses.filter(c => !selectedCharacters.find(pc => pc.class === c.id));
       setAvailableClasses(getRandomClasses(Math.min(4, remaining.length), remaining));
     }
   }, [availableClasses.length, selectedCharacters, setAvailableClasses, load]);
@@ -83,7 +83,7 @@ const PartySetup: React.FC = () => {
   }, [selectedCharacters, setParty]);
 
   const rerollAvailableClasses = (current: PartyCharacter[]) => {
-    const remaining = allClasses.filter(cls => !current.find(pc => pc.class === cls.name));
+    const remaining = allClasses.filter(cls => !current.find(pc => pc.class === cls.id));
     if (current.length >= 5) {
       setAvailableClasses([]);
     } else {
@@ -91,13 +91,13 @@ const PartySetup: React.FC = () => {
     }
   };
 
-  const handleClassSelect = (cls: { name: string; description: string; role: string; allowedCards: string[] }) => {
+  const handleClassSelect = (cls: GameClass) => {
     if (selectedCharacters.length >= 5) return;
-    if (selectedCharacters.find(c => c.class === cls.name)) return;
+    if (selectedCharacters.find(c => c.class === cls.id)) return;
     const character: PartyCharacter = {
-      id: `${cls.name}-${Date.now()}-${Math.random()}`,
+      id: `${cls.id}-${Date.now()}-${Math.random()}`,
       name: cls.name,
-      class: cls.name,
+      class: cls.id,
       portrait: 'default-portrait.png',
       description: cls.description || 'No description available.',
       stats: { hp: 30, energy: 3 },
@@ -137,7 +137,7 @@ const PartySetup: React.FC = () => {
   const handleRerollClasses = () => {
     if (isRerolling) return;
     setIsRerolling(true);
-    const remaining = allClasses.filter(c => !selectedCharacters.find(pc => pc.class === c.name));
+    const remaining = allClasses.filter(c => !selectedCharacters.find(pc => pc.class === c.id));
     setAvailableClasses(getRandomClasses(Math.min(4, remaining.length), remaining));
     setTimeout(() => setIsRerolling(false), 500);
   };
@@ -186,10 +186,10 @@ const PartySetup: React.FC = () => {
         <div className={styles.classList}>
           {availableClasses.map(cls => (
             <ClassCard
-              key={cls.name}
+              key={cls.id}
               cls={cls}
               onSelect={handleClassSelect}
-              disabled={!!selectedCharacters.find(c => c.class === cls.name)}
+              disabled={!!selectedCharacters.find(c => c.class === cls.id)}
             />
           ))}
           {availableClasses.length > 0 && (
@@ -223,20 +223,23 @@ const PartySetup: React.FC = () => {
             No classes selected yet. Click on a class above to add it to your party.
           </p>
         )}
-        {selectedCharacters.map(pc => (
-          <div key={pc.id} className={styles.selectedCharacterPanel}> {/* Apply .selectedCharacterPanel */}
-            <div className={styles.characterPanelHeader}> {/* Apply .characterPanelHeader */}
-              <h3>{pc.name} (Class: {pc.class})</h3>
-              <button onClick={() => handleClassRemove(pc.id)} className={styles.removeButton}>Remove Class</button>
+        {selectedCharacters.map(pc => {
+          const clsDef = allClasses.find(c => c.id === pc.class);
+          return (
+            <div key={pc.id} className={styles.selectedCharacterPanel}> {/* Apply .selectedCharacterPanel */}
+              <div className={styles.characterPanelHeader}> {/* Apply .characterPanelHeader */}
+                <h3>{pc.name} (Class: {clsDef?.name ?? pc.class})</h3>
+                <button onClick={() => handleClassRemove(pc.id)} className={styles.removeButton}>Remove Class</button>
+              </div>
+              <CardAssignmentPanel
+                character={pc}
+                availableCards={availableCards} // Full list of cards from game data
+                onAssignCard={handleCardAssign}
+                onRemoveCard={handleCardRemove}
+              />
             </div>
-            <CardAssignmentPanel
-              character={pc}
-              availableCards={availableCards} // Full list of cards from game data
-              onAssignCard={handleCardAssign}
-              onRemoveCard={handleCardRemove}
-            />
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       {/* Party Summary Section */}

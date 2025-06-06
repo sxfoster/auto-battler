@@ -17,7 +17,7 @@ const CharacterCard: React.FC<CharacterCardProps> = ({ character, onSelect, isSe
     DPS: '#e74c3c',
   }
 
-  const clsInfo = allClasses.find((c) => c.name === character.class)
+  const clsInfo = allClasses.find((c) => c.id === character.class)
   const roleColor = roleColors[clsInfo?.role || 'DPS']
 
   const cardStyle: React.CSSProperties = {
@@ -73,7 +73,7 @@ const CharacterCard: React.FC<CharacterCardProps> = ({ character, onSelect, isSe
       role="button"
       aria-pressed={isSelected}
       aria-disabled={isDisabled && !isSelected}
-      aria-label={`Select character ${character.name}, class ${character.class}. ${desc}`}
+      aria-label={`Select character ${character.name}, class ${clsInfo?.name ?? character.class}. ${desc}`}
       onMouseEnter={(e) => {
         if (!isDisabled || isSelected) {
           e.currentTarget.style.transform = 'scale(1.03)'
@@ -94,7 +94,7 @@ const CharacterCard: React.FC<CharacterCardProps> = ({ character, onSelect, isSe
         <span style={badgeStyle}>{clsInfo?.role}</span>
       </div>
       <h3 style={{ margin: '0 0 5px 0' }}>{character.name}</h3>
-      <p style={{ color: roleColor, fontWeight: 'bold', margin: '0 0 5px 0' }}>{character.class}</p>
+      <p style={{ color: roleColor, fontWeight: 'bold', margin: '0 0 5px 0' }}>{clsInfo?.name ?? character.class}</p>
       <p style={{ fontSize: '0.8em', height: '40px', overflow: 'hidden', fontStyle: !character.description ? 'italic' : 'normal', color: '#777' }}>
         {desc}
       </p>

@@ -2,6 +2,7 @@ import { classes } from '../../../shared/models/classes.js'
 import type { Role } from '../../../shared/models/Card'
 
 export interface GameClass {
+  id: string
   name: string
   description: string
   role: Role

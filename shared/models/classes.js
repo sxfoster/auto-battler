@@ -67,7 +67,7 @@ export const classes = [
     name: 'Totem Warden',
     description: 'Places totems that bolster friends or weaken foes.',
     role: Role.Support,
-    allowedCards: ['totem_of_vitality', 'totem_of_fury'],
+    allowedCards: ['totem_of_vitality', 'totem_of_fury', 'totem_of_stoneskin', 'totem_recall'],
   },
   {
     id: 'Blademaster',

@@ -34,9 +34,9 @@ interface Store {
   explored: Set<string>
   setExplored: (explored: Set<string>) => void
 
-  availableClasses: { name: string; description: string; role: Role; allowedCards: string[] }[]
+  availableClasses: { id: string; name: string; description: string; role: Role; allowedCards: string[] }[]
   setAvailableClasses: (
-    classes: { name: string; description: string; role: Role; allowedCards: string[] }[],
+    classes: { id: string; name: string; description: string; role: Role; allowedCards: string[] }[],
   ) => void
 
   save: () => void
