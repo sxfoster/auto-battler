@@ -47,6 +47,23 @@ const PartySetup: React.FC = () => {
     })));
   }, []);
 
+  useEffect(() => {
+    const partyData: Party = {
+      characters: selectedCharacters.map(pc => ({
+        id: pc.id,
+        name: pc.name,
+        class: pc.class,
+        portrait: pc.portrait,
+        description: pc.description,
+        stats: pc.stats,
+        deck: pc.assignedCards,
+        survival: pc.survival,
+      })),
+    };
+
+    setParty(partyData);
+  }, [selectedCharacters, setParty]);
+
   const handleCharacterSelect = (character: Character) => {
     const isSelected = selectedCharacters.find(c => c.id === character.id);
     if (isSelected) {
