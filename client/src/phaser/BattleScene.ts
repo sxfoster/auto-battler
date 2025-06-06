@@ -1,6 +1,7 @@
 import Phaser from 'phaser'
 import { enemies } from 'shared/models'
 import { chooseEnemyAction, trackEnemyActions } from 'shared/systems/enemyAI.js'
+import { floatingText } from './effects'
 
 interface SceneData {
   enemyIndex?: number
@@ -34,6 +35,20 @@ export default class BattleScene extends Phaser.Scene {
             .map((c) => ({ id: c.data.id, name: c.data.name, hp: c.hp })),
         }
     window.dispatchEvent(new CustomEvent('battleState', { detail }))
+  }
+
+  private getSprite(combatant: any) {
+    return (
+      this.playerSprites.find((s) => s.data.id === combatant.data.id) ||
+      this.enemySprites.find((s) => s.data.id === combatant.data.id)
+    )
+  }
+
+  private showFloat(text: string, combatant: any, color: string) {
+    const sprite = this.getSprite(combatant)
+    if (sprite) {
+      floatingText(this, text, sprite.rect.x, sprite.rect.y - 40, color)
+    }
   }
 
   constructor() {
@@ -162,9 +177,11 @@ export default class BattleScene extends Phaser.Scene {
     card.effects.forEach((effect: any) => {
       if (effect.type === 'damage') {
         target.hp -= effect.value
+        this.showFloat(`-${effect.value}`, target, '#ff4444')
       }
       if (effect.type === 'heal') {
         actor.hp = Math.min(actor.data.stats.hp, actor.hp + effect.value)
+        this.showFloat(`+${effect.value}`, actor, '#44ff44')
       }
     })
     this.emitState(`${actor.data.name} used ${card.name}`)
