@@ -13,14 +13,14 @@ import { sampleCards } from '../../../shared/models/cards.js';
 import CharacterCard from './CharacterCard'; // Import CharacterCard
 import CardAssignmentPanel from './CardAssignmentPanel'; // Import
 import PartySummary from './PartySummary'; // Import PartySummary
-import styles from './PartySetupScreen.module.css'; // Import CSS module
+import styles from './PartySetup.module.css';
 
 // Make sure PartyCharacter is exported
 export interface PartyCharacter extends Character {
   assignedCards: Card[];
 }
 
-const PartySetupScreen: React.FC = () => {
+const PartySetup: React.FC = () => {
   const [selectedCharacters, setSelectedCharacters] = useState<PartyCharacter[]>([]);
   const [availableCharacters, setAvailableCharacters] = useState<Character[]>([]);
   const [availableCards, setAvailableCards] = useState<Card[]>([]);
@@ -155,4 +155,4 @@ const PartySetupScreen: React.FC = () => {
   );
 };
 
-export default PartySetupScreen;
+export default PartySetup;
