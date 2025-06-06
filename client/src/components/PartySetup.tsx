@@ -285,11 +285,14 @@ const PartySetup: React.FC = () => {
           </p>
         )}
         {selectedCharacters.map(pc => {
-          const clsDef = allClasses.find(c => c.id === pc.class);
+          const clsDef = allClasses.find(c => c.id === pc.class || c.name === pc.class);
+          if (!clsDef) {
+            console.error(`Unknown class id: ${pc.class}`);
+          }
           return (
             <div key={pc.id} className={styles.selectedCharacterPanel}> {/* Apply .selectedCharacterPanel */}
               <div className={styles.characterPanelHeader}> {/* Apply .characterPanelHeader */}
-                <h3>{pc.name} (Class: {clsDef ? clsDef.name : pc.class || 'Unknown'})</h3>
+                <h3>{pc.name} (Class: {clsDef ? clsDef.name : 'Unknown'})</h3>
                 <button onClick={() => handleClassRemove(pc.id)} className={styles.removeButton}>Remove Class</button>
               </div>
               <CardAssignmentPanel

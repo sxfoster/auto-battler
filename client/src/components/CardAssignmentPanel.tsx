@@ -30,7 +30,10 @@ const CardAssignmentPanel: React.FC<CardAssignmentPanelProps> = ({ character, av
     let pool = [...getUsablePool()]
     // Fallback to role-based picks if no class-restricted cards exist
     if (pool.length === 0) {
-      const cls = allClasses.find(c => c.id === character.class)
+      const cls = allClasses.find(c => c.id === character.class || c.name === character.class)
+      if (!cls) {
+        console.error(`Unknown class id: ${character.class}`)
+      }
       if (cls) {
         pool = availableCards.filter(
           c => c.roleTag === cls.role && !assignedCardIds.has(c.id)
