@@ -47,14 +47,6 @@ function MainMenu() {
         >
           Deck Manager
         </button>
-        {import.meta.env.DEV && (
-          <button
-            className={styles.button}
-            onClick={() => navigate('/town')}
-          >
-            Town
-          </button>
-        )}
       </nav>
     </main>
   )
