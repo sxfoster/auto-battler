@@ -38,6 +38,7 @@ export const classes = [
     description: 'Devout healer who mends wounds with holy magic.',
     role: Role.Healer,
     allowedCards: ['holy_light', 'smite'],
+    portrait: '../../../shared/images/cleric-portrait.png',
   },
   {
     id: 'Herbalist',

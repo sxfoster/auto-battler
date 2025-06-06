@@ -110,7 +110,7 @@ const PartySetup: React.FC = () => {
       id: `${cls.id}-${Date.now()}-${Math.random()}`,
       name: cls.name,
       class: cls.id,
-      portrait: defaultPortrait,
+      portrait: cls.portrait || defaultPortrait,
       description: cls.description || 'No description available.',
       stats: { hp: 30, energy: 3 },
       deck: [],
