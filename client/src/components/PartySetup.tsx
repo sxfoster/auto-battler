@@ -25,8 +25,32 @@ export interface PartyCharacter extends Character {
   assignedCards: Card[];
 }
 
+const loadSavedCharacters = (): PartyCharacter[] => {
+  const saved = loadPartyState();
+  if (!saved || saved.members.length === 0) return [];
+  return saved.members
+    .map(m => {
+      const cls = allClasses.find(c => c.id === m.class);
+      if (!cls) return null;
+      return {
+        id: `${cls.id}-${Math.random().toString(36).slice(2)}`,
+        name: cls.name,
+        class: cls.id,
+        portrait: cls.portrait || defaultPortrait,
+        description: cls.description || 'No description available.',
+        stats: { hp: 30, energy: 3 },
+        deck: [],
+        survival: { hunger: 0, thirst: 0, fatigue: 0 },
+        assignedCards: m.cards
+          .map(cid => sampleCards.find(c => c.id === cid))
+          .filter(Boolean) as Card[],
+      } as PartyCharacter;
+    })
+    .filter(Boolean) as PartyCharacter[];
+};
+
 const PartySetup: React.FC = () => {
-  const [selectedCharacters, setSelectedCharacters] = useState<PartyCharacter[]>([]);
+  const [selectedCharacters, setSelectedCharacters] = useState<PartyCharacter[]>(() => loadSavedCharacters());
   const [availableCards, setAvailableCards] = useState<Card[]>([]);
   const [isRerolling, setIsRerolling] = useState(false);
   const [rerollCount, setRerollCount] = useState(0);
@@ -79,30 +103,9 @@ const PartySetup: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    const saved = loadPartyState();
-    if (saved && saved.members.length > 0 && selectedCharacters.length === 0) {
-      const chars: PartyCharacter[] = saved.members
-        .map(m => {
-          const cls = allClasses.find(c => c.id === m.class);
-          if (!cls) return null;
-          return {
-            id: `${cls.id}-${Math.random().toString(36).slice(2)}`,
-            name: cls.name,
-            class: cls.id,
-            portrait: cls.portrait || defaultPortrait,
-            description: cls.description || 'No description available.',
-            stats: { hp: 30, energy: 3 },
-            deck: [],
-            survival: { hunger: 0, thirst: 0, fatigue: 0 },
-            assignedCards: m.cards
-              .map(cid => sampleCards.find(c => c.id === cid))
-              .filter(Boolean) as Card[],
-          } as PartyCharacter;
-        })
-        .filter(Boolean) as PartyCharacter[];
-      if (chars.length) {
-        setSelectedCharacters(chars);
-      }
+    if (selectedCharacters.length === 0) {
+      const chars = loadSavedCharacters();
+      if (chars.length) setSelectedCharacters(chars);
     }
   }, [selectedCharacters.length]);
 
@@ -122,6 +125,17 @@ const PartySetup: React.FC = () => {
 
     setParty(partyData);
   }, [selectedCharacters, setParty]);
+
+  useEffect(() => {
+    const state = {
+      members: selectedCharacters.map(pc => ({
+        class: pc.class,
+        cards: pc.assignedCards.map(c => c.id),
+      })),
+    };
+    savePartyState(state);
+    save();
+  }, [selectedCharacters, save]);
 
   const rerollAvailableClasses = (current: PartyCharacter[]) => {
     const remaining = allClasses.filter(cls => !current.find(pc => pc.class === cls.id));
