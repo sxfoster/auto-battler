@@ -9,6 +9,7 @@ import { CSSTransition, SwitchTransition } from 'react-transition-group'
 import MainMenu from './components/MainMenu.jsx'
 import PartySetup from './components/PartySetup.tsx'
 import DungeonMap from './components/DungeonMap.tsx'
+import TownView from './components/TownView.jsx'
 
 function AnimatedRoutes() {
   const location = useLocation()
@@ -25,6 +26,7 @@ function AnimatedRoutes() {
           <Route path="/" element={<MainMenu />} />
           <Route path="/party-setup" element={<PartySetup />} />
           <Route path="/dungeon" element={<DungeonMap />} />
+          <Route path="/town" element={<TownView />} />
         </Routes>
       </CSSTransition>
     </SwitchTransition>

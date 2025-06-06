@@ -28,6 +28,8 @@ const PartySetup: React.FC = () => {
 
   const navigate = useNavigate();
   const setParty = useGameStore(state => state.setParty);
+  const updateGameState = useGameStore(state => state.updateGameState);
+  const save = useGameStore(state => state.save);
 
   useEffect(() => {
     // Initialize available characters and cards
@@ -117,6 +119,8 @@ const PartySetup: React.FC = () => {
     };
 
     setParty(partyData);
+    updateGameState({ location: 'dungeon', currentFloor: 1 })
+    save()
 
     const id = open(
       <div style={{ textAlign: 'center' }}>
