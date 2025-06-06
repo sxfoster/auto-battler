@@ -11,7 +11,12 @@ export const classes = [
     name: 'Guardian',
     description: 'Sturdy protector that draws enemy attacks and shields allies.',
     role: Role.Tank,
-    allowedCards: ['shield_wall', 'taunt'],
+    allowedCards: [
+      'fortified_stance',
+      'intervene',
+      'guards_challenge',
+      'bulwark',
+    ],
   },
   {
     id: 'Warrior',
