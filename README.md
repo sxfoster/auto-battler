@@ -78,6 +78,10 @@ npm test
 This executes `*.test.js` files across the workspaces, such as the helpers in
 `shared/systems`.
 
+## API Reference
+
+The core game logic, including systems for crafting, combat, economy, and more, resides in the `shared/systems` directory. Developers should refer to the JSDoc comments within the source code of these modules for detailed API information and usage examples.
+
 ## Data Flow Between React and Phaser
 
 When a party has been finalized in the React UI, clicking **Start Game**
@@ -131,3 +135,4 @@ Bug reports and pull requests are welcome. If you plan to make a major
 change, please open an issue first to discuss what you would like to
 modify.
 
+For more detailed contribution guidelines, please see [CONTRIBUTING.md](CONTRIBUTING.md).

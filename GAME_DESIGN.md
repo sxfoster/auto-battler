@@ -35,6 +35,46 @@ Players control a party of **1–5 characters**, assigning **up to 4 ability car
 - Characters act **automatically** in combat based on AI, speed, and context.
 - Combat is resolved in **turns**, ordered by each unit’s `SpeedModifier`.
 
+### Combat Flow Diagram
+```
++-------------------------+
+|      START OF TURN      |
++-------------------------+
+           |
+           v
++-------------------------+
+| Determine Unit Order    | (Based on SpeedModifier)
++-------------------------+
+           |
+           v
++-------------------------+
+|   Unit's Action Phase   |
+| (Execute Assigned Card) |
++-------------------------+
+           |
+           v
++-------------------------+
+| Card Effects Applied    |
+| (Damage, Heal, Buffs,   |
+|  Debuffs, Status Effects)|
++-------------------------+
+           |
+           v
++-------------------------+
+| Check for Combat End    |
+| (All enemies defeated / |
+|  All party members down)|
++-------------------------+
+           |
+           v
++-------------------------+
+|   END OF TURN / LOOP    |
++-------------------------+
+
+Status Effects: Applied during 'Card Effects Applied' phase.
+              Can tick at start/end of unit's turn or on specific triggers.
+```
+
 ### 🎴 Card Execution
 - All cards consume **Energy** and may have **cooldowns**.
 - After each battle, all party members gain:
@@ -233,6 +273,28 @@ public string[] preferredComboTags;
 ## Implementation Notes
 
 The repository contains an early prototype of the systems described above. Many features are stubbed out or simplified for demonstration purposes. The React client now includes an interactive dungeon map component with a battle overlay. Economy helpers and combo-aware enemy AI are available under `shared/systems`. Refer to the source code for the current state of the card system and combat logic.
+
+### Game Architecture Diagram
+
+```
++-----------------+     +-----------------+     +-----------------+
+|     Client      |<--->|     Shared      |<--->|      Game       |
+| (React UI)      |     | (Models, Utils) |     | (Phaser 3)      |
++-----------------+     +-----------------+     +-----------------+
+       ^                                                 ^
+       |                                                 |
+       +----------------localStorage---------------------+
+                       (partyData, progress)
+```
+
+## Data Flow
+
+Data exchange between the React client and the Phaser game primarily utilizes the browser's `localStorage`.
+
+1.  **Party Finalization (Client to Game):** When the player finalizes their party in the React UI and clicks "Start Game," the party composition (`partyData`) is written to `localStorage`.
+2.  **Dungeon Progress (Client/Game):** Basic dungeon progress is also saved to `localStorage`, allowing both the client and game to be aware of the current state if the session is interrupted or reloaded.
+3.  **Game Initialization (Game from localStorage):** When the Phaser game scenes load, they read `partyData` and any relevant dungeon progress from `localStorage` to set up the map, characters, and ongoing state.
+4.  **Shared Code (Client & Game):** Both the client and game packages can import and use common models, utilities, and system logic (e.g., economy helpers, AI logic) directly from the `shared` package. This ensures consistency in data structures and core game rules.
 
 ## Contributing
 
