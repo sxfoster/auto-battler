@@ -8,6 +8,7 @@
     "shared"
   ],
   "scripts": {
-    "test": "node --test"
+    "validate:cards": "node scripts/validateCards.js",
+    "test": "npm run validate:cards && node --test"
   }
 }
