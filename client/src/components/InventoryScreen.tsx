@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { useNotification } from './NotificationManager.jsx'
 import { sampleCards } from '../../../shared/models/cards.js'
+import cardArt from '../assets/placeholder-card-art.svg'
 import styles from './InventoryScreen.module.css'
 
 interface InventoryItem {
@@ -27,6 +28,14 @@ export default function InventoryScreen() {
 
   const uniqueTypes = Array.from(new Set(allItems.map(i => i.type)))
 
+  const rarityClass: Record<string, string> = {
+    Common: styles.common,
+    Uncommon: styles.uncommon,
+    Rare: styles.rare,
+    Epic: styles.epic,
+    Legendary: styles.legendary,
+  }
+
   return (
     <div className={styles.container}>
       <h1 className={styles.title}>Inventory</h1>
@@ -48,17 +57,18 @@ export default function InventoryScreen() {
         {items.map(item => (
           <div
             key={item.id}
-            className={styles.item}
+            className={`${styles.item} ${rarityClass[item.rarity] || styles.common}`}
             tabIndex={0}
             aria-label={`${item.name} ${item.rarity} ${item.type}. ${item.description}`}
           >
-            <strong>{item.name}</strong>
+            <img src={cardArt} alt="" className={styles.icon} />
+            <strong className={styles.name}>{item.name}</strong>
             <span className={styles.meta}>{item.rarity}</span>
             <p className={styles.desc}>{item.description}</p>
             <div className={styles.actions}>
-              <button onClick={() => notify(`Used ${item.name}`, 'success')}>Use</button>
-              <button onClick={() => notify(`Equipped ${item.name}`, 'success')}>Equip</button>
-              <button onClick={() => notify(`Sold ${item.name}`, 'success')}>Sell</button>
+              <button className={styles.use} onClick={() => notify(`Used ${item.name}`, 'success')}>Use</button>
+              <button className={styles.equip} onClick={() => notify(`Equipped ${item.name}`, 'success')}>Equip</button>
+              <button className={styles.sell} onClick={() => notify(`Sold ${item.name}`, 'success')}>Sell</button>
             </div>
           </div>
         ))}
