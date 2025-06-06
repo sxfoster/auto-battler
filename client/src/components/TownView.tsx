@@ -1,9 +1,10 @@
 import React from 'react'
-import { Link } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 import { useGameState } from '../GameStateProvider.jsx'
 import styles from './TownView.module.css'
 
 export default function TownView() {
+  const navigate = useNavigate()
   const party = useGameState(s => s.party)
 
   const members = party?.characters?.map(c => c.name).join(', ') || 'No party'
@@ -16,40 +17,60 @@ export default function TownView() {
         <Link to="/" className={styles.mainMenu}>Return to Main Menu</Link>
       </header>
       <div className={styles.grid}>
-        <Link to="/party-setup" className={styles.card} aria-label="Manage party">
+        <button
+          className={styles.card}
+          onClick={() => navigate('/party-setup')}
+          aria-label="Manage Party"
+        >
           <span className={styles.icon}>⚔️</span>
-          <h3>Party</h3>
-          <p>Manage your heroes</p>
-        </Link>
-        <Link to="/inventory" className={styles.card} aria-label="View inventory">
+          <span className={styles.title}>Party</span>
+          <span className={styles.subtitle}>Manage your heroes</span>
+        </button>
+        <button
+          className={styles.card}
+          onClick={() => navigate('/inventory')}
+          aria-label="View Inventory"
+        >
           <span className={styles.icon}>🎒</span>
-          <h3>Inventory</h3>
-          <p>View your items</p>
-        </Link>
-        <Link to="/cards" className={styles.card} aria-label="Browse cards">
+          <span className={styles.title}>Inventory</span>
+          <span className={styles.subtitle}>View your items</span>
+        </button>
+        <button
+          className={styles.card}
+          onClick={() => navigate('/cards')}
+          aria-label="Browse Cards"
+        >
           <span className={styles.icon}>📜</span>
-          <h3>Cards</h3>
-          <p>Browse your card collection</p>
-        </Link>
-        <Link to="/crafting" className={styles.card} aria-label="Craft items">
+          <span className={styles.title}>Cards</span>
+          <span className={styles.subtitle}>Browse your card collection</span>
+        </button>
+        <button
+          className={styles.card}
+          onClick={() => navigate('/crafting')}
+          aria-label="Craft Items"
+        >
           <span className={styles.icon}>🛠️</span>
-          <h3>Crafting</h3>
-          <p>Prepare for battle</p>
-        </Link>
-        <Link to="/shop" className={styles.card} aria-label="Visit shop">
+          <span className={styles.title}>Crafting</span>
+          <span className={styles.subtitle}>Prepare for battle</span>
+        </button>
+        <button
+          className={styles.card}
+          onClick={() => navigate('/shop')}
+          aria-label="Visit Shop"
+        >
           <span className={styles.icon}>🛒</span>
-          <h3>Shop</h3>
-          <p>Browse wares</p>
-        </Link>
-        <Link
-          to="/dungeon"
+          <span className={styles.title}>Shop</span>
+          <span className={styles.subtitle}>Browse wares</span>
+        </button>
+        <button
           className={`${styles.card} ${!party ? styles.disabled : ''}`}
-          aria-label="Enter dungeon"
+          onClick={() => party && navigate('/dungeon')}
+          aria-label="Enter Dungeon"
         >
           <span className={styles.icon}>🏰</span>
-          <h3>Enter Dungeon</h3>
-          <p>Begin an adventure</p>
-        </Link>
+          <span className={styles.title}>Enter Dungeon</span>
+          <span className={styles.subtitle}>Begin an adventure</span>
+        </button>
       </div>
     </div>
   )
