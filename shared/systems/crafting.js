@@ -12,15 +12,51 @@
  * @returns {import('../models').CraftingAttempt}
  */
 export function attemptCraft(profession, usedCards, recipes) {
-  const ingredientIds = usedCards.map((c) => c.id).sort().join('|')
+  // Validate profession object
+  if (!profession || typeof profession !== 'object' ||
+      typeof profession.name !== 'string' ||
+      typeof profession.level !== 'number' ||
+      !Array.isArray(profession.unlockedRecipes)) {
+    console.warn('Invalid profession object provided to attemptCraft.');
+    return { usedCards, result: null, success: false, newRecipeDiscovered: false, error: 'Invalid profession data' };
+  }
+
+  // Validate usedCards array
+  if (!Array.isArray(usedCards) || usedCards.length === 0) {
+    console.warn('usedCards must be a non-empty array.');
+    return { usedCards, result: null, success: false, newRecipeDiscovered: false, error: 'No cards provided for crafting' };
+  }
+
+  // Validate individual cards in usedCards
+  for (const card of usedCards) {
+    if (!card || typeof card !== 'object' || typeof card.id !== 'string') {
+      console.warn('Invalid card found in usedCards array (missing id or not an object).');
+      return { usedCards, result: null, success: false, newRecipeDiscovered: false, error: 'Invalid card data among used cards' };
+    }
+  }
+
+  // Validate recipes array
+  if (!Array.isArray(recipes)) {
+    console.warn('Recipes must be an array.');
+    // Depending on strictness, you might allow crafting without recipes (always fails) or error out
+    return { usedCards, result: null, success: false, newRecipeDiscovered: false, error: 'Invalid recipes data' };
+  }
+
+  const ingredientIds = usedCards.map((c) => c.id).sort().join('|');
   const recipe = recipes.find(
     (r) =>
       r.profession === profession.name &&
+      Array.isArray(r.ingredients) && // Ensure recipe.ingredients is an array
       r.ingredients.slice().sort().join('|') === ingredientIds &&
       profession.level >= r.levelRequirement,
-  )
+  );
 
   if (recipe) {
+    // Ensure recipe.result and recipe.result.id exist
+    if (!recipe.result || typeof recipe.result.id !== 'string') {
+        console.warn(`Recipe ${recipe.id} has invalid result or result.id.`);
+        return { usedCards, result: null, success: false, newRecipeDiscovered: false, error: 'Invalid recipe result data' };
+    }
     const crafted = { ...recipe.result, id: `${recipe.result.id}_${Date.now()}` }
     return {
       usedCards,

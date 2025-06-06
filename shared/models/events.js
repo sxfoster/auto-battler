@@ -1,6 +1,7 @@
+/** @type {import('./DungeonEvent').DungeonEvent[]} */
 export const dungeonEvents = [
   {
-    id: 'spore-bloom',
+    id: 'spore-bloom', // ID is present in JS but not in DungeonEvent.ts, will be an extra property
     name: 'Spore Bloom',
     description: 'All combatants suffer 15% miss chance for the first 3 turns.',
     biomeEligibility: ['fungal-depths'],

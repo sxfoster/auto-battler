@@ -1,28 +1,39 @@
-import { sampleCards } from './cards.js'
+import { sampleCards } from './cards.js';
 
+/** @type {import('./Enemy').Enemy[]} */
 export const enemies = [
   {
-    id: 'goblin',
-    name: 'Goblin',
-    stats: { hp: 20, energy: 2, speed: 2 },
-    deck: [sampleCards[0], sampleCards[8], sampleCards[9]],
+    id: 'goblin_grunt_01', // More specific ID
+    archetype: 'Goblin Grunt', // Using 'name' as 'archetype'
+    stats: { hp: 20, energy: 2, speed: 2, attack: 5, defense: 1 }, // Added attack/defense
+    // Using .find() for deck population for robustness
+    deck: [
+      sampleCards.find(c => c.id === 'strike'),
+      sampleCards.find(c => c.id === 'mark_target'),
+      // sampleCards.find(c => c.id === 'shadow_execution') // Shadow execution might be too strong for a goblin
+    ].filter(Boolean), // Filter out undefined if a card isn't found
     aiProfile: {
       behavior: 'aggressive',
       aggressiveness: 0.8,
       enableComboAwareness: true,
       comboWindowTurns: 2,
       prefersFinisherChains: true,
+      // preferredComboTags: ['Execute'] // Example if they have Execute cards
     },
   },
   {
-    id: 'skeleton',
-    name: 'Skeleton',
-    stats: { hp: 25, energy: 1, speed: 1 },
-    deck: [sampleCards[0], sampleCards[4], sampleCards[9]],
+    id: 'skeleton_warrior_01',
+    archetype: 'Skeleton Warrior',
+    stats: { hp: 25, energy: 1, speed: 1, attack: 6, defense: 3 },
+    deck: [
+      sampleCards.find(c => c.id === 'strike'),
+      // sampleCards.find(c => c.id === 'herb'), // Skeletons using herbs? Unlikely.
+      // sampleCards.find(c => c.id === 'shadow_execution')
+    ].filter(Boolean),
     aiProfile: {
       behavior: 'aggressive',
       aggressiveness: 0.6,
-      enableComboAwareness: true,
+      enableComboAwareness: true, // Maybe false if they are simpler undead
       comboWindowTurns: 2,
       prefersFinisherChains: false,
     },

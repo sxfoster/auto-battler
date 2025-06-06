@@ -1,3 +1,4 @@
+/** @type {import('./Biome').Biome[]} */
 export const biomes = [
   {
     id: 'fungal-depths',
