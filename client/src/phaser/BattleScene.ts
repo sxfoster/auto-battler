@@ -173,6 +173,7 @@ export default class BattleScene extends Phaser.Scene {
   }
 
   private resolveCard(card: any, actor: any, target: any) {
+    this.showFloat(card.name, actor, '#ffff66')
     card.effects.forEach((effect: any) => {
       if (effect.type === 'damage') {
         target.hp -= effect.value
@@ -201,6 +202,7 @@ export default class BattleScene extends Phaser.Scene {
       this.clearCards()
       const text = !playersAlive ? 'Defeat' : 'Victory'
       this.add.text(360, 300, text, { fontSize: '32px' }).setOrigin(0.5)
+      this.showFloat(text, this.current, text === 'Victory' ? '#44ff44' : '#ff4444')
       this.emitState(text)
       this.time.delayedCall(1500, () => {
         this.scene.start('dungeon')

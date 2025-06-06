@@ -4,7 +4,7 @@ import { CSSTransition, SwitchTransition } from 'react-transition-group'
 import MainMenu from './components/MainMenu.jsx'
 import PartySetup from './components/PartySetup.tsx'
 import DungeonMap from './components/DungeonMap.tsx'
-import TownView from './components/TownView.jsx'
+import TownView from './components/TownView.tsx'
 
 function AnimatedRoutes() {
   const location = useLocation()

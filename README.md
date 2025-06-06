@@ -115,3 +115,12 @@ Helper functions in `shared/systems/market.js` manage listings, player balances
 and bidding logic. Crafting recipes include a currency cost which is deducted
 when a craft succeeds. Loot generation now awards Gold and occasionally Guild
 Credits that can be applied to a player's balances via `awardCurrency`.
+
+## Visual Feedback
+
+Phaser scenes and React UI components now display quick animations
+to highlight player actions. Card plays show floating text over the
+active combatant, crafting attempts trigger success or failure
+notifications, and moving through the dungeon surfaces loot and
+combat results with animated toasts. These effects make it easier to
+follow the flow of battle and other game events.
