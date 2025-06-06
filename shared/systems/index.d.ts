@@ -41,8 +41,8 @@ export function buyItem(
 ): boolean
 export function sellItem(
   playerId: string,
-  marketType: import('../models').MarketType,
   item: import('../models').MarketItem,
+  marketType: import('../models').MarketType,
   price: number,
   currency: import('../models').CurrencyType,
 ): import('../models').MarketListing
