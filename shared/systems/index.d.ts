@@ -87,3 +87,19 @@ export function getCurrentBiome(
 export function spawnEnemiesForFloor(
   floor: import('../models').Encounter,
 ): import('../models').Enemy[]
+export function trackEnemyActions(
+  enemy: import('../models').Enemy,
+  card: import('../models').Card,
+  turn: number,
+  group?: { lastUsedCards?: { card: import('../models').Card; turn: number }[] },
+): void
+export function findComboStarter(cards: import('../models').Card[], comboTag: string): import('../models').Card | null
+export function findComboFinisher(cards: import('../models').Card[], comboTag: string): import('../models').Card | null
+export function shouldExecuteCombo(
+  enemy: import('../models').Enemy,
+  context: { currentTurn: number; group?: { lastUsedCards?: { card: import('../models').Card; turn: number }[] } },
+): boolean
+export function chooseEnemyAction(
+  enemy: import('../models').Enemy,
+  context: { currentTurn: number; group?: { lastUsedCards?: { card: import('../models').Card; turn: number }[] } },
+): import('../models').Card

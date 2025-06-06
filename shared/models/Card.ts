@@ -106,6 +106,10 @@ export interface AbilityCard extends BaseCard {
   synergyTag?: string
   /** Bonus effect if synergy conditions met */
   synergyEffect?: Effect
+  /** Marks this card as starting a combo chain */
+  isComboStarter?: boolean
+  /** Marks this card as finishing a combo chain */
+  isComboFinisher?: boolean
 }
 
 export interface EquipmentCard extends BaseCard {
