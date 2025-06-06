@@ -1,10 +1,13 @@
 import React from 'react'
 import styles from './CombatOverlay.module.css'
+import UnitCard from './UnitCard'
 
 interface Combatant {
   id: string
   name: string
   hp: number
+  maxHp?: number
+  status?: string[]
 }
 
 interface Props {
@@ -18,22 +21,39 @@ export default function CombatOverlay({ players, enemies, log }: Props) {
     <div className={styles.overlay}>
       <div className={styles.party}>
         {players.map(p => (
-          <div key={p.id} className={styles.combatant}>
-            <strong>{p.name}</strong>
-            <div className={styles.bar}>
-              <span style={{ width: `${p.hp}%` }} />
-            </div>
-          </div>
+          <UnitCard
+            key={p.id}
+            unit={{
+              id: p.id,
+              name: p.name,
+              hp: p.hp,
+              maxHp: p.maxHp || 100,
+              status: p.status,
+            }}
+            actionLabel="Stats"
+            onAction={() => {
+              /* placeholder for stats modal */
+              console.log('View', p.name)
+            }}
+          />
         ))}
       </div>
       <div className={styles.enemies}>
         {enemies.map(e => (
-          <div key={e.id} className={styles.combatant}>
-            <strong>{e.name}</strong>
-            <div className={styles.bar}>
-              <span style={{ width: `${e.hp}%` }} />
-            </div>
-          </div>
+          <UnitCard
+            key={e.id}
+            unit={{
+              id: e.id,
+              name: e.name,
+              hp: e.hp,
+              maxHp: e.maxHp || 100,
+              status: e.status,
+            }}
+            actionLabel="Target"
+            onAction={() => {
+              console.log('Target', e.name)
+            }}
+          />
         ))}
       </div>
       <div className={styles.log} aria-live="polite">

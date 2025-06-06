@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { useGameStore } from '../store/gameStore'
 import styles from './BattleScene.module.css'
+import UnitCard from './UnitCard'
 
 interface Unit {
   id: string
@@ -76,28 +77,17 @@ export default function BattleScene() {
       <div className={styles.grid}>
         <div className={styles.side}>
           {players.map(p => (
-            <div key={p.id} className={styles.unit} aria-label={`${p.name} HP ${p.hp}`}> 
-              <strong>{p.name}</strong>
-              <div>
-                {p.hp} / {p.maxHp}
-              </div>
-            </div>
+            <UnitCard key={p.id} unit={p} actionLabel="Stats" onAction={() => console.log('View', p.name)} />
           ))}
         </div>
         <div className={styles.side}>
           {enemies.map(e => (
-            <div
+            <UnitCard
               key={e.id}
-              className={styles.unit}
-              onClick={() => attack(e.id)}
-              aria-label={`${e.name} HP ${e.hp}`}
-              style={{ cursor: turn === 'player' && !battleOver ? 'pointer' : 'default' }}
-            >
-              <strong>{e.name}</strong>
-              <div>
-                {e.hp} / {e.maxHp}
-              </div>
-            </div>
+              unit={e}
+              actionLabel="Attack"
+              onAction={() => turn === 'player' && !battleOver && attack(e.id)}
+            />
           ))}
         </div>
       </div>

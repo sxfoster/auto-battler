@@ -30,10 +30,10 @@ export default class BattleScene extends Phaser.Scene {
           type: 'state',
           players: this.turnOrder
             .filter((c) => c.type === 'player')
-            .map((c) => ({ id: c.data.id, name: c.data.name, hp: c.hp })),
+            .map((c) => ({ id: c.data.id, name: c.data.name, hp: c.hp, maxHp: c.data.stats.hp })),
           enemies: this.turnOrder
             .filter((c) => c.type === 'enemy')
-            .map((c) => ({ id: c.data.id, name: c.data.name, hp: c.hp })),
+            .map((c) => ({ id: c.data.id, name: c.data.name, hp: c.hp, maxHp: c.data.stats.hp })),
         }
     window.dispatchEvent(new CustomEvent('battleState', { detail }))
   }

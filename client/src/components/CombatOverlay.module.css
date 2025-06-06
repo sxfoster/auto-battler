@@ -9,10 +9,12 @@
   flex-direction: column;
   justify-content: space-between;
 }
-.party, .enemies {
+.party,
+.enemies {
   display: flex;
   gap: 10px;
   padding: 10px;
+  pointer-events: auto;
 }
 .combatant {
   background: rgba(255,255,255,0.8);
@@ -39,4 +41,5 @@
   font-size: 0.8em;
   max-height: 100px;
   overflow-y: auto;
+  pointer-events: auto;
 }
