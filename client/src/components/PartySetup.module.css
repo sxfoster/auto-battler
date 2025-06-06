@@ -88,9 +88,13 @@
   border: none;
   border-radius: 5px;
   cursor: pointer;
-  transition: background-color 0.3s ease;
+  transition: background-color 0.3s ease, transform 0.1s ease;
   text-align: center;
   font-weight: bold;
+}
+
+.startGameButton:active:not(:disabled) {
+  transform: scale(0.96);
 }
 
 .startGameButton:disabled {
@@ -118,7 +122,11 @@
   border: none;
   border-radius: 5px;
   cursor: pointer;
-  transition: background-color 0.3s ease;
+  transition: background-color 0.3s ease, transform 0.1s ease;
+}
+
+.backButton:active {
+  transform: scale(0.96);
 }
 
 .backButton:hover {

@@ -1,15 +1,38 @@
 import './App.css'
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import {
+  BrowserRouter,
+  Routes,
+  Route,
+  useLocation,
+} from 'react-router-dom'
+import { CSSTransition, SwitchTransition } from 'react-transition-group'
 import MainMenu from './components/MainMenu.jsx'
 import PartySetup from './components/PartySetup.tsx'
+
+function AnimatedRoutes() {
+  const location = useLocation()
+
+  return (
+    <SwitchTransition>
+      <CSSTransition
+        key={location.pathname}
+        classNames="fade"
+        timeout={300}
+        unmountOnExit
+      >
+        <Routes location={location}>
+          <Route path="/" element={<MainMenu />} />
+          <Route path="/party-setup" element={<PartySetup />} />
+        </Routes>
+      </CSSTransition>
+    </SwitchTransition>
+  )
+}
 
 function App() {
   return (
     <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<MainMenu />} />
-        <Route path="/party-setup" element={<PartySetup />} />
-      </Routes>
+      <AnimatedRoutes />
     </BrowserRouter>
   )
 }
