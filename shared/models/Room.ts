@@ -1,4 +1,11 @@
-export type RoomType = 'empty' | 'enemy' | 'treasure' | 'trap'
+export type RoomType =
+  | 'empty'
+  | 'enemy'
+  | 'treasure'
+  | 'trap'
+  | 'rest'
+  | 'boss'
+  | 'exit'
 
 export interface Room {
   /** Unique room identifier */
