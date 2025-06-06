@@ -7,12 +7,11 @@ import type { Card } from '../../../shared/models/Card';
 import type { Party } from '../../../shared/models/Party';
 
 // Mock data for characters and cards - replace with actual data fetching or imports
-import { sampleCharacters } from '../../../shared/models/characters.js';
 import { sampleCards } from '../../../shared/models/cards.js';
 import { classes as allClasses } from '../../../shared/models/classes.js';
 import { getRandomClasses } from '../utils/randomizeClasses';
 
-import CharacterCard from './CharacterCard'; // Import CharacterCard
+import ClassCard from './ClassCard';
 import CardAssignmentPanel from './CardAssignmentPanel'; // Import
 import PartySummary from './PartySummary'; // Import PartySummary
 import { useModal } from './ModalManager.jsx';
@@ -25,7 +24,6 @@ export interface PartyCharacter extends Character {
 
 const PartySetup: React.FC = () => {
   const [selectedCharacters, setSelectedCharacters] = useState<PartyCharacter[]>([]);
-  const [availableCharacters, setAvailableCharacters] = useState<Character[]>([]);
   const [availableCards, setAvailableCards] = useState<Card[]>([]);
   const [isRerolling, setIsRerolling] = useState(false);
 
@@ -44,32 +42,20 @@ const PartySetup: React.FC = () => {
   const setAvailableClasses = useGameStore(state => state.setAvailableClasses);
 
   useEffect(() => {
-    if (availableClasses.length === 0) {
-      setAvailableClasses(getRandomClasses(4, allClasses));
+    if (availableClasses.length === 0 && selectedCharacters.length < 5) {
+      const remaining = allClasses.filter(c => !selectedCharacters.find(pc => pc.class === c.name));
+      setAvailableClasses(getRandomClasses(Math.min(4, remaining.length), remaining));
     }
-  }, [availableClasses, setAvailableClasses]);
+  }, [availableClasses.length, selectedCharacters, setAvailableClasses]);
 
   useEffect(() => {
-    const allowed = new Set(availableClasses.map(c => c.name));
-    setAvailableCharacters(
-      sampleCharacters
-        .filter(sc => allowed.has(sc.class))
-        .map(sc => ({
-          ...sc,
-          portrait: sc.portrait || 'default-portrait.png',
-          description: sc.description || 'No description available.',
-          stats: sc.stats || { hp: 0, energy: 0 },
-          deck: sc.deck || [],
-          survival: sc.survival || { hunger: 0, thirst: 0, fatigue: 0 },
-        }))
-    );
     setAvailableCards(
       sampleCards.map(sc => ({
         ...sc,
         description: sc.description || 'No effect description.',
       }))
     );
-  }, [availableClasses]);
+  }, []);
 
   useEffect(() => {
     const partyData: Party = {
@@ -88,21 +74,38 @@ const PartySetup: React.FC = () => {
     setParty(partyData);
   }, [selectedCharacters, setParty]);
 
-  const handleCharacterSelect = (character: Character) => {
-    const isSelected = selectedCharacters.find(c => c.id === character.id);
-    if (isSelected) {
-      // Deselect character
-      handleCharacterRemove(character.id);
+  const rerollAvailableClasses = (current: PartyCharacter[]) => {
+    const remaining = allClasses.filter(cls => !current.find(pc => pc.class === cls.name));
+    if (current.length >= 5) {
+      setAvailableClasses([]);
     } else {
-      // Select character if party is not full
-      if (selectedCharacters.length < 5) {
-        setSelectedCharacters([...selectedCharacters, { ...character, assignedCards: [] }]);
-      }
+      setAvailableClasses(getRandomClasses(Math.min(4, remaining.length), remaining));
     }
   };
 
-  const handleCharacterRemove = (characterId: string) => {
-    setSelectedCharacters(selectedCharacters.filter(c => c.id !== characterId));
+  const handleClassSelect = (cls: { name: string; description: string; role: string; allowedCards: string[] }) => {
+    if (selectedCharacters.length >= 5) return;
+    if (selectedCharacters.find(c => c.class === cls.name)) return;
+    const character: PartyCharacter = {
+      id: `${cls.name}-${Date.now()}-${Math.random()}`,
+      name: cls.name,
+      class: cls.name,
+      portrait: 'default-portrait.png',
+      description: cls.description || 'No description available.',
+      stats: { hp: 30, energy: 3 },
+      deck: [],
+      survival: { hunger: 0, thirst: 0, fatigue: 0 },
+      assignedCards: [],
+    };
+    const newParty = [...selectedCharacters, character];
+    setSelectedCharacters(newParty);
+    rerollAvailableClasses(newParty);
+  };
+
+  const handleClassRemove = (characterId: string) => {
+    const newParty = selectedCharacters.filter(c => c.id !== characterId);
+    setSelectedCharacters(newParty);
+    rerollAvailableClasses(newParty);
   };
 
   const handleCardAssign = (characterId: string, card: Card) => {
@@ -126,8 +129,8 @@ const PartySetup: React.FC = () => {
   const handleRerollClasses = () => {
     if (isRerolling) return;
     setIsRerolling(true);
-    setAvailableClasses(getRandomClasses(4, allClasses));
-    setSelectedCharacters([]);
+    const remaining = allClasses.filter(c => !selectedCharacters.find(pc => pc.class === c.name));
+    setAvailableClasses(getRandomClasses(Math.min(4, remaining.length), remaining));
     setTimeout(() => setIsRerolling(false), 500);
   };
 
@@ -174,56 +177,49 @@ const PartySetup: React.FC = () => {
         <h1 className={styles.title}>Party Setup</h1>
         <div className={styles.classList}>
           {availableClasses.map(cls => (
-            <div
+            <ClassCard
               key={cls.name}
-              className={styles.classCard}
-              style={{ '--role-color': roleColors[cls.role] } as React.CSSProperties}
-            >
-              <span className={styles.roleBadge}>{cls.role}</span>
-              <strong>{cls.name}</strong>
-              <p style={{ fontStyle: cls.description ? 'normal' : 'italic', fontSize: '0.8rem' }}>
-                {cls.description || 'No description available.'}
-              </p>
-            </div>
-          ))}
-          <button
-            className={styles.rerollButton}
-            onClick={handleRerollClasses}
-            disabled={isRerolling}
-            title="Try a new set of classes for your adventure!"
-          >
-            Reroll Classes
-          </button>
-        </div>
-
-      {/* Character Selection Section */}
-      <div className={styles.characterSelectionArea}>
-        <h2 className={styles.sectionTitle}>Select Characters (up to 5)</h2>
-        <div
-          key={availableClasses.map(c => c.name).join('-')}
-          className={`${styles.characterSelectionGrid} ${isRerolling ? styles.fade : ''}`}
-        >
-          {availableCharacters.filter(ac => !selectedCharacters.find(sc => sc.id === ac.id)).map(character => (
-            <CharacterCard
-              key={character.id}
-              character={character}
-              onSelect={handleCharacterSelect}
-              isSelected={false}
-              isDisabled={selectedCharacters.length >= 5}
+              cls={cls}
+              onSelect={handleClassSelect}
+              disabled={!!selectedCharacters.find(c => c.class === cls.name)}
             />
           ))}
+          {availableClasses.length > 0 && (
+            <button
+              className={styles.rerollButton}
+              onClick={handleRerollClasses}
+              disabled={isRerolling}
+              title="Try a new set of classes for your adventure!"
+            >
+              Reroll Classes
+            </button>
+          )}
         </div>
-      </div>
+
+      <p style={{ textAlign: 'center', marginTop: '0.5rem' }}>
+        Select up to 5 classes: {selectedCharacters.length}/5 chosen
+      </p>
+      {selectedCharacters.length > 0 && (
+        <div style={{ textAlign: 'center', marginBottom: '1rem' }}>
+          <button className={`${styles.rerollButton} ${styles.undoButton}`} onClick={() => handleClassRemove(selectedCharacters[selectedCharacters.length - 1].id)}>
+            Undo Last Pick
+          </button>
+        </div>
+      )}
 
       {/* Selected Characters and Card Assignment Section */}
       <div className={styles.selectedCharactersArea}> {/* Apply .selectedCharactersArea */}
         <h2 className={styles.sectionTitle}>Configure Your Party</h2>
-        {selectedCharacters.length === 0 && <p className={styles.infoText}>No characters selected yet. Click on a character above to add them to your party.</p>}
+        {selectedCharacters.length === 0 && (
+          <p className={styles.infoText}>
+            No classes selected yet. Click on a class above to add it to your party.
+          </p>
+        )}
         {selectedCharacters.map(pc => (
           <div key={pc.id} className={styles.selectedCharacterPanel}> {/* Apply .selectedCharacterPanel */}
             <div className={styles.characterPanelHeader}> {/* Apply .characterPanelHeader */}
               <h3>{pc.name} (Class: {pc.class})</h3>
-              <button onClick={() => handleCharacterRemove(pc.id)} className={styles.removeButton}>Remove Character</button>
+              <button onClick={() => handleClassRemove(pc.id)} className={styles.removeButton}>Remove Class</button>
             </div>
             <CardAssignmentPanel
               character={pc}
