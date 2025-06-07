@@ -42,7 +42,7 @@ export function generateDungeon(width = 5, height = 5, floor = 1) {
         const roll = Math.random()
         type = roll < 0.1 ? 'shop' : roll < 0.3 ? 'event' : 'combat'
       }
-      rooms.push({ x, y, type, visited: idx === 0 })
+      rooms.push({ x, y, type, visited: idx === 0, cleared: false })
     }
   }
   dungeon = {
@@ -78,6 +78,15 @@ export function moveTo(x, y) {
   if (room) {
     dungeon.current = { x, y }
     room.visited = true
+    saveDungeon()
+  }
+}
+
+export function markRoomCleared(x, y) {
+  if (!dungeon) return
+  const room = dungeon.rooms.find((r) => r.x === x && r.y === y)
+  if (room) {
+    room.cleared = true
     saveDungeon()
   }
 }

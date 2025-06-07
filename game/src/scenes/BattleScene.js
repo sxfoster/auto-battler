@@ -2,6 +2,7 @@ import Phaser from 'phaser'
 import { applyRolePenalty, getSynergyBonuses } from 'shared/systems/classRole.js'
 import { applyBiomeBonuses, getCurrentBiome } from 'shared/systems/biome.js'
 import { applyEventEffects } from 'shared/systems/floorEvents.js'
+import { markRoomCleared } from 'shared/dungeonState'
 import { chooseEnemyAction, trackEnemyActions, chooseTarget } from 'shared/systems/enemyAI.js'
 import { canUseAbility, applyCooldown, tickCooldowns } from 'shared/systems/abilities.js'
 import { floatingText } from '../effects.js'
@@ -527,8 +528,11 @@ export default class BattleScene extends Phaser.Scene {
     this.add.text(360, 300, text, { fontSize: '32px' }).setOrigin(0.5)
     this.showFloat(text, this.current, text === 'Victory' ? '#44ff44' : '#ff4444')
     if (enemiesAlive === false) {
-      const dungeon = this.scene.get('dungeon')
-      dungeon.rooms[this.roomIndex].cleared = true
+      // mark this room cleared
+      markRoomCleared(
+        this.scene.get('dungeon').rooms[this.roomIndex].x,
+        this.scene.get('dungeon').rooms[this.roomIndex].y
+      )
     }
     this.time.delayedCall(1500, () => {
       this.scene.stop()
