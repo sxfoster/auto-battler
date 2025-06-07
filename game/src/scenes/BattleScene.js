@@ -17,6 +17,7 @@ import {
   getStatusValue,
   applyStatusTick,
 } from '../statusSystem.js'
+const defaultPortrait = new URL('../../../shared/images/default-portrait.png', import.meta.url).href
 
 const INITIAL_HAND_SIZE = 2
 
@@ -37,6 +38,26 @@ export default class BattleScene extends Phaser.Scene {
 
   preload() {
     // audio assets removed
+    loadPartyState()
+    this.party = partyState.members.map((m) => {
+      const base = sampleCharacters.find((c) => c.id === m.class)
+      const cards = (m.cards || [])
+        .map((cid) => sampleCards.find((sc) => sc.id === cid))
+        .filter(Boolean)
+      const deck = cards.length ? cards : base?.deck || []
+      return base ? { ...base, deck } : { id: m.class, name: m.class, stats: { hp: 10, energy: 1, speed: 1 }, deck, portrait: defaultPortrait }
+    })
+
+    const dungeon = this.scene.get('dungeon')
+    const enemy = dungeon.rooms[this.roomIndex]?.enemy
+    this.enemies = enemy ? [JSON.parse(JSON.stringify(enemy))] : []
+
+    this.party.forEach((p) => {
+      this.load.image(`portrait-${p.id}`, p.portrait || defaultPortrait)
+    })
+    this.enemies.forEach((e) => {
+      this.load.image(`portrait-${e.id}`, e.portrait || defaultPortrait)
+    })
   }
 
   getSprite(combatant) {
@@ -49,7 +70,8 @@ export default class BattleScene extends Phaser.Scene {
   showFloat(text, combatant, color) {
     const sprite = this.getSprite(combatant)
     if (sprite) {
-      floatingText(this, text, sprite.rect.x, sprite.rect.y - 40, color)
+      const ref = sprite.card || sprite.rect
+      floatingText(this, text, ref.x, ref.y - 40, color)
     }
   }
 
@@ -85,7 +107,8 @@ export default class BattleScene extends Phaser.Scene {
         sprite.statusIcons[type] = icon
       }
       icon.setText(meta.icon || type[0])
-      icon.setPosition(sprite.rect.x - 20 + idx * 20, sprite.rect.y - 50)
+      const ref = sprite.card || sprite.rect
+      icon.setPosition(ref.x - 20 + idx * 20, ref.y - 50)
     })
   }
 
@@ -297,16 +320,62 @@ export default class BattleScene extends Phaser.Scene {
 
     this.party.forEach((p, i) => {
       const y = startY + i * offsetY
-      const rect = this.add.rectangle(150, y, 60, 60, 0x6699ff).setOrigin(0.5)
-      const hpText = this.add.text(110, y + 40, '', { fontSize: '16px' })
-      this.playerSprites.push({ rect, hpText, data: p, statusIcons: {} })
+      const card = this.add.container(150, y)
+
+      const bg = this.add.graphics()
+      bg.fillStyle(0x1f2230, 1)
+      bg.fillRoundedRect(-60, -70, 120, 140, 12)
+      bg.lineStyle(2, 0x3557ff)
+      bg.strokeRoundedRect(-60, -70, 120, 140, 12)
+
+      const portrait = this.add.image(0, -30, `portrait-${p.id}`).setDisplaySize(64, 64)
+      const maskShape = this.make.graphics({ x: 0, y: 0, add: false })
+      maskShape.fillStyle(0xffffff).fillCircle(0, 0, 32)
+      const mask = maskShape.createGeometryMask()
+      portrait.setMask(mask)
+
+      const nameText = this.add.text(0, 20, p.name, { fontSize: '14px', color: '#f0f0fa', align: 'center' }).setOrigin(0.5)
+
+      const hpBarBg = this.add.rectangle(0, 40, 80, 10, 0x23243a).setOrigin(0.5)
+      const hpBarFill = this.add.rectangle(0, 40, 80, 10, 0x38d46b).setOrigin(0.5)
+      card.hpBar = hpBarFill
+
+      const energyText = this.add.text(0, 55, `⚡${p.currentEnergy || 0}`, { fontSize: '12px', color: '#66ccff' }).setOrigin(0.5)
+      card.energyText = energyText
+
+      card.add([bg, portrait, nameText, hpBarBg, hpBarFill, energyText])
+
+      this.playerSprites.push({ card, data: p, statusIcons: {} })
     })
 
     this.enemies.forEach((e, i) => {
       const y = startY + i * offsetY
-      const rect = this.add.rectangle(650, y, 60, 60, 0xff6666).setOrigin(0.5)
-      const hpText = this.add.text(610, y + 40, '', { fontSize: '16px' })
-      this.enemySprites.push({ rect, hpText, data: e, statusIcons: {} })
+      const card = this.add.container(650, y)
+
+      const bg = this.add.graphics()
+      bg.fillStyle(0x1f2230, 1)
+      bg.fillRoundedRect(-60, -70, 120, 140, 12)
+      bg.lineStyle(2, 0xff6666)
+      bg.strokeRoundedRect(-60, -70, 120, 140, 12)
+
+      const portrait = this.add.image(0, -30, `portrait-${e.id}`).setDisplaySize(64, 64)
+      const maskShape = this.make.graphics({ x: 0, y: 0, add: false })
+      maskShape.fillStyle(0xffffff).fillCircle(0, 0, 32)
+      const mask = maskShape.createGeometryMask()
+      portrait.setMask(mask)
+
+      const nameText = this.add.text(0, 20, e.name, { fontSize: '14px', color: '#f0f0fa', align: 'center' }).setOrigin(0.5)
+
+      const hpBarBg = this.add.rectangle(0, 40, 80, 10, 0x23243a).setOrigin(0.5)
+      const hpBarFill = this.add.rectangle(0, 40, 80, 10, 0x38d46b).setOrigin(0.5)
+      card.hpBar = hpBarFill
+
+      const energyText = this.add.text(0, 55, `⚡${e.currentEnergy || 0}`, { fontSize: '12px', color: '#66ccff' }).setOrigin(0.5)
+      card.energyText = energyText
+
+      card.add([bg, portrait, nameText, hpBarBg, hpBarFill, energyText])
+
+      this.enemySprites.push({ card, data: e, statusIcons: {} })
     })
 
     this.turnText = this.add.text(350, 50, '', { fontSize: '20px' })
@@ -328,14 +397,24 @@ export default class BattleScene extends Phaser.Scene {
   }
 
   updateHealth() {
-    this.playerSprites.forEach((sprite, i) => {
-      const combat = this.turnOrder.find((c) => c.type === 'player' && c.data.id === sprite.data.id)
-      sprite.hpText.setText(`HP: ${combat.hp}`)
-    })
-    this.enemySprites.forEach((sprite, i) => {
-      const combat = this.turnOrder.find((c) => c.type === 'enemy' && c.data.id === sprite.data.id)
-      sprite.hpText.setText(`HP: ${combat.hp}`)
-    })
+    this.playerSprites.forEach(({ card, data }) => {
+      const combat = this.turnOrder.find((c) => c.data.id === data.id);
+      const ratio = Phaser.Math.Clamp(combat.hp / data.stats.hp, 0, 1);
+      card.hpBar.width = 80 * ratio;
+      if (card.energyText) {
+        const energy = combat.energy ?? combat.data.currentEnergy ?? 0;
+        card.energyText.setText(`⚡${energy}`);
+      }
+    });
+    this.enemySprites.forEach(({ card, data }) => {
+      const combat = this.turnOrder.find((c) => c.data.id === data.id);
+      const ratio = Phaser.Math.Clamp(combat.hp / data.stats.hp, 0, 1);
+      card.hpBar.width = 80 * ratio;
+      if (card.energyText) {
+        const energy = combat.energy ?? combat.data.currentEnergy ?? 0;
+        card.energyText.setText(`⚡${energy}`);
+      }
+    });
   }
 
   startTurn() {
