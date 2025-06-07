@@ -95,12 +95,17 @@ export default class BattleScene extends Phaser.Scene {
   performAction(attacker, target) {
     if (!attacker || !target) return
     attacker.energy = attacker.energy ?? attacker.data.stats.energy
-    const card = attacker.data.deck.find(
+    attacker.data.hand = attacker.data.hand || []
+    if (attacker.data.hand.length === 0) {
+      this.draw(attacker, 1)
+    }
+    const card = attacker.data.hand.find(
       (c) => (c.energyCost || 0) <= (attacker.energy || 0),
     )
     if (card) {
       this.current = attacker
-      this.performCardAction(card, target)
+      this.resolveCard(card, attacker, target)
+      attacker.data.hand = attacker.data.hand.filter((c) => c !== card)
     } else {
       this.regenEnergy(attacker)
     }
@@ -259,7 +264,7 @@ export default class BattleScene extends Phaser.Scene {
       const initialDelay = 1000 / unit.speed
       this.initiativeQueue.add(unit, initialDelay)
     })
-    this.drawBattlefield()
+    this.startBattle()
   }
 
   drawBattlefield() {
