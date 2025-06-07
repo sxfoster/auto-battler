@@ -101,7 +101,8 @@ const CardAssignmentPanel: React.FC<CardAssignmentPanelProps> = ({ character, av
   };
 
   const availableCardsListStyle: React.CSSProperties = {
-    ...cardListStyle, // Reuse common styles
+    gap: '10px', // Spacing between cards
+    marginBottom: '15px',
     maxHeight: '220px', // Slightly increased height
     overflowY: 'auto',
     padding: '5px',
@@ -146,7 +147,11 @@ const CardAssignmentPanel: React.FC<CardAssignmentPanelProps> = ({ character, av
       {canAssignMoreCards && (
         <>
           <h5 style={subSectionTitleStyle}>Draft a Card</h5>
-          <div style={availableCardsListStyle} className={styles.fade} key={draftKey}>
+          <div
+            style={availableCardsListStyle}
+            className={`${styles.fade} ${styles.draftCardsGrid}`}
+            key={draftKey}
+          >
             {draftCards.map((card) => (
               <CardDisplay
                 key={card.id}
