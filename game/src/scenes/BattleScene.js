@@ -238,6 +238,16 @@ export default class BattleScene extends Phaser.Scene {
     applyBiomeBonuses(biome, this.enemies)
     this.activeEvent = state.activeEvent || null
     this.initializeCombatants()
+
+    // ─── Populate each combatant’s hand for auto-battle ───
+    // Draw 2 cards into data.hand for every unit so data.deck or data.hand is never empty.
+    this.turnOrder.forEach((c) => {
+      // ensure .data.hand exists
+      c.data.hand = c.data.hand || []
+      // draw 2 cards (or your desired initial draw count)
+      this.draw(c, 2)
+    })
+
     this.initiativeQueue = new InitiativeQueue()
     const playerUnits = this.getPlayerUnits()
     const enemyUnits = this.getEnemyUnits()
@@ -538,19 +548,25 @@ export default class BattleScene extends Phaser.Scene {
     if (!this.initiativeQueue) return
     this.initiativeQueue.update(delta)
     const readyUnits = this.initiativeQueue.getReadyUnits()
-    readyUnits.forEach((entry) => {
-      const { unit } = entry
+    readyUnits.forEach(({ unit }) => {
       if (unit.hp > 0) {
         const target = this.selectTarget(unit)
         if (target) {
-          const card = this.pickPlayableCard(unit)
-          if (card) {
-            this.current = unit
-            this.resolveCard(card, unit, target)
-            unit.data.hand = unit.data.hand.filter((c) => c !== card)
-          } else {
-            this.regenEnergy(unit)
+          // ─── Auto-select a playable card (or default) ───
+          const hand = unit.data.hand || []
+          let card = hand.find((c) => (c.energyCost || 0) <= (unit.energy || 0))
+          if (!card && hand.length) card = hand[0]
+
+          // ─── Consume cost if card exists ───
+          if (card && card.energyCost) {
+            unit.energy = Math.max(0, (unit.energy || 0) - card.energyCost)
           }
+
+          // ─── Resolve through the unified, logged path ───
+          this.current = unit
+          this.resolveCard(card, unit, target)
+
+          // ─── Re-enqueue for next round ───
           const newDelay = 1000 / unit.speed
           this.initiativeQueue.add(unit, newDelay)
         }
