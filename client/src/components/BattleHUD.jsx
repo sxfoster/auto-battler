@@ -24,6 +24,13 @@ export default function BattleHUD() {
       }))
     }
     const onCardPlayed = ({ actorId, cardId, targetId, cost }) => {
+      setCombatants(c => ({
+        ...c,
+        [actorId]: {
+          ...c[actorId],
+          currentEnergy: Math.max(0, (c[actorId]?.currentEnergy || 0) - (cost || 0)),
+        },
+      }))
       setLog(l => [
         ...l,
         `${combatants[actorId]?.name || actorId} played ${cardId} on ${combatants[targetId]?.name || targetId}`,
