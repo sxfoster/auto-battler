@@ -1,6 +1,14 @@
 // shared/dungeonState.js
 
-let dungeon = null
+export let dungeon = {
+  width: 0,
+  height: 0,
+  rooms: [],
+  start: { x: 0, y: 0 },
+  end: { x: 0, y: 0 },
+  current: { x: 0, y: 0 },
+  floor: 1,
+}
 
 function randomPath(width, height) {
   const path = [{ x: 0, y: 0 }]
@@ -18,7 +26,7 @@ function randomPath(width, height) {
   return path
 }
 
-export function generateDungeon(width = 5, height = 5) {
+export function generateDungeon(width = 5, height = 5, floor = 1) {
   const rooms = []
   const path = randomPath(width, height)
   for (let y = 0; y < height; y++) {
@@ -40,6 +48,7 @@ export function generateDungeon(width = 5, height = 5) {
   dungeon = {
     width,
     height,
+    floor,
     rooms,
     start: { x: 0, y: 0 },
     end: { x: width - 1, y: height - 1 },
@@ -71,6 +80,13 @@ export function moveTo(x, y) {
     room.visited = true
     saveDungeon()
   }
+}
+
+// Called when player reaches end room
+export function nextFloor() {
+  const newFloor = dungeon.floor + 1
+  generateDungeon(5, 5, newFloor)
+  saveDungeon()
 }
 
 export function saveDungeon() {
