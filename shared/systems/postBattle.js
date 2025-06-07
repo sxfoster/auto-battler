@@ -41,7 +41,8 @@ export function generateLoot(encounter) {
  */
 export function generateCurrencyReward(encounter) {
   const gold = Math.floor(encounter.difficulty * 5)
-  const guildCredit = Math.random() < 0.1 * encounter.difficulty ? 1 : 0
+  const chance = Math.min(1, 0.1 * encounter.difficulty)
+  const guildCredit = Math.random() < chance ? 1 : 0
   return { Gold: gold, GuildCredit: guildCredit }
 }
 

@@ -14,3 +14,11 @@ test('generateCurrencyReward returns numbers', () => {
   assert.ok(reward.Gold >= 0)
 })
 
+test('generateCurrencyReward caps guild credit chance at 100%', () => {
+  const origRand = Math.random
+  Math.random = () => 0
+  const reward = generateCurrencyReward({ difficulty: 20 })
+  Math.random = origRand
+  assert.strictEqual(reward.GuildCredit, 1)
+})
+
