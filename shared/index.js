@@ -2,3 +2,4 @@
 export * from './models/index.js'
 export * from './systems/index.js'
 export * from './initiativeQueue.js'
+export * from './inventoryState.js'
