@@ -16,7 +16,9 @@ export function handleAdvance(state) {
   // cycle to a random biome when advancing floors
   const next = biomes[Math.floor(Math.random() * biomes.length)]
   state.currentBiome = next.id
-  assignRandomEventToFloor(state, dungeonEvents)
+  const floorView = { biome: state.currentBiome, activeEvent: state.activeEvent }
+  assignRandomEventToFloor(floorView, dungeonEvents)
+  state.activeEvent = floorView.activeEvent
 }
 
 /**
