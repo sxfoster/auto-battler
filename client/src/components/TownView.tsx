@@ -6,7 +6,7 @@ import styles from "./TownView.module.css";
 import {
   partyState,
   loadPartyState,
-} from "../../game/src/shared/partyState.js";
+} from "../../../game/src/shared/partyState.js";
 
 export default function TownView() {
   const navigate = useNavigate();
