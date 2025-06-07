@@ -1,25 +1,25 @@
-import './App.css'
-import { Routes, Route, useLocation } from 'react-router-dom'
-import { CSSTransition, TransitionGroup } from 'react-transition-group'
-import MainMenu from './components/MainMenu.jsx'
-import PartySetup from './components/PartySetup.tsx'
-import PreBattleSetup from './components/PreBattleSetup.tsx'
-import DungeonMap from './components/DungeonMap.tsx'
-import Event from './routes/Event.jsx'
-import TownView from './components/TownView.tsx'
-import InventoryPage from './components/InventoryPage.tsx'
-import CollectionPage from './components/CollectionPage.tsx'
-import CraftingPage from './components/CraftingPage.tsx'
-import Shop from './routes/Shop.jsx'
-import DeckManager from './components/DeckManager.jsx'
-import BattleScene from './components/BattleScene.tsx'
+import "./App.css";
+import { Routes, Route, useLocation } from "react-router-dom";
+import { CSSTransition, TransitionGroup } from "react-transition-group";
+import MainMenu from "./components/MainMenu.jsx";
+import PartySetup from "./components/PartySetup.tsx";
+import PreBattleSetup from "./components/PreBattleSetup.tsx";
+import DungeonMap from "./components/DungeonMap.tsx";
+import Event from "./routes/Event.jsx";
+import TownView from "./components/TownView.tsx";
+import InventoryPage from "./components/InventoryPage.tsx";
+import CollectionPage from "./components/CollectionPage.tsx";
+import CraftingPage from "./components/CraftingPage.tsx";
+import Shop from "./routes/Shop.jsx";
+import DeckManager from "./components/DeckManager.jsx";
+import BattleScene from "./components/BattleScene.tsx";
 
 export default function App() {
-  const loc = useLocation()
+  const loc = useLocation();
   return (
     <TransitionGroup>
       <CSSTransition key={loc.pathname} classNames="page" timeout={300}>
-        <Routes location={loc}>
+        <Routes location={loc} key={loc.pathname}>
           <Route path="/" element={<MainMenu />} />
           <Route path="/party-setup" element={<PartySetup />} />
           <Route path="/dungeon" element={<DungeonMap />} />
@@ -35,5 +35,5 @@ export default function App() {
         </Routes>
       </CSSTransition>
     </TransitionGroup>
-  )
+  );
 }
