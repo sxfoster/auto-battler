@@ -8,7 +8,27 @@ export function loadPartyState() {
   if (!raw) return
   try {
     const data = JSON.parse(raw)
-    partyState.members = data.members || data.characters || []
+
+    let members = []
+    if (Array.isArray(data)) {
+      members = data.map((c) => ({ class: String(c), cards: [] }))
+    } else if (Array.isArray(data.members)) {
+      members = data.members.map((m) =>
+        typeof m === 'string'
+          ? { class: m, cards: [] }
+          : { class: m.class, cards: Array.isArray(m.cards) ? m.cards : [] },
+      )
+    } else if (Array.isArray(data.characters)) {
+      members = data.characters.map((m) =>
+        typeof m === 'string'
+          ? { class: m, cards: [] }
+          : { class: m.class || m.id || '', cards: Array.isArray(m.cards) ? m.cards : [] },
+      )
+    }
+    if (members.length > 0) {
+      partyState.members = members
+    }
+
     partyState.formation = data.formation || 'default'
   } catch (e) {
     console.error('Failed to parse party state', e)
