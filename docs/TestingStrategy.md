@@ -68,3 +68,5 @@ While this document focuses on unit testing shared JavaScript logic, similar str
 ## Maintenance
 
 Unit tests are living code and must be maintained alongside the application code. When a module's logic changes, its corresponding unit tests should be updated to reflect those changes. If a bug is found, a new test case should ideally be written to reproduce the bug before fixing it, ensuring the fix is effective and preventing regressions.
+
+Recent additions like the Energy system for abilities include dedicated tests (such as `enemyAI.test.js`) to ensure energy costs are respected and regenerated correctly.

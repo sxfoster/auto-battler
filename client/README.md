@@ -9,7 +9,8 @@ Key components include:
 - **`CombatOverlay.js`**: Displays when a battle starts, showing character statuses, enemy information, and combat logs. It overlays the `GameView` where the actual Phaser battle scene is running.
 - **Various UI components**: For displaying player inventory, party selection, crafting menus, and interacting with different game systems.
 - **`PartySetup` screens**: Allow rerolling available classes and drafting a
-  starting deck of cards for each character.
+  starting deck of cards for each character. Draftable cards are displayed in
+  a responsive grid layout that adjusts to mobile and desktop viewports.
 - **`TownView` and `MarketScreen`**: Provide an interface to interact with the
   in-game markets before delving back into the dungeon.
 

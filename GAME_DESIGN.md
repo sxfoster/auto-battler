@@ -83,6 +83,7 @@ Status Effects: Applied during 'Card Effects Applied' phase.
 
 ### 🎴 Card Execution
 - All cards consume **Energy** and may have **cooldowns**.
+- Characters regenerate a small amount of Energy at the start of their turn.
 - After each battle, all party members gain:
   - **+1 Fatigue**
   - **+1 Hunger**

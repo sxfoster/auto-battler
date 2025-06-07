@@ -25,7 +25,7 @@ The `systems` directory provides helper modules for various game mechanics.
 ### Key Systems
 
 -   **Crafting (`crafting.js`)**: Manages the Magical Pouch system, allowing players to combine ingredient cards to discover and create new items or upgrade existing ones.
--   **Abilities (`abilities.js`)**: Utilities for managing card cooldowns.
+-   **Abilities (`abilities.js`)**: Utilities for managing card cooldowns and tracking each unit's Energy pool. Each ability specifies an `energyCost` and cannot be used unless the attacker has sufficient Energy.
 -   **Class & Role (`classRole.js`)**: Handles card usability based on class/role and applies penalties or synergies.
 -   **Market (`market.js`)**: Handles all economic transactions, including player balances for Gold and Guild Credits, and interactions with different market types (Town, Black Market, Guild Exchange, Auction House).
 -   **Biome (`biome.js`)**: Implements biome-specific synergy bonuses that affect enemies within particular dungeon environments.
