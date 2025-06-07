@@ -19,6 +19,7 @@ import { useModal } from './ModalManager.jsx';
 import { useNotification } from './NotificationManager.jsx';
 import styles from './PartySetup.module.css';
 import { savePartyState, loadPartyState } from '../utils/partyStorage';
+import { addCardToInventory } from 'shared/inventoryState';
 
 // Make sure PartyCharacter is exported
 export interface PartyCharacter extends Character {
@@ -182,6 +183,7 @@ const PartySetup: React.FC = () => {
       }
       return pc;
     }));
+    addCardToInventory(card);
   };
 
   const handleCardRemove = (characterId: string, cardId: string) => {
