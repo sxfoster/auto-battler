@@ -111,8 +111,9 @@ export default function BattleScene() {
   return (
     <div className={styles.container}>
       <h2>Battle</h2>
-      <div className={styles.grid}>
-        <div className={styles.side}>
+      <div className={styles.teams}>
+        <div className={styles.team}>
+          <h3>Allies</h3>
           {players.map(p => (
             <UnitCard
               key={p.id}
@@ -128,7 +129,8 @@ export default function BattleScene() {
             />
           ))}
         </div>
-        <div className={styles.side}>
+        <div className={styles.team}>
+          <h3>Enemies</h3>
           {enemies.map(e => (
             <UnitCard
               key={e.id}

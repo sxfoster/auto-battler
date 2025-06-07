@@ -1,29 +1,42 @@
 .container {
-  padding: 1rem;
+  padding: 2rem;
   display: flex;
   flex-direction: column;
   align-items: center;
-  background: radial-gradient(circle at center, #2b2b39 0%, #141418 80%);
-  min-height: 100vh;
-  color: #fff;
+  background: rgba(35, 40, 60, 0.85);
+  backdrop-filter: blur(6px);
+  border-radius: 1rem;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+  max-width: 960px;
+  margin: 2rem auto;
+  color: #f0f6ff;
 }
 
 h2 {
   margin-bottom: 1rem;
-  font-size: 2rem;
-  text-shadow: 0 0 8px #3557ff;
+  font-size: 2.2rem;
+  text-shadow: 0 0 8px #3557ff77;
 }
-.grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 1rem;
+
+h3 {
+  margin: 0.2rem 0 0.6rem 0;
+  font-size: 1.2rem;
+  color: #f0f6ff;
+  text-shadow: 0 0 6px #0006;
+}
+.teams {
+  display: flex;
+  gap: 3rem;
   width: 100%;
-  max-width: 800px;
+  justify-content: space-between;
+  margin-bottom: 1rem;
 }
-.side {
+.team {
   display: flex;
   flex-direction: column;
   align-items: center;
+  flex: 1;
+  gap: 0.6rem;
 }
 .controls {
   margin-top: 1rem;
@@ -41,7 +54,8 @@ h2 {
 }
 
 @media (max-width: 500px) {
-  .grid {
-    grid-template-columns: 1fr;
+  .teams {
+    flex-direction: column;
+    gap: 2rem;
   }
 }
