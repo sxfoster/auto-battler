@@ -23,10 +23,12 @@ export default function Dungeon() {
         {d.rooms.map((r, i) => (
           <div
             key={i}
-            className={`dungeon-tile ${r.visited ? 'visited' : ''} ${
+            className={`dungeon-tile ${r.revealed ? 'revealed' : ''} ${
+              r.visited ? 'visited' : ''
+            } ${
               r.x === d.current.x && r.y === d.current.y ? 'current' : ''
             }`}
-            onClick={() => handleClick(r.x, r.y)}
+            onClick={() => r.revealed && handleClick(r.x, r.y)}
           />
         ))}
       </div>

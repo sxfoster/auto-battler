@@ -17,6 +17,12 @@
   background: #1f2230;
   border: 2px solid #2e3042;
   border-radius: 4px;
+  opacity: 0.2; /* default hidden */
+  cursor: default;
+}
+
+.dungeon-tile.revealed {
+  opacity: 1;
   cursor: pointer;
 }
 
