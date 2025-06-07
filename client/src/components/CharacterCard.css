@@ -42,10 +42,23 @@
 .character-card__name {
   font-size: 1.1rem;
   font-weight: 600;
+  object-fit: cover;
+  border: 2px solid #555;
+}
+
+.character-card__info {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+}
+
+.character-card__name {
+  font-weight: bold;
   margin-bottom: 0.25rem;
 }
 
 .character-card__class {
   font-size: 0.9rem;
   color: var(--role-color);
+  color: #ccc;
 }

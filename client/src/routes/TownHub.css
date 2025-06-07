@@ -1,0 +1,6 @@
+.town-hub__party-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 1rem;
+  margin: 1rem 0 2rem;
+}

@@ -4,6 +4,8 @@ import { chooseEnemyAction, trackEnemyActions, chooseTarget } from 'shared/syste
 import { canUseAbility, applyCooldown, tickCooldowns } from 'shared/systems/abilities.js'
 import { InitiativeQueue } from 'shared/initiativeQueue.js'
 import { floatingText } from './effects'
+import { sampleCharacters } from 'shared/models/characters.js'
+import { sampleCards } from 'shared/models/cards.js'
 
 interface SceneData {
   enemyIndex?: number
@@ -80,28 +82,20 @@ export default class BattleScene extends Phaser.Scene {
     return opponents.find((o) => o.hp > 0)
   }
 
-  private performCardAction(card: any, target: any) {
-    if (!card || !target) return
-    if (card.effect?.type === 'damage') {
-      const dmg = card.effect.magnitude ?? card.effect.value ?? 0
-      target.hp -= dmg
-      this.showFloat(`-${dmg}`, target, '#ff4444')
+
+  private pickPlayableCard(unit: any) {
+    unit.data.hand = unit.data.hand || []
+    if (unit.data.hand.length === 0) {
+      this.draw(unit, 1)
     }
-    if (card.effect?.type === 'heal') {
-      const heal = card.effect.magnitude ?? card.effect.value ?? 0
-      this.current.hp = Math.min(this.current.data.stats.hp, this.current.hp + heal)
-      this.showFloat(`+${heal}`, this.current, '#44ff44')
-    }
-    this.updateHealth()
+    return unit.data.hand.find(
+      (c: any) => (c.energyCost || 0) <= (unit.energy || 0),
+    )
   }
 
-  private performAction(attacker: any, target: any) {
-    if (!attacker || !target) return
-    const card = attacker.data.deck?.[0]
-    this.current = attacker
-    if (card) {
-      this.resolveCard(card, attacker, target)
-    }
+  private regenEnergy(combatant: any, amount = 1) {
+    const max = combatant.data.stats.energy || 0
+    combatant.energy = Math.min(max, (combatant.energy || 0) + amount)
   }
 
   constructor() {
@@ -110,7 +104,14 @@ export default class BattleScene extends Phaser.Scene {
 
   init(data: SceneData) {
     this.enemyIndex = data.enemyIndex || 0
-    this.party = data.party || []
+    this.party = (data.party || []).map((m: any) => {
+      const base = sampleCharacters.find((c) => c.id === m.class)
+      const cards = (m.cards || [])
+        .map((cid: string) => sampleCards.find((sc) => sc.id === cid))
+        .filter(Boolean)
+      const deck = cards.length ? cards : base?.deck || []
+      return base ? { ...base, deck } : { ...m, deck }
+    })
   }
 
   create() {
@@ -314,7 +315,14 @@ export default class BattleScene extends Phaser.Scene {
       if (unit.hp > 0) {
         const target = this.selectTarget(unit)
         if (target) {
-          this.performAction(unit, target)
+          const card = this.pickPlayableCard(unit)
+          if (card) {
+            this.current = unit
+            this.resolveCard(card, unit, target)
+            unit.data.hand = unit.data.hand.filter((c: any) => c !== card)
+          } else {
+            this.regenEnergy(unit)
+          }
           const newDelay = 1000 / unit.speed
           this.initiativeQueue.add(unit, newDelay)
         }
