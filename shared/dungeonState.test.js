@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'assert'
-import { generateDungeon, getDungeon, nextFloor } from './dungeonState.js'
+import { generateDungeon, getDungeon, nextFloor, markRoomCleared } from './dungeonState.js'
 
 const storageMock = {
   getItem: () => null,
@@ -60,4 +60,16 @@ test('nextFloor increments floor and resets map', () => {
   assert.strictEqual(second.floor, 2)
   assert.notStrictEqual(second.rooms, prevRooms)
   assert.deepStrictEqual(second.current, { x: 0, y: 0 })
+})
+
+test('markRoomCleared sets combat room to cleared', () => {
+  let combatRoom
+  for (let i = 0; i < 10 && !combatRoom; i++) {
+    generateDungeon(3, 3)
+    combatRoom = getDungeon().rooms.find((r) => r.type === 'combat')
+  }
+  assert.ok(combatRoom, 'combat room exists')
+  markRoomCleared(combatRoom.x, combatRoom.y)
+  const updated = getDungeon().rooms.find((r) => r.x === combatRoom.x && r.y === combatRoom.y)
+  assert.strictEqual(updated.type, 'cleared')
 })

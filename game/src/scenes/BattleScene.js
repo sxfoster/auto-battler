@@ -10,6 +10,7 @@ import { partyState, loadPartyState } from '../shared/partyState.js'
 import { InitiativeQueue } from '../../shared/initiativeQueue.js'
 import { sampleCharacters } from 'shared/models/characters.js'
 import { sampleCards } from 'shared/models/cards.js'
+import { markRoomCleared } from 'shared/dungeonState.js'
 import {
   STATUS_META,
   addStatusEffect,
@@ -528,7 +529,8 @@ export default class BattleScene extends Phaser.Scene {
     this.showFloat(text, this.current, text === 'Victory' ? '#44ff44' : '#ff4444')
     if (enemiesAlive === false) {
       const dungeon = this.scene.get('dungeon')
-      dungeon.rooms[this.roomIndex].cleared = true
+      const room = dungeon.rooms[this.roomIndex]
+      markRoomCleared(room.x, room.y)
     }
     this.time.delayedCall(1500, () => {
       this.scene.stop()

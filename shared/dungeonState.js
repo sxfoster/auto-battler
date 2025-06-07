@@ -82,6 +82,14 @@ export function moveTo(x, y) {
   }
 }
 
+export function markRoomCleared(x, y) {
+  const room = dungeon.rooms.find((r) => r.x === x && r.y === y)
+  if (room && room.type === 'combat') {
+    room.type = 'cleared'
+    saveDungeon()
+  }
+}
+
 // Called when player reaches end room
 export function nextFloor() {
   const newFloor = dungeon.floor + 1
