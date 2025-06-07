@@ -12,7 +12,18 @@ export default function Dungeon() {
 
   const handleClick = (x, y) => {
     moveTo(x, y)
-    setD({ ...getDungeon() })
+    const dungeon = getDungeon()
+    const neighbors = [
+      [x + 1, y],
+      [x - 1, y],
+      [x, y + 1],
+      [x, y - 1],
+    ]
+    neighbors.forEach(([nx, ny]) => {
+      const room = dungeon.rooms.find((r) => r.x === nx && r.y === ny)
+      if (room) room.visited = true
+    })
+    setD({ ...dungeon })
   }
 
   if (!d) return null

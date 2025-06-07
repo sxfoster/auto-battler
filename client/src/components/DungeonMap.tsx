@@ -151,7 +151,7 @@ export default function DungeonMap() {
         width: 40,
         height: 40,
         background: isExplored ? roomColors[room.type] : '#000',
-        opacity: isExplored ? 1 : 0.2,
+        opacity: 1,
         border: room.type === 'boss' || room.type === 'exit' ? '2px solid gold' : '1px solid #444',
         position: 'relative',
         cursor: isReachable && isExplored ? 'pointer' : 'default',
