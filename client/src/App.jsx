@@ -6,6 +6,7 @@ import MainMenu from './components/MainMenu.jsx'
 import PartySetup from './components/PartySetup.tsx'
 import PreBattleSetup from './components/PreBattleSetup.tsx'
 import DungeonMap from './components/DungeonMap.tsx'
+import Event from './routes/Event.jsx'
 import TownView from './components/TownView.tsx'
 import InventoryPage from './components/InventoryPage.tsx'
 import CollectionPage from './components/CollectionPage.tsx'
@@ -44,6 +45,7 @@ function AnimatedRoutes() {
           <Route path="/shop" element={<ShopPage />} />
           <Route path="/pre-battle" element={<PreBattleSetup />} />
           <Route path="/battle" element={<BattleScene />} />
+          <Route path="/event" element={<Event />} />
           <Route path="/decks" element={<DeckManager />} />
         </Routes>
       </CSSTransition>
