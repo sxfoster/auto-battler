@@ -265,6 +265,19 @@ export default class BattleScene extends Phaser.Scene {
       this.initiativeQueue.add(unit, initialDelay)
     })
     this.startBattle()
+
+    // Battle log setup
+    this.logEntries = []
+    this.logText = this.add.text(50, 500, '', {
+      fontSize: '14px',
+      color: '#ffffff',
+      wordWrap: { width: this.cameras.main.width - 100 },
+    })
+  }
+
+  appendToBattleLog(entry) {
+    this.logEntries.push(entry)
+    this.logText.setText(this.logEntries.join('\n'))
   }
 
   drawBattlefield() {
@@ -442,11 +455,17 @@ export default class BattleScene extends Phaser.Scene {
         const dmg = this.calculateDamage(effect, actor, target)
         target.hp -= dmg
         this.showFloat(`-${dmg}`, target, '#ff4444')
+        this.appendToBattleLog(
+          `${actor.data.name} used ${card.name} on ${target.data.name}, dealing ${dmg} damage.`
+        )
       }
       if (effect.type === 'heal') {
         const heal = effect.magnitude || effect.value || 0
         actor.hp = Math.min(actor.data.stats.hp, actor.hp + heal)
         this.showFloat(`+${heal}`, actor, '#44ff44')
+        this.appendToBattleLog(
+          `${actor.data.name} used ${card.name}, healing ${heal} HP.`
+        )
       }
       if (effect.type === 'status') {
         addStatusEffect(target, {
@@ -456,6 +475,9 @@ export default class BattleScene extends Phaser.Scene {
         })
         this.updateStatusIcons(target)
         this.showFloat(effect.statusType, target, STATUS_META[effect.statusType]?.color || '#ffaa88')
+        this.appendToBattleLog(
+          `${actor.data.name} applied ${effect.statusType} to ${target.data.name} for ${effect.duration} turns.`
+        )
       }
       if (effect.type === 'buff') {
         const tgt = effect.target === 'self' ? actor : target
@@ -466,6 +488,9 @@ export default class BattleScene extends Phaser.Scene {
         })
         this.updateStatusIcons(tgt)
         this.showFloat(`+${effect.stat || 'buff'}`, tgt, STATUS_META[effect.stat]?.color || '#66ccff')
+        this.appendToBattleLog(
+          `${actor.data.name} increased ${tgt.data.name}'s ${effect.stat || 'stat'} by ${effect.magnitude || effect.value || 0} for ${effect.duration || 1} turns.`
+        )
       }
       if (effect.type === 'debuff') {
         addStatusEffect(target, {
@@ -475,6 +500,9 @@ export default class BattleScene extends Phaser.Scene {
         })
         this.updateStatusIcons(target)
         this.showFloat('Marked', target, STATUS_META.marked.color)
+        this.appendToBattleLog(
+          `${actor.data.name} marked ${target.data.name} for ${effect.duration || 1} turns.`
+        )
       }
     })
     applyCooldown(actor.data, card)
