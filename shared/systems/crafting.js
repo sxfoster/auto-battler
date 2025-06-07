@@ -106,7 +106,7 @@ export function craftWithInventory(
   recipes,
   inventory,
 ) {
-  const attempt = attemptCraft(profession, usedCards, recipes)
+  const attempt = attemptCraft(profession, usedCards, recipes, player)
   if (attempt.success && attempt.result) {
     // remove ingredients
     usedCards.forEach((card) => {
