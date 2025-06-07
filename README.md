@@ -136,6 +136,7 @@ Lists of all playable classes and enemy archetypes are maintained under the
 [`docs/ClassCodex.md`](docs/ClassCodex.md) and
 [`docs/EnemyCodex.md`](docs/EnemyCodex.md) for the currently implemented
 Level&nbsp;1 cards.
+[docs/KNOWN_ISSUES.md](docs/KNOWN_ISSUES.md) tracks major problems and how we solved them.
 
 ## Data Integrity Rules
 
@@ -178,5 +179,7 @@ follow the flow of battle and other game events.
 Bug reports and pull requests are welcome. If you plan to make a major
 change, please open an issue first to discuss what you would like to
 modify.
+
+All major bug fixes must document the issue and resolution in [docs/KNOWN_ISSUES.md](docs/KNOWN_ISSUES.md) before merging.
 
 For more detailed contribution guidelines, please see [CONTRIBUTING.md](CONTRIBUTING.md).
