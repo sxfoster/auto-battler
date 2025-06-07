@@ -1,19 +1,32 @@
 import React from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { useGameState } from '../GameStateProvider.jsx'
+import CharacterCard from './CharacterCard.tsx'
 import styles from './TownView.module.css'
 
 export default function TownView() {
   const navigate = useNavigate()
   const party = useGameState(s => s.party)
 
-  const members = party?.characters?.map(c => c.name).join(', ') || 'No party'
-
   return (
     <div className={styles.container}>
       <header className={styles.header}>
         <h2>Town Hub</h2>
-        <p className={styles.summary}>Party: {members}</p>
+        <div className={styles.partyCards}>
+          {party?.characters && party.characters.length > 0 ? (
+            party.characters.map(character => (
+              <CharacterCard
+                key={character.id}
+                character={character}
+                onSelect={() => {}}
+                isSelected={false}
+                isDisabled={false}
+              />
+            ))
+          ) : (
+            <p>No party</p>
+          )}
+        </div>
         <Link to="/" className={styles.mainMenu}>Return to Main Menu</Link>
       </header>
       <div className={styles.grid}>
