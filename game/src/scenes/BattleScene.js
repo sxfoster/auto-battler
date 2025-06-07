@@ -70,47 +70,14 @@ export default class BattleScene extends Phaser.Scene {
 
   showFloat(text, combatant, color) {
     const sprite = this.getSprite(combatant)
-    if (sprite) {
-      const ref = sprite.card || sprite.rect
-      floatingText(this, text, ref.x, ref.y - 40, color)
+    if (sprite && sprite.ref) {
+      const { x, y } = sprite.ref
+      floatingText(this, text, x, y - 40, color)
     }
   }
 
   updateStatusIcons(combatant) {
-    const sprite = this.getSprite(combatant)
-    if (!sprite) return
-    sprite.statusIcons = sprite.statusIcons || {}
-    const active = combatant.statusEffects.map((s) => s.type)
-    // remove missing
-    Object.keys(sprite.statusIcons).forEach((type) => {
-      if (!active.includes(type)) {
-        const icon = sprite.statusIcons[type]
-        this.tweens.add({
-          targets: icon,
-          alpha: 0,
-          duration: 300,
-          onComplete: () => icon.destroy(),
-        })
-        delete sprite.statusIcons[type]
-      }
-    })
-    active.forEach((type, idx) => {
-      let icon = sprite.statusIcons[type]
-      const meta = STATUS_META[type] || {}
-      if (!icon) {
-        icon = this.add
-          .text(0, 0, meta.icon || type[0], {
-            fontSize: '14px',
-            color: meta.color || '#ffffff',
-          })
-          .setAlpha(0)
-        this.tweens.add({ targets: icon, alpha: 1, duration: 300 })
-        sprite.statusIcons[type] = icon
-      }
-      icon.setText(meta.icon || type[0])
-      const ref = sprite.card || sprite.rect
-      icon.setPosition(ref.x - 20 + idx * 20, ref.y - 50)
-    })
+    // HUD handles status icon rendering
   }
 
   getPlayerUnits() {
@@ -300,21 +267,10 @@ export default class BattleScene extends Phaser.Scene {
     })
     this.startBattle()
 
-    // Battle log setup
-    this.logEntries = []
-    this.logText = this.add.text(50, 500, '', {
-      fontSize: '14px',
-      color: '#ffffff',
-      wordWrap: { width: this.cameras.main.width - 100 },
-    })
-    // forward log events to local log text
-    this.events.on('battle-log', this.appendToBattleLog, this)
+    // Battle log handled by React HUD
   }
 
-  appendToBattleLog(entry) {
-    this.logEntries.push(entry)
-    this.logText.setText(this.logEntries.join('\n'))
-  }
+
 
   drawBattlefield() {
     this.playerSprites = []
@@ -324,101 +280,19 @@ export default class BattleScene extends Phaser.Scene {
 
     this.party.forEach((p, i) => {
       const y = startY + i * offsetY
-      const card = this.add.container(150, y)
-
-      const bg = this.add.graphics()
-      bg.fillStyle(0x1f2230, 1)
-      bg.fillRoundedRect(-60, -70, 120, 140, 12)
-      bg.lineStyle(2, 0x3557ff)
-      bg.strokeRoundedRect(-60, -70, 120, 140, 12)
-
-      const portrait = this.add.image(0, -30, `portrait-${p.id}`).setDisplaySize(64, 64)
-      const maskShape = this.make.graphics({ x: 0, y: 0, add: false })
-      maskShape.fillStyle(0xffffff).fillCircle(0, 0, 32)
-      const mask = maskShape.createGeometryMask()
-      portrait.setMask(mask)
-
-      const nameText = this.add.text(0, 20, p.name, { fontSize: '14px', color: '#f0f0fa', align: 'center' }).setOrigin(0.5)
-
-      const hpBarBg = this.add.rectangle(0, 40, 80, 10, 0x23243a).setOrigin(0.5)
-      const hpBarFill = this.add.rectangle(0, 40, 80, 10, 0x38d46b).setOrigin(0.5)
-      card.hpBar = hpBarFill
-
-      const energyText = this.add.text(0, 55, `⚡${p.currentEnergy || 0}`, { fontSize: '12px', color: '#66ccff' }).setOrigin(0.5)
-      card.energyText = energyText
-
-      card.add([bg, portrait, nameText, hpBarBg, hpBarFill, energyText])
-
-      this.playerSprites.push({ card, data: p, statusIcons: {} })
+      this.playerSprites.push({ ref: { x: 150, y }, data: p, statusIcons: {} })
     })
 
     this.enemies.forEach((e, i) => {
       const y = startY + i * offsetY
-      const card = this.add.container(650, y)
-
-      const bg = this.add.graphics()
-      bg.fillStyle(0x1f2230, 1)
-      bg.fillRoundedRect(-60, -70, 120, 140, 12)
-      bg.lineStyle(2, 0xff6666)
-      bg.strokeRoundedRect(-60, -70, 120, 140, 12)
-
-      const portrait = this.add.image(0, -30, `portrait-${e.id}`).setDisplaySize(64, 64)
-      const maskShape = this.make.graphics({ x: 0, y: 0, add: false })
-      maskShape.fillStyle(0xffffff).fillCircle(0, 0, 32)
-      const mask = maskShape.createGeometryMask()
-      portrait.setMask(mask)
-
-      const nameText = this.add.text(0, 20, e.name, { fontSize: '14px', color: '#f0f0fa', align: 'center' }).setOrigin(0.5)
-
-      const hpBarBg = this.add.rectangle(0, 40, 80, 10, 0x23243a).setOrigin(0.5)
-      const hpBarFill = this.add.rectangle(0, 40, 80, 10, 0x38d46b).setOrigin(0.5)
-      card.hpBar = hpBarFill
-
-      const energyText = this.add.text(0, 55, `⚡${e.currentEnergy || 0}`, { fontSize: '12px', color: '#66ccff' }).setOrigin(0.5)
-      card.energyText = energyText
-
-      card.add([bg, portrait, nameText, hpBarBg, hpBarFill, energyText])
-
-      this.enemySprites.push({ card, data: e, statusIcons: {} })
+      this.enemySprites.push({ ref: { x: 650, y }, data: e, statusIcons: {} })
     })
 
-    this.turnText = this.add.text(350, 50, '', { fontSize: '20px' })
-    if (this.biome) {
-      this.add.text(350, 20, this.biome.name, { fontSize: '16px' }).setOrigin(0.5)
-    }
-    if (this.activeEvent) {
-      this.add.text(350, 40, this.activeEvent.name, { fontSize: '16px', color: '#ffff00' }).setOrigin(0.5)
-    }
-    if (this.biome) {
-      const bonusText = this.biome.bonuses.map((b) => b.description).filter(Boolean).join('\n')
-      if (bonusText) {
-        this.add.text(350, 70, bonusText, { fontSize: '14px', color: '#ffaa00', align: 'center' }).setOrigin(0.5)
-      }
-    }
     this.cardTexts = []
-    this.updateHealth()
-    this.combatants.forEach((c) => this.updateStatusIcons(c))
   }
 
   updateHealth() {
-    this.playerSprites.forEach(({ card, data }) => {
-      const combat = this.turnOrder.find((c) => c.data.id === data.id);
-      const ratio = Phaser.Math.Clamp(combat.hp / data.stats.hp, 0, 1);
-      card.hpBar.width = 80 * ratio;
-      if (card.energyText) {
-        const energy = combat.energy ?? combat.data.currentEnergy ?? 0;
-        card.energyText.setText(`⚡${energy}`);
-      }
-    });
-    this.enemySprites.forEach(({ card, data }) => {
-      const combat = this.turnOrder.find((c) => c.data.id === data.id);
-      const ratio = Phaser.Math.Clamp(combat.hp / data.stats.hp, 0, 1);
-      card.hpBar.width = 80 * ratio;
-      if (card.energyText) {
-        const energy = combat.energy ?? combat.data.currentEnergy ?? 0;
-        card.energyText.setText(`⚡${energy}`);
-      }
-    });
+    // UI updated via React
   }
 
   startTurn() {
@@ -428,7 +302,11 @@ export default class BattleScene extends Phaser.Scene {
     }
     this.current = this.turnOrder[this.turnIndex % this.turnOrder.length]
     this.regenEnergy(this.current)
-    this.turnText.setText(`${this.current.data.name}'s turn`)
+    this.events.emit('turn-start', {
+      actorId: this.current.data.id,
+      newEnergy: this.current.data.currentEnergy,
+      hand: (this.current.data.hand || []).map((c) => c.id),
+    })
     this.turnNumber += 1
     this.isFirstCard = true
     this.turnOrder.forEach((c) => tickCooldowns(c.data))
@@ -441,6 +319,7 @@ export default class BattleScene extends Phaser.Scene {
 
     const skip = this.applyStatusEffects(this.current)
     if (skip) {
+      this.events.emit('turn-skipped', { actorId: this.current.data.id })
       this.time.delayedCall(300, () => this.nextTurn())
       return
     }
@@ -546,6 +425,12 @@ export default class BattleScene extends Phaser.Scene {
         const dmg = this.calculateDamage(effect, actor, target)
         target.hp -= dmg
         this.showFloat(`-${dmg}`, target, '#ff4444')
+        this.events.emit('card-played', {
+          actorId: actor.data.id,
+          cardId: card.id,
+          targetId: target.data.id,
+          damage: dmg,
+        })
         this.events.emit(
           'battle-log',
           `${actor.data.name} used ${card.name} on ${target.data.name}, dealing ${dmg} damage.`
@@ -555,6 +440,12 @@ export default class BattleScene extends Phaser.Scene {
         const heal = effect.magnitude || effect.value || 0
         actor.hp = Math.min(actor.data.stats.hp, actor.hp + heal)
         this.showFloat(`+${heal}`, actor, '#44ff44')
+        this.events.emit('card-played', {
+          actorId: actor.data.id,
+          cardId: card.id,
+          targetId: target.data.id,
+          heal: heal,
+        })
         this.events.emit(
           'battle-log',
           `${actor.data.name} used ${card.name}, healing ${heal} HP.`
@@ -641,7 +532,7 @@ export default class BattleScene extends Phaser.Scene {
     if (!playersAlive && !enemiesAlive) text = 'Draw'
     else if (!playersAlive) text = 'Defeat'
     else text = 'Victory'
-    this.add.text(360, 300, text, { fontSize: '32px' }).setOrigin(0.5)
+    this.events.emit('battle-end', { result: text })
     this.showFloat(text, this.current, text === 'Victory' ? '#44ff44' : '#ff4444')
     if (enemiesAlive === false) {
       const dungeon = this.scene.get('dungeon')
@@ -692,6 +583,11 @@ export default class BattleScene extends Phaser.Scene {
           console.debug(`${unit.data.name} reshuffled their hand into deck`)
         }
         this.draw(unit, DRAW_PER_TURN)
+        this.events.emit('turn-start', {
+          actorId: unit.data.id,
+          newEnergy: unit.data.currentEnergy,
+          hand: unit.data.hand.map((c) => c.id),
+        })
 
         const target = this.selectTarget(unit)
         if (target) {
