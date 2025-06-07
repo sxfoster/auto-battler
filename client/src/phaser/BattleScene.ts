@@ -99,7 +99,9 @@ export default class BattleScene extends Phaser.Scene {
     if (!attacker || !target) return
     const card = attacker.data.deck?.[0]
     this.current = attacker
-    this.performCardAction(card, target)
+    if (card) {
+      this.resolveCard(card, attacker, target)
+    }
   }
 
   constructor() {
