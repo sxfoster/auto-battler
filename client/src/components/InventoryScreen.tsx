@@ -33,7 +33,8 @@ export default function InventoryScreen() {
   useEffect(() => {
     loadInventory()
     setItems(fetchItems())
-  }, [location.pathname])
+    console.log('InventoryScreen mounted - inventory loaded')
+  }, [])
 
   const filtered = items.filter(i => filter === 'All' || i.type === filter)
 

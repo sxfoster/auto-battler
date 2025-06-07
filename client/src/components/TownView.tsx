@@ -15,7 +15,8 @@ export default function TownView() {
 
   useEffect(() => {
     loadPartyState();
-  }, [location.pathname]);
+    console.log('TownView mounted - party state loaded');
+  }, []);
 
   return (
     <div className={styles.container}>

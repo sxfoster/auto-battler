@@ -9,7 +9,8 @@ export default function Battle() {
   useEffect(() => {
     loadPartyState();
     loadGameState();
-  }, [location.pathname]);
+    console.log('Battle mounted - party and game state loaded');
+  }, []);
 
   const phaserRef = useRef<HTMLDivElement | null>(null);
   // Placeholder for Phaser embed
