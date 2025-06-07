@@ -1,6 +1,6 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useNotification } from './NotificationManager.jsx'
-import { sampleCards } from '../../../shared/models/cards.js'
+import { getInventory, loadInventory } from 'shared/inventoryState'
 import cardArt from '../assets/placeholder-card-art.svg'
 import styles from './InventoryScreen.module.css'
 
@@ -12,21 +12,30 @@ interface InventoryItem {
   description: string
 }
 
-const allItems: InventoryItem[] = sampleCards.map(c => ({
-  id: c.id,
-  name: c.name,
-  type: c.category || c.type || 'Unknown',
-  rarity: c.rarity || 'Common',
-  description: c.description || ''
-}))
+function fetchItems(): InventoryItem[] {
+  const cards = getInventory() as any[]
+  return cards.map(c => ({
+    id: c.id,
+    name: c.name,
+    type: (c as any).category || (c as any).type || 'Unknown',
+    rarity: (c as any).rarity || 'Common',
+    description: c.description || '',
+  }))
+}
 
 export default function InventoryScreen() {
   const [filter, setFilter] = useState('All')
+  const [items, setItems] = useState<InventoryItem[]>([])
   const { notify } = useNotification()
 
-  const items = allItems.filter(i => filter === 'All' || i.type === filter)
+  useEffect(() => {
+    loadInventory()
+    setItems(fetchItems())
+  }, [])
 
-  const uniqueTypes = Array.from(new Set(allItems.map(i => i.type)))
+  const filtered = items.filter(i => filter === 'All' || i.type === filter)
+
+  const uniqueTypes = Array.from(new Set(items.map(i => i.type)))
 
   const rarityClass: Record<string, string> = {
     Common: styles.common,
@@ -54,7 +63,7 @@ export default function InventoryScreen() {
         </select>
       </div>
       <div className={styles.grid}>
-        {items.map(item => (
+        {filtered.map(item => (
           <div
             key={item.id}
             className={`${styles.item} ${rarityClass[item.rarity] || styles.common}`}
