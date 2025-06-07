@@ -141,7 +141,6 @@ Level&nbsp;1 cards.
 
 All playable classes are referenced by a lowercase id using hyphens (e.g. `runestone-sentinel`). When assigning classes to characters store this `id`, never the display name. Each class must have at least two draftable cards with matching restrictions. The test suite validates these constraints.
 
-
 ## License
 
 This project is licensed under the [MIT License](LICENSE).

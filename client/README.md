@@ -3,6 +3,7 @@
 This package contains the React user interface for the game, built with React and Vite. It's responsible for rendering all menus, character management screens, and the main game interface that embeds the Phaser canvas.
 
 Key components include:
+
 - **`App.js`**: The main application component that sets up routing and global state.
 - **`GameView.js`**: A crucial component that initializes and embeds the Phaser game instance. It serves as the bridge between the React UI and the Phaser game engine.
 - **`DungeonMap.js`**: Renders the interactive grid-based dungeon map. Players click on rooms in this component to navigate the dungeon.
@@ -30,4 +31,3 @@ These scripts assume **Node.js 20** or later is installed.
 ## Contributing
 
 For contribution guidelines see the repository [README](../README.md) and the main [CONTRIBUTING.md](../CONTRIBUTING.md) file.
-

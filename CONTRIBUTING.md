@@ -6,12 +6,12 @@ We welcome contributions from the community! Whether you're interested in fixing
 
 If you encounter a bug, please open an issue on the GitHub repository. When reporting a bug, please include the following information:
 
-*   A clear and concise description of the bug.
-*   Steps to reproduce the bug.
-*   The expected behavior.
-*   The actual behavior.
-*   Your operating system and browser version.
-*   Any relevant screenshots or error messages.
+- A clear and concise description of the bug.
+- Steps to reproduce the bug.
+- The expected behavior.
+- The actual behavior.
+- Your operating system and browser version.
+- Any relevant screenshots or error messages.
 
 ## Submitting Feature Requests
 
@@ -35,10 +35,10 @@ We use Prettier to automatically format our code. Please ensure that you have Pr
 
 We also follow these general guidelines:
 
-*   Use clear and descriptive variable and function names.
-*   Write concise and well-documented code.
-*   Keep functions small and focused on a single task.
-*   Avoid unnecessary complexity.
+- Use clear and descriptive variable and function names.
+- Write concise and well-documented code.
+- Keep functions small and focused on a single task.
+- Avoid unnecessary complexity.
 
 ## License
 
