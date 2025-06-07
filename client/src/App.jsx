@@ -1,7 +1,6 @@
 import './App.css'
 import { Routes, Route, useLocation } from 'react-router-dom'
-import { useEffect, useRef } from 'react'
-import { CSSTransition, SwitchTransition } from 'react-transition-group'
+import { CSSTransition, TransitionGroup } from 'react-transition-group'
 import MainMenu from './components/MainMenu.jsx'
 import PartySetup from './components/PartySetup.tsx'
 import PreBattleSetup from './components/PreBattleSetup.tsx'
@@ -15,26 +14,12 @@ import Shop from './routes/Shop.jsx'
 import DeckManager from './components/DeckManager.jsx'
 import BattleScene from './components/BattleScene.tsx'
 
-function AnimatedRoutes() {
-  const location = useLocation()
-  const previousPath = useRef(location.pathname)
-
-  useEffect(() => {
-    if (previousPath.current !== location.pathname) {
-      window.location.reload()
-    }
-    previousPath.current = location.pathname
-  }, [location.pathname])
-
+export default function App() {
+  const loc = useLocation()
   return (
-    <SwitchTransition>
-      <CSSTransition
-        key={location.pathname}
-        classNames="fade"
-        timeout={300}
-        unmountOnExit
-      >
-        <Routes location={location}>
+    <TransitionGroup>
+      <CSSTransition key={loc.pathname} classNames="page" timeout={300}>
+        <Routes location={loc}>
           <Route path="/" element={<MainMenu />} />
           <Route path="/party-setup" element={<PartySetup />} />
           <Route path="/dungeon" element={<DungeonMap />} />
@@ -49,12 +34,6 @@ function AnimatedRoutes() {
           <Route path="/decks" element={<DeckManager />} />
         </Routes>
       </CSSTransition>
-    </SwitchTransition>
+    </TransitionGroup>
   )
 }
-
-function App() {
-  return <AnimatedRoutes />
-}
-
-export default App
