@@ -8,6 +8,10 @@ export default class DungeonScene extends Phaser.Scene {
     super('dungeon')
   }
 
+  init(data) {
+    this.currentRoom = data?.roomIndex || 0
+  }
+
   create() {
     this.gameState = loadGameState()
     const biome = getCurrentBiome(this.gameState)
@@ -22,8 +26,10 @@ export default class DungeonScene extends Phaser.Scene {
       { x: 150, y: 300, enemy: null, cleared: true },
       { x: 450, y: 300, enemy: enemies[0], cleared: false },
     ]
-    // player starts in first room
-    this.currentRoom = 0
+    // ensure currentRoom has a value
+    if (typeof this.currentRoom !== 'number') {
+      this.currentRoom = 0
+    }
     this.player = this.add.rectangle(0, 0, 40, 40, 0x00ff00)
     this.updatePlayerPosition()
 
@@ -31,11 +37,36 @@ export default class DungeonScene extends Phaser.Scene {
 
     // show enemy rooms
     this.rooms.forEach((room, index) => {
-      this.add.rectangle(room.x, room.y, 100, 100, 0x555555).setOrigin(0.5)
+      room.rect = this.add
+        .rectangle(room.x, room.y, 100, 100, 0x555555)
+        .setOrigin(0.5)
+        .setInteractive()
+
       if (room.enemy && !room.cleared) {
         room.sprite = this.add.rectangle(room.x, room.y, 40, 40, 0xff0000).setOrigin(0.5)
       }
+
+      room.rect.on('pointerdown', () => {
+        if (index === this.currentRoom) return
+        this.currentRoom = index
+        this.cameras.main.fadeOut(300, 0, 0, 0)
+        this.cameras.main.once('camerafadeoutcomplete', () => {
+          this.scene.restart({ roomIndex: this.currentRoom })
+        })
+      })
     })
+
+    const current = this.rooms[this.currentRoom]
+    if (current && current.rect) {
+      this.tweens.add({
+        targets: current.rect,
+        scale: 1.05,
+        yoyo: true,
+        repeat: -1,
+        duration: 800,
+        ease: 'Sine.easeInOut',
+      })
+    }
 
     this.input.keyboard.on('keydown-LEFT', () => this.move(-1))
     this.input.keyboard.on('keydown-RIGHT', () => this.move(1))
