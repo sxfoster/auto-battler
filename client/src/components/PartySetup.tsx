@@ -19,6 +19,7 @@ import { useModal } from './ModalManager.jsx';
 import { useNotification } from './NotificationManager.jsx';
 import styles from './PartySetup.module.css';
 import { savePartyState, loadPartyState } from '../utils/partyStorage';
+import { loadPartyState as loadSharedPartyState } from '../../../game/src/shared/partyState.js';
 
 // Make sure PartyCharacter is exported
 export interface PartyCharacter extends Character {
@@ -72,6 +73,11 @@ const PartySetup: React.FC = () => {
   const availableClasses = useGameStore(state => state.availableClasses);
   const setAvailableClasses = useGameStore(state => state.setAvailableClasses);
   const load = useGameStore(state => state.load);
+
+  // reload from storage whenever this component mounts
+  useEffect(() => {
+    loadSharedPartyState();
+  }, []);
 
   // Reset limits when starting a new setup session
   useEffect(() => {
