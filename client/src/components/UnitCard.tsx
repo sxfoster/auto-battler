@@ -1,6 +1,6 @@
 import React from 'react'
 import styles from './UnitCard.module.css'
-import defaultPortrait from '../../shared/images/default-portrait.png'
+import defaultPortrait from '../../../shared/images/default-portrait.png'
 
 const STATUS_ICONS: Record<string, { icon: string; color: string }> = {
   poison: { icon: '☠', color: '#88ff88' },
