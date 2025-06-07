@@ -69,12 +69,12 @@ cd game && npm run build
 Battles use an AI system that can track card synergies and execute combo
 chains. Enemies remember recently played starter cards and will prioritize
 playing matching finishers within the combo window. When no finisher is
-available the AI will attempt to start a preferred combo. Targeting also adapts
-to focus the lowest health party member for a more dynamic challenge.
-The AI now scores available actions based on unit health and ability effects,
-allowing enemies to choose healing or defensive options when injured. A debug
-listener can be registered via `setAIDebugListener` to inspect each decision
-during development.
+available, the AI attempts to start a preferred combo or chooses the
+highest-scoring action by evaluating card effects (like damage or healing)
+against the current game state (e.g., unit health). Targeting generally
+focuses on the lowest health party member, adding to the dynamic challenge.
+A debug listener can be registered via `setAIDebugListener` to inspect each
+AI decision during development.
 
 ## Testing
 
