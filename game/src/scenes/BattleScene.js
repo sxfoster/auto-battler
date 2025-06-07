@@ -11,6 +11,7 @@ import { InitiativeQueue } from '../../shared/initiativeQueue.js'
 import { sampleCharacters } from 'shared/models/characters.js'
 import { sampleCards } from 'shared/models/cards.js'
 import { markRoomCleared } from 'shared/dungeonState.js'
+import { shuffleArray } from '../utils/shuffleArray.js'
 import {
   STATUS_META,
   addStatusEffect,
@@ -157,11 +158,14 @@ export default class BattleScene extends Phaser.Scene {
     if (!combatant.data.hand) {
       combatant.data.hand = []
     }
-    const available = combatant.data.deck.filter((c) => canUseAbility(combatant.data, c))
     for (let i = 0; i < count; i++) {
-      const pool = available.length ? available : combatant.data.deck
-      const card = Phaser.Math.RND.pick(pool)
-      combatant.data.hand.push(card)
+      if (combatant.data.deck.length === 0) break
+      const card = combatant.data.deck.shift()
+      if (canUseAbility(combatant.data, card)) {
+        combatant.data.hand.push(card)
+      } else {
+        combatant.data.deck.push(card)
+      }
     }
   }
 
@@ -608,6 +612,12 @@ export default class BattleScene extends Phaser.Scene {
       this.resolveCard(card, actor, target)
       return
     }
+    const alliesAlive = this.turnOrder.some(c => c.type === 'player' && c.hp > 0)
+    const enemiesAlive = this.turnOrder.some(c => c.type === 'enemy' && c.hp > 0)
+    if (!alliesAlive && !enemiesAlive) {
+      this.events.emit('battle-log', 'Both sides have fallen! It\u2019s a draw.')
+      return this.endBattle()
+    }
     this.clearCards()
     this.nextTurn()
   }
@@ -627,7 +637,10 @@ export default class BattleScene extends Phaser.Scene {
     const playersAlive = this.turnOrder.some((c) => c.type === 'player' && c.hp > 0)
     const enemiesAlive = this.turnOrder.some((c) => c.type === 'enemy' && c.hp > 0)
     this.clearCards()
-    const text = !playersAlive ? 'Defeat' : 'Victory'
+    let text
+    if (!playersAlive && !enemiesAlive) text = 'Draw'
+    else if (!playersAlive) text = 'Defeat'
+    else text = 'Victory'
     this.add.text(360, 300, text, { fontSize: '32px' }).setOrigin(0.5)
     this.showFloat(text, this.current, text === 'Victory' ? '#44ff44' : '#ff4444')
     if (enemiesAlive === false) {
@@ -674,6 +687,10 @@ export default class BattleScene extends Phaser.Scene {
 
         // ─── Turn Start: Draw Cards ───
         unit.data.hand = unit.data.hand || []
+        if (unit.data.deck.length === 0) {
+          unit.data.deck = shuffleArray(unit.data.hand.splice(0))
+          console.debug(`${unit.data.name} reshuffled their hand into deck`)
+        }
         this.draw(unit, DRAW_PER_TURN)
 
         const target = this.selectTarget(unit)

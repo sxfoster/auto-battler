@@ -9,7 +9,15 @@
   ],
   "scripts": {
     "validate:cards": "node scripts/validateCards.js",
-    "test": "npm run validate:cards && node --test"
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js --coverage"
   },
-  "type": "module"
+  "type": "module",
+  "devDependencies": {
+    "@testing-library/jest-dom": "^6.6.3",
+    "jest": "^29.7.0",
+    "jest-environment-jsdom": "^30.0.0-beta.3"
+  },
+  "dependencies": {
+    "source-map": "^0.7.4"
+  }
 }
