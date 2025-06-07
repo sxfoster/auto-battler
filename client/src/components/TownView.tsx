@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useLocation } from "react-router-dom";
 import { useGameState } from "../GameStateProvider.jsx";
 import CharacterCard from "./CharacterCard.tsx";
 import styles from "./TownView.module.css";
@@ -10,11 +10,12 @@ import {
 
 export default function TownView() {
   const navigate = useNavigate();
+  const location = useLocation();
   const party = useGameState((s) => s.party);
 
   useEffect(() => {
     loadPartyState();
-  }, []);
+  }, [location.pathname]);
 
   return (
     <div className={styles.container}>
