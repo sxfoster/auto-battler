@@ -1,5 +1,6 @@
 import React from 'react'
 import styles from './UnitCard.module.css'
+import defaultPortrait from '../../shared/images/default-portrait.png'
 
 const STATUS_ICONS: Record<string, { icon: string; color: string }> = {
   poison: { icon: '☠', color: '#88ff88' },
@@ -19,6 +20,7 @@ interface UnitCardProps {
   name: string
   hp: number
   maxHp: number
+  portrait?: string
   status?: string
   statuses?: { type: string; value?: number }[]
   actions?: Action[]
@@ -31,6 +33,7 @@ const UnitCard: React.FC<UnitCardProps> = ({
   name,
   hp,
   maxHp,
+  portrait,
   status,
   statuses = [],
   actions = [],
@@ -55,7 +58,7 @@ const UnitCard: React.FC<UnitCardProps> = ({
 
   return (
     <div
-      className={`${styles.card} ${isActive ? styles.active : ''} ${
+      className={`${styles.battleCard} ${isActive ? styles.active : ''} ${
         isDisabled ? styles.disabled : ''
       }`}
       onClick={handleClick}
@@ -66,12 +69,23 @@ const UnitCard: React.FC<UnitCardProps> = ({
       aria-disabled={isDisabled}
       aria-label={`${name} HP ${hp}`}
     >
+      <img
+        src={portrait || defaultPortrait}
+        alt={name}
+        onError={e => {
+          const img = e.currentTarget as HTMLImageElement
+          if (img.src !== defaultPortrait) img.src = defaultPortrait
+        }}
+      />
       <div className={styles.name}>{name}</div>
-      <div className={styles.healthBar} aria-hidden="true">
-        <span className={styles.health} style={{ width: `${percent}%` }} />
-      </div>
-      <div className={styles.hpText}>
-        {hp} / {maxHp}
+      <div className={styles.hpBar} aria-hidden="true">
+        <div
+          className={styles.hpBarInner}
+          style={{ width: `${percent}%` }}
+        />
+        <div className={styles.hpText}>
+          {hp} / {maxHp}
+        </div>
       </div>
       <div className={styles.status}>{status}</div>
       {statuses.length > 0 && (
@@ -100,6 +114,7 @@ const UnitCard: React.FC<UnitCardProps> = ({
                 e.stopPropagation()
                 if (!isDisabled) a.onClick()
               }}
+              className={styles.actionBtn}
             >
               {a.label}
             </button>
