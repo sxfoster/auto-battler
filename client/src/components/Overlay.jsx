@@ -1,4 +1,5 @@
 import React from 'react'
+import './Overlay.css'
 
 export default function Overlay({ message, onContinue }) {
   return (

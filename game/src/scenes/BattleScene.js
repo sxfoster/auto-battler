@@ -1,4 +1,5 @@
 import Phaser from 'phaser'
+import _ from 'lodash'
 import { applyRolePenalty, getSynergyBonuses } from 'shared/systems/classRole.js'
 import { applyBiomeBonuses, getCurrentBiome } from 'shared/systems/biome.js'
 import { applyEventEffects } from 'shared/systems/floorEvents.js'
@@ -259,6 +260,35 @@ export default class BattleScene extends Phaser.Scene {
     )
 
     this.initiativeQueue = new InitiativeQueue()
+    this.initiativeQueueReady = (unit) => {
+      this.events.emit('turn-start', {
+        actorId: unit.data.id,
+        currentEnergy: unit.data.currentEnergy,
+        hand: (unit.data.hand || []).map((c) => c.id),
+      })
+
+      const target = this.selectTarget(unit)
+      if (!target) return
+
+      const playable = (unit.data.hand || []).filter(
+        (c) => (c.energyCost ?? c.cost ?? 0) <= (unit.data.currentEnergy || 0),
+      )
+      if (playable.length) {
+        const card = playable[0]
+        const cost = card.energyCost ?? card.cost ?? 0
+        unit.data.currentEnergy = Math.max(0, (unit.data.currentEnergy || 0) - cost)
+        unit.energy = unit.data.currentEnergy
+        this.events.emit('card-played', {
+          actorId: unit.data.id,
+          cardId: card.id,
+          targetId: target.data.id,
+          cost,
+        })
+        this.resolveCard(card, unit, target)
+      } else {
+        this.events.emit('turn-skipped', { actorId: unit.data.id })
+      }
+    }
     const playerUnits = this.getPlayerUnits()
     const enemyUnits = this.getEnemyUnits()
     ;[...playerUnits, ...enemyUnits].forEach((unit) => {
@@ -304,7 +334,7 @@ export default class BattleScene extends Phaser.Scene {
     this.regenEnergy(this.current)
     this.events.emit('turn-start', {
       actorId: this.current.data.id,
-      newEnergy: this.current.data.currentEnergy,
+      currentEnergy: this.current.data.currentEnergy,
       hand: (this.current.data.hand || []).map((c) => c.id),
     })
     this.turnNumber += 1
@@ -425,12 +455,6 @@ export default class BattleScene extends Phaser.Scene {
         const dmg = this.calculateDamage(effect, actor, target)
         target.hp -= dmg
         this.showFloat(`-${dmg}`, target, '#ff4444')
-        this.events.emit('card-played', {
-          actorId: actor.data.id,
-          cardId: card.id,
-          targetId: target.data.id,
-          damage: dmg,
-        })
         this.events.emit(
           'battle-log',
           `${actor.data.name} used ${card.name} on ${target.data.name}, dealing ${dmg} damage.`
@@ -440,12 +464,6 @@ export default class BattleScene extends Phaser.Scene {
         const heal = effect.magnitude || effect.value || 0
         actor.hp = Math.min(actor.data.stats.hp, actor.hp + heal)
         this.showFloat(`+${heal}`, actor, '#44ff44')
-        this.events.emit('card-played', {
-          actorId: actor.data.id,
-          cardId: card.id,
-          targetId: target.data.id,
-          heal: heal,
-        })
         this.events.emit(
           'battle-log',
           `${actor.data.name} used ${card.name}, healing ${heal} HP.`
@@ -583,32 +601,11 @@ export default class BattleScene extends Phaser.Scene {
           console.debug(`${unit.data.name} reshuffled their hand into deck`)
         }
         this.draw(unit, DRAW_PER_TURN)
-        this.events.emit('turn-start', {
-          actorId: unit.data.id,
-          newEnergy: unit.data.currentEnergy,
-          hand: unit.data.hand.map((c) => c.id),
-        })
-
-        const target = this.selectTarget(unit)
-        if (target) {
-          // ─── Auto-select a playable card (or default) ───
-          const hand = unit.data.hand || []
-          let card = hand.find((c) => (c.energyCost || 0) <= (unit.energy || 0))
-          if (!card && hand.length) card = hand[0]
-
-          // ─── Consume cost if card exists ───
-          if (card && card.energyCost) {
-            unit.energy = Math.max(0, (unit.energy || 0) - card.energyCost)
-          }
-
-          // ─── Resolve through the unified, logged path ───
-          this.current = unit
-          this.resolveCard(card, unit, target)
-
-          // ─── Re-enqueue for next round ───
-          const newDelay = 1000 / unit.speed
-          this.initiativeQueue.add(unit, newDelay)
+        if (this.initiativeQueueReady) {
+          this.initiativeQueueReady(unit)
         }
+        const newDelay = 1000 / unit.speed
+        this.initiativeQueue.add(unit, newDelay)
       }
       this.initiativeQueue.remove(unit)
     })
