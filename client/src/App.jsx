@@ -10,7 +10,7 @@ import TownView from './components/TownView.tsx'
 import InventoryPage from './components/InventoryPage.tsx'
 import CollectionPage from './components/CollectionPage.tsx'
 import CraftingPage from './components/CraftingPage.tsx'
-import ShopPage from './components/ShopPage.tsx'
+import Shop from './routes/Shop.jsx'
 import DeckManager from './components/DeckManager.jsx'
 import BattleScene from './components/BattleScene.tsx'
 
@@ -41,7 +41,7 @@ function AnimatedRoutes() {
           <Route path="/inventory" element={<InventoryPage />} />
           <Route path="/cards" element={<CollectionPage />} />
           <Route path="/crafting" element={<CraftingPage />} />
-          <Route path="/shop" element={<ShopPage />} />
+          <Route path="/shop" element={<Shop />} />
           <Route path="/pre-battle" element={<PreBattleSetup />} />
           <Route path="/battle" element={<BattleScene />} />
           <Route path="/decks" element={<DeckManager />} />
