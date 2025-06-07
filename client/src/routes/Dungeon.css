@@ -59,3 +59,9 @@
   transform: translate(-50%, -50%);
   font-size: 1rem;
 }
+
+.dungeon-tile.combat.cleared {
+  background: #2e303f;
+  opacity: 0.5;
+  cursor: default;
+}

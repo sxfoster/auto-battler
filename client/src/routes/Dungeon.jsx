@@ -62,6 +62,7 @@ export default function Dungeon() {
           const dx = Math.abs(r.x - d.current.x)
           const dy = Math.abs(r.y - d.current.y)
           const revealed = r.visited || dx + dy === 1
+          const isCleared = r.cleared === true
           let icon = ''
           switch (r.type) {
             case 'shop':
@@ -83,10 +84,12 @@ export default function Dungeon() {
           return (
             <div
               key={i}
-              className={`dungeon-tile ${revealed ? 'revealed' : ''} ${
-                r.visited ? 'visited' : ''
-              } ${r.type}`}
-              onClick={() => revealed && handleClick(r.x, r.y)}
+              className={`dungeon-tile
+                ${revealed ? 'revealed' : ''}
+                ${r.visited ? 'visited' : ''}
+                ${r.type}
+                ${isCleared ? 'cleared' : ''}`}
+              onClick={() => revealed && !isCleared && handleClick(r.x, r.y)}
             >
               <span className="dungeon-icon">{icon}</span>
             </div>
