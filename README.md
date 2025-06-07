@@ -76,6 +76,13 @@ focuses on the lowest health party member, adding to the dynamic challenge.
 A debug listener can be registered via `setAIDebugListener` to inspect each
 AI decision during development.
 
+## Energy System
+
+Characters now spend **Energy** to play ability cards. Each turn
+regenerates a small amount of energy and actions can only be executed if
+their energy cost can be paid. When no affordable card is available, a
+combatant simply regenerates energy for that turn.
+
 ## Testing
 
 Run the shared unit tests with Node's built-in test runner:
@@ -98,6 +105,13 @@ stores the party under the `partyData` key in `localStorage`. Basic dungeon
 progress is also saved for the session. The Phaser scenes read these values on
 load to render the map and launch battles using the chosen characters.
 
+## Automatic Battle Start
+
+When a battle scene loads, the first available party member now
+automatically targets the nearest enemy and performs a basic attack.
+This helps new players immediately see combat in action without having
+to issue a manual command.
+
 ## Interactive Dungeon Map
 
 A grid-based map lets you explore each floor by clicking adjacent rooms. Entering
@@ -110,8 +124,10 @@ intact.
 The React client includes a revamped party setup flow. Players can reroll
 available classes and then draft a starting deck of ability cards for each
 character before entering the dungeon. Only **two** of these cards are
-drawn at the start of a battle, so choose wisely. These features live under the
-`PartySetup` route and make early game decisions more dynamic.
+drawn at the start of a battle, so choose wisely. The draft choices are
+displayed in a responsive grid that adapts to different screen widths.
+These features live under the `PartySetup` route and make early game
+decisions more dynamic.
 
 ## Codex Reference
 
