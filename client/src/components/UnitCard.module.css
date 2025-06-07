@@ -28,6 +28,24 @@
   cursor: not-allowed;
 }
 
+.battleCard.dead {
+  filter: grayscale(0.9) brightness(0.6);
+  opacity: 0.5;
+  position: relative;
+}
+
+.battleCard.dead::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(80, 0, 20, 0.4);
+  border-radius: 18px;
+  pointer-events: none;
+}
+
 .battleCard img {
   width: 64px;
   height: 64px;
@@ -51,7 +69,7 @@
   height: 14px;
   background: #23243a;
   border-radius: 8px;
-  margin: 0.5rem auto 0.2rem auto;
+  margin: 0.5rem auto 0.6rem auto;
   overflow: hidden;
   position: relative;
 }
