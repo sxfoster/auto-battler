@@ -2,6 +2,9 @@ import React from 'react'
 import type { Card } from '../../../shared/models/Card'
 import placeholderArt from '../assets/placeholder-card-art.svg'
 
+// Use uploaded art as fallback when available
+const uploadedArtPath = '/mnt/data/0896d875-b93b-46e8-9f89-2ff6101dea82.png'
+
 const abilityImages = import.meta.glob('../../../shared/images/ability_*.png', {
   eager: true,
   import: 'default',
@@ -10,7 +13,12 @@ const abilityImages = import.meta.glob('../../../shared/images/ability_*.png', {
 const getAbilityImage = (cardName: string): string => {
   const key = cardName.toLowerCase().replace(/ /g, '_')
   const path = `../../../shared/images/ability_${key}.png`
-  return abilityImages[path] || abilityImages['../../../shared/images/ability_default.png'] || placeholderArt
+  return (
+    abilityImages[path] ||
+    abilityImages['../../../shared/images/ability_default.png'] ||
+    uploadedArtPath ||
+    placeholderArt
+  )
 }
 import styles from './CardDisplay.module.css'
 
