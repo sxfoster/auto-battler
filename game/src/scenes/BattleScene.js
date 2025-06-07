@@ -18,6 +18,8 @@ import {
   applyStatusTick,
 } from '../statusSystem.js'
 
+const INITIAL_HAND_SIZE = 2
+
 
 export default class BattleScene extends Phaser.Scene {
   constructor() {
@@ -240,14 +242,21 @@ export default class BattleScene extends Phaser.Scene {
     this.activeEvent = state.activeEvent || null
     this.initializeCombatants()
 
-    // ─── Populate each combatant’s hand for auto-battle ───
-    // Draw 2 cards into data.hand for every unit so data.deck or data.hand is never empty.
-    this.turnOrder.forEach((c) => {
-      // ensure .data.hand exists
-      c.data.hand = c.data.hand || []
-      // draw 2 cards (or your desired initial draw count)
-      this.draw(c, 2)
+    // ─── Draw initial hand for every combatant ───
+    this.turnOrder.forEach((combatant) => {
+      // ensure a hand array exists
+      combatant.data.hand = combatant.data.hand || []
+      // draw INITIAL_HAND_SIZE cards into hand
+      this.draw(combatant, INITIAL_HAND_SIZE)
     })
+
+    console.debug(
+      'Initial hands:',
+      this.turnOrder.map((c) => ({
+        name: c.data.name,
+        handSize: c.data.hand.length,
+      })),
+    )
 
     this.initiativeQueue = new InitiativeQueue()
     const playerUnits = this.getPlayerUnits()
