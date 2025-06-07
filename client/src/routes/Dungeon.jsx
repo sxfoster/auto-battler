@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { generateDungeon, getDungeon, moveTo } from 'shared/dungeonState'
+import { generateDungeon, getDungeon, moveTo, nextFloor, loadDungeon } from 'shared/dungeonState'
 import './Dungeon.css'
 
 export default function Dungeon() {
@@ -8,7 +8,10 @@ export default function Dungeon() {
   const navigate = useNavigate()
 
   useEffect(() => {
-    generateDungeon(5, 5)
+    loadDungeon()
+    if (!getDungeon()) {
+      generateDungeon(5, 5)
+    }
     setD({ ...getDungeon() })
   }, [])
 
@@ -30,6 +33,11 @@ export default function Dungeon() {
     setD({ ...dungeon })
 
     const room = dungeon.rooms.find((r) => r.x === x && r.y === y)
+    if (room.type === 'end') {
+      nextFloor()
+      setD({ ...getDungeon() })
+      return
+    }
     switch (room?.type) {
       case 'combat':
         return navigate('/battle')
@@ -45,7 +53,7 @@ export default function Dungeon() {
   if (!d) return null
   return (
     <div className="dungeon-container">
-      <h1>Dungeon – Floor 1</h1>
+      <h1>Dungeon – Floor {d.floor}</h1>
       <div className="dungeon-grid">
         {d.rooms.map((r, i) => {
           // determine if tile is revealed

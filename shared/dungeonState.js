@@ -18,7 +18,7 @@ function randomPath(width, height) {
   return path
 }
 
-export function generateDungeon(width = 5, height = 5) {
+export function generateDungeon(width = 5, height = 5, floor = 1) {
   const rooms = []
   const path = randomPath(width, height)
   for (let y = 0; y < height; y++) {
@@ -40,6 +40,7 @@ export function generateDungeon(width = 5, height = 5) {
   dungeon = {
     width,
     height,
+    floor,
     rooms,
     start: { x: 0, y: 0 },
     end: { x: width - 1, y: height - 1 },
@@ -75,4 +76,11 @@ export function moveTo(x, y) {
 
 export function saveDungeon() {
   localStorage.setItem('dungeonState', JSON.stringify(dungeon))
+}
+
+export function nextFloor() {
+  if (!dungeon) return
+  const { width, height } = dungeon
+  const floor = (dungeon.floor || 1) + 1
+  generateDungeon(width, height, floor)
 }

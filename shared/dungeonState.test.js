@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'assert'
-import { generateDungeon, getDungeon } from './dungeonState.js'
+import { generateDungeon, getDungeon, nextFloor } from './dungeonState.js'
 
 const storageMock = {
   getItem: () => null,
@@ -48,4 +48,12 @@ test('generated dungeon has a path from start to end', () => {
     }
   }
   assert.ok(found, 'end room reachable from start')
+})
+
+test('nextFloor increments the floor counter', () => {
+  generateDungeon(3, 3)
+  const firstFloor = getDungeon().floor
+  nextFloor()
+  const second = getDungeon()
+  assert.equal(second.floor, firstFloor + 1)
 })
