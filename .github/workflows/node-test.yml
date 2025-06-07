@@ -12,4 +12,6 @@ jobs:
           node-version: 20
       - run: npm install
       - run: npm --workspace client run lint
+      - run: npm --workspace client run build
+      - run: npm --workspace game run build
       - run: npm test
