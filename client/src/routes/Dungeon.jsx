@@ -38,14 +38,34 @@ export default function Dungeon() {
           const dx = Math.abs(r.x - d.current.x)
           const dy = Math.abs(r.y - d.current.y)
           const revealed = r.visited || dx + dy === 1
+          let icon = ''
+          switch (r.type) {
+            case 'shop':
+              icon = '🛒'
+              break
+            case 'event':
+              icon = '❓'
+              break
+            case 'combat':
+              icon = '⚔️'
+              break
+            case 'start':
+              icon = '🏠'
+              break
+            case 'end':
+              icon = '🚪'
+              break
+          }
           return (
             <div
               key={i}
-              className={`dungeon-tile ${r.visited ? 'visited' : ''} ${
-                revealed ? 'revealed' : ''
-              } ${r.x === d.current.x && r.y === d.current.y ? 'current' : ''}`}
+              className={`dungeon-tile ${revealed ? 'revealed' : ''} ${
+                r.visited ? 'visited' : ''
+              } ${r.type}`}
               onClick={() => revealed && handleClick(r.x, r.y)}
-            />
+            >
+              <span className="dungeon-icon">{icon}</span>
+            </div>
           )
         })}
       </div>
