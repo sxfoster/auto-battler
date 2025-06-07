@@ -103,6 +103,16 @@ export default function BattleScene() {
     }
   }, [turn, players])
 
+  useEffect(() => {
+    if (turn === 'player') {
+      const attacker = players.find(p => p.hp > 0)
+      const target = enemies.find(e => e.hp > 0)
+      if (attacker && target) {
+        attack(target.id)
+      }
+    }
+  }, [turn, players, enemies])
+
   const battleOver =
     players.every(p => p.hp <= 0) || enemies.every(e => e.hp <= 0)
 
