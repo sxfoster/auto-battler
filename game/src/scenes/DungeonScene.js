@@ -17,10 +17,12 @@ export default class DungeonScene extends Phaser.Scene {
       this.add.text(400, 110, this.gameState.activeEvent.name, { fontSize: '16px', color: '#ffff00' }).setOrigin(0.5)
     }
 
-    // simple two room layout
+    // simple layout with different room types
     this.rooms = [
-      { x: 150, y: 300, enemy: null, cleared: true },
-      { x: 450, y: 300, enemy: enemies[0], cleared: false },
+      { x: 150, y: 300, type: 'shop', cleared: false },
+      { x: 300, y: 300, type: 'enemy', enemy: enemies[0], cleared: false },
+      { x: 450, y: 300, type: 'event', cleared: false },
+      { x: 600, y: 300, type: 'empty', cleared: true },
     ]
     // player starts in first room
     this.currentRoom = 0
@@ -29,11 +31,15 @@ export default class DungeonScene extends Phaser.Scene {
 
     this.events.on('wake', this.onWake, this)
 
-    // show enemy rooms
-    this.rooms.forEach((room, index) => {
+    // visualize rooms
+    this.rooms.forEach((room) => {
       this.add.rectangle(room.x, room.y, 100, 100, 0x555555).setOrigin(0.5)
-      if (room.enemy && !room.cleared) {
-        room.sprite = this.add.rectangle(room.x, room.y, 40, 40, 0xff0000).setOrigin(0.5)
+      if (!room.cleared) {
+        let color = 0xaaaaaa
+        if (room.type === 'enemy') color = 0xff0000
+        if (room.type === 'shop') color = 0x0000ff
+        if (room.type === 'event') color = 0xffff00
+        room.sprite = this.add.rectangle(room.x, room.y, 40, 40, color).setOrigin(0.5)
       }
     })
 
@@ -47,12 +53,38 @@ export default class DungeonScene extends Phaser.Scene {
     this.updatePlayerPosition()
 
     const room = this.rooms[this.currentRoom]
-    if (room.enemy && !room.cleared) {
-      this.scene.launch('battle', { roomIndex: this.currentRoom })
-      this.scene.sleep()
+    if (!room.cleared) {
+      switch (room.type) {
+        case 'enemy':
+          this.transitionToScene('battle', { roomIndex: this.currentRoom })
+          break
+        case 'shop':
+          room.cleared = true
+          this.transitionToScene('shop')
+          break
+        case 'event':
+          room.cleared = true
+          this.transitionToScene('event')
+          break
+        default:
+          this.checkFloorComplete()
+          break
+      }
     } else {
       this.checkFloorComplete()
     }
+  }
+
+  transitionToScene(key, data) {
+    this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
+      this.scene.launch(key, data)
+      this.scene.sleep()
+      const target = this.scene.get(key)
+      if (target) {
+        target.cameras.main.fadeIn(250)
+      }
+    })
+    this.cameras.main.fadeOut(250)
   }
 
   updatePlayerPosition() {

@@ -3,6 +3,8 @@ import BattleScene from './scenes/BattleScene'
 import DungeonScene from './scenes/DungeonScene'
 import DecisionScene from './scenes/DecisionScene'
 import TownScene from './scenes/TownScene'
+import ShopScene from './scenes/ShopScene'
+import EventScene from './scenes/EventScene'
 import { loadPartyState } from './shared/partyState.js'
 
 const config = {
@@ -10,7 +12,7 @@ const config = {
   width: 800,
   height: 600,
   parent: 'game-container',
-  scene: [TownScene, DungeonScene, BattleScene, DecisionScene],
+  scene: [TownScene, DungeonScene, BattleScene, DecisionScene, ShopScene, EventScene],
 }
 
 loadPartyState()
