@@ -42,6 +42,11 @@ const UnitCard: React.FC<UnitCardProps> = ({
   onSelect,
 }) => {
   const percent = Math.max(0, Math.min(100, (hp / maxHp) * 100))
+  const hpRatio = hp / maxHp
+  let barColor = '#38d46b'
+  if (hpRatio <= 0.6 && hpRatio > 0.3) barColor = '#f7d839'
+  if (hpRatio <= 0.3 && hpRatio > 0) barColor = '#ea4646'
+  if (hp === 0) barColor = '#800019'
 
   const handleClick = () => {
     if (!isDisabled) {
@@ -60,7 +65,7 @@ const UnitCard: React.FC<UnitCardProps> = ({
     <div
       className={`${styles.battleCard} ${isActive ? styles.active : ''} ${
         isDisabled ? styles.disabled : ''
-      }`}
+      } ${hp === 0 ? styles.dead : ''}`}
       onClick={handleClick}
       onKeyDown={handleKeyDown}
       tabIndex={isDisabled ? -1 : 0}
@@ -81,7 +86,11 @@ const UnitCard: React.FC<UnitCardProps> = ({
       <div className={styles.hpBar} aria-hidden="true">
         <div
           className={styles.hpBarInner}
-          style={{ width: `${percent}%` }}
+          style={{
+            width: `${percent}%`,
+            background: barColor,
+            transition: 'width 0.4s, background 0.2s',
+          }}
         />
         <div className={styles.hpText}>
           {hp} / {maxHp}
