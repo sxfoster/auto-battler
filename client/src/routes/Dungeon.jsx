@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { generateDungeon, getDungeon, moveTo } from 'shared/dungeonState'
 import './Dungeon.css'
+import Minimap from '../components/Minimap'
 
 export default function Dungeon() {
   const [d, setD] = useState(null)
@@ -46,6 +47,7 @@ export default function Dungeon() {
   return (
     <div className="dungeon-container">
       <h1>Dungeon – Floor 1</h1>
+      <Minimap />
       <div className="dungeon-grid">
         {d.rooms.map((r, i) => {
           // determine if tile is revealed
