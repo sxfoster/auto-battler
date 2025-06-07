@@ -1,12 +1,20 @@
-import React from 'react'
-import { useNavigate, Link } from 'react-router-dom'
-import { useGameState } from '../GameStateProvider.jsx'
-import CharacterCard from './CharacterCard.tsx'
-import styles from './TownView.module.css'
+import React, { useEffect } from "react";
+import { useNavigate, Link } from "react-router-dom";
+import { useGameState } from "../GameStateProvider.jsx";
+import CharacterCard from "./CharacterCard.tsx";
+import styles from "./TownView.module.css";
+import {
+  partyState,
+  loadPartyState,
+} from "../../game/src/shared/partyState.js";
 
 export default function TownView() {
-  const navigate = useNavigate()
-  const party = useGameState(s => s.party)
+  const navigate = useNavigate();
+  const party = useGameState((s) => s.party);
+
+  useEffect(() => {
+    loadPartyState();
+  }, []);
 
   return (
     <div className={styles.container}>
@@ -14,7 +22,7 @@ export default function TownView() {
         <h2>Town Hub</h2>
         <div className={styles.partyCards}>
           {party?.characters && party.characters.length > 0 ? (
-            party.characters.map(character => (
+            party.characters.map((character) => (
               <CharacterCard
                 key={character.id}
                 character={character}
@@ -27,12 +35,14 @@ export default function TownView() {
             <p>No party</p>
           )}
         </div>
-        <Link to="/" className={styles.mainMenu}>Return to Main Menu</Link>
+        <Link to="/" className={styles.mainMenu}>
+          Return to Main Menu
+        </Link>
       </header>
       <div className={styles.grid}>
         <button
           className={styles.card}
-          onClick={() => navigate('/party-setup')}
+          onClick={() => navigate("/party-setup")}
           aria-label="Manage Party"
         >
           <span className={styles.icon}>⚔️</span>
@@ -41,7 +51,7 @@ export default function TownView() {
         </button>
         <button
           className={styles.card}
-          onClick={() => navigate('/inventory')}
+          onClick={() => navigate("/inventory")}
           aria-label="View Inventory"
         >
           <span className={styles.icon}>🎒</span>
@@ -50,7 +60,7 @@ export default function TownView() {
         </button>
         <button
           className={styles.card}
-          onClick={() => navigate('/cards')}
+          onClick={() => navigate("/cards")}
           aria-label="Browse Cards"
         >
           <span className={styles.icon}>📜</span>
@@ -59,7 +69,7 @@ export default function TownView() {
         </button>
         <button
           className={styles.card}
-          onClick={() => navigate('/crafting')}
+          onClick={() => navigate("/crafting")}
           aria-label="Craft Items"
         >
           <span className={styles.icon}>🛠️</span>
@@ -68,7 +78,7 @@ export default function TownView() {
         </button>
         <button
           className={styles.card}
-          onClick={() => navigate('/shop')}
+          onClick={() => navigate("/shop")}
           aria-label="Visit Shop"
         >
           <span className={styles.icon}>🛒</span>
@@ -77,7 +87,7 @@ export default function TownView() {
         </button>
         <button
           className={styles.card}
-          onClick={() => navigate('/pre-battle')}
+          onClick={() => navigate("/pre-battle")}
           aria-label="Battle"
         >
           <span className={styles.icon}>⚔️</span>
@@ -85,8 +95,8 @@ export default function TownView() {
           <span className={styles.subtitle}>Skirmish test</span>
         </button>
         <button
-          className={`${styles.card} ${!party ? styles.disabled : ''}`}
-          onClick={() => party && navigate('/dungeon')}
+          className={`${styles.card} ${!party ? styles.disabled : ""}`}
+          onClick={() => party && navigate("/dungeon")}
           aria-label="Enter Dungeon"
         >
           <span className={styles.icon}>🏰</span>
@@ -95,5 +105,5 @@ export default function TownView() {
         </button>
       </div>
     </div>
-  )
+  );
 }
