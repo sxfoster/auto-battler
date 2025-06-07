@@ -8,6 +8,8 @@ import { floatingText } from '../effects.js'
 import { loadGameState } from '../state'
 import { partyState, loadPartyState } from '../shared/partyState.js'
 import { InitiativeQueue } from '../../shared/initiativeQueue.js'
+import { sampleCharacters } from 'shared/models/characters.js'
+import { sampleCards } from 'shared/models/cards.js'
 import {
   STATUS_META,
   addStatusEffect,
@@ -92,24 +94,6 @@ export default class BattleScene extends Phaser.Scene {
     return opponents.find((o) => o.hp > 0)
   }
 
-  performAction(attacker, target) {
-    if (!attacker || !target) return
-    attacker.energy = attacker.energy ?? attacker.data.stats.energy
-    attacker.data.hand = attacker.data.hand || []
-    if (attacker.data.hand.length === 0) {
-      this.draw(attacker, 1)
-    }
-    const card = attacker.data.hand.find(
-      (c) => (c.energyCost || 0) <= (attacker.energy || 0),
-    )
-    if (card) {
-      this.current = attacker
-      this.resolveCard(card, attacker, target)
-      attacker.data.hand = attacker.data.hand.filter((c) => c !== card)
-    } else {
-      this.regenEnergy(attacker)
-    }
-  }
 
   calculateDamage(effect, attacker, defender) {
     let dmg = effect.magnitude || effect.value || 0
@@ -147,6 +131,16 @@ export default class BattleScene extends Phaser.Scene {
       const card = Phaser.Math.RND.pick(pool)
       combatant.data.hand.push(card)
     }
+  }
+
+  pickPlayableCard(unit) {
+    unit.data.hand = unit.data.hand || []
+    if (unit.data.hand.length === 0) {
+      this.draw(unit, 1)
+    }
+    return unit.data.hand.find(
+      (c) => (c.energyCost || 0) <= (unit.energy || 0),
+    )
   }
 
   displayCardOptions() {
@@ -218,33 +212,20 @@ export default class BattleScene extends Phaser.Scene {
     combatant.energy = Math.min(max, (combatant.energy || 0) + amount)
   }
 
-  performCardAction(card, target) {
-    if (!card || !target) return
-    this.current.energy = Math.max(
-      0,
-      (this.current.energy || 0) - (card.energyCost || 0),
-    )
-    // basic effect handling for automated use
-    if (card.effect?.type === 'damage') {
-      const dmg = card.effect.magnitude || card.effect.value || 0
-      target.hp -= dmg
-      this.showFloat(`-${dmg}`, target, '#ff4444')
-    }
-    if (card.effect?.type === 'heal') {
-      const heal = card.effect.magnitude || card.effect.value || 0
-      this.current.hp = Math.min(this.current.data.stats.hp, this.current.hp + heal)
-      this.showFloat(`+${heal}`, this.current, '#44ff44')
-    }
-    this.updateHealth()
-  }
-
   init(data) {
     this.roomIndex = data.roomIndex || 0
   }
 
   create() {
     loadPartyState()
-    this.party = partyState.members
+    this.party = partyState.members.map((m) => {
+      const base = sampleCharacters.find((c) => c.id === m.class)
+      const cards = (m.cards || [])
+        .map((cid) => sampleCards.find((sc) => sc.id === cid))
+        .filter(Boolean)
+      const deck = cards.length ? cards : base?.deck || []
+      return base ? { ...base, deck } : { id: m.class, name: m.class, stats: { hp: 10, energy: 1, speed: 1 }, deck }
+    })
 
     const dungeon = this.scene.get('dungeon')
     this.enemy = dungeon.rooms[this.roomIndex].enemy
@@ -357,8 +338,7 @@ export default class BattleScene extends Phaser.Scene {
       if (this.selectedCard) {
         const target = this.selectEnemyTarget()
         this.time.delayedCall(300, () => {
-          this.performCardAction(this.selectedCard, target)
-          this.nextTurn()
+          this.resolveCard(this.selectedCard, this.current, target)
         })
       } else {
         this.current.data.hand = []
@@ -563,7 +543,14 @@ export default class BattleScene extends Phaser.Scene {
       if (unit.hp > 0) {
         const target = this.selectTarget(unit)
         if (target) {
-          this.performAction(unit, target)
+          const card = this.pickPlayableCard(unit)
+          if (card) {
+            this.current = unit
+            this.resolveCard(card, unit, target)
+            unit.data.hand = unit.data.hand.filter((c) => c !== card)
+          } else {
+            this.regenEnergy(unit)
+          }
           const newDelay = 1000 / unit.speed
           this.initiativeQueue.add(unit, newDelay)
         }
