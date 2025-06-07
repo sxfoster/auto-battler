@@ -78,7 +78,8 @@ const PartySetup: React.FC = () => {
   // reload from storage whenever this component mounts
   useEffect(() => {
     loadSharedPartyState();
-  }, [location.pathname]);
+    console.log('PartySetup mounted - party state loaded');
+  }, []);
 
   // Reset limits when starting a new setup session
   useEffect(() => {
