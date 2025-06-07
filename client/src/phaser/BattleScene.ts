@@ -174,7 +174,10 @@ export default class BattleScene extends Phaser.Scene {
   }
 
   private startTurn() {
-    if (this.checkEnd()) return
+    if (this.checkBattleEnd()) {
+      this.endBattle()
+      return
+    }
     this.current = this.turnOrder[this.turnIndex % this.turnOrder.length]
     this.turnNumber += 1
     this.turnText.setText(`${this.current.data.name}'s turn`)
@@ -270,18 +273,31 @@ export default class BattleScene extends Phaser.Scene {
     this.startTurn()
   }
 
-  private checkEnd() {
+  private checkBattleEnd() {
     const playersAlive = this.turnOrder.some((c) => c.type === 'player' && c.hp > 0)
     const enemiesAlive = this.turnOrder.some((c) => c.type === 'enemy' && c.hp > 0)
-    if (!playersAlive || !enemiesAlive) {
-      this.clearCards()
-      const text = !playersAlive ? 'Defeat' : 'Victory'
-      this.add.text(360, 300, text, { fontSize: '32px' }).setOrigin(0.5)
-      this.showFloat(text, this.current, text === 'Victory' ? '#44ff44' : '#ff4444')
-      this.emitState(text)
-      this.time.delayedCall(1500, () => {
-        this.scene.start('dungeon')
-      })
+    return !playersAlive || !enemiesAlive
+  }
+
+  private endBattle() {
+    const playersAlive = this.turnOrder.some((c) => c.type === 'player' && c.hp > 0)
+    const enemiesAlive = this.turnOrder.some((c) => c.type === 'enemy' && c.hp > 0)
+    this.clearCards()
+    const text = !playersAlive ? 'Defeat' : 'Victory'
+    this.add.text(360, 300, text, { fontSize: '32px' }).setOrigin(0.5)
+    this.showFloat(text, this.current, text === 'Victory' ? '#44ff44' : '#ff4444')
+    this.emitState(text)
+    if (!enemiesAlive) {
+      // clear enemy room etc. handled in JS version
+    }
+    this.time.delayedCall(1500, () => {
+      this.scene.start('dungeon')
+    })
+  }
+
+  private checkEnd() {
+    if (this.checkBattleEnd()) {
+      this.endBattle()
       return true
     }
     return false
@@ -308,8 +324,8 @@ export default class BattleScene extends Phaser.Scene {
       this.updateHealth()
     }
 
-    if (this.checkEnd()) {
-      // battle ended
+    if (this.checkBattleEnd()) {
+      this.endBattle()
     }
   }
 }
