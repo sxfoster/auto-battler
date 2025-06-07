@@ -50,7 +50,9 @@ export function evaluateCard(enemy, card, context = {}) {
   let score = 0
   const effect = card.effect || card.effects?.[0] || {}
   const hp = context.enemyHP ?? enemy.stats.hp
-  const max = context.enemyMaxHP ?? enemy.stats.hp
+  const max =
+    context.enemyMaxHP ??
+    (enemy.stats.maxHp !== undefined ? enemy.stats.maxHp : enemy.stats.hp)
   if (effect.type === 'heal') {
     score += Math.max(0, max - hp)
   }
