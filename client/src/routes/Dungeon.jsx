@@ -13,9 +13,23 @@ export default function Dungeon() {
   }, [])
 
   const handleClick = (x, y) => {
+    // move the player and mark the selected room as visited
     moveTo(x, y)
-    setD({ ...getDungeon() })
-    const room = getDungeon().rooms.find((r) => r.x === x && r.y === y)
+
+    // also mark the four neighboring rooms as visited
+    const dungeon = getDungeon()
+    const markVisited = (mx, my) => {
+      const neighbor = dungeon.rooms.find((r) => r.x === mx && r.y === my)
+      if (neighbor) neighbor.visited = true
+    }
+    markVisited(x + 1, y)
+    markVisited(x - 1, y)
+    markVisited(x, y + 1)
+    markVisited(x, y - 1)
+
+    setD({ ...dungeon })
+
+    const room = dungeon.rooms.find((r) => r.x === x && r.y === y)
     switch (room?.type) {
       case 'combat':
         return navigate('/battle')

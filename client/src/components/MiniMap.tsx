@@ -28,7 +28,7 @@ export default function MiniMap({ dungeon, explored, current }: MiniMapProps) {
         height: 20,
         border: '1px solid #444',
         background: isExplored ? colors[room.type] : '#000',
-        opacity: isExplored ? 1 : 0.2,
+        opacity: isExplored ? 1 : 1,
       }
       if (id === current) {
         style.outline = '2px solid white'
