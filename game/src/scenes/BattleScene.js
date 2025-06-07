@@ -94,9 +94,16 @@ export default class BattleScene extends Phaser.Scene {
 
   performAction(attacker, target) {
     if (!attacker || !target) return
-    const card = attacker.data.deck?.[0]
-    this.current = attacker
-    this.performCardAction(card, target)
+    attacker.energy = attacker.energy ?? attacker.data.stats.energy
+    const card = attacker.data.deck.find(
+      (c) => (c.energyCost || 0) <= (attacker.energy || 0),
+    )
+    if (card) {
+      this.current = attacker
+      this.performCardAction(card, target)
+    } else {
+      this.regenEnergy(attacker)
+    }
   }
 
   calculateDamage(effect, attacker, defender) {
@@ -170,6 +177,7 @@ export default class BattleScene extends Phaser.Scene {
         type: 'player',
         data: c,
         hp: c.stats.hp,
+        energy: c.stats.energy,
         speed: c.stats.speed,
         statusEffects: [],
         position: idx,
@@ -178,6 +186,7 @@ export default class BattleScene extends Phaser.Scene {
         type: 'enemy',
         data: e,
         hp: e.stats.hp,
+        energy: e.stats.energy,
         speed: e.stats.speed,
         statusEffects: [],
         position: idx,
@@ -199,8 +208,17 @@ export default class BattleScene extends Phaser.Scene {
     return this.turnOrder.find((c) => c.type === 'enemy' && c.hp > 0)
   }
 
+  regenEnergy(combatant, amount = 1) {
+    const max = combatant.data.stats.energy || 0
+    combatant.energy = Math.min(max, (combatant.energy || 0) + amount)
+  }
+
   performCardAction(card, target) {
     if (!card || !target) return
+    this.current.energy = Math.max(
+      0,
+      (this.current.energy || 0) - (card.energyCost || 0),
+    )
     // basic effect handling for automated use
     if (card.effect?.type === 'damage') {
       const dmg = card.effect.magnitude || card.effect.value || 0
@@ -299,6 +317,7 @@ export default class BattleScene extends Phaser.Scene {
       return
     }
     this.current = this.turnOrder[this.turnIndex % this.turnOrder.length]
+    this.regenEnergy(this.current)
     this.turnText.setText(`${this.current.data.name}'s turn`)
     this.turnNumber += 1
     this.isFirstCard = true
@@ -368,19 +387,34 @@ export default class BattleScene extends Phaser.Scene {
       players,
     }
     let card = chooseEnemyAction(this.current.data, context)
-    if (!canUseAbility(this.current.data, card)) {
-      const available = this.current.data.deck.filter((c) => canUseAbility(this.current.data, c))
-      card = available.length ? Phaser.Math.RND.pick(available) : card
+    let available = this.current.data.deck.filter(
+      (c) =>
+        canUseAbility(this.current.data, c) &&
+        (c.energyCost || 0) <= (this.current.energy || 0),
+    )
+    if (!available.length) {
+      this.showFloat('Wait', this.current, '#ffffff')
+      this.regenEnergy(this.current)
+      this.time.delayedCall(300, () => this.nextTurn())
+      return
+    }
+    if (!canUseAbility(this.current.data, card) || card.energyCost > this.current.energy) {
+      card = available[0]
     }
     const targetCombat = chooseTarget(players) || players[0]
     if (card.isComboFinisher) {
       console.log(`${this.current.data.name} executes combo ${card.synergyTag}`)
     }
     trackEnemyActions(this.current.data, card, this.turnNumber, this.enemyGroup)
+    this.current.energy = Math.max(
+      0,
+      (this.current.energy || 0) - (card.energyCost || 0),
+    )
     this.resolveCard(card, this.current, targetCombat)
   }
 
   resolveCard(card, actor, target) {
+    actor.energy = Math.max(0, (actor.energy || 0) - (card.energyCost || 0))
     const preContext = { phase: 'beforeCard' }
     applyEventEffects(this.activeEvent, preContext)
     if (preContext.cancel) {
