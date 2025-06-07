@@ -6,13 +6,17 @@ export default function BattleHUD() {
   const [log, setLog] = useState([])
 
   useEffect(() => {
-    if (!scene) return
-    const handler = (entry) => {
-      setLog((l) => [...l.slice(-19), entry])
+    // ─── Add battle-log listener for rich, card-specific messages ───
+    const logHandler = (entry) => {
+      setLog((l) => {
+        const next = [...l, entry]
+        return next.length > 20 ? next.slice(next.length - 20) : next
+      })
     }
-    scene.events.on('battle-log', handler)
+    scene.events.on('battle-log', logHandler)
+
     return () => {
-      scene.events.off('battle-log', handler)
+      scene.events.off('battle-log', logHandler)
     }
   }, [scene])
 
