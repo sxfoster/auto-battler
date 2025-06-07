@@ -47,6 +47,12 @@ function MainMenu() {
         >
           Deck Manager
         </button>
+        <button
+          className={styles.button}
+          onClick={() => navigate('/inventory')}
+        >
+          Inventory
+        </button>
       </nav>
     </main>
   )
