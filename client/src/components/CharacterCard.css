@@ -1,0 +1,32 @@
+.character-card {
+  background: #1f2230;
+  border-radius: 16px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+  overflow: hidden;
+  text-align: center;
+  padding: 1rem;
+}
+
+.character-card__portrait {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  margin: 0 auto 0.75rem;
+  object-fit: cover;
+  border: 2px solid #2e3042;
+}
+
+.character-card__info {
+  color: #fff;
+}
+
+.character-card__name {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+
+.character-card__class {
+  font-size: 0.9rem;
+  color: #8ba1ff;
+}
