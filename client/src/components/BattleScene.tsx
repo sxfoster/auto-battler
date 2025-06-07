@@ -4,18 +4,20 @@ import UnitCard from './UnitCard'
 import styles from './BattleScene.module.css'
 import { loadPartyState } from '../utils/partyStorage'
 import { classes as allClasses } from '../../../shared/models/classes.js'
+import defaultPortrait from '../../../shared/images/default-portrait.png'
 
 interface Unit {
   id: string
   name: string
   hp: number
   maxHp: number
+  portrait?: string
   status?: string
 }
 
 const enemyData: Unit[] = [
-  { id: 'goblin', name: 'Goblin', hp: 15, maxHp: 15 },
-  { id: 'orc', name: 'Orc', hp: 20, maxHp: 20 },
+  { id: 'goblin', name: 'Goblin', hp: 15, maxHp: 15, portrait: defaultPortrait },
+  { id: 'orc', name: 'Orc', hp: 20, maxHp: 20, portrait: defaultPortrait },
 ]
 
 export default function BattleScene() {
@@ -33,6 +35,7 @@ export default function BattleScene() {
         name: c.name,
         hp: c.stats.hp,
         maxHp: c.stats.hp,
+        portrait: c.portrait || defaultPortrait,
       }))
       setPlayers(chars)
       const firstAlive = chars.find(c => c.hp > 0)
@@ -44,7 +47,13 @@ export default function BattleScene() {
           const cls = allClasses.find(c => c.id === m.class)
           const name = cls ? cls.name : m.class
           const id = `${m.class}-${i}`
-          return { id, name, hp: 30, maxHp: 30 }
+          return {
+            id,
+            name,
+            hp: 30,
+            maxHp: 30,
+            portrait: cls?.portrait || defaultPortrait,
+          }
         })
         setPlayers(chars)
         if (chars.length) setActiveId(chars[0].id)
@@ -109,6 +118,7 @@ export default function BattleScene() {
               key={p.id}
               id={p.id}
               name={p.name}
+              portrait={p.portrait}
               hp={p.hp}
               maxHp={p.maxHp}
               status={p.hp <= 0 ? 'KO' : p.status}
@@ -124,6 +134,7 @@ export default function BattleScene() {
               key={e.id}
               id={e.id}
               name={e.name}
+              portrait={e.portrait}
               hp={e.hp}
               maxHp={e.maxHp}
               status={e.hp <= 0 ? 'KO' : e.status}
