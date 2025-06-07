@@ -7,6 +7,7 @@ export default class DungeonScene extends Phaser.Scene {
   }
 
   create() {
+    this.cameras.main.fadeIn(250)
     loadDungeon()
     if (!getDungeon()) {
       generateDungeon(5, 5)
@@ -28,8 +29,27 @@ export default class DungeonScene extends Phaser.Scene {
         .rectangle(offsetX + r.x * size, offsetY + r.y * size, size - 4, size - 4, color)
         .setInteractive()
       rect.on('pointerdown', () => {
-        moveTo(r.x, r.y)
-        this.scene.restart()
+        this.cameras.main.fadeOut(250)
+        this.cameras.main.once('camerafadeoutcomplete', () => {
+          moveTo(r.x, r.y)
+          const { rooms } = getDungeon()
+          const idx = rooms.findIndex((room) => room.x === r.x && room.y === r.y)
+          const room = rooms[idx]
+          switch (room.type) {
+            case 'combat':
+              this.scene.launch('battle', { roomIndex: idx })
+              this.scene.sleep()
+              break
+            case 'shop':
+              this.scene.start('shop')
+              break
+            case 'event':
+              this.scene.start('event')
+              break
+            default:
+              this.scene.restart()
+          }
+        })
       })
     })
   }
