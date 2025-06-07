@@ -50,10 +50,14 @@ test('generated dungeon has a path from start to end', () => {
   assert.ok(found, 'end room reachable from start')
 })
 
-test('nextFloor increments the floor counter', () => {
-  generateDungeon(3, 3)
-  const firstFloor = getDungeon().floor
+test('nextFloor increments floor and resets map', () => {
+  generateDungeon(5, 5)
+  const first = getDungeon()
+  const prevRooms = first.rooms
+  assert.strictEqual(first.floor, 1)
   nextFloor()
   const second = getDungeon()
-  assert.equal(second.floor, firstFloor + 1)
+  assert.strictEqual(second.floor, 2)
+  assert.notStrictEqual(second.rooms, prevRooms)
+  assert.deepStrictEqual(second.current, { x: 0, y: 0 })
 })
