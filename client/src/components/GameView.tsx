@@ -42,6 +42,8 @@ export default function GameView({
       scene: [DungeonScene, BattleScene],
     })
     gameRef.current = game
+    // expose game instance for hooks like usePhaserScene
+    ;(window as any).__phaserGame = game
 
     const moveHandler = (e: any) => {
       onPlayerMove?.(e.detail.position, new Set(e.detail.explored))

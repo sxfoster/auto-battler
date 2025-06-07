@@ -280,6 +280,8 @@ export default class BattleScene extends Phaser.Scene {
       color: '#ffffff',
       wordWrap: { width: this.cameras.main.width - 100 },
     })
+    // forward log events to local log text
+    this.events.on('battle-log', this.appendToBattleLog, this)
   }
 
   appendToBattleLog(entry) {
@@ -461,7 +463,8 @@ export default class BattleScene extends Phaser.Scene {
         const dmg = this.calculateDamage(effect, actor, target)
         target.hp -= dmg
         this.showFloat(`-${dmg}`, target, '#ff4444')
-        this.appendToBattleLog(
+        this.events.emit(
+          'battle-log',
           `${actor.data.name} used ${card.name} on ${target.data.name}, dealing ${dmg} damage.`
         )
       }
@@ -469,7 +472,8 @@ export default class BattleScene extends Phaser.Scene {
         const heal = effect.magnitude || effect.value || 0
         actor.hp = Math.min(actor.data.stats.hp, actor.hp + heal)
         this.showFloat(`+${heal}`, actor, '#44ff44')
-        this.appendToBattleLog(
+        this.events.emit(
+          'battle-log',
           `${actor.data.name} used ${card.name}, healing ${heal} HP.`
         )
       }
@@ -481,7 +485,8 @@ export default class BattleScene extends Phaser.Scene {
         })
         this.updateStatusIcons(target)
         this.showFloat(effect.statusType, target, STATUS_META[effect.statusType]?.color || '#ffaa88')
-        this.appendToBattleLog(
+        this.events.emit(
+          'battle-log',
           `${actor.data.name} applied ${effect.statusType} to ${target.data.name} for ${effect.duration} turns.`
         )
       }
@@ -494,7 +499,8 @@ export default class BattleScene extends Phaser.Scene {
         })
         this.updateStatusIcons(tgt)
         this.showFloat(`+${effect.stat || 'buff'}`, tgt, STATUS_META[effect.stat]?.color || '#66ccff')
-        this.appendToBattleLog(
+        this.events.emit(
+          'battle-log',
           `${actor.data.name} increased ${tgt.data.name}'s ${effect.stat || 'stat'} by ${effect.magnitude || effect.value || 0} for ${effect.duration || 1} turns.`
         )
       }
@@ -506,7 +512,8 @@ export default class BattleScene extends Phaser.Scene {
         })
         this.updateStatusIcons(target)
         this.showFloat('Marked', target, STATUS_META.marked.color)
-        this.appendToBattleLog(
+        this.events.emit(
+          'battle-log',
           `${actor.data.name} marked ${target.data.name} for ${effect.duration || 1} turns.`
         )
       }
@@ -515,6 +522,8 @@ export default class BattleScene extends Phaser.Scene {
     this.updateHealth()
     const postContext = { phase: 'afterCard', isFirstCard: this.isFirstCard }
     applyEventEffects(this.activeEvent, postContext)
+    // emit a summary line after resolving all effects
+    this.events.emit('battle-log', `${actor.data.name} finished using ${card.name}.`)
     this.isFirstCard = false
     if (postContext.repeat) {
       this.resolveCard(card, actor, target)
