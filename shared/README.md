@@ -25,6 +25,8 @@ The `systems` directory provides helper modules for various game mechanics.
 ### Key Systems
 
 -   **Crafting (`crafting.js`)**: Manages the Magical Pouch system, allowing players to combine ingredient cards to discover and create new items or upgrade existing ones.
+-   **Abilities (`abilities.js`)**: Utilities for managing card cooldowns.
+-   **Class & Role (`classRole.js`)**: Handles card usability based on class/role and applies penalties or synergies.
 -   **Market (`market.js`)**: Handles all economic transactions, including player balances for Gold and Guild Credits, and interactions with different market types (Town, Black Market, Guild Exchange, Auction House).
 -   **Biome (`biome.js`)**: Implements biome-specific synergy bonuses that affect enemies within particular dungeon environments.
 -   **Floor Events (`floorEvents.js`)**: Manages dynamic, floor-wide events that can alter combat flow and add variety to dungeon runs.
@@ -32,7 +34,7 @@ The `systems` directory provides helper modules for various game mechanics.
     It tracks card synergies, evaluates actions based on health, and exposes a
     debugging hook for monitoring AI choices.
 -   **Post Battle (`postBattle.js`)**: Handles the resolution of combat, including awarding loot, and applying fatigue, hunger, and thirst to party members.
--   **Progression (`progression.js`)**: Governs character leveling, unlocking card rarities, and profession skill advancement.
+-   **Progression (`progression.js`)**: Manages dungeon floor advancement, difficulty scaling, biome transitions, and player survival status updates (hunger, thirst, fatigue). (Note: Character leveling and card rarity unlocking, while part of overall game progression, are not detailed in this specific system file).
 -   **Room Events (`roomEvents.js`)**: Logic for various non-combat encounters or discoveries that can occur when navigating dungeon map nodes.
 
 Class and enemy definitions used by these systems are cataloged in the

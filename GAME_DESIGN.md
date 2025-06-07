@@ -109,9 +109,9 @@ Status Effects: Applied during 'Card Effects Applied' phase.
 
 ### 🧪 Card Rarity & Scaling
 
-- Rarities: **Common → Uncommon → Rare → Legendary**
-- Higher rarities unlock at **character levels** (Lv 1–3: Common, Lv 10: Legendary).
-- Cards are upgradeable via **crafting fusion** or dungeon achievements.
+- Rarities: **Common → Uncommon → Rare → Legendary** (Note: 'Rare' and 'Legendary' not yet observed in `cards.js` or `recipes.js` examples, only 'Common' and 'Uncommon'.)
+- Higher rarities unlock at **character levels** (Lv 1–3: Common, Lv 10: Legendary). [Mechanism for level-based rarity unlocking not detailed in provided system files]
+- Cards are upgradeable via **crafting fusion** (e.g., `flame_sword` from `iron_sword` in `recipes.js`) or dungeon achievements.
 
 ---
 
@@ -123,18 +123,18 @@ Status Effects: Applied during 'Card Effects Applied' phase.
 - **Smithing** — Upgrades base equipment (e.g., sword → flame sword)
 - **Alchemy** — Creates Elixirs and Utility Cards
 
-Each profession has a **level 1–10 progression system** with rewards such as:
+Each profession has a **level 1–10 progression system** (`crafting.js` supports levels up to 10) with rewards such as:
 
-- Higher crafting success rate
-- Discovery of secret recipes
-- Access to **exclusive** profession-only cards
-- “**Crafted by [Player]**” tags on Auction House listings
+- Higher crafting success rate [Assumed, not explicitly coded in `crafting.js` success logic]
+- Discovery of secret recipes (`crafting.js` handles `newRecipeDiscovered`)
+- Access to **exclusive** profession-only cards [Mechanism for profession-exclusive cards not detailed in `crafting.js`]
+- “**Crafted by [Player]**” tags on Auction House listings [Not observed in core system files]
 
 ### 🔮 Magical Pouch System
 
 - Players drag up to **5 cards** into the pouch.
 - No external crafting tools required.
-- Every valid combination yields **at least a base result**.
+- If a valid recipe is not matched, the craft attempt can fail (returns `success: false, result: null` as per `crafting.js`).
 - Recipes are:
   - **Discoverable through experimentation**
   - **Upgradeable** through repeat crafting or fusion
@@ -150,12 +150,12 @@ Each profession has a **level 1–10 progression system** with rewards such as:
 
 ### 🛒 Market Systems
 
-1. **Town Marketplace** — Basic starter items and common cards. Uses **Gold** only and has limited stock that periodically refreshes.
-2. **Black Market** — Offers rare or cursed cards with time limited rotations. Accepts either currency.
-3. **Guild Exchange** — Player run listings restricted to guild members. All trades consume **Guild Credits**.
-4. **Auction House** *(Player Economy)* — Global bidding system for crafted and looted cards. Common items use **Gold** while higher rarities require **Guild Credits**.
+1. **Town Marketplace** — Basic starter items and common cards. Uses **Gold** only and has limited stock that periodically refresishes. (`market.js` item listings depend on `currencyType` specified in data; no code enforces Gold-only for Town market, but this may be a data convention.)
+2. **Black Market** — Offers rare or cursed cards with time limited rotations. Accepts either currency. (Depends on `currencyType` of listed items in `market.js`.)
+3. **Guild Exchange** — Player run listings restricted to guild members. All trades consume **Guild Credits**. (`market.js` `listGuildItem` function hardcodes 'GuildCredit'.)
+4. **Auction House** *(Player Economy)* — Global bidding system for crafted and looted cards. Common items use **Gold** while higher rarities require **Guild Credits**. (`market.js` does not currently implement logic to enforce specific currencies based on item rarity in auctions; currency is determined at time of listing.)
 
-Crafting recipes consume currency based on rarity and profession expertise. Loot drops award Gold and occasionally Guild Credits, ensuring a steady flow of money into the economy while keeping high tier currency scarce.
+Crafting recipes consume currency based on rarity and profession expertise (`crafting.js` checks `recipe.cost` which includes currency type and amount). Loot drops award Gold and occasionally Guild Credits (`postBattle.js` `generateCurrencyReward`), ensuring a steady flow of money into the economy while keeping high tier currency scarce.
 
 ---
 
@@ -218,14 +218,14 @@ Each dungeon biome enhances its native enemies with unique, passive bonuses that
 
 ### Biome Bonus Examples
 
-- **Fungal Depths**: Poison effects last +1 turn. First debuff applied to any monster has a 50% chance to fail.
-- **Frozen Bastion**: Ice casters gain +1 SpeedModifier. Defensive spells reduce +10% extra damage.
-- **Inferno Ruins**: Burn effects can stack one additional time. Enemies ignore first tick of DoTs.
-- **Thornwild Grove**: Root effects gain +1 duration. Regeneration heals +1 per turn.
-- **Ashen Necropolis**: Undead are immune to fear/charm. 10% chance to revive with 20% HP.
-- **Crystalline Hollow**: 10% magic damage reflection. Caster enemies gain +1 energy every 2 turns.
-- **Sunken Deep**: Melee attacks vs aquatic enemies have -15% accuracy. Enemies below 50% HP gain +1 SpeedModifier.
-- **Obsidian Reach**: 20% chance to evade AoE. Shadow cards cost 0 energy, but cause self-debuffs.
+- **Fungal Depths**: Poison effects last +1 turn (`biomes.js`: `EffectModifier` for 'Poison', `duration: 1`). First debuff applied to any monster has a 50% chance to fail (`biomes.js`: `Trigger` for 'FirstDebuffResist', `chance: 0.5`).
+- **Frozen Bastion**: All enemies gain +1 SpeedModifier (`biomes.js`: `StatModifier` for 'speed', `value: 1`, `target: 'all'`). Defensive spells reduce +10% extra damage (`biomes.js`: `EffectModifier` for 'Defensive', `potency: 0.1`).
+- **Inferno Ruins**: Burn effects can stack one additional time (`biomes.js`: `EffectModifier` for 'BurnStack', `value: 1`). Enemies ignore first tick of DoTs (`biomes.js`: `Trigger` for 'IgnoreFirstDotTick'). Enemies also take 50% less fire damage and deal +1 fire damage (`biomes.js`: `StatModifier` for 'fireResist' and 'firePower').
+- **Thornwild Grove**: Root effects gain +1 duration (`biomes.js`: `EffectModifier` for 'Root', `duration: 1`). Regeneration heals +1 per turn (`biomes.js`: `EffectModifier` for 'Regeneration', `value: 1`).
+- **Ashen Necropolis**: Undead are immune to fear/charm (`biomes.js`: `Immunity` for 'fear', 'charm', `target: 'undead'`). 10% chance to revive with 20% HP (`biomes.js`: `Trigger` for 'Revive', `chance: 0.1, hp: 0.2`, `target: 'undead'`).
+- **Crystalline Hollow**: All enemies have a 10% chance to reflect magic damage (`biomes.js`: `Trigger` for 'MagicReflect', `chance: 0.1`, `target: 'all'`). Caster enemies gain +1 energy every 2 turns (`biomes.js`: `ResourceChange` for 'energy', `interval: 2, value: 1`, `target: 'caster'`).
+- **Sunken Deep**: Melee attacks vs aquatic enemies have -15% accuracy (`biomes.js`: `EffectModifier` for 'MeleeAccuracy', `value: -0.15`, `target: 'aquatic'`). All enemies below 50% HP gain +1 SpeedModifier (`biomes.js`: `Trigger` for 'LowHpSpeed', `value: 1, threshold: 0.5`, `target: 'all'`).
+- **Obsidian Reach**: All enemies have a 20% chance to evade AoE (`biomes.js`: `Trigger` for 'EvadeAoE', `chance: 0.2`, `target: 'all'`). Shadow-type enemies' shadow abilities cost 0 energy but may cause self-debuffs (`biomes.js`: `EffectModifier` for 'ZeroCost', `selfDebuff: true`, `target: 'shadow'`).
 
 ---
 
@@ -235,14 +235,14 @@ Dynamic dungeon events are randomly assigned to certain floors to alter combat f
 
 ### Examples by Biome
 
-- **Fungal Depths – Spore Bloom**: +15% miss chance for 3 turns.
-- **Frozen Bastion – Mana Freeze**: Halved energy regen for first 3 turns.
-- **Inferno Ruins – Volcanic Eruption**: Random burn every 4 turns.
-- **Thornwild Grove – Vine Wrath**: 10% root chance per turn.
-- **Ashen Necropolis – Haunting Echoes**: 30% chance for first card each turn to cast twice.
-- **Crystalline Hollow – Arcane Overload**: +25% spell damage, 15% fumble risk.
-- **Sunken Deep – Crashing Wave**: All frontliners pushed back every 5 turns.
-- **Obsidian Reach – Whispers in the Dark**: Random cooldowns increased each round.
+- **Fungal Depths – Spore Bloom**: +15% miss chance for 3 turns. (Matches `events.js`: `id: 'spore-bloom'`, `effectDetails: { chance: 0.15, turns: 3 }`)
+- **Frozen Bastion – Mana Freeze**: Halved energy regen. (`events.js`: `id: 'mana-freeze'`, `effectDetails: { multiplier: 0.5 }`, `duration: 'floor'`. GDD's "for first 3 turns" is not specified in code.)
+- **Inferno Ruins – Volcanic Eruption**: A random party member takes 1 damage every 4 turns. (`events.js`: `id: 'volcanic-eruption'`, `effectDetails: { interval: 4, value: 1, target: 'party' }`. GDD's "random burn" differs from code's "1 damage".)
+- **Thornwild Grove – Vine Wrath**: Increased chance of being rooted (20%). (`events.js`: `id: 'vine-wrath'`, `effectDetails: { chance: 0.2 }`. GDD's "10%" differs from code's 20%.)
+- **Ashen Necropolis – Haunting Echoes**: 30% chance for first card each turn to cast twice. (Matches `events.js`: `id: 'haunting-echoes'`, `effectDetails: { chance: 0.3 }`)
+- **Crystalline Hollow – Arcane Overload**: Abilities cost +1 energy to play. (`events.js`: `id: 'arcane-overload'`, `effectDetails: { amount: 1 }`. GDD's "+25% spell damage, 15% fumble risk" is different.)
+- **Sunken Deep – Crashing Wave**: Water surges push combatants, reducing melee accuracy by 10%. (`events.js`: `id: 'crashing-wave'`, `effectDetails: { value: -0.1 }` for melee accuracy. GDD's "All frontliners pushed back every 5 turns" is different.)
+- **Obsidian Reach – Whispers in the Dark**: Occasionally confuses adventurers into skipping a turn (10% chance). (`events.js`: `id: 'whispers-in-the-dark'`, `effectDetails: { chance: 0.1 }`. GDD's "Random cooldowns increased each round" is different.)
 
 Events are shown at the top of the combat UI and may be toggled for added challenge or disabled in standard runs.
 
@@ -262,10 +262,10 @@ Enemies with combo-aware AI can sequence their actions intelligently, using star
 ### EnemyAIProfile Additions
 
 ```csharp
-public bool enableComboAwareness;
-public int comboWindowTurns = 2;
-public bool prefersFinisherChains;
-public string[] preferredComboTags;
+public bool enableComboAwareness; // Present in `enemies.js` aiProfile
+public int comboWindowTurns = 2; // Present in `enemies.js` aiProfile
+public bool prefersFinisherChains; // Present in `enemies.js` aiProfile
+public string[] preferredComboTags; // Used by `enemyAI.js` logic, but not currently populated in `enemies.js` aiProfile data.
 ```
 
 ### Sample Chain
@@ -290,7 +290,7 @@ enemies at Level&nbsp;1.
 
 ## Implementation Notes
 
-The repository contains an early prototype of the systems described above. Many features are stubbed out or simplified for demonstration purposes. The React client now includes an interactive dungeon map component with a battle overlay. Economy helpers and combo-aware enemy AI are available under `shared/systems`. Refer to the source code for the current state of the card system and combat logic.
+The repository contains an early prototype of the systems described above. Many features are stubbed out or simplified (e.g., market logic, some event effects in `floorEvents.js` are placeholders). However, core systems like crafting, biome effects, basic enemy AI, and card definitions show functional logic. The React client now includes an interactive dungeon map component with a battle overlay. Economy helpers (`market.js`) and combo-aware enemy AI (`enemyAI.js`) are available under `shared/systems`. Refer to the source code for the current state of the card system and combat logic.
 
 ### Game Architecture Diagram
 
