@@ -4,7 +4,7 @@ import { getDungeon, moveTo } from 'shared/dungeonState'
 export default class DungeonScene extends Phaser.Scene {
   constructor() { super('dungeon') }
   create() {
-    const { width, height, rooms, current } = getDungeon()
+    const { rooms, current } = getDungeon()
     const size = 64, offsetX = 100, offsetY = 100
     rooms.forEach(r => {
       const color = r.x===current.x && r.y===current.y
