@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useGameStore } from '../store/gameStore';
 // Import data models. Adjust paths if necessary.
 import type { Character } from '../../../shared/models/Character';
@@ -67,6 +67,7 @@ const PartySetup: React.FC = () => {
   }
 
   const navigate = useNavigate();
+  const location = useLocation();
   const setParty = useGameStore(state => state.setParty);
   const updateGameState = useGameStore(state => state.updateGameState);
   const save = useGameStore(state => state.save);
@@ -77,7 +78,7 @@ const PartySetup: React.FC = () => {
   // reload from storage whenever this component mounts
   useEffect(() => {
     loadSharedPartyState();
-  }, []);
+  }, [location.pathname]);
 
   // Reset limits when starting a new setup session
   useEffect(() => {

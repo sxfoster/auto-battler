@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import { useLocation } from 'react-router-dom'
 import { useNotification } from './NotificationManager.jsx'
 import { getInventory, loadInventory } from 'shared/inventoryState'
 import cardArt from '../assets/placeholder-card-art.svg'
@@ -27,11 +28,12 @@ export default function InventoryScreen() {
   const [filter, setFilter] = useState('All')
   const [items, setItems] = useState<InventoryItem[]>([])
   const { notify } = useNotification()
+  const location = useLocation()
 
   useEffect(() => {
     loadInventory()
     setItems(fetchItems())
-  }, [])
+  }, [location.pathname])
 
   const filtered = items.filter(i => filter === 'All' || i.type === filter)
 
