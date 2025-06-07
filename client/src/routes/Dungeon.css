@@ -20,6 +20,12 @@
   cursor: pointer;
 }
 
+.dungeon-tile:not(.revealed) {
+  background: #000;
+  border-color: #000;
+  cursor: default;
+}
+
 .dungeon-tile.visited {
   background: #44475a;
 }
