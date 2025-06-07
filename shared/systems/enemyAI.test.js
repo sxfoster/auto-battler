@@ -136,6 +136,15 @@ function testEvaluateCard_DamageScoresByMagnitude() {
   assert.strictEqual(score, 7, 'Damage card score should be its magnitude');
 }
 
+function testEvaluateCard_DefaultMaxHPUsed() {
+  const enemy = createMockEnemy('e1', [], {}, { hp: 5, maxHp: 10 });
+  const healCard = createMockCard('h2', { effect: { type: 'heal', magnitude: 5 } });
+  // Provide current HP but omit enemyMaxHP so function must read from stats
+  const context = createMockContext(1, [], enemy.stats.hp);
+  const score = evaluateCard(enemy, healCard, context);
+  assert.strictEqual(score, 5, 'Heal score should use stats.maxHp when context value missing');
+}
+
 // shouldExecuteCombo
 function testShouldExecuteCombo_ReturnsTrue() {
   const starter = createMockCard('s1', { isComboStarter: true, synergyTag: 'ComboA' });
@@ -267,6 +276,7 @@ const runTests = () => {
     testFindComboFinisher_ReturnsNullIfNotFound,
     testEvaluateCard_HealScoresHigherWhenLowHP,
     testEvaluateCard_DamageScoresByMagnitude,
+    testEvaluateCard_DefaultMaxHPUsed,
     testShouldExecuteCombo_ReturnsTrue,
     testShouldExecuteCombo_False_NoRecentStarter,
     testShouldExecuteCombo_False_NoMatchingFinisherInDeck,
