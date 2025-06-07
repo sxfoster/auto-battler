@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { useNotification } from './NotificationManager.jsx'
-import { sampleCards } from '../../../shared/models/cards.js'
+import { getInventory } from '../../../shared/inventoryState.js'
 import cardArt from '../assets/placeholder-card-art.svg'
 import styles from './InventoryScreen.module.css'
 
@@ -12,7 +12,7 @@ interface InventoryItem {
   description: string
 }
 
-const allItems: InventoryItem[] = sampleCards.map(c => ({
+const allItems: InventoryItem[] = getInventory().map(c => ({
   id: c.id,
   name: c.name,
   type: c.category || c.type || 'Unknown',
