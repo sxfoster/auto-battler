@@ -122,3 +122,11 @@ export function restockMarketplace(marketType, newItems = []) {
 export function listGuildItem(playerId, item, price) {
   return sellItem(playerId, item, 'Guild', price, 'GuildCredit')
 }
+
+/** Helper to reset market state for tests. */
+export function resetMarketForTesting() {
+  Object.keys(listings).forEach(key => {
+    listings[key].length = 0; // Clear arrays by setting length to 0
+  });
+  playerBalances.clear();
+}
