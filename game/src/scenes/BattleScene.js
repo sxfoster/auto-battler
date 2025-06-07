@@ -20,6 +20,12 @@ import {
 
 const INITIAL_HAND_SIZE = 2
 
+// Amount of energy each unit gains at the start of its turn
+const ENERGY_PER_TURN = 1
+
+// Number of cards drawn at the start of each turn
+const DRAW_PER_TURN = 1
+
 
 export default class BattleScene extends Phaser.Scene {
   constructor() {
@@ -561,6 +567,27 @@ export default class BattleScene extends Phaser.Scene {
     const readyUnits = this.initiativeQueue.getReadyUnits()
     readyUnits.forEach(({ unit }) => {
       if (unit.hp > 0) {
+        // ─── Turn Start: Gain Energy ───
+        if (unit.data.currentEnergy == null) {
+          // initialize if missing
+          unit.data.currentEnergy = unit.energy || 0
+        }
+        const maxEnergy =
+          unit.data.stats.maxMana ||
+          unit.data.stats.mana ||
+          unit.data.stats.energy ||
+          Infinity
+        unit.data.currentEnergy = Math.min(
+          unit.data.currentEnergy + ENERGY_PER_TURN,
+          maxEnergy,
+        )
+        // keep combatant energy in sync for existing logic
+        unit.energy = unit.data.currentEnergy
+
+        // ─── Turn Start: Draw Cards ───
+        unit.data.hand = unit.data.hand || []
+        this.draw(unit, DRAW_PER_TURN)
+
         const target = this.selectTarget(unit)
         if (target) {
           // ─── Auto-select a playable card (or default) ───
