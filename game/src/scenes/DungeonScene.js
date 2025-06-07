@@ -1,105 +1,36 @@
 import Phaser from 'phaser'
-import { enemies } from 'shared/models'
-import { getCurrentBiome } from 'shared/systems/biome.js'
-import { loadGameState } from '../state'
+import { generateDungeon, loadDungeon, getDungeon, moveTo, saveDungeon } from 'shared/dungeonState'
 
 export default class DungeonScene extends Phaser.Scene {
   constructor() {
     super('dungeon')
   }
 
-  init(data) {
-    this.currentRoom = data?.roomIndex || 0
-  }
-
   create() {
-    this.gameState = loadGameState()
-    const biome = getCurrentBiome(this.gameState)
-    this.add.text(400, 50, `Floor ${this.gameState.currentFloor}`, { fontSize: '20px' }).setOrigin(0.5)
-    this.add.text(400, 80, biome.name, { fontSize: '18px' }).setOrigin(0.5)
-    if (this.gameState.activeEvent) {
-      this.add.text(400, 110, this.gameState.activeEvent.name, { fontSize: '16px', color: '#ffff00' }).setOrigin(0.5)
+    loadDungeon()
+    if (!getDungeon()) {
+      generateDungeon(5, 5)
+      saveDungeon()
     }
+    const { rooms, current } = getDungeon()
+    const size = 64
+    const offsetX = 100
+    const offsetY = 100
 
-    // simple two room layout
-    this.rooms = [
-      { x: 150, y: 300, enemy: null, cleared: true },
-      { x: 450, y: 300, enemy: enemies[0], cleared: false },
-    ]
-    // ensure currentRoom has a value
-    if (typeof this.currentRoom !== 'number') {
-      this.currentRoom = 0
-    }
-    this.player = this.add.rectangle(0, 0, 40, 40, 0x00ff00)
-    this.updatePlayerPosition()
-
-    this.events.on('wake', this.onWake, this)
-
-    // show enemy rooms
-    this.rooms.forEach((room, index) => {
-      room.rect = this.add
-        .rectangle(room.x, room.y, 100, 100, 0x555555)
-        .setOrigin(0.5)
+    rooms.forEach((r) => {
+      const color =
+        r.x === current.x && r.y === current.y
+          ? 0x50fa7b
+          : r.visited
+          ? 0x44475a
+          : 0x1f2230
+      const rect = this.add
+        .rectangle(offsetX + r.x * size, offsetY + r.y * size, size - 4, size - 4, color)
         .setInteractive()
-
-      if (room.enemy && !room.cleared) {
-        room.sprite = this.add.rectangle(room.x, room.y, 40, 40, 0xff0000).setOrigin(0.5)
-      }
-
-      room.rect.on('pointerdown', () => {
-        if (index === this.currentRoom) return
-        this.currentRoom = index
-        this.cameras.main.fadeOut(300, 0, 0, 0)
-        this.cameras.main.once('camerafadeoutcomplete', () => {
-          this.scene.restart({ roomIndex: this.currentRoom })
-        })
+      rect.on('pointerdown', () => {
+        moveTo(r.x, r.y)
+        this.scene.restart()
       })
     })
-
-    const current = this.rooms[this.currentRoom]
-    if (current && current.rect) {
-      this.tweens.add({
-        targets: current.rect,
-        scale: 1.05,
-        yoyo: true,
-        repeat: -1,
-        duration: 800,
-        ease: 'Sine.easeInOut',
-      })
-    }
-
-    this.input.keyboard.on('keydown-LEFT', () => this.move(-1))
-    this.input.keyboard.on('keydown-RIGHT', () => this.move(1))
-  }
-
-  move(delta) {
-    const next = Phaser.Math.Clamp(this.currentRoom + delta, 0, this.rooms.length - 1)
-    this.currentRoom = next
-    this.updatePlayerPosition()
-
-    const room = this.rooms[this.currentRoom]
-    if (room.enemy && !room.cleared) {
-      this.scene.launch('battle', { roomIndex: this.currentRoom })
-      this.scene.sleep()
-    } else {
-      this.checkFloorComplete()
-    }
-  }
-
-  updatePlayerPosition() {
-    const room = this.rooms[this.currentRoom]
-    this.player.setPosition(room.x, room.y)
-  }
-
-  onWake() {
-    this.updatePlayerPosition()
-    this.checkFloorComplete()
-  }
-
-  checkFloorComplete() {
-    const done = this.rooms.every((r) => r.cleared)
-    if (done) {
-      this.scene.start('decision')
-    }
   }
 }
