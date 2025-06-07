@@ -2,6 +2,13 @@ import { test } from 'node:test'
 import assert from 'assert'
 import { generateDungeon, getDungeon } from './dungeonState.js'
 
+const storageMock = {
+  getItem: () => null,
+  setItem: () => {},
+}
+
+global.localStorage = storageMock
+
 function neighbors(room, rooms) {
   const dirs = [
     { x: 1, y: 0 },

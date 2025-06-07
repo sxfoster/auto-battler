@@ -45,6 +45,7 @@ export function generateDungeon(width = 5, height = 5) {
     end: { x: width - 1, y: height - 1 },
     current: { x: 0, y: 0 },
   }
+  saveDungeon()
 }
 
 export function loadDungeon() {
