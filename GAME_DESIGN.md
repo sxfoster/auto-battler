@@ -1,4 +1,3 @@
-
 # 🧭 Survival Dungeon CCG Auto-Battler — Game Design Document (GDD)
 
 This living document describes the intended gameplay systems and data flow for
@@ -6,6 +5,7 @@ the project. Refer to the codex files in [`docs/`](docs) for detailed lists of
 playable classes and enemy archetypes.
 
 ## Table of Contents
+
 - [Game Concept](#game-concept)
 - [Combat System](#combat-system)
 - [Card System](#card-system)
@@ -32,16 +32,17 @@ Players control a party of **1–5 characters**, assigning **up to 4 ability car
 
 ---
 
-
 ## ⚔️ Combat System
 
 ### 🔁 Core Combat Loop
+
 - Players assign up to **4 ability cards** per character pre-combat.
 - At the start of each battle, a character draws **two** of those cards to form their initial hand.
 - Characters act **automatically** in combat based on AI, speed, and context.
 - Combat is resolved in **turns**, ordered by each unit’s `SpeedModifier`.
 
 ### Combat Flow Diagram
+
 ```
 +-------------------------+
 |      START OF TURN      |
@@ -82,6 +83,7 @@ Status Effects: Applied during 'Card Effects Applied' phase.
 ```
 
 ### 🎴 Card Execution
+
 - All cards consume **Energy** and may have **cooldowns**.
 - Characters regenerate a small amount of Energy at the start of their turn.
 - After each battle, all party members gain:
@@ -154,7 +156,7 @@ Each profession has a **level 1–10 progression system** (`crafting.js` support
 1. **Town Marketplace** — Basic starter items and common cards. Uses **Gold** only and has limited stock that periodically refresishes. (`market.js` item listings depend on `currencyType` specified in data; no code enforces Gold-only for Town market, but this may be a data convention.)
 2. **Black Market** — Offers rare or cursed cards with time limited rotations. Accepts either currency. (Depends on `currencyType` of listed items in `market.js`.)
 3. **Guild Exchange** — Player run listings restricted to guild members. All trades consume **Guild Credits**. (`market.js` `listGuildItem` function hardcodes 'GuildCredit'.)
-4. **Auction House** *(Player Economy)* — Global bidding system for crafted and looted cards. Common items use **Gold** while higher rarities require **Guild Credits**. (`market.js` does not currently implement logic to enforce specific currencies based on item rarity in auctions; currency is determined at time of listing.)
+4. **Auction House** _(Player Economy)_ — Global bidding system for crafted and looted cards. Common items use **Gold** while higher rarities require **Guild Credits**. (`market.js` does not currently implement logic to enforce specific currencies based on item rarity in auctions; currency is determined at time of listing.)
 
 Crafting recipes consume currency based on rarity and profession expertise (`crafting.js` checks `recipe.cost` which includes currency type and amount). Loot drops award Gold and occasionally Guild Credits (`postBattle.js` `generateCurrencyReward`), ensuring a steady flow of money into the economy while keeping high tier currency scarce.
 
@@ -186,12 +188,12 @@ Each class has access to:
 
 ## 🧟 Enemy Design: Fungal Depths
 
-| Enemy             | Type        | Abilities                                           |
-|------------------|-------------|-----------------------------------------------------|
-| Rotgrub Swarm     | Creature    | Bite Swarm (DoT), Burrow Latch (latched DoT)       |
-| Spore Witch       | Demi-human  | Spore Veil (miss chance), Heal Fungus              |
-| Myconid Brute     | Creature    | Fungal Slam (knockback), Thick Hide (damage resist)|
-| Mushroom Shaman   | Demi-human  | Mind Spore (slow), Hallucinate (confuse)           |
+| Enemy           | Type       | Abilities                                           |
+| --------------- | ---------- | --------------------------------------------------- |
+| Rotgrub Swarm   | Creature   | Bite Swarm (DoT), Burrow Latch (latched DoT)        |
+| Spore Witch     | Demi-human | Spore Veil (miss chance), Heal Fungus               |
+| Myconid Brute   | Creature   | Fungal Slam (knockback), Thick Hide (damage resist) |
+| Mushroom Shaman | Demi-human | Mind Spore (slow), Hallucinate (confuse)            |
 
 ---
 
@@ -288,7 +290,6 @@ enemies at Level&nbsp;1.
 
 ---
 
-
 ## Implementation Notes
 
 The repository contains an early prototype of the systems described above. Many features are stubbed out or simplified (e.g., market logic, some event effects in `floorEvents.js` are placeholders). However, core systems like crafting, biome effects, basic enemy AI, and card definitions show functional logic. The React client now includes an interactive dungeon map component with a battle overlay. Economy helpers (`market.js`) and combo-aware enemy AI (`enemyAI.js`) are available under `shared/systems`. Refer to the source code for the current state of the card system and combat logic.
@@ -321,5 +322,4 @@ If you would like to propose changes to the game design, please start by
 opening an issue in the repository. Feedback and pull requests are
 appreciated.
 
-*Last updated: 2024*
-
+_Last updated: 2025_
