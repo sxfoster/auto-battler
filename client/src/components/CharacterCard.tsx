@@ -87,16 +87,11 @@ const CharacterCard: React.FC<CharacterCardProps> = ({ character, onSelect, isSe
         <span style={badgeStyle}>{clsInfo?.role}</span>
       </div>
       <div className="character-card__info">
-        <h3 className="character-card__name">{character.name}</h3>
+        <div className="character-card__name">{character.name}</div>
         <p className="character-card__class">{clsInfo?.name ?? character.class}</p>
         <p
-          style={{
-            fontSize: '0.8em',
-            height: '40px',
-            overflow: 'hidden',
-            fontStyle: !character.description ? 'italic' : 'normal',
-            color: '#777',
-          }}
+          className="character-card__description"
+          style={{ fontStyle: !character.description ? 'italic' : 'normal' }}
         >
           {desc}
         </p>

@@ -35,30 +35,31 @@
   border: 3px solid var(--role-color);
 }
 
-.character-card__info {
-  color: #fff;
-}
-
-.character-card__name {
-  font-size: 1.1rem;
-  font-weight: 600;
-  object-fit: cover;
-  border: 2px solid #555;
-}
 
 .character-card__info {
   display: flex;
   flex-direction: column;
   line-height: 1.2;
+  color: #fff;
 }
 
 .character-card__name {
+  font-size: 1.2rem;
   font-weight: bold;
+  color: #ffffff;
   margin-bottom: 0.25rem;
+  background: transparent;
+}
+
+.character-card__description {
+  font-size: 0.9rem;
+  color: #c0c4d1;
+  margin-top: 0.5rem;
+  overflow: visible;
+  white-space: normal;
 }
 
 .character-card__class {
   font-size: 0.9rem;
-  color: var(--role-color);
   color: #ccc;
 }
