@@ -34,8 +34,6 @@ export default class BattleScene extends Phaser.Scene {
   constructor() {
     super('battle')
     this.biome = null
-    this.selectedCard = null
-    this.cardOptionTexts = []
   }
 
   preload() {
@@ -147,32 +145,6 @@ export default class BattleScene extends Phaser.Scene {
     )
   }
 
-  displayCardOptions() {
-    const player = this.party[0]
-    if (!player) {
-      this.startBattle()
-      return
-    }
-    player.deck.forEach((card, idx) => {
-      const txt = this.add
-        .text(100 + idx * 120, 500, card.name, {
-          fontSize: '16px',
-          backgroundColor: '#ddd',
-          padding: 5,
-        })
-        .setInteractive()
-      txt.cardData = card
-      this.cardOptionTexts.push(txt)
-    })
-    this.input.on('gameobjectdown', (pointer, gameObject) => {
-      if (!this.selectedCard && gameObject.cardData) {
-        this.selectedCard = gameObject.cardData
-        this.cardOptionTexts.forEach((t) => t.destroy())
-        this.cardOptionTexts = []
-        this.startBattle()
-      }
-    })
-  }
 
   initializeCombatants() {
     this.combatants = [
@@ -242,6 +214,34 @@ export default class BattleScene extends Phaser.Scene {
     applyBiomeBonuses(biome, this.enemies)
     this.activeEvent = state.activeEvent || null
     this.initializeCombatants()
+
+    const emitState = () => {
+      this.events.emit('initial-state', {
+        order: this.turnOrder.map((c) => c.data.id),
+        combatants: this.turnOrder.reduce(
+          (acc, c) => ({
+            ...acc,
+            [c.data.id]: {
+              id: c.data.id,
+              name: c.data.name,
+              portraitUrl: c.data.portrait,
+              maxHp: c.data.stats.hp,
+              currentHp: c.hp,
+              maxEnergy:
+                c.data.stats.mana ||
+                c.data.stats.energy ||
+                c.data.stats.maxMana ||
+                0,
+              currentEnergy: c.data.currentEnergy || c.energy || 0,
+              type: c.type,
+            },
+          }),
+          {},
+        ),
+      })
+    }
+    emitState()
+    this.events.on('request-state', emitState)
 
     // ─── Draw initial hand for every combatant ───
     this.turnOrder.forEach((combatant) => {
@@ -318,7 +318,6 @@ export default class BattleScene extends Phaser.Scene {
       this.enemySprites.push({ ref: { x: 650, y }, data: e, statusIcons: {} })
     })
 
-    this.cardTexts = []
   }
 
   updateHealth() {
@@ -355,44 +354,14 @@ export default class BattleScene extends Phaser.Scene {
     }
 
     if (this.current.type === 'player') {
-      if (this.selectedCard) {
-        const target = this.selectEnemyTarget()
-        this.time.delayedCall(300, () => {
-          this.resolveCard(this.selectedCard, this.current, target)
-        })
-      } else {
-        this.current.data.hand = []
-        this.draw(this.current, 2)
-        this.showPlayerCards()
-      }
+      this.time.delayedCall(300, () => {
+        this.enemyAction()
+      })
     } else {
       this.time.delayedCall(500, () => {
         this.enemyAction()
       })
     }
-  }
-
-  showPlayerCards() {
-    this.clearCards()
-    const hand = this.current.data.hand || []
-    hand.forEach((card, idx) => {
-      const cd = this.current.data.cooldowns?.[card.id] || 0
-      const label = cd > 0 ? `${card.name} (${cd})` : `${card.name}\n${card.description}`
-      const txt = this.add.text(100 + idx * 120, 500, label, { fontSize: '16px', backgroundColor: '#ddd', padding: 5, align: 'center' })
-      if (cd === 0) {
-        txt.setInteractive().on('pointerdown', () => {
-          this.resolveCard(card, this.current, this.enemies[0])
-        })
-      } else {
-        txt.setFill('#777777')
-      }
-      this.cardTexts.push(txt)
-    })
-  }
-
-  clearCards() {
-    this.cardTexts.forEach((t) => t.destroy())
-    this.cardTexts = []
   }
 
   enemyAction() {
@@ -436,7 +405,6 @@ export default class BattleScene extends Phaser.Scene {
     const preContext = { phase: 'beforeCard' }
     applyEventEffects(this.activeEvent, preContext)
     if (preContext.cancel) {
-      this.clearCards()
       this.nextTurn()
       return
     }
@@ -527,7 +495,6 @@ export default class BattleScene extends Phaser.Scene {
       this.events.emit('battle-log', 'Both sides have fallen! It\u2019s a draw.')
       return this.endBattle()
     }
-    this.clearCards()
     this.nextTurn()
   }
 
@@ -545,7 +512,6 @@ export default class BattleScene extends Phaser.Scene {
   endBattle() {
     const playersAlive = this.turnOrder.some((c) => c.type === 'player' && c.hp > 0)
     const enemiesAlive = this.turnOrder.some((c) => c.type === 'enemy' && c.hp > 0)
-    this.clearCards()
     let text
     if (!playersAlive && !enemiesAlive) text = 'Draw'
     else if (!playersAlive) text = 'Defeat'
