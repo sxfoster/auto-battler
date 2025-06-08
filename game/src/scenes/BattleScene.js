@@ -8,7 +8,7 @@ import { canUseAbility, applyCooldown, tickCooldowns } from 'shared/systems/abil
 import { floatingText } from '../effects.js'
 import { loadGameState } from '../state'
 import { partyState, loadPartyState } from '../shared/partyState.js'
-import { InitiativeQueue } from '../../shared/initiativeQueue.js'
+import { simulateBattle } from '../logic/battleSimulator.js'
 import { sampleCharacters } from 'shared/models/characters.js'
 import { sampleCards } from 'shared/models/cards.js'
 import { markRoomCleared } from 'shared/dungeonState.js'
@@ -73,6 +73,36 @@ export default class BattleScene extends Phaser.Scene {
       const { x, y } = sprite.ref
       floatingText(this, text, x, y - 40, color)
     }
+  }
+
+  getSpriteById(id) {
+    return (
+      this.playerSprites.find((s) => s.data.id === id) ||
+      this.enemySprites.find((s) => s.data.id === id)
+    )?.ref
+  }
+
+  highlightActor(id) {
+    const sprite = this.getSpriteById(id)
+    if (sprite && sprite.setTint) sprite.setTint(0xffff00)
+  }
+
+  dimActor(id) {
+    const sprite = this.getSpriteById(id)
+    if (sprite && sprite.clearTint) sprite.clearTint()
+  }
+
+  playCardAnim(id) {
+    // placeholder for future animations
+  }
+
+  shakeSprite(sprite) {
+    if (!sprite) return
+    this.tweens.add({ targets: sprite, x: sprite.x + 5, duration: 50, yoyo: true, repeat: 2 })
+  }
+
+  showEndOverlay(result) {
+    floatingText(this, result, 400, 300, '#ffffff')
   }
 
   updateStatusIcons(combatant) {
@@ -194,110 +224,39 @@ export default class BattleScene extends Phaser.Scene {
 
   create() {
     loadPartyState()
-    this.party = partyState.members.map((m) => {
-      const base = sampleCharacters.find((c) => c.id === m.class)
-      const cards = (m.cards || [])
-        .map((cid) => sampleCards.find((sc) => sc.id === cid))
-        .filter(Boolean)
-      const deck = cards.length ? cards : base?.deck || []
-      return base ? { ...base, deck } : { id: m.class, name: m.class, stats: { hp: 10, energy: 1, speed: 1 }, deck }
-    })
+    this.party = partyState.members
 
     const dungeon = this.scene.get('dungeon')
-    this.enemy = dungeon.rooms[this.roomIndex].enemy
-    // clone enemy so we can modify stats
-    this.enemies = [JSON.parse(JSON.stringify(this.enemy))]
-    this.enemyGroup = { lastUsedCards: [] }
-    const state = loadGameState()
-    const biome = getCurrentBiome(state)
-    this.biome = biome
-    applyBiomeBonuses(biome, this.enemies)
-    this.activeEvent = state.activeEvent || null
+    const enemy = dungeon.rooms[this.roomIndex]?.enemy
+    this.enemies = enemy ? [JSON.parse(JSON.stringify(enemy))] : []
+
     this.initializeCombatants()
+    this.drawBattlefield()
 
-    const emitState = () => {
-      this.events.emit('initial-state', {
-        order: this.turnOrder.map((c) => c.data.id),
-        combatants: this.turnOrder.reduce(
-          (acc, c) => ({
-            ...acc,
-            [c.data.id]: {
-              id: c.data.id,
-              name: c.data.name,
-              portraitUrl: c.data.portrait,
-              maxHp: c.data.stats.hp,
-              currentHp: c.hp,
-              maxEnergy:
-                c.data.stats.mana ||
-                c.data.stats.energy ||
-                c.data.stats.maxMana ||
-                0,
-              currentEnergy: c.data.currentEnergy || c.energy || 0,
-              type: c.type,
-            },
-          }),
-          {},
-        ),
+    const events = simulateBattle(this.party, this.enemies)
+    events.forEach((evt, idx) => {
+      this.time.delayedCall(idx * 500, () => {
+        this.events.emit(evt.type, evt)
       })
-    }
-    emitState()
-    this.events.on('request-state', emitState)
-
-    // ─── Draw initial hand for every combatant ───
-    this.turnOrder.forEach((combatant) => {
-      // ensure a hand array exists
-      combatant.data.hand = combatant.data.hand || []
-      // draw INITIAL_HAND_SIZE cards into hand
-      this.draw(combatant, INITIAL_HAND_SIZE)
     })
 
-    console.debug(
-      'Initial hands:',
-      this.turnOrder.map((c) => ({
-        name: c.data.name,
-        handSize: c.data.hand.length,
-      })),
-    )
-
-    this.initiativeQueue = new InitiativeQueue()
-    this.initiativeQueueReady = (unit) => {
-      this.events.emit('turn-start', {
-        actorId: unit.data.id,
-        currentEnergy: unit.data.currentEnergy,
-        hand: (unit.data.hand || []).map((c) => c.id),
-      })
-
-      const target = this.selectTarget(unit)
-      if (!target) return
-
-      const playable = (unit.data.hand || []).filter(
-        (c) => (c.energyCost ?? c.cost ?? 0) <= (unit.data.currentEnergy || 0),
-      )
-      if (playable.length) {
-        const card = playable[0]
-        const cost = card.energyCost ?? card.cost ?? 0
-        unit.data.currentEnergy = Math.max(0, (unit.data.currentEnergy || 0) - cost)
-        unit.energy = unit.data.currentEnergy
-        this.events.emit('card-played', {
-          actorId: unit.data.id,
-          cardId: card.id,
-          targetId: target.data.id,
-          cost,
-        })
-        this.resolveCard(card, unit, target)
-      } else {
-        this.events.emit('turn-skipped', { actorId: unit.data.id })
+    this.events.on('turn-start',   ({ actorId }) => this.highlightActor(actorId))
+    this.events.on('card-played',  ({ actorId }) => this.playCardAnim(actorId))
+    this.events.on('damage',       ({ targetId, amount }) => {
+      const sprite = this.getSpriteById(targetId)
+      if (sprite) {
+        floatingText(this, `-${amount}`, sprite.x, sprite.y - 40, '#ff4444')
+        this.shakeSprite(sprite)
       }
-    }
-    const playerUnits = this.getPlayerUnits()
-    const enemyUnits = this.getEnemyUnits()
-    ;[...playerUnits, ...enemyUnits].forEach((unit) => {
-      const initialDelay = 1000 / unit.speed
-      this.initiativeQueue.add(unit, initialDelay)
     })
-    this.startBattle()
-
-    // Battle log handled by React HUD
+    this.events.on('heal',         ({ actorId, amount }) => {
+      const sprite = this.getSpriteById(actorId)
+      if (sprite) {
+        floatingText(this, `+${amount}`, sprite.x, sprite.y - 40, '#44ff44')
+      }
+    })
+    this.events.on('turn-skipped', ({ actorId }) => this.dimActor(actorId))
+    this.events.on('battle-end',   ({ result }) => this.showEndOverlay(result))
   }
 
 
@@ -538,50 +497,6 @@ export default class BattleScene extends Phaser.Scene {
   }
 
   update(time, delta) {
-    if (!this.initiativeQueue) return
-    this.initiativeQueue.update(delta)
-    const readyUnits = this.initiativeQueue.getReadyUnits()
-    readyUnits.forEach(({ unit }) => {
-      if (unit.hp > 0) {
-        // ─── Turn Start: Gain Energy ───
-        if (unit.data.currentEnergy == null) {
-          // initialize if missing
-          unit.data.currentEnergy = unit.energy || 0
-        }
-        const maxEnergy =
-          unit.data.stats.maxMana ||
-          unit.data.stats.mana ||
-          unit.data.stats.energy ||
-          Infinity
-        unit.data.currentEnergy = Math.min(
-          unit.data.currentEnergy + ENERGY_PER_TURN,
-          maxEnergy,
-        )
-        // keep combatant energy in sync for existing logic
-        unit.energy = unit.data.currentEnergy
-
-        // ─── Turn Start: Draw Cards ───
-        unit.data.hand = unit.data.hand || []
-        if (unit.data.deck.length === 0) {
-          unit.data.deck = shuffleArray(unit.data.hand.splice(0))
-          console.debug(`${unit.data.name} reshuffled their hand into deck`)
-        }
-        this.draw(unit, DRAW_PER_TURN)
-        if (this.initiativeQueueReady) {
-          this.initiativeQueueReady(unit)
-        }
-        const newDelay = 1000 / unit.speed
-        this.initiativeQueue.add(unit, newDelay)
-      }
-      this.initiativeQueue.remove(unit)
-    })
-
-    if (readyUnits.length) {
-      this.updateHealth()
-    }
-
-    if (this.checkBattleEnd()) {
-      this.endBattle()
-    }
+    // old initiative queue logic removed
   }
 }
