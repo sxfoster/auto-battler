@@ -51,6 +51,32 @@ export default function BattleHUD() {
         `${combatantsRef.current[actorId]?.name || actorId} played ${cardId} on ${combatantsRef.current[targetId]?.name || targetId}`,
       ].slice(-20))
     }
+    const onDamage = ({ targetId, amount }) => {
+      setCombatants(c => {
+        const updated = {
+          ...c,
+          [targetId]: {
+            ...c[targetId],
+            currentHp: Math.max(0, (c[targetId]?.currentHp || 0) - amount),
+          },
+        }
+        combatantsRef.current = updated
+        return updated
+      })
+    }
+    const onHeal = ({ actorId, amount }) => {
+      setCombatants(c => {
+        const updated = {
+          ...c,
+          [actorId]: {
+            ...c[actorId],
+            currentHp: Math.min(c[actorId]?.maxHp || 0, (c[actorId]?.currentHp || 0) + amount),
+          },
+        }
+        combatantsRef.current = updated
+        return updated
+      })
+    }
     const onTurnSkipped = ({ actorId }) => {
       setLog(l => [...l, `${combatantsRef.current[actorId]?.name || actorId} skipped turn`].slice(-20))
     }
@@ -59,17 +85,19 @@ export default function BattleHUD() {
     scene.events.on('initial-state', onInitialState)
     scene.events.on('turn-start', onTurnStart)
     scene.events.on('card-played', onCardPlayed)
+    scene.events.on('damage', onDamage)
+    scene.events.on('heal', onHeal)
     scene.events.on('turn-skipped', onTurnSkipped)
     scene.events.on('battle-end', onBattleEnd)
 
-    scene.events.emit('request-state')
-
     return () => {
       scene.events.off('initial-state', onInitialState)
-      scene.events.off('turn-start', onTurnStart)
-      scene.events.off('card-played', onCardPlayed)
-      scene.events.off('turn-skipped', onTurnSkipped)
-      scene.events.off('battle-end', onBattleEnd)
+      scene.events.off('turn-start',    onTurnStart)
+      scene.events.off('card-played',   onCardPlayed)
+      scene.events.off('damage',        onDamage)
+      scene.events.off('heal',          onHeal)
+      scene.events.off('turn-skipped',  onTurnSkipped)
+      scene.events.off('battle-end',    onBattleEnd)
     }
   }, [scene])
 
