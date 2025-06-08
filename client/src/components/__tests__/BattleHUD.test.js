@@ -1,16 +1,20 @@
+/* global jest, describe, it, expect */
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import BattleHUD from '../BattleHUD';
 import { createEventEmitterMock } from '../__mocks__/phaserSceneMock';
+import { usePhaserScene } from '../../hooks/usePhaserScene';
+jest.mock('../../hooks/usePhaserScene');
 
-const scene = createEventEmitterMock();
-jest.mock('../hooks/usePhaserScene', () => ({
-  usePhaserScene: () => scene,
-}));
+let scene;
 
 describe('BattleHUD', () => {
+  beforeEach(() => {
+    scene = createEventEmitterMock();
+    usePhaserScene.mockReturnValue(scene);
+  });
   it('displays a card-played log entry', () => {
-    render(<BattleHUD />);
+    render(React.createElement(BattleHUD));
     scene.emit('initial-state', {
       order: ['ally1', 'enemy1'],
       combatants: {
