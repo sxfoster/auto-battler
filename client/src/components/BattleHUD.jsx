@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useRef } from 'react'
 import { usePhaserScene } from '../hooks/usePhaserScene'
 import CombatantCard from './CombatantCard'
 import LogLine from './LogLine'
@@ -9,9 +9,11 @@ export default function BattleHUD() {
   const scene = usePhaserScene('battle')
   const [order, setOrder] = useState([])
   const [combatants, setCombatants] = useState({})
+  const combatantsRef = useRef({})
   const [activeId, setActiveId] = useState(null)
   const [log, setLog] = useState([])
   const [result, setResult] = useState(null)
+  combatantsRef.current = combatants
 
   useEffect(() => {
     if (!scene) return
@@ -19,29 +21,38 @@ export default function BattleHUD() {
     const onInitialState = ({ order, combatants }) => {
       setOrder(order)
       setCombatants(combatants)
+      combatantsRef.current = combatants
     }
     const onTurnStart = ({ actorId, currentEnergy, hand }) => {
       setActiveId(actorId)
-      setCombatants(c => ({
-        ...c,
-        [actorId]: { ...c[actorId], currentEnergy, hand },
-      }))
+      setCombatants(c => {
+        const updated = {
+          ...c,
+          [actorId]: { ...c[actorId], currentEnergy, hand },
+        }
+        combatantsRef.current = updated
+        return updated
+      })
     }
     const onCardPlayed = ({ actorId, cardId, targetId, cost }) => {
-      setCombatants(c => ({
-        ...c,
-        [actorId]: {
-          ...c[actorId],
-          currentEnergy: Math.max(0, (c[actorId]?.currentEnergy || 0) - (cost || 0)),
-        },
-      }))
+      setCombatants(c => {
+        const updated = {
+          ...c,
+          [actorId]: {
+            ...c[actorId],
+            currentEnergy: Math.max(0, (c[actorId]?.currentEnergy || 0) - (cost || 0)),
+          },
+        }
+        combatantsRef.current = updated
+        return updated
+      })
       setLog(l => [
         ...l,
-        `${combatants[actorId]?.name || actorId} played ${cardId} on ${combatants[targetId]?.name || targetId}`,
+        `${combatantsRef.current[actorId]?.name || actorId} played ${cardId} on ${combatantsRef.current[targetId]?.name || targetId}`,
       ])
     }
     const onTurnSkipped = ({ actorId }) => {
-      setLog(l => [...l, `${combatants[actorId]?.name || actorId} skipped turn`])
+      setLog(l => [...l, `${combatantsRef.current[actorId]?.name || actorId} skipped turn`])
     }
     const onBattleEnd = ({ result }) => setResult(result)
 
@@ -62,28 +73,40 @@ export default function BattleHUD() {
     }
   }, [scene])
 
-  return (
-    <div className="battle-hud">
-      <div className="combatants allies">
-        {order
-          .filter(id => combatants[id]?.type === 'player')
-          .map(id => (
-            <CombatantCard key={id} {...combatants[id]} isActive={id === activeId} />
-          ))}
-      </div>
-      <div className="battle-log">
-        {log.map((entry, i) => (
-          <LogLine key={i} text={entry} />
-        ))}
-      </div>
-      <div className="combatants enemies">
-        {order
-          .filter(id => combatants[id]?.type === 'enemy')
-          .map(id => (
-            <CombatantCard key={id} {...combatants[id]} isActive={id === activeId} />
-          ))}
-      </div>
-      {result && <Overlay message={result} />}
-    </div>
+  return React.createElement(
+    'div',
+    { className: 'battle-hud' },
+    React.createElement(
+      'div',
+      { className: 'combatants allies' },
+      order
+        .filter(id => combatants[id]?.type === 'player')
+        .map(id =>
+          React.createElement(CombatantCard, {
+            key: id,
+            ...combatants[id],
+            isActive: id === activeId,
+          })
+        )
+    ),
+    React.createElement(
+      'section',
+      { 'aria-live': 'polite', 'aria-relevant': 'additions', className: 'battle-log' },
+      log.map((entry, i) => React.createElement(LogLine, { key: i, text: entry }))
+    ),
+    React.createElement(
+      'div',
+      { className: 'combatants enemies' },
+      order
+        .filter(id => combatants[id]?.type === 'enemy')
+        .map(id =>
+          React.createElement(CombatantCard, {
+            key: id,
+            ...combatants[id],
+            isActive: id === activeId,
+          })
+        )
+    ),
+    result ? React.createElement(Overlay, { message: result }) : null
   )
 }

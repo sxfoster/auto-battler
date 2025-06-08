@@ -41,3 +41,8 @@
   font-size: 0.8rem;
   color: #f1c40f;
 }
+
+.combatant-card:focus {
+  outline: 2px solid #55aaff;
+  outline-offset: 2px;
+}
