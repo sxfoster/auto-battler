@@ -49,10 +49,10 @@ export default function BattleHUD() {
       setLog(l => [
         ...l,
         `${combatantsRef.current[actorId]?.name || actorId} played ${cardId} on ${combatantsRef.current[targetId]?.name || targetId}`,
-      ])
+      ].slice(-20))
     }
     const onTurnSkipped = ({ actorId }) => {
-      setLog(l => [...l, `${combatantsRef.current[actorId]?.name || actorId} skipped turn`])
+      setLog(l => [...l, `${combatantsRef.current[actorId]?.name || actorId} skipped turn`].slice(-20))
     }
     const onBattleEnd = ({ result }) => setResult(result)
 

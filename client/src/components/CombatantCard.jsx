@@ -7,7 +7,7 @@ export default function CombatantCard({ name, portraitUrl, currentHp, maxHp, cur
   return (
     <div
       role="group"
-      aria-label={`${name} ${isActive ? 'active turn' : ''}`}
+      aria-label={`${name}${isActive ? ' (active)' : ''}`}
       tabIndex={0}
       className={`combatant-card${isActive ? ' active' : ''}`}
     >
