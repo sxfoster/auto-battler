@@ -16,6 +16,10 @@ export default function BattleHUD() {
   useEffect(() => {
     if (!scene) return
 
+    const onInitialState = ({ order, combatants }) => {
+      setOrder(order)
+      setCombatants(combatants)
+    }
     const onTurnStart = ({ actorId, currentEnergy, hand }) => {
       setActiveId(actorId)
       setCombatants(c => ({
@@ -41,36 +45,22 @@ export default function BattleHUD() {
     }
     const onBattleEnd = ({ result }) => setResult(result)
 
+    scene.events.on('initial-state', onInitialState)
     scene.events.on('turn-start', onTurnStart)
     scene.events.on('card-played', onCardPlayed)
     scene.events.on('turn-skipped', onTurnSkipped)
     scene.events.on('battle-end', onBattleEnd)
 
-    // initial data
-    if (scene.turnOrder) {
-      setOrder(scene.turnOrder.map(c => c.data.id))
-      const map = {}
-      scene.turnOrder.forEach(c => {
-        map[c.data.id] = {
-          id: c.data.id,
-          type: c.type,
-          name: c.data.name,
-          portraitUrl: c.data.portrait,
-          currentHp: c.hp,
-          maxHp: c.data.stats.hp,
-          currentEnergy: c.energy ?? c.data.currentEnergy ?? 0,
-        }
-      })
-      setCombatants(map)
-    }
+    scene.events.emit('request-state')
 
     return () => {
+      scene.events.off('initial-state', onInitialState)
       scene.events.off('turn-start', onTurnStart)
       scene.events.off('card-played', onCardPlayed)
       scene.events.off('turn-skipped', onTurnSkipped)
       scene.events.off('battle-end', onBattleEnd)
     }
-  }, [scene, combatants])
+  }, [scene])
 
   return (
     <div className="battle-hud">

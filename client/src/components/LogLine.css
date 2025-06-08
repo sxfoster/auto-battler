@@ -1,5 +1,7 @@
 .log-line {
   animation: fadeIn 0.3s ease;
+  font-family: 'Trebuchet MS', sans-serif;
+  margin-bottom: 0.25rem;
 }
 
 .log-line.damage {
