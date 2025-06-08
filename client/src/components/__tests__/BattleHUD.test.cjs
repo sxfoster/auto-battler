@@ -1,9 +1,9 @@
-/* global jest, describe, it, expect */
-import React from 'react';
-import { render, screen } from '@testing-library/react';
-import BattleHUD from '../BattleHUD';
-import { createEventEmitterMock } from '../__mocks__/phaserSceneMock';
-import { usePhaserScene } from '../../hooks/usePhaserScene';
+/* global jest, describe, it, expect, beforeEach */
+const React = require('react');
+const { render, screen } = require('@testing-library/react');
+const BattleHUD = require('../BattleHUD').default;
+const { createEventEmitterMock } = require('../__mocks__/phaserSceneMock');
+const { usePhaserScene } = require('../../hooks/usePhaserScene');
 jest.mock('../../hooks/usePhaserScene');
 
 let scene;
