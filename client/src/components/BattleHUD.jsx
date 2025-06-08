@@ -71,11 +71,15 @@ export default function BattleHUD() {
             <CombatantCard key={id} {...combatants[id]} isActive={id === activeId} />
           ))}
       </div>
-      <div className="battle-log">
+      <section
+        aria-live="polite"
+        aria-relevant="additions"
+        className="battle-log"
+      >
         {log.map((entry, i) => (
           <LogLine key={i} text={entry} />
         ))}
-      </div>
+      </section>
       <div className="combatants enemies">
         {order
           .filter(id => combatants[id]?.type === 'enemy')
