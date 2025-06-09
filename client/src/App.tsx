@@ -3,15 +3,19 @@ import TownHub from './components/TownHub';
 import PreBattleSetup from './components/PreBattleSetup';
 import BattleViewer from './components/BattleViewer';
 import PartySetup from './components/PartySetup';
-import { UnitState } from '../shared/models/UnitState';
-import { MOCK_HEROES, MOCK_ENEMIES } from '../../game/src/logic/mock-data.js';
+import PartyRoster from './components/PartyRoster';
+import { UnitState } from '@shared/models/UnitState';
+import { MOCK_HEROES, MOCK_ENEMIES } from '@shared/mock-data';
 import { simulateBattle } from '../../game/src/logic/battleSimulator.js';
 
 function App() {
-  const [activeScreen, setActiveScreen] = useState<'town' | 'party-setup' | 'pre-battle' | 'battle'>('town');
+  const [activeScreen, setActiveScreen] = useState<'town' | 'party-setup' | 'pre-battle' | 'battle' | 'party-roster'>('town');
   const [activeExpeditionParty, setActiveExpeditionParty] = useState<UnitState[]>([]);
   const [savedParty, setSavedParty] = useState<UnitState[]>([MOCK_HEROES.RANGER, MOCK_HEROES.BARD]); // Start with mock data
   const [battleLog, setBattleLog] = useState<any[]>([]);
+
+  const navigateToTown = () => setActiveScreen('town');
+  const navigateToPartyRoster = () => setActiveScreen('party-roster');
 
   // Navigate to Party Setup from the town hub
   const navigateToPartySetup = () => {
@@ -49,10 +53,18 @@ function App() {
       case 'battle':
         // The BattleViewer will be mostly empty until the simulator is integrated
         return <BattleViewer log={battleLog} />;
+      case 'party-roster':
+        return <PartyRoster onBackToTown={navigateToTown} />;
       case 'town':
       default:
         // Pass the navigation function to the TownHub
-        return <TownHub onStartSkirmish={navigateToPreBattle} onEnterDungeon={navigateToPartySetup} />;
+        return (
+          <TownHub
+            onStartSkirmish={navigateToPreBattle}
+            onEnterDungeon={navigateToPartySetup}
+            onNavigateToParty={navigateToPartyRoster}
+          />
+        );
     }
   };
 

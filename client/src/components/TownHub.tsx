@@ -13,9 +13,10 @@ import { playerParty, enemyParty } from "../../../game/src/logic/sampleBattleDat
 interface TownHubProps {
   onStartSkirmish: () => void;
   onEnterDungeon: () => void;
+  onNavigateToParty: () => void;
 }
 
-const TownHub: React.FC<TownHubProps> = ({ onStartSkirmish, onEnterDungeon }) => {
+const TownHub: React.FC<TownHubProps> = ({ onStartSkirmish, onEnterDungeon, onNavigateToParty }) => {
   const party = useGameState((s) => s.party);
   const [battleSteps, setBattleSteps] = useState(null);
 
@@ -60,7 +61,7 @@ const TownHub: React.FC<TownHubProps> = ({ onStartSkirmish, onEnterDungeon }) =>
       <div className={styles.grid}>
         <button
           className={styles.card}
-          onClick={() => {}}
+          onClick={onNavigateToParty}
           aria-label="Manage Party"
         >
           <span className={styles.icon}>⚔️</span>
