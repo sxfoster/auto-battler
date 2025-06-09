@@ -1,5 +1,11 @@
-import _ from 'lodash';
 import { applyCardEffects, chooseTarget, shuffleArray } from './battleUtils.js';
+
+const deepClone = (value) => {
+  if (typeof globalThis.structuredClone === 'function') {
+    return globalThis.structuredClone(value);
+  }
+  return JSON.parse(JSON.stringify(value));
+};
 
 /**
  * @typedef {Object} BattleEvent
@@ -19,8 +25,8 @@ import { applyCardEffects, chooseTarget, shuffleArray } from './battleUtils.js';
  * @returns {BattleEvent[]}
  */
 export function simulateBattle(partyData, enemyData) {
-  const parties = _.cloneDeep(partyData).map(d => ({ ...d, currentHp: d.stats.hp, currentEnergy: 0, deck: [...(d.deck || [])], hand: [] }));
-  const enemies = _.cloneDeep(enemyData).map(d => ({ ...d, currentHp: d.stats.hp, currentEnergy: 0, deck: [...(d.deck || [])], hand: [] }));
+  const parties = deepClone(partyData).map(d => ({ ...d, currentHp: d.stats.hp, currentEnergy: 0, deck: [...(d.deck || [])], hand: [] }));
+  const enemies = deepClone(enemyData).map(d => ({ ...d, currentHp: d.stats.hp, currentEnergy: 0, deck: [...(d.deck || [])], hand: [] }));
 
   const turnOrder = [...parties, ...enemies];
 
