@@ -30,3 +30,4 @@ export { dungeonEvents } from './events.js';
 export { roomEvents } from './events.js';
 export * from './DungeonEvent';
 export * from './VisualEffect';
+export * from './BattleLog';

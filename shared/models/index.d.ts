@@ -20,6 +20,7 @@ export * from './Currency'
 export * from './MarketItem'
 export * from './MarketListing'
 export * from './DungeonEvent'
+export * from './BattleLog'
 export const enemies: Enemy[]
 export const classes: {
   id: string
