@@ -265,5 +265,15 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   finalLog.forEach((step) => {
     console.log(`[${step.actionType}] ${step.logMessage}`);
   });
-  // Manually inspect the log to ensure "Goblin Back" is not targeted until "Goblin Front" is defeated.
+
+  const firstBackHit = finalLog.findIndex(
+    (s) => s.actionType === 'dealDamage' && s.targets.includes('GOBLIN_BACK')
+  );
+  const frontDeath = finalLog.findIndex(
+    (s) => s.actionType === 'death' && s.actorId === 'GOBLIN_FRONT'
+  );
+  if (firstBackHit !== -1 && (frontDeath === -1 || frontDeath > firstBackHit)) {
+    throw new Error('Back row was targeted before front row was defeated');
+  }
+  console.log('Test passed: back row not targeted until front row defeated');
 }
