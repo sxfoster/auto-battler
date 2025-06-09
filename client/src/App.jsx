@@ -29,6 +29,7 @@ export default function App() {
       <Route path="/pre-battle" element={<PreBattleSetup />} />
       <Route path="/battle" element={<Battle />} />
       <Route path="/battle-replay" element={<ReplayBattle />} />
+      <Route path="/battle-sim" element={<ReplayBattle />} />
       <Route path="/event" element={<Event />} />
       <Route path="/decks" element={<DeckManager />} />
     </Routes>
