@@ -2,36 +2,32 @@ export const playerParty = [
   {
     id: 'valerius',
     name: 'Valerius',
-    stats: { hp: 12, mana: 1 },
-    deck: [
-      { id: 'val_strike', energyCost: 1, effect: { type: 'damage', magnitude: 4 } },
-    ],
+    hp: 25,
+    energy: 3,
+    cards: ['Shield Bash', 'Vigilant Strike'],
   },
   {
     id: 'lyra',
     name: 'Lyra',
-    stats: { hp: 10, mana: 1 },
-    deck: [
-      { id: 'lyra_heal', energyCost: 1, effect: { type: 'heal', magnitude: 3 } },
-    ],
+    hp: 15,
+    energy: 2,
+    cards: ['Quick Shot', 'Pinning Arrow'],
   },
 ];
 
 export const enemyParty = [
   {
-    id: 'goblin_slinger',
+    id: 'goblin',
     name: 'Goblin Slinger',
-    stats: { hp: 8, mana: 1 },
-    deck: [
-      { id: 'stone_throw', energyCost: 1, effect: { type: 'damage', magnitude: 2 } },
-    ],
+    hp: 12,
+    energy: 1,
+    actions: ['Hurl Rock'],
   },
   {
-    id: 'grumpy_slime',
+    id: 'slime',
     name: 'Grumpy Slime',
-    stats: { hp: 9, mana: 1 },
-    deck: [
-      { id: 'slime_slap', energyCost: 1, effect: { type: 'damage', magnitude: 1 } },
-    ],
+    hp: 18,
+    energy: 2,
+    actions: ['Corrosive Spit'],
   },
 ];

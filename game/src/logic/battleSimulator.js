@@ -1,5 +1,19 @@
 import { applyCardEffects, chooseTarget, shuffleArray } from './battleUtils.js';
 
+// Temporary card definitions to make the simulator work with new sampleBattleData
+const cardDataMap = {
+  // Valerius
+  'Shield Bash': { id: 'Shield Bash', cost: 1, effect: { type: 'damage', magnitude: 5 } },
+  'Vigilant Strike': { id: 'Vigilant Strike', cost: 1, effect: { type: 'damage', magnitude: 6 } },
+  // Lyra
+  'Quick Shot': { id: 'Quick Shot', cost: 1, effect: { type: 'damage', magnitude: 4 } },
+  'Pinning Arrow': { id: 'Pinning Arrow', cost: 1, effect: { type: 'damage', magnitude: 3 } },
+  // Goblin Slinger
+  'Hurl Rock': { id: 'Hurl Rock', cost: 1, effect: { type: 'damage', magnitude: 2 } },
+  // Grumpy Slime
+  'Corrosive Spit': { id: 'Corrosive Spit', cost: 1, effect: { type: 'damage', magnitude: 3 } },
+};
+
 const deepClone = (value) => {
   if (typeof globalThis.structuredClone === 'function') {
     return globalThis.structuredClone(value);
@@ -25,8 +39,8 @@ const snapshot = (party, foes) => {
  * @returns {import('../../shared/models/BattleStep').BattleStep[]}
  */
 export function simulateBattle(partyData, enemyData) {
-  const parties = deepClone(partyData).map(d => ({ ...d, currentHp: d.stats.hp, currentEnergy: 0, deck: [...(d.deck || [])], hand: [] }));
-  const enemies = deepClone(enemyData).map(d => ({ ...d, currentHp: d.stats.hp, currentEnergy: 0, deck: [...(d.deck || [])], hand: [] }));
+  const parties = deepClone(partyData).map(d => ({ ...d, currentHp: d.hp, currentEnergy: 0, deck: [...(d.cards || d.actions || [])], hand: [] }));
+  const enemies = deepClone(enemyData).map(d => ({ ...d, currentHp: d.hp, currentEnergy: 0, deck: [...(d.cards || d.actions || [])], hand: [] }));
 
   const turnOrder = [...parties, ...enemies];
 
@@ -45,7 +59,7 @@ export function simulateBattle(partyData, enemyData) {
   };
 
   const gainEnergy = (unit) => {
-    const max = unit.stats.mana ?? unit.stats.energy ?? unit.stats.maxMana ?? 0;
+    const max = unit.energy ?? 0; // Use direct energy property
     unit.currentEnergy = Math.min(max, (unit.currentEnergy || 0) + 1);
   };
 
@@ -61,8 +75,17 @@ export function simulateBattle(partyData, enemyData) {
 
   let aliveParties = true;
   let aliveEnemies = true;
+  let maxRounds = 200; // Safeguard against infinite loops
+  let currentRound = 0;
 
   while (aliveParties && aliveEnemies) {
+    currentRound++;
+    if (currentRound > maxRounds) {
+      console.error("Battle simulation exceeded maximum rounds, likely an infinite loop.");
+      addStep('system', 'error', { message: 'Max rounds exceeded' }, [], snapshot(parties, enemies), snapshot(parties, enemies), 'Error: Max rounds exceeded');
+      break;
+    }
+
     for (const unit of turnOrder) {
       if (unit.currentHp <= 0) continue;
 
@@ -71,21 +94,42 @@ export function simulateBattle(partyData, enemyData) {
       drawCard(unit);
       addStep(unit.id, 'startTurn', {}, [], preTurn, snapshot(parties, enemies), `${unit.id} starts turn`);
 
-      const playable = unit.hand.filter(c => (c.energyCost ?? c.cost ?? 0) <= unit.currentEnergy);
-      if (playable.length === 0) {
+      // unit.hand contains card IDs (strings). We need to get full card data from cardDataMap
+      const playableCardIds = unit.hand.filter(cardId => {
+        const cardData = cardDataMap[cardId];
+        return cardData && (cardData.energyCost ?? cardData.cost ?? 0) <= unit.currentEnergy;
+      });
+
+      if (playableCardIds.length === 0) {
         continue;
       }
 
-      const card = playable[0];
-      const cost = card.energyCost ?? card.cost ?? 0;
+      const playedCardId = playableCardIds[0]; // This is a string (card ID)
+      const playedCardData = cardDataMap[playedCardId]; // This is the full card object
+
+      if (!playedCardData) { // Should not happen if filter works
+        console.error(`Card data not found for ${playedCardId}`);
+        continue;
+      }
+
+      const cost = playedCardData.energyCost ?? playedCardData.cost ?? 0;
       const prePlay = snapshot(parties, enemies);
       unit.currentEnergy = Math.max(0, unit.currentEnergy - cost);
+
+      // Remove played card (ID) from hand
+      const cardIndexInHand = unit.hand.indexOf(playedCardId);
+      if (cardIndexInHand > -1) {
+        unit.hand.splice(cardIndexInHand, 1);
+      }
+
       const defenders = parties.includes(unit) ? enemies : parties;
       const target = chooseTarget(defenders);
-      if (!target) continue;
-      const { damage, heal } = applyCardEffects(unit, target, card);
+      if (!target) continue; // Should not happen if battle doesn't end prematurely
+
+      // Pass the full card object to applyCardEffects
+      const { damage, heal } = applyCardEffects(unit, target, playedCardData);
       if (heal) {
-        unit.currentHp = Math.min(unit.stats.hp, unit.currentHp + heal);
+        unit.currentHp = Math.min(unit.hp, unit.currentHp + heal); // Use direct hp property for max HP
       }
       if (damage) {
         target.currentHp = Math.max(0, target.currentHp - damage);
@@ -94,11 +138,11 @@ export function simulateBattle(partyData, enemyData) {
       addStep(
         unit.id,
         'playCard',
-        { cardId: card.id, cost, heal, damage },
+        { cardId: playedCardId, cost, heal, damage }, // Log with cardId (string)
         [target.id],
         prePlay,
         afterPlay,
-        `${unit.id} played ${card.id} on ${target.id}`
+        `${unit.id} played ${playedCardId} on ${target.id}`
       );
 
       if (damage) {

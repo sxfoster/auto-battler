@@ -35,10 +35,24 @@ export default function BattleViewer({ steps, initialStep = 0 }: Props) {
         <button onClick={() => setCurrentStep(i => Math.max(0, i - 1))} disabled={currentStep === 0}>
           Previous
         </button>
-        <button onClick={() => setCurrentStep(i => Math.min(steps.length - 1, i + 1))} disabled={currentStep === steps.length - 1}>
+        <button onClick={() => setCurrentStep(i => Math.min(steps.length - 1, i + 1))} disabled={currentStep === steps.length - 1 || steps.length === 0}>
           Next
         </button>
-        <button onClick={() => setIsPlaying(p => !p)}>{isPlaying ? 'Pause' : 'Play'}</button>
+        <button
+          onClick={() => {
+            setCurrentStep(0);
+            setIsPlaying(false);
+          }}
+          disabled={steps.length === 0 || currentStep === 0}
+        >
+          Reset
+        </button>
+        <button
+          onClick={() => setIsPlaying(p => !p)}
+          disabled={steps.length === 0 || (!isPlaying && currentStep === steps.length - 1)}
+        >
+          {isPlaying ? 'Pause' : 'Play'}
+        </button>
       </div>
       <div style={{ display: 'flex', justifyContent: 'space-around' }}>
         <div>

@@ -21,6 +21,9 @@ export default function TownHub() {
 
   const onTestBattle = () => {
     const steps = battleSimulator(playerParty, enemyParty);
+    console.log('Total battle steps:', steps.length);
+    console.log('First step:', steps[0]);
+    console.log('Last step:', steps[steps.length - 1]);
     navigate('/viewer', { state: { steps } });
   };
 
