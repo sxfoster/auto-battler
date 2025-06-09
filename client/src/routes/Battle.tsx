@@ -2,7 +2,8 @@ import React, { useRef, useEffect } from 'react';
 import Phaser from 'phaser';
 import BattleScene from 'game/src/scenes/BattleScene';
 import BattleHUD from '../components/BattleHUD';
-import { loadPartyState } from 'shared/partyState';
+// Use the game workspace's party state utilities directly
+import { loadPartyState } from '../../../game/src/shared/partyState.js';
 import { loadGameState } from 'game/state';
 
 export default function Battle() {
