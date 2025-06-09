@@ -1,6 +1,12 @@
 export const MOCK_CARDS = {
   // Ranger Cards
-  ARROW_SHOT: { id: 'ARROW_SHOT', name: 'Arrow Shot', cost: 1, description: 'Shoot an arrow dealing 3 damage.' },
+  ARROW_SHOT: {
+    id: 'ARROW_SHOT',
+    name: 'Arrow Shot',
+    cost: 1,
+    description: 'Shoot an arrow dealing 3 damage.',
+    targetType: 'any',
+  },
   EAGLE_EYE: { id: 'EAGLE_EYE', name: 'Eagle Eye', cost: 1, description: 'Increase critical hit chance by 25% for 2 turns.' },
   ENTANGLING_TRAP: { id: 'ENTANGLING_TRAP', name: 'Entangling Trap', cost: 2, description: 'Root an enemy, preventing movement or actions for 1 turn.' },
 

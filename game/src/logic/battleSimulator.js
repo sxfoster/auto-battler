@@ -1,4 +1,26 @@
 import { applyCardEffects, chooseTarget, shuffleArray } from './battleUtils.js';
+import { MOCK_HEROES, MOCK_ENEMIES, MOCK_CARDS } from './mock-data.js';
+
+/**
+ * Determines if a unit is a valid target based on MVP positioning rules.
+ * @param {UnitState} target - The unit being considered as a target.
+ * @param {UnitState[]} allEnemies - The full array of all enemy units.
+ * @returns {boolean} - True if the unit can be targeted.
+ */
+function isTargetable(target, allEnemies) {
+  // If the target is in the front row (row 0), it is always targetable.
+  if (target.position?.row === 0) {
+    return true;
+  }
+
+  // If the target is in a back row, check if any other enemy exists in the front row.
+  const isFrontRowOccupied = allEnemies.some(
+    (enemy) => enemy.currentHp > 0 && enemy.position?.row === 0
+  );
+
+  // The back row can only be targeted if the front row is empty.
+  return !isFrontRowOccupied;
+}
 
 // Temporary card definitions to make the simulator work with new sampleBattleData
 const cardDataMap = {
@@ -126,9 +148,44 @@ export function simulateBattle(partyData, enemyData) {
         unit.hand.splice(cardIndexInHand, 1);
       }
 
-      const defenders = parties.includes(unit) ? enemies : parties;
-      const target = chooseTarget(defenders);
-      if (!target) continue; // Should not happen if battle doesn't end prematurely
+      // --- TARGETING LOGIC REFACTOR ---
+      const isPlayerTeam = parties.includes(unit);
+      const opposingTeam = (isPlayerTeam ? enemies : parties).filter(
+        (u) => u.currentHp > 0
+      );
+
+      let validTargets;
+
+      // Check if the card has a special targeting property (e.g., for ranged attacks)
+      if (playedCard.targetType === 'any') {
+        validTargets = [...opposingTeam];
+      } else {
+        // Default behavior: use the positioning rules.
+        validTargets = opposingTeam.filter((enemy) =>
+          isTargetable(enemy, opposingTeam)
+        );
+      }
+
+      // If there are no valid targets, the unit cannot act.
+      if (validTargets.length === 0) {
+        addStep(
+          unit.id,
+          'noTarget',
+          { cardId: playedCard.id },
+          [],
+          prePlay,
+          snapshot(parties, enemies),
+          `${unit.id} has no valid targets for ${playedCard.id}`
+        );
+        // Refund energy since the card was not played
+        unit.currentEnergy += cost;
+        continue; // End this unit's turn
+      }
+
+      // AI Strategy: From the valid targets, choose the one with the lowest current HP.
+      validTargets.sort((a, b) => a.currentHp - b.currentHp);
+      const target = validTargets[0];
+      // --- END REFACTOR ---
 
       const { damage, heal } = applyCardEffects(unit, target, playedCard);
       if (heal) {
@@ -176,4 +233,37 @@ export function simulateBattle(partyData, enemyData) {
     }
   }
   return steps;
+}
+
+// --- TEMPORARY TEST ---
+if (import.meta.url === `file://${process.argv[1]}`) {
+  const testPlayerParty = [MOCK_HEROES.RANGER, MOCK_HEROES.BARD];
+  const testEnemyParty = [
+    deepClone(MOCK_ENEMIES.GOBLIN),
+    deepClone(MOCK_ENEMIES.GOBLIN),
+  ];
+
+  // ** NEW: Assign positions for the test **
+  // Player positions
+  testPlayerParty[0].position = { row: 1, col: 1 }; // Ranger in back
+  testPlayerParty[1].position = { row: 0, col: 1 }; // Bard in front
+
+  // Enemy positions
+  testEnemyParty[0].id = 'GOBLIN_FRONT';
+  testEnemyParty[0].name = 'Goblin Front';
+  testEnemyParty[0].position = { row: 0, col: 1 }; // One goblin in front
+  testEnemyParty[1].id = 'GOBLIN_BACK';
+  testEnemyParty[1].name = 'Goblin Back';
+  testEnemyParty[1].position = { row: 1, col: 1 }; // One goblin in back
+
+  // Assign battle decks
+  testPlayerParty[0].battleDeck = [MOCK_CARDS.ARROW_SHOT, MOCK_CARDS.EAGLE_EYE];
+  testPlayerParty[1].battleDeck = [MOCK_CARDS.INSPIRE, MOCK_CARDS.LULLABY];
+
+  const finalLog = simulateBattle(testPlayerParty, testEnemyParty);
+  console.log('--- BATTLE LOG ---');
+  finalLog.forEach((step) => {
+    console.log(`[${step.actionType}] ${step.logMessage}`);
+  });
+  // Manually inspect the log to ensure "Goblin Back" is not targeted until "Goblin Front" is defeated.
 }
