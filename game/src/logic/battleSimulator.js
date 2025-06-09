@@ -1,3 +1,22 @@
+/**
+ * Determines if a unit is a valid target based on MVP positioning rules.
+ * @param {UnitState} target - The unit being considered as a target.
+ * @param {UnitState[]} allEnemies - The full array of all enemy units.
+ * @returns {boolean} - True if the unit can be targeted.
+ */
+function isTargetable(target, allEnemies) {
+  // If the target is in the front row (row 0), it is always targetable.
+  if (target.position.row === 0) {
+    return true;
+  }
+
+  // If the target is in a back row, check if any other enemy exists in the front row.
+  const isFrontRowOccupied = allEnemies.some(enemy => enemy.currentHp > 0 && enemy.position.row === 0);
+
+  // The back row can only be targeted if the front row is empty.
+  return !isFrontRowOccupied;
+}
+
 import { MOCK_HEROES, MOCK_ENEMIES, MOCK_CARDS } from './mock-data.js';
 import { v4 as uuidv4 } from 'uuid'; // Use a library for unique IDs for battle steps
 
@@ -75,32 +94,49 @@ export function battleSimulator(playerParty, enemyParty) {
 
       // 3. Execute Action
       if (cardToPlay) {
+        // --- TARGETING LOGIC REFACTOR ---
+        const isPlayerTeam = playerParty.some(p => p.id === activeUnit.id);
+        const opposingTeam = allUnits.filter(u => u.currentHp > 0 && (isPlayerTeam ? !playerParty.some(p => p.id === u.id) : playerParty.some(p => p.id === u.id)));
+
+        let validTargets;
+
+        // Check if the card has a special targeting property (e.g., for ranged attacks)
+        if (cardToPlay.targetType === 'any') {
+            validTargets = [...opposingTeam]; // This card can target anyone, ignoring isTargetable().
+        } else {
+            // Default behavior: use the positioning rules.
+            validTargets = opposingTeam.filter(enemy => isTargetable(enemy, opposingTeam));
+        }
+
+        // If there are no valid targets, the unit cannot act.
+        if (validTargets.length === 0) {
+          battleLog.push(createLogEntry('NO_TARGET', `${activeUnit.name} has no valid targets for ${cardToPlay.name}.`, allUnits));
+          // Refund energy since the card was not played
+          activeUnit.energy += cardToPlay.cost;
+          continue; // End this unit's turn
+        }
+
+        // AI Strategy: From the valid targets, choose the one with the lowest current HP.
+        validTargets.sort((a, b) => a.currentHp - b.currentHp);
+        const target = validTargets[0];
+        // --- END REFACTOR ---
+
         // Deduct cost and remove card from hand
         activeUnit.energy -= cardToPlay.cost;
         activeUnit.cardsInHand = activeUnit.cardsInHand.filter(c => c.id !== cardToPlay.id);
 
-        // Find a random, living target from the opposing team
-        const isPlayerTeam = playerParty.some(p => p.id === activeUnit.id);
-        const opposingTeam = allUnits.filter(u => u.currentHp > 0 && (isPlayerTeam ? !playerParty.some(p => p.id === u.id) : playerParty.some(p => p.id === u.id)));
+        // Apply card effect (same as before)
+        const damage = parseInt(cardToPlay.description.match(/\d+/)[0] || 0);
+        target.currentHp -= damage;
 
-        if (opposingTeam.length > 0) {
-            const target = opposingTeam[Math.floor(Math.random() * opposingTeam.length)];
+        battleLog.push(createLogEntry(
+            'ACTION',
+            `${activeUnit.name} uses ${cardToPlay.name} on ${target.name}, dealing ${damage} damage.`,
+            allUnits
+        ));
 
-            // For now, assume damage is hardcoded in description (e.g., "3 damage")
-            // Ensure there's a match and a number before trying to access it.
-            const damageMatch = cardToPlay.description.match(/\d+/);
-            const damage = damageMatch && damageMatch[0] ? parseInt(damageMatch[0]) : 0;
-            target.currentHp -= damage;
-
-            battleLog.push(createLogEntry(
-                'ACTION',
-                `${activeUnit.name} uses ${cardToPlay.name} on ${target.name}, dealing ${damage} damage.`,
-                allUnits
-            ));
-
-            if (target.currentHp <= 0) {
-                battleLog.push(createLogEntry('DEFEAT', `${target.name} has been defeated.`, allUnits));
-            }
+        if (target.currentHp <= 0) {
+            battleLog.push(createLogEntry('DEFEAT', `${target.name} has been defeated.`, allUnits));
         }
       } else {
         battleLog.push(createLogEntry('NO_ACTION', `${activeUnit.name} has no affordable cards and ends its turn.`, allUnits));
@@ -121,15 +157,29 @@ export function battleSimulator(playerParty, enemyParty) {
 }
 
 // --- TEMPORARY TEST ---
-// This allows you to run `node game/src/logic/battleSimulator.js` to see the output.
 const testPlayerParty = [MOCK_HEROES.RANGER, MOCK_HEROES.BARD];
-const testEnemyParty = [MOCK_ENEMIES.GOBLIN, MOCK_ENEMIES.GOBLIN];
+const testEnemyParty = [deepClone(MOCK_ENEMIES.GOBLIN), deepClone(MOCK_ENEMIES.GOBLIN)];
 
-// Assign battle decks for the test
+// ** NEW: Assign positions for the test **
+// Player positions
+testPlayerParty[0].position = { row: 1, col: 1 }; // Ranger in back
+testPlayerParty[1].position = { row: 0, col: 1 }; // Bard in front
+
+// Enemy positions
+testEnemyParty[0].id = 'GOBLIN_FRONT';
+testEnemyParty[0].name = 'Goblin Front';
+testEnemyParty[0].position = { row: 0, col: 1 }; // One goblin in front
+testEnemyParty[1].id = 'GOBLIN_BACK';
+testEnemyParty[1].name = 'Goblin Back';
+testEnemyParty[1].position = { row: 1, col: 1 }; // One goblin in back
+
+// Assign battle decks
 testPlayerParty[0].battleDeck = [MOCK_CARDS.ARROW_SHOT, MOCK_CARDS.EAGLE_EYE];
 testPlayerParty[1].battleDeck = [MOCK_CARDS.INSPIRE, MOCK_CARDS.LULLABY];
 
-// Need to import MOCK_CARDS for the test to work
-
 const finalLog = battleSimulator(testPlayerParty, testEnemyParty);
-console.log(JSON.stringify(finalLog, null, 2));
+console.log("--- BATTLE LOG ---");
+finalLog.forEach(step => {
+    console.log(`[${step.type}] ${step.message}`);
+});
+// Manually inspect the log to ensure "Goblin Back" is not targeted until "Goblin Front" is defeated.
