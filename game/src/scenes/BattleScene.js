@@ -1,5 +1,4 @@
 import Phaser from 'phaser'
-import _ from 'lodash'
 import { applyRolePenalty, getSynergyBonuses } from 'shared/systems/classRole.js'
 import { applyBiomeBonuses, getCurrentBiome } from 'shared/systems/biome.js'
 import { applyEventEffects } from 'shared/systems/floorEvents.js'
