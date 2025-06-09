@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { UnitState } from '../../../shared/models/UnitState';
-import { MOCK_HEROES } from '@shared/mock-data';
+import { MOCK_HEROES } from '../../../game/src/logic/mock-data.js';
 
 interface Props {
   onComplete: (party: UnitState[]) => void;
