@@ -27,6 +27,7 @@ export default function BattleViewer({ steps, initialStep = 0 }: Props) {
   const state = step ? step.postState : []
   const allies = state.filter(u => u.team === 'party')
   const foes = state.filter(u => u.team === 'enemy')
+  const logs = steps.slice(0, currentStep + 1)
 
   return (
     <div>
@@ -53,10 +54,16 @@ export default function BattleViewer({ steps, initialStep = 0 }: Props) {
           ))}
         </div>
       </div>
-      {step && (
-        <div style={{ marginTop: '1rem' }}>
-          <strong style={{ color: '#58a' }}>{step.actionType}</strong>
-          <pre>{step.logMessage}</pre>
+      <div style={{ marginTop: '1rem', minHeight: '120px' }}>
+        {logs.map((s, i) => (
+          <div key={i} style={{ fontSize: '0.85rem' }}>
+            <strong style={{ color: '#58a' }}>{s.actionType}</strong> {s.logMessage}
+          </div>
+        ))}
+      </div>
+      {step?.actionType === 'endBattle' && (
+        <div style={{ marginTop: '1rem', fontSize: '1.5rem', fontWeight: 'bold' }}>
+          {step.details.result === 'victory' ? 'Victory!' : 'Defeat'}
         </div>
       )}
     </div>

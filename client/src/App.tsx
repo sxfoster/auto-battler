@@ -5,7 +5,7 @@ import PartySetup from "./components/PartySetup.tsx";
 import PreBattleSetup from "./components/PreBattleSetup.tsx";
 import DungeonMap from "./components/DungeonMap.tsx";
 import Event from "./routes/Event.jsx";
-import TownView from "./components/TownView.tsx";
+import TownHub from "./components/TownHub.tsx";
 import InventoryPage from "./components/InventoryPage.tsx";
 import CollectionPage from "./components/CollectionPage.tsx";
 import CraftingPage from "./components/CraftingPage.tsx";
@@ -17,12 +17,13 @@ import { sampleSteps } from "./sampleBattleSteps";
 
 export default function App() {
   const location = useLocation();
+  const steps = (location.state && (location.state as any).steps) || sampleSteps;
   return (
     <Routes key={location.pathname} location={location}>
       <Route path="/" element={<MainMenu />} />
       <Route path="/party-setup" element={<PartySetup />} />
       <Route path="/dungeon" element={<DungeonMap />} />
-      <Route path="/town" element={<TownView />} />
+      <Route path="/town" element={<TownHub />} />
       <Route path="/inventory" element={<InventoryPage />} />
       <Route path="/cards" element={<CollectionPage />} />
       <Route path="/crafting" element={<CraftingPage />} />
@@ -31,7 +32,7 @@ export default function App() {
       <Route path="/battle" element={<ReplayBattle />} />
       <Route path="/battle-replay" element={<ReplayBattle />} />
       <Route path="/battle-sim" element={<ReplayBattle />} />
-      <Route path="/viewer" element={<BattleViewer steps={sampleSteps} />} />
+      <Route path="/viewer" element={<BattleViewer steps={steps} />} />
       <Route path="/event" element={<Event />} />
       <Route path="/decks" element={<DeckManager />} />
     </Routes>
