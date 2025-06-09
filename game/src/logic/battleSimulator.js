@@ -1,4 +1,4 @@
-import { applyCardEffects, chooseTarget, shuffleArray } from './battleUtils.js';
+import { applyCardEffects, shuffleArray } from './battleUtils.js';
 import { MOCK_HEROES, MOCK_ENEMIES, MOCK_CARDS } from './mock-data.js';
 
 /**
@@ -8,18 +8,13 @@ import { MOCK_HEROES, MOCK_ENEMIES, MOCK_CARDS } from './mock-data.js';
  * @returns {boolean} - True if the unit can be targeted.
  */
 function isTargetable(target, allEnemies) {
-  // If the target is in the front row (row 0), it is always targetable.
-  if (target.position?.row === 0) {
-    return true;
+  if (target.position.row > 0) {
+    const isFrontRowOccupied = allEnemies.some(
+      (e) => e.currentHp > 0 && e.position.row === 0
+    );
+    if (isFrontRowOccupied) return false;
   }
-
-  // If the target is in a back row, check if any other enemy exists in the front row.
-  const isFrontRowOccupied = allEnemies.some(
-    (enemy) => enemy.currentHp > 0 && enemy.position?.row === 0
-  );
-
-  // The back row can only be targeted if the front row is empty.
-  return !isFrontRowOccupied;
+  return true;
 }
 
 // Temporary card definitions to make the simulator work with new sampleBattleData
@@ -70,7 +65,8 @@ export function simulateBattle(partyData, enemyData) {
       }
       return card;
     });
-    return { ...d, hp, energy, currentHp: hp, currentEnergy: 0, deck: deckData, hand: [] };
+    const position = d.position ?? { row: 0, col: 0 };
+    return { ...d, hp, energy, currentHp: hp, currentEnergy: 0, deck: deckData, hand: [], position };
   };
 
   const parties = deepClone(partyData).map(normalizeUnit);
@@ -149,24 +145,17 @@ export function simulateBattle(partyData, enemyData) {
       }
 
       // --- TARGETING LOGIC REFACTOR ---
-      const isPlayerTeam = parties.includes(unit);
-      const opposingTeam = (isPlayerTeam ? enemies : parties).filter(
-        (u) => u.currentHp > 0
+      const allUnits = [...parties, ...enemies];
+      const isPlayerTeam = parties.some(p => p.id === unit.id);
+      const opposingTeam = allUnits.filter(u =>
+        u.currentHp > 0 &&
+        (isPlayerTeam ? !parties.some(p => p.id === u.id) : parties.some(p => p.id === u.id))
       );
 
-      let validTargets;
+      const validTargets = opposingTeam.filter(enemy =>
+        isTargetable(enemy, opposingTeam)
+      );
 
-      // Check if the card has a special targeting property (e.g., for ranged attacks)
-      if (playedCard.targetType === 'any') {
-        validTargets = [...opposingTeam];
-      } else {
-        // Default behavior: use the positioning rules.
-        validTargets = opposingTeam.filter((enemy) =>
-          isTargetable(enemy, opposingTeam)
-        );
-      }
-
-      // If there are no valid targets, the unit cannot act.
       if (validTargets.length === 0) {
         addStep(
           unit.id,
@@ -175,16 +164,12 @@ export function simulateBattle(partyData, enemyData) {
           [],
           prePlay,
           snapshot(parties, enemies),
-          `${unit.id} has no valid targets for ${playedCard.id}`
+          `${unit.name} has no valid targets.`
         );
-        // Refund energy since the card was not played
-        unit.currentEnergy += cost;
-        continue; // End this unit's turn
+        continue;
       }
 
-      // AI Strategy: From the valid targets, choose the one with the lowest current HP.
-      validTargets.sort((a, b) => a.currentHp - b.currentHp);
-      const target = validTargets[0];
+      const target = validTargets.sort((a, b) => a.currentHp - b.currentHp)[0];
       // --- END REFACTOR ---
 
       const { damage, heal } = applyCardEffects(unit, target, playedCard);
