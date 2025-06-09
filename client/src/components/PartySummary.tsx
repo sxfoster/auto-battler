@@ -1,23 +1,158 @@
-import React from 'react'
-import type { UnitState } from './ClassDraft'
+import React from 'react';
+import type { PartyCharacter } from './PartySetup';
+import { classes as allClasses } from '../../../shared/models/classes.js';
+import defaultPortrait from '../../../shared/images/default-portrait.png';
+import styles from './PartySummary.module.css';
 
-interface Props {
-  party: UnitState[]
-  onConfirm: () => void
+interface PartySummaryProps {
+  selectedCharacters: PartyCharacter[];
+  onRemoveCharacter?: (id: string) => void;
 }
 
-export default function PartySummary({ party, onConfirm }: Props) {
+const roleColors: Record<string, string> = {
+  Tank: '#2980b9',
+  Healer: '#27ae60',
+  Support: '#9b59b6',
+  DPS: '#e74c3c',
+};
+
+const getRole = (classId: string): string => {
+  const cls = allClasses.find(c => c.id === classId);
+  if (!cls) {
+    console.warn(`Unknown class id: ${classId}`);
+    return 'Unknown';
+  }
+  return cls.role;
+};
+
+const getClassName = (classId: string): string => {
+  const cls = allClasses.find(c => c.id === classId);
+  if (!cls) {
+    console.warn(`Unknown class id: ${classId}`);
+    return classId;
+  }
+  return cls.name;
+};
+
+const calculateAverage = (values: Array<number | undefined>): string => {
+  const valid = values.filter(v => v !== undefined) as number[];
+  if (valid.length === 0) return '—';
+  const sum = valid.reduce((acc, v) => acc + v, 0);
+  return (sum / valid.length).toFixed(2);
+};
+
+const getPortraitSrc = (character: PartyCharacter): string => {
+  const cls = allClasses.find(c => c.id === character.class);
+  if (!cls) {
+    console.warn(`Unknown class id: ${character.class}`);
+  }
+  return character.portrait || cls?.portrait || defaultPortrait;
+};
+
+const handlePortraitError = (
+  e: React.SyntheticEvent<HTMLImageElement, Event>,
+) => {
+  const target = e.currentTarget;
+  if (target.src !== defaultPortrait) {
+    target.src = defaultPortrait;
+  }
+};
+
+const PartySummary: React.FC<PartySummaryProps> = ({
+  selectedCharacters,
+  onRemoveCharacter,
+}) => {
+  if (selectedCharacters.length === 0) {
+    return (
+      <div className={styles.summaryContainer} aria-live="polite" aria-atomic="true">
+        <h2 className={styles.heading}>Party Summary</h2>
+        <p className={styles.cardNote}>
+          Each character draws <strong>two</strong> of their assigned cards at battle start.
+        </p>
+        <p style={{ textAlign: 'center', fontStyle: 'italic', color: '#bbb' }}>
+          No characters selected yet to display a summary.
+        </p>
+      </div>
+    );
+  }
+
+  const averageHp = calculateAverage(selectedCharacters.map(c => c.stats.hp));
+  const averageEnergy = calculateAverage(selectedCharacters.map(c => c.stats.energy));
+  const averageAttack = calculateAverage(selectedCharacters.map(c => c.stats.attack));
+  const averageDefense = calculateAverage(selectedCharacters.map(c => c.stats.defense));
+  const averageSpeed = calculateAverage(selectedCharacters.map(c => c.stats.speed));
+
   return (
-    <div>
-      <h2>Party Summary</h2>
-      <ul>
-        {party.map(p => (
-          <li key={p.id}>
-            {p.name} - {p.deck.length} cards
-          </li>
-        ))}
-      </ul>
-      <button onClick={onConfirm}>Save Party</button>
+    <div className={styles.summaryContainer} aria-live="polite" aria-atomic="true">
+      <h2 className={styles.heading}>Party Summary</h2>
+      <p className={styles.cardNote}>
+        Each character draws <strong>two</strong> of their assigned cards at battle start.
+      </p>
+      <div className={styles.statsList}>
+        <div className={styles.statItem} title="Average of party health points">
+          <strong>Avg HP:</strong> {averageHp}
+        </div>
+        <div className={styles.statItem} title="Average energy available each turn">
+          <strong>Avg Energy:</strong> {averageEnergy}
+        </div>
+        <div className={styles.statItem} title="Average attack across party members">
+          <strong>Avg Attack:</strong> {averageAttack}
+        </div>
+        <div className={styles.statItem} title="Average defense across party members">
+          <strong>Avg Defense:</strong> {averageDefense}
+        </div>
+        <div className={styles.statItem} title="Average speed across party members">
+          <strong>Avg Speed:</strong> {averageSpeed}
+        </div>
+      </div>
+      <div className={styles.divider}></div>
+      {selectedCharacters.map(character => {
+        const role = getRole(character.class);
+        const badgeStyle = { backgroundColor: roleColors[role] } as React.CSSProperties;
+        return (
+          <div key={character.id} className={styles.characterItem}>
+            <img
+              src={getPortraitSrc(character)}
+              alt={character.name}
+              title={getClassName(character.class)}
+              className={styles.characterIcon}
+              onError={handlePortraitError}
+            />
+            <div>
+              <strong>{character.name}</strong>
+              <div>
+                {getClassName(character.class)}
+                <span className={styles.roleBadge} style={badgeStyle}>{role}</span>
+              </div>
+              <ul className={styles.cardList}>
+                {character.assignedCards.map(card => (
+                  <li key={card.id} className={styles.cardPill} title={card.description}>
+                    {card.name}
+                  </li>
+                ))}
+                {character.assignedCards.length === 0 && (
+                  <li className={styles.cardPill} style={{ opacity: 0.7, fontStyle: 'italic' }} title="No cards assigned">
+                    No cards
+                  </li>
+                )}
+              </ul>
+            </div>
+            <div className={styles.characterActions}>
+              <button
+                className={styles.actionButton}
+                aria-label={`Remove ${character.name}`}
+                onClick={() => onRemoveCharacter?.(character.id)}
+                disabled={selectedCharacters.length === 1}
+              >
+                ❌
+              </button>
+              <button className={styles.actionButton} aria-label={`Edit ${character.name}`}>✏️</button>
+            </div>
+          </div>
+        );
+      })}
     </div>
-  )
-}
+  );
+};
+
+export default PartySummary;
