@@ -8,8 +8,8 @@ The goal is to have a consistent and effective approach to writing and running u
 
 ## Testing Tools & Environment
 
-- **Test Runner**: We utilize Node.js's built-in test runner, executed via `npm test` as configured in the root `package.json`, or by directly running test files with `node [path_to_test_file.js]`.
-- **Assertion Library**: Node.js's built-in `assert` module (`import assert from 'assert';`) is used for making assertions within test cases.
+- **Test Runner**: Tests are orchestrated by **Jest** when running `npm test`. Individual files can still be executed directly with `node [path_to_test_file.js]` because they rely on Node's built-in `test` module.
+- **Assertion Library**: Node's built-in `assert` module (`import assert from 'assert';`) is used for making assertions within test cases.
 - **File Naming Convention**: Test files are named using the pattern `[module_name].test.js` (e.g., `crafting.test.js` for `crafting.js`).
 - **Location**: Test files are located alongside the modules they test within the `shared/systems/` directory.
 - **Module System**: Tests are written as ES modules, consistent with the `shared` package's configuration (`"type": "module"` in `shared/package.json`).
@@ -63,7 +63,7 @@ These examples illustrate the application of the AAA pattern, mock data helpers,
 
 ## Extending the Approach
 
-The principles and tools outlined in this document (Node.js runner, `assert`, ES module syntax, AAA pattern, mock helpers, state isolation) should be applied when writing new unit tests for other existing or future modules within the `shared/systems` directory.
+The principles and tools outlined in this document (Jest runner, Node's `assert` module, ES module syntax, AAA pattern, mock helpers, state isolation) should be applied when writing new unit tests for other existing or future modules within the `shared/systems` directory.
 
 While this document focuses on unit testing shared JavaScript logic, similar strategies (e.g., component testing with appropriate libraries) could be adapted for testing UI components in the `client` package or specific game scene interactions in the `game` package if such needs arise in the future.
 
