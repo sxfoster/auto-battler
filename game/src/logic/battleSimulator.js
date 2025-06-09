@@ -1,5 +1,5 @@
 import { MOCK_HEROES, MOCK_ENEMIES, MOCK_CARDS } from './mock-data.js';
-import { v4 as uuidv4 } from 'uuid'; // Use a library for unique IDs for battle steps
+import { randomUUID } from 'crypto';
 
 // A helper to deep clone units to avoid mutating the original mock data
 const deepClone = (obj) => JSON.parse(JSON.stringify(obj));
@@ -31,7 +31,7 @@ export function battleSimulator(playerParty, enemyParty) {
   });
 
   const createLogEntry = (type, message, state) => ({
-    id: uuidv4(),
+    id: randomUUID(),
     type,
     message,
     state: deepClone(state)
