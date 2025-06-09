@@ -20,6 +20,16 @@ describe('battleSimulator', () => {
       // Check that preState and postState in the first step are arrays
       expect(Array.isArray(steps[0].preState)).toBe(true);
       expect(Array.isArray(steps[0].postState)).toBe(true);
+
+      // Check for 'energy' property in the first unit of preState and postState
+      if (steps[0].preState.length > 0) {
+        expect(steps[0].preState[0]).toHaveProperty('energy');
+        expect(typeof steps[0].preState[0].energy).toBe('number');
+      }
+      if (steps[0].postState.length > 0) {
+        expect(steps[0].postState[0]).toHaveProperty('energy');
+        expect(typeof steps[0].postState[0].energy).toBe('number');
+      }
     }
   });
 });

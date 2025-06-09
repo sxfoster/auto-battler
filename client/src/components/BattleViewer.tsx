@@ -30,8 +30,8 @@ export default function BattleViewer({ steps, initialStep = 0 }: Props) {
   const logs = steps.slice(0, currentStep + 1)
 
   return (
-    <div>
-      <div style={{ marginBottom: '1rem' }}>
+    <div style={{ padding: '20px', fontFamily: 'Arial, sans-serif' }}>
+      <div style={{ marginBottom: '1rem', display: 'flex', gap: '10px' }}>
         <button onClick={() => setCurrentStep(i => Math.max(0, i - 1))} disabled={currentStep === 0}>
           Previous
         </button>
@@ -54,29 +54,40 @@ export default function BattleViewer({ steps, initialStep = 0 }: Props) {
           {isPlaying ? 'Pause' : 'Play'}
         </button>
       </div>
-      <div style={{ display: 'flex', justifyContent: 'space-around' }}>
-        <div>
+      <div style={{ display: 'flex', justifyContent: 'space-around', gap: '20px', marginBottom: '1rem' }}>
+        <div style={{ border: '1px solid #ccc', padding: '10px', borderRadius: '5px', flex: 1 }}>
           <h3>Party</h3>
           {allies.map(u => (
             <CharacterPanel key={u.id} unit={u} />
           ))}
         </div>
-        <div>
+        <div style={{ border: '1px solid #ccc', padding: '10px', borderRadius: '5px', flex: 1 }}>
           <h3>Enemies</h3>
           {foes.map(u => (
             <CharacterPanel key={u.id} unit={u} />
           ))}
         </div>
       </div>
-      <div style={{ marginTop: '1rem', minHeight: '120px' }}>
+      <div style={{ marginTop: '1rem', minHeight: '120px', maxHeight: '200px', overflowY: 'auto', border: '1px solid #eee', padding: '10px', borderRadius: '5px', backgroundColor: '#f9f9f9' }}>
+        <h4>Battle Log</h4>
         {logs.map((s, i) => (
-          <div key={i} style={{ fontSize: '0.85rem' }}>
+          <div key={i} style={{ fontSize: '0.85rem', marginBottom: '4px', paddingBottom: '4px', borderBottom: '1px dashed #ddd' }}>
             <strong style={{ color: '#58a' }}>{s.actionType}</strong> {s.logMessage}
           </div>
         ))}
       </div>
       {step?.actionType === 'endBattle' && (
-        <div style={{ marginTop: '1rem', fontSize: '1.5rem', fontWeight: 'bold' }}>
+        <div style={{
+          marginTop: '1rem',
+          fontSize: '1.5rem',
+          fontWeight: 'bold',
+          padding: '15px',
+          border: `2px solid ${step.details.result === 'victory' ? 'green' : 'red'}`,
+          textAlign: 'center',
+          backgroundColor: step.details.result === 'victory' ? 'lightgreen' : 'lightcoral',
+          borderRadius: '5px',
+          color: step.details.result === 'victory' ? 'darkgreen' : 'darkred'
+        }}>
           {step.details.result === 'victory' ? 'Victory!' : 'Defeat'}
         </div>
       )}
