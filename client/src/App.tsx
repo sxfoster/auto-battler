@@ -4,8 +4,8 @@ import PreBattleSetup from './components/PreBattleSetup';
 import BattleViewer from './components/BattleViewer';
 import PartySetup from './components/PartySetup';
 import { UnitState } from '../shared/models/UnitState';
-import { MOCK_HEROES, MOCK_ENEMIES } from '../game/src/logic/mock-data';
-import { simulateBattle } from '../game/src/logic/battleSimulator.js';
+import { MOCK_HEROES, MOCK_ENEMIES } from '../../game/src/logic/mock-data.js';
+import { simulateBattle } from '../../game/src/logic/battleSimulator.js';
 
 function App() {
   const [activeScreen, setActiveScreen] = useState<'town' | 'party-setup' | 'pre-battle' | 'battle'>('town');
