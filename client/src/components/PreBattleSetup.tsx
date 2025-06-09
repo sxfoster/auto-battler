@@ -29,22 +29,45 @@ const PreBattleSetup: React.FC<PreBattleSetupProps> = ({ initialParty, onStartBa
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-900 text-white p-8">
-      <h1 className="text-4xl font-bold mb-8">Pre-Battle Setup</h1>
-      <div className="grid grid-cols-3 gap-4 w-96 h-96 mb-8 border-2 border-gray-600 p-4 rounded-lg">
+    <div className="min-h-screen w-full flex flex-col justify-center items-center p-8 bg-gray-900 text-white">
+      <div className="text-center mb-10">
+        <h1 className="text-5xl font-bold">Pre-Battle Setup</h1>
+        <p className="text-lg text-gray-400 mt-2">Click a hero from your party below to place them on the grid.</p>
+      </div>
+
+      {/* --- Tactical 3x3 Grid --- */}
+      <div className="grid grid-cols-3 gap-4 w-96 h-96 mb-10 border-4 border-gray-700 p-4 rounded-xl bg-black bg-opacity-20">
         {gridSlots.map((unit, index) => (
-          <div key={index} className="w-full h-full bg-gray-800 rounded-lg flex items-center justify-center border border-dashed border-gray-500">
-            {unit && <div className="text-center"><p className="font-bold">{unit.name}</p><p className="text-xs">{unit.class}</p></div>}
+          <div
+            key={index}
+            className="w-full h-full bg-gray-800 rounded-lg flex items-center justify-center border-2 border-dashed border-gray-600"
+          >
+            {unit && (
+              <div className="text-center p-2 bg-blue-600 rounded-lg shadow-lg">
+                <p className="font-bold text-white">{unit.name}</p>
+                <p className="text-xs opacity-80">{unit.class}</p>
+              </div>
+            )}
           </div>
         ))}
       </div>
-      <h2 className="text-2xl font-bold mb-4">Click a Hero to Place Them</h2>
-      <div className="flex gap-4 p-4 bg-gray-800 rounded-lg min-h-[120px]">
-        {roster.map((unit) => (
-          <div key={unit.id} onClick={() => handlePlaceUnit(unit.id)} className="w-24 h-24 bg-gray-700 hover:bg-gray-600 rounded-lg flex flex-col items-center justify-center cursor-pointer p-2 text-center">
-            <p className="font-bold">{unit.name}</p><p className="text-xs">{unit.class}</p>
-          </div>
-        ))}
+
+      {/* --- Unplaced Party Roster --- */}
+      <div className="p-4 bg-gray-800 rounded-lg min-h-[140px] w-full max-w-lg">
+        <h2 className="text-xl font-bold mb-4 text-center">Your Party</h2>
+        <div className="flex justify-center gap-4">
+          {roster.map((unit) => (
+            <div
+              key={unit.id}
+              onClick={() => handlePlaceUnit(unit.id)}
+              className="w-24 h-24 bg-gray-700 hover:bg-gray-600 rounded-lg flex flex-col items-center justify-center cursor-pointer p-2 text-center shadow-md transition-transform transform hover:scale-105"
+            >
+              <p className="font-bold">{unit.name}</p>
+              <p className="text-xs opacity-80">{unit.class}</p>
+            </div>
+          ))}
+          {roster.length === 0 && <p className="text-gray-500">All heroes have been placed.</p>}
+        </div>
       </div>
       <div className="flex gap-4 mt-8">
         <button
