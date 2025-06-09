@@ -10,6 +10,7 @@ export default {
   moduleNameMapper: {
     '\\.(css)$': '<rootDir>/client/src/__mocks__/styleMock.js',
     '\\.(png|jpg|jpeg|gif|svg)$': '<rootDir>/client/src/__mocks__/fileMock.js',
+    '^@shared/(.*)$': '<rootDir>/shared/$1',
   },
   testMatch: [
     '**/game/src/**/__tests__/**/*.test.js',
