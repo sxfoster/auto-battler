@@ -7,22 +7,22 @@ const deepClone = (value) => {
   return JSON.parse(JSON.stringify(value));
 };
 
-/**
- * @typedef {Object} BattleEvent
- * @property {number} time
- * @property {'turn-start'|'card-played'|'turn-skipped'|'damage'|'heal'|'battle-end'} type
- * @property {string} actorId
- * @property {string} [targetId]
- * @property {string} [cardId]
- * @property {number} [amount]
- * @property {string} [result]
- */
+const snapshot = (party, foes) => {
+  return [...party, ...foes].map(u => ({
+    id: u.id,
+    name: u.name,
+    hp: u.currentHp,
+    energy: u.currentEnergy,
+    buffs: u.buffs || {},
+    team: party.includes(u) ? 'party' : 'enemy',
+  }));
+};
 
 /**
  * Simulate a full battle between two sides.
  * @param {Object[]} partyData
  * @param {Object[]} enemyData
- * @returns {BattleEvent[]}
+ * @returns {import('../../shared/models/BattleStep').BattleStep[]}
  */
 export function simulateBattle(partyData, enemyData) {
   const parties = deepClone(partyData).map(d => ({ ...d, currentHp: d.stats.hp, currentEnergy: 0, deck: [...(d.deck || [])], hand: [] }));
@@ -30,11 +30,18 @@ export function simulateBattle(partyData, enemyData) {
 
   const turnOrder = [...parties, ...enemies];
 
-  /** @type {BattleEvent[]} */
-  const events = [];
-  let step = 0;
-  const record = (type, payload) => {
-    events.push({ time: step++, type, ...payload });
+  /** @type {import('../../shared/models/BattleStep').BattleStep[]} */
+  const steps = [];
+  const addStep = (actorId, actionType, details, targets, pre, post, msg) => {
+    steps.push({
+      actorId,
+      actionType,
+      details: details || {},
+      targets: targets || [],
+      preState: pre,
+      postState: post,
+      logMessage: msg || '',
+    });
   };
 
   const gainEnergy = (unit) => {
@@ -54,48 +61,72 @@ export function simulateBattle(partyData, enemyData) {
 
   let aliveParties = true;
   let aliveEnemies = true;
+
   while (aliveParties && aliveEnemies) {
     for (const unit of turnOrder) {
       if (unit.currentHp <= 0) continue;
+
+      const preTurn = snapshot(parties, enemies);
       gainEnergy(unit);
       drawCard(unit);
-      record('turn-start', { actorId: unit.id });
+      addStep(unit.id, 'startTurn', {}, [], preTurn, snapshot(parties, enemies), `${unit.id} starts turn`);
+
       const playable = unit.hand.filter(c => (c.energyCost ?? c.cost ?? 0) <= unit.currentEnergy);
       if (playable.length === 0) {
-        record('turn-skipped', { actorId: unit.id });
-      } else {
-        const card = playable[0];
-        const cost = card.energyCost ?? card.cost ?? 0;
-        unit.currentEnergy = Math.max(0, unit.currentEnergy - cost);
-        const defenders = parties.includes(unit) ? enemies : parties;
-        const target = chooseTarget(defenders);
-        if (!target) continue;
-        record('card-played', { actorId: unit.id, cardId: card.id, targetId: target.id });
-        const { damage, heal } = applyCardEffects(unit, target, card);
-        if (damage) {
-          target.currentHp = Math.max(0, target.currentHp - damage);
-          record('damage', { actorId: unit.id, targetId: target.id, amount: damage });
-        }
-        if (heal) {
-          unit.currentHp = Math.min(unit.stats.hp, unit.currentHp + heal);
-          record('heal', { actorId: unit.id, amount: heal });
+        continue;
+      }
+
+      const card = playable[0];
+      const cost = card.energyCost ?? card.cost ?? 0;
+      const prePlay = snapshot(parties, enemies);
+      unit.currentEnergy = Math.max(0, unit.currentEnergy - cost);
+      const defenders = parties.includes(unit) ? enemies : parties;
+      const target = chooseTarget(defenders);
+      if (!target) continue;
+      const { damage, heal } = applyCardEffects(unit, target, card);
+      if (heal) {
+        unit.currentHp = Math.min(unit.stats.hp, unit.currentHp + heal);
+      }
+      if (damage) {
+        target.currentHp = Math.max(0, target.currentHp - damage);
+      }
+      const afterPlay = snapshot(parties, enemies);
+      addStep(
+        unit.id,
+        'playCard',
+        { cardId: card.id, cost, heal, damage },
+        [target.id],
+        prePlay,
+        afterPlay,
+        `${unit.id} played ${card.id} on ${target.id}`
+      );
+
+      if (damage) {
+        const preDamage = afterPlay; // before further modifications
+        const postDamage = snapshot(parties, enemies);
+        addStep(unit.id, 'dealDamage', { amount: damage }, [target.id], preDamage, postDamage, `${target.id} takes ${damage}`);
+        if (target.currentHp <= 0) {
+          const preDeath = postDamage;
+          const postDeath = snapshot(parties, enemies);
+          addStep(target.id, 'death', {}, [], preDeath, postDeath, `${target.id} is defeated`);
         }
       }
+
       aliveParties = parties.some(u => u.currentHp > 0);
       aliveEnemies = enemies.some(u => u.currentHp > 0);
       if (!aliveParties && !aliveEnemies) {
-        record('battle-end', { actorId: unit.id, result: 'draw' });
-        return events;
+        addStep(unit.id, 'endBattle', { result: 'draw' }, [], snapshot(parties, enemies), snapshot(parties, enemies), 'Battle ends in a draw');
+        return steps;
       }
       if (!aliveEnemies) {
-        record('battle-end', { actorId: unit.id, result: 'victory' });
-        return events;
+        addStep(unit.id, 'endBattle', { result: 'victory' }, [], snapshot(parties, enemies), snapshot(parties, enemies), 'Victory');
+        return steps;
       }
       if (!aliveParties) {
-        record('battle-end', { actorId: unit.id, result: 'defeat' });
-        return events;
+        addStep(unit.id, 'endBattle', { result: 'defeat' }, [], snapshot(parties, enemies), snapshot(parties, enemies), 'Defeat');
+        return steps;
       }
     }
   }
-  return events;
+  return steps;
 }
