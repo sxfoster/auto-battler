@@ -175,38 +175,7 @@ export default class BattleScene extends Phaser.Scene {
   }
 
 
-  initializeCombatants() {
-    this.combatants = [
-      ...this.party.map((c, idx) => ({
-        type: 'player',
-        data: c,
-        hp: c.stats.hp,
-        energy: c.stats.energy,
-        speed: c.stats.speed,
-        statusEffects: [],
-        position: idx,
-      })),
-      ...this.enemies.map((e, idx) => ({
-        type: 'enemy',
-        data: e,
-        hp: e.stats.hp,
-        energy: e.stats.energy,
-        speed: e.stats.speed,
-        statusEffects: [],
-        position: idx,
-      })),
-    ]
-    this.turnOrder = this.combatants.sort((a, b) => b.speed - a.speed)
-    this.turnIndex = 0
-    this.turnNumber = 0
-    this.isFirstCard = true
-  }
 
-  startBattle() {
-    this.input.off('gameobjectdown')
-    this.drawBattlefield()
-    this.startTurn()
-  }
 
   selectEnemyTarget() {
     return this.turnOrder.find((c) => c.type === 'enemy' && c.hp > 0)
@@ -229,10 +198,39 @@ export default class BattleScene extends Phaser.Scene {
     const enemy = dungeon.rooms[this.roomIndex]?.enemy
     this.enemies = enemy ? [JSON.parse(JSON.stringify(enemy))] : []
 
-    this.initializeCombatants()
     this.drawBattlefield()
 
     const events = simulateBattle(this.party, this.enemies)
+
+    const order = [
+      ...this.party.map(p => p.id),
+      ...this.enemies.map(e => e.id),
+    ]
+    const combatants = {}
+    this.party.forEach(p => {
+      combatants[p.id] = {
+        id: p.id,
+        name: p.name,
+        portraitUrl: p.portrait,
+        maxHp: p.stats.hp,
+        currentHp: p.stats.hp,
+        currentEnergy: 0,
+        type: 'player',
+      }
+    })
+    this.enemies.forEach(e => {
+      combatants[e.id] = {
+        id: e.id,
+        name: e.name,
+        portraitUrl: e.portrait,
+        maxHp: e.stats.hp,
+        currentHp: e.stats.hp,
+        currentEnergy: 0,
+        type: 'enemy',
+      }
+    })
+    this.events.emit('initial-state', { order, combatants })
+
     events.forEach((evt, idx) => {
       this.time.delayedCall(idx * 500, () => {
         this.events.emit(evt.type, evt)
@@ -495,7 +493,4 @@ export default class BattleScene extends Phaser.Scene {
     return false
   }
 
-  update(time, delta) {
-    // old initiative queue logic removed
-  }
 }

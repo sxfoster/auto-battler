@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react'
 import Phaser from 'phaser'
 import DungeonScene from '../phaser/DungeonScene'
-import BattleScene from '../phaser/BattleScene'
+import BattleScene from 'game/src/scenes/BattleScene'
 import type { DungeonData } from '../utils/generateDungeon'
 
 export type SceneKey = 'dungeon' | 'battle'
