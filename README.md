@@ -85,7 +85,7 @@ combatant simply regenerates energy for that turn.
 
 ## Testing
 
-Run the shared unit tests with Node's built-in test runner:
+Run the shared unit tests using **Jest**:
 
 ```bash
 npm test
