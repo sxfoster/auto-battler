@@ -14,9 +14,13 @@ export default function ReplayBattle() {
       parent: container.current,
       scene: [BattleScene],
     });
+    window.__phaserGame = game;
 
     return () => {
       game.destroy(true);
+      if (window.__phaserGame === game) {
+        delete window.__phaserGame;
+      }
     };
   }, []);
 
