@@ -1,0 +1,77 @@
+[
+  {
+    "actorId": "hero1",
+    "actionType": "startTurn",
+    "details": {},
+    "targets": [],
+    "preState": [
+      { "id": "hero1", "hp": 10, "buffs": {}, "energy": 1, "team": "party" },
+      { "id": "gob1", "hp": 6, "buffs": {}, "energy": 0, "team": "enemy" }
+    ],
+    "postState": [
+      { "id": "hero1", "hp": 10, "buffs": {}, "energy": 2, "team": "party" },
+      { "id": "gob1", "hp": 6, "buffs": {}, "energy": 0, "team": "enemy" }
+    ],
+    "logMessage": "hero1 begins their turn"
+  },
+  {
+    "actorId": "hero1",
+    "actionType": "playCard",
+    "details": { "cardId": "Strike", "cost": 1 },
+    "targets": ["gob1"],
+    "preState": [
+      { "id": "hero1", "hp": 10, "buffs": {}, "energy": 2, "team": "party" },
+      { "id": "gob1", "hp": 6, "buffs": {}, "energy": 0, "team": "enemy" }
+    ],
+    "postState": [
+      { "id": "hero1", "hp": 10, "buffs": {}, "energy": 1, "team": "party" },
+      { "id": "gob1", "hp": 6, "buffs": {}, "energy": 0, "team": "enemy" }
+    ],
+    "logMessage": "hero1 plays Strike on gob1"
+  },
+  {
+    "actorId": "hero1",
+    "actionType": "dealDamage",
+    "details": { "amount": 6 },
+    "targets": ["gob1"],
+    "preState": [
+      { "id": "hero1", "hp": 10, "buffs": {}, "energy": 1, "team": "party" },
+      { "id": "gob1", "hp": 6, "buffs": {}, "energy": 0, "team": "enemy" }
+    ],
+    "postState": [
+      { "id": "hero1", "hp": 10, "buffs": {}, "energy": 1, "team": "party" },
+      { "id": "gob1", "hp": 0, "buffs": {}, "energy": 0, "team": "enemy" }
+    ],
+    "logMessage": "gob1 takes 6 damage"
+  },
+  {
+    "actorId": "gob1",
+    "actionType": "death",
+    "details": {},
+    "targets": [],
+    "preState": [
+      { "id": "hero1", "hp": 10, "buffs": {}, "energy": 1, "team": "party" },
+      { "id": "gob1", "hp": 0, "buffs": {}, "energy": 0, "team": "enemy" }
+    ],
+    "postState": [
+      { "id": "hero1", "hp": 10, "buffs": {}, "energy": 1, "team": "party" },
+      { "id": "gob1", "hp": 0, "buffs": {}, "energy": 0, "team": "enemy" }
+    ],
+    "logMessage": "gob1 is defeated"
+  },
+  {
+    "actorId": "hero1",
+    "actionType": "endBattle",
+    "details": { "result": "victory" },
+    "targets": [],
+    "preState": [
+      { "id": "hero1", "hp": 10, "buffs": {}, "energy": 1, "team": "party" },
+      { "id": "gob1", "hp": 0, "buffs": {}, "energy": 0, "team": "enemy" }
+    ],
+    "postState": [
+      { "id": "hero1", "hp": 10, "buffs": {}, "energy": 1, "team": "party" },
+      { "id": "gob1", "hp": 0, "buffs": {}, "energy": 0, "team": "enemy" }
+    ],
+    "logMessage": "hero1 wins the battle"
+  }
+]

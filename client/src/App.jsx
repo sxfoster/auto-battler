@@ -12,6 +12,8 @@ import CraftingPage from "./components/CraftingPage.tsx";
 import Shop from "./routes/Shop.jsx";
 import DeckManager from "./components/DeckManager.jsx";
 import ReplayBattle from "./routes/ReplayBattle";
+import BattleViewer from "./components/BattleViewer.tsx";
+import { sampleSteps } from "./sampleBattleSteps";
 
 export default function App() {
   const location = useLocation();
@@ -29,6 +31,7 @@ export default function App() {
       <Route path="/battle" element={<ReplayBattle />} />
       <Route path="/battle-replay" element={<ReplayBattle />} />
       <Route path="/battle-sim" element={<ReplayBattle />} />
+      <Route path="/viewer" element={<BattleViewer steps={sampleSteps} />} />
       <Route path="/event" element={<Event />} />
       <Route path="/decks" element={<DeckManager />} />
     </Routes>
