@@ -114,7 +114,7 @@ const TownHub: React.FC<TownHubProps> = ({ onStartSkirmish, onEnterDungeon }) =>
         </button>
         <button
           className={`${styles.card} ${!party ? styles.disabled : ""}`}
-          onClick={() => party && onEnterDungeon()}
+          onClick={onEnterDungeon}
           aria-label="Enter Dungeon"
         >
           <span className={styles.icon}>🏰</span>
