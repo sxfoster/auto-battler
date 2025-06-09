@@ -5,9 +5,10 @@ import CharacterPanel from './CharacterPanel'
 interface Props {
   steps: BattleStep[]
   initialStep?: number
+  onReturnToTown: () => void
 }
 
-export default function BattleViewer({ steps, initialStep = 0 }: Props) {
+export default function BattleViewer({ steps, initialStep = 0, onReturnToTown }: Props) {
   const [currentStep, setCurrentStep] = useState(initialStep)
   const [isPlaying, setIsPlaying] = useState(false)
 
@@ -91,6 +92,12 @@ export default function BattleViewer({ steps, initialStep = 0 }: Props) {
           {step.details.result === 'victory' ? 'Victory!' : 'Defeat'}
         </div>
       )}
+      <button
+        onClick={onReturnToTown}
+        className="mt-8 px-8 py-3 bg-blue-600 hover:bg-blue-700 rounded-lg text-xl font-bold"
+      >
+        Return to Town
+      </button>
     </div>
   )
 }

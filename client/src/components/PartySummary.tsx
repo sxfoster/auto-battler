@@ -4,9 +4,10 @@ import { UnitState } from '../../shared/models/UnitState';
 interface Props {
   party: UnitState[];
   onConfirm: () => void;
+  onBack: () => void;
 }
 
-const PartySummary: React.FC<Props> = ({ party, onConfirm }) => {
+const PartySummary: React.FC<Props> = ({ party, onConfirm, onBack }) => {
   return (
     <div>
       <h2>Party Summary</h2>
@@ -17,7 +18,10 @@ const PartySummary: React.FC<Props> = ({ party, onConfirm }) => {
           </li>
         ))}
       </ul>
-      <button onClick={onConfirm}>Save Party</button>
+      <div style={{ marginTop: '1rem', display: 'flex', gap: '1rem' }}>
+        <button onClick={onBack}>Back</button>
+        <button onClick={onConfirm}>Save Party</button>
+      </div>
     </div>
   );
 };

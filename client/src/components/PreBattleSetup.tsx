@@ -4,9 +4,10 @@ import { UnitState } from '../../shared/models/UnitState';
 interface PreBattleSetupProps {
   initialParty: UnitState[];
   onStartBattle: (positionedParty: UnitState[]) => void;
+  onBackToTown: () => void;
 }
 
-const PreBattleSetup: React.FC<PreBattleSetupProps> = ({ initialParty, onStartBattle }) => {
+const PreBattleSetup: React.FC<PreBattleSetupProps> = ({ initialParty, onStartBattle, onBackToTown }) => {
   const [gridSlots, setGridSlots] = useState<(UnitState | null)[]>(new Array(9).fill(null));
   const [roster, setRoster] = useState<UnitState[]>(initialParty);
 
@@ -45,12 +46,22 @@ const PreBattleSetup: React.FC<PreBattleSetupProps> = ({ initialParty, onStartBa
           </div>
         ))}
       </div>
-      <button
-        onClick={() => onStartBattle(gridSlots.filter(u => u !== null) as UnitState[])}
-        className="mt-8 px-6 py-3 bg-green-600 hover:bg-green-700 rounded-lg text-xl font-bold"
-      >
-        Start Battle
-      </button>
+      <div className="flex gap-4 mt-8">
+        <button
+          onClick={onBackToTown}
+          className="px-10 py-4 bg-gray-600 hover:bg-gray-700 rounded-lg text-xl font-bold transition-colors shadow-lg"
+        >
+          Back to Town
+        </button>
+        <button
+          onClick={() =>
+            onStartBattle(gridSlots.filter(u => u !== null) as UnitState[])
+          }
+          className="px-10 py-4 bg-green-600 hover:bg-green-700 rounded-lg text-xl font-bold transition-colors shadow-lg"
+        >
+          Start Battle
+        </button>
+      </div>
     </div>
   );
 };

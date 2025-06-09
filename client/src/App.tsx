@@ -9,11 +9,12 @@ import { MOCK_HEROES, MOCK_ENEMIES } from '@shared/mock-data';
 import { simulateBattle } from '../../game/src/logic/battleSimulator.js';
 
 function App() {
-  const [activeScreen, setActiveScreen] = useState<'town' | 'party-setup' | 'pre-battle' | 'battle' | 'party-roster'>('town');
+  const [activeScreen, setActiveScreen] = useState<'town' | 'pre-battle' | 'battle' | 'party-setup' | 'party-roster'>('town');
   const [activeExpeditionParty, setActiveExpeditionParty] = useState<UnitState[]>([]);
   const [savedParty, setSavedParty] = useState<UnitState[]>([MOCK_HEROES.RANGER, MOCK_HEROES.BARD]); // Start with mock data
   const [battleLog, setBattleLog] = useState<any[]>([]);
 
+  // Universal navigation helper to return to town
   const navigateToTown = () => setActiveScreen('town');
   const navigateToPartyRoster = () => setActiveScreen('party-roster');
 
@@ -47,12 +48,25 @@ function App() {
   const renderScreen = () => {
     switch (activeScreen) {
       case 'party-setup':
-        return <PartySetup onPartySaved={handlePartySaved} />;
+        return (
+          <PartySetup
+            onPartySaved={handlePartySaved}
+            onCancelSetup={navigateToTown}
+          />
+        );
       case 'pre-battle':
-        return <PreBattleSetup initialParty={savedParty} onStartBattle={startBattle} />;
+        return (
+          <PreBattleSetup
+            initialParty={savedParty}
+            onStartBattle={startBattle}
+            onBackToTown={navigateToTown}
+          />
+        );
       case 'battle':
         // The BattleViewer will be mostly empty until the simulator is integrated
-        return <BattleViewer log={battleLog} />;
+        return (
+          <BattleViewer steps={battleLog} onReturnToTown={navigateToTown} />
+        );
       case 'party-roster':
         return <PartyRoster onBackToTown={navigateToTown} />;
       case 'town':

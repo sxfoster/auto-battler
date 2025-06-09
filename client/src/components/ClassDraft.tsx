@@ -4,11 +4,12 @@ import { MOCK_HEROES } from '../../../game/src/logic/mock-data.js';
 
 interface Props {
   onComplete: (party: UnitState[]) => void;
+  onBack: () => void;
 }
 
 const availableHeroes: UnitState[] = Object.values(MOCK_HEROES).map(h => ({ ...h }));
 
-const ClassDraft: React.FC<Props> = ({ onComplete }) => {
+const ClassDraft: React.FC<Props> = ({ onComplete, onBack }) => {
   const [selected, setSelected] = useState<UnitState[]>([]);
 
   const toggleHero = (hero: UnitState) => {
@@ -29,7 +30,10 @@ const ClassDraft: React.FC<Props> = ({ onComplete }) => {
           </button>
         ))}
       </div>
-      <button onClick={() => onComplete(selected)}>Confirm Party</button>
+      <div style={{ marginTop: '1rem', display: 'flex', gap: '1rem' }}>
+        <button onClick={onBack}>Back</button>
+        <button onClick={() => onComplete(selected)}>Confirm Party</button>
+      </div>
     </div>
   );
 };
