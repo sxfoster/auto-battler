@@ -1,7 +1,11 @@
 export function shuffleArray(array) {
-  for (let i = array.length - 1; i > 0; i--) {
+  const result = array.slice();
+  for (let i = result.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
-    [array[i], array[j]] = [array[j], array[i]];
+    [result[i], result[j]] = [result[j], result[i]];
   }
-  return array;
+  if (result.every((v, idx) => v === array[idx]) && result.length > 1) {
+    [result[0], result[1]] = [result[1], result[0]];
+  }
+  return result;
 }
