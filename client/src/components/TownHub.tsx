@@ -30,7 +30,7 @@ const TownHub: React.FC<TownHubProps> = ({ onStartSkirmish, onEnterDungeon }) =>
     console.log('First step:', steps[0]);
     console.log('Last step:', steps[steps.length - 1]);
     setBattleSteps(steps);
-  };
+};
 
   return (
     <div className={styles.container}>
@@ -125,3 +125,5 @@ const TownHub: React.FC<TownHubProps> = ({ onStartSkirmish, onEnterDungeon }) =>
     </div>
   );
 }
+
+export default TownHub;
