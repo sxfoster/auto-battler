@@ -15,7 +15,8 @@ export default class DungeonScene extends Phaser.Scene {
   create() {
     this.cameras.main.fadeIn(250);
     loadDungeon();
-    if (!getDungeon()) {
+    const dungeon = getDungeon();
+    if (!dungeon.rooms || dungeon.rooms.length === 0) {
       generateDungeon(5, 5);
       saveDungeon();
     }
