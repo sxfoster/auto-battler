@@ -1,24 +1,29 @@
 import React, { useState, useEffect } from 'react'
 import type { BattleStep } from 'shared/models/BattleStep'
+import CharacterPanel from './CharacterPanel'
 
 interface Props {
   steps: BattleStep[]
-  currentStep?: number
+  initialStep?: number
 }
 
-export default function BattleViewer({ steps, currentStep = 0 }: Props) {
-  const [index, setIndex] = useState(currentStep)
-  const [auto, setAuto] = useState(false)
+export default function BattleViewer({ steps, initialStep = 0 }: Props) {
+  const [currentStep, setCurrentStep] = useState(initialStep)
+  const [isPlaying, setIsPlaying] = useState(false)
 
   useEffect(() => {
-    if (!auto) return
+    if (!isPlaying) return
     const id = setInterval(() => {
-      setIndex(i => (i < steps.length - 1 ? i + 1 : i))
+      setCurrentStep(i => {
+        if (i < steps.length - 1) return i + 1
+        setIsPlaying(false)
+        return i
+      })
     }, 1000)
     return () => clearInterval(id)
-  }, [auto, steps.length])
+  }, [isPlaying, steps.length])
 
-  const step = steps[index]
+  const step = steps[currentStep]
   const state = step ? step.postState : []
   const allies = state.filter(u => u.team === 'party')
   const foes = state.filter(u => u.team === 'enemy')
@@ -26,31 +31,31 @@ export default function BattleViewer({ steps, currentStep = 0 }: Props) {
   return (
     <div>
       <div style={{ marginBottom: '1rem' }}>
-        <button onClick={() => setIndex(i => Math.max(0, i - 1))} disabled={index === 0}>
+        <button onClick={() => setCurrentStep(i => Math.max(0, i - 1))} disabled={currentStep === 0}>
           Previous
         </button>
-        <button onClick={() => setIndex(i => Math.min(steps.length - 1, i + 1))} disabled={index === steps.length - 1}>
+        <button onClick={() => setCurrentStep(i => Math.min(steps.length - 1, i + 1))} disabled={currentStep === steps.length - 1}>
           Next
         </button>
-        <button onClick={() => setAuto(a => !a)}>{auto ? 'Pause' : 'Auto-Play'}</button>
+        <button onClick={() => setIsPlaying(p => !p)}>{isPlaying ? 'Pause' : 'Play'}</button>
       </div>
       <div style={{ display: 'flex', justifyContent: 'space-around' }}>
         <div>
           <h3>Party</h3>
           {allies.map(u => (
-            <div key={u.id}>{u.name || u.id}: {u.hp} HP</div>
+            <CharacterPanel key={u.id} unit={u} />
           ))}
         </div>
         <div>
           <h3>Enemies</h3>
           {foes.map(u => (
-            <div key={u.id}>{u.name || u.id}: {u.hp} HP</div>
+            <CharacterPanel key={u.id} unit={u} />
           ))}
         </div>
       </div>
       {step && (
         <div style={{ marginTop: '1rem' }}>
-          <strong>Action:</strong> {step.actionType}
+          <strong style={{ color: '#58a' }}>{step.actionType}</strong>
           <pre>{step.logMessage}</pre>
         </div>
       )}

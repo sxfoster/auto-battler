@@ -1,3 +1,6 @@
+/**
+ * Simplified snapshot of a single combatant used within {@link BattleStep}.
+ */
 export interface UnitState {
   /** Unique identifier for the unit */
   id: string
@@ -13,6 +16,9 @@ export interface UnitState {
   team?: 'party' | 'enemy'
 }
 
+/**
+ * Represents a single atomic event during battle simulation.
+ */
 export interface BattleStep {
   /** Acting unit */
   actorId: string
@@ -29,3 +35,5 @@ export interface BattleStep {
   /** Human readable log message */
   logMessage: string
 }
+
+export type { UnitState as BattleUnitState }
