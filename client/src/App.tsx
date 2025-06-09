@@ -1,40 +1,50 @@
-import "./App.css";
-import { Routes, Route, useLocation } from "react-router-dom";
-import MainMenu from "./components/MainMenu.jsx";
-import PartySetup from "./components/PartySetup.tsx";
-import PreBattleSetup from "./components/PreBattleSetup.tsx";
-import DungeonMap from "./components/DungeonMap.tsx";
-import Event from "./routes/Event.jsx";
-import TownHub from "./components/TownHub.tsx";
-import InventoryPage from "./components/InventoryPage.tsx";
-import CollectionPage from "./components/CollectionPage.tsx";
-import CraftingPage from "./components/CraftingPage.tsx";
-import Shop from "./routes/Shop.jsx";
-import DeckManager from "./components/DeckManager.jsx";
-import ReplayBattle from "./routes/ReplayBattle";
-import BattleViewer from "./components/BattleViewer.tsx";
-import { sampleSteps } from "./sampleBattleSteps";
+import React, { useState } from 'react';
+import TownHub from './components/TownHub';
+import PreBattleSetup from './components/PreBattleSetup';
+import BattleViewer from './components/BattleViewer';
+import { UnitState } from '../shared/models/UnitState';
+import { MOCK_HEROES } from '../game/src/logic/mock-data';
 
-export default function App() {
-  const location = useLocation();
-  const steps = (location.state && (location.state as any).steps) || sampleSteps;
-  return (
-    <Routes key={location.pathname} location={location}>
-      <Route path="/" element={<MainMenu />} />
-      <Route path="/party-setup" element={<PartySetup />} />
-      <Route path="/dungeon" element={<DungeonMap />} />
-      <Route path="/town" element={<TownHub />} />
-      <Route path="/inventory" element={<InventoryPage />} />
-      <Route path="/cards" element={<CollectionPage />} />
-      <Route path="/crafting" element={<CraftingPage />} />
-      <Route path="/shop" element={<Shop />} />
-      <Route path="/pre-battle" element={<PreBattleSetup />} />
-      <Route path="/battle" element={<ReplayBattle />} />
-      <Route path="/battle-replay" element={<ReplayBattle />} />
-      <Route path="/battle-sim" element={<ReplayBattle />} />
-      <Route path="/viewer" element={<BattleViewer steps={steps} />} />
-      <Route path="/event" element={<Event />} />
-      <Route path="/decks" element={<DeckManager />} />
-    </Routes>
-  );
+function App() {
+  const [activeScreen, setActiveScreen] = useState<'town' | 'pre-battle' | 'battle'>('town');
+  const [savedParty, setSavedParty] = useState<UnitState[]>([MOCK_HEROES.RANGER, MOCK_HEROES.BARD]); // Start with mock data
+  const [battleLog, setBattleLog] = useState<any[]>([]);
+
+  // Callback for the "Battle" button in TownHub
+  const navigateToPreBattle = () => {
+    if (savedParty.length > 0) {
+      setActiveScreen('pre-battle');
+    } else {
+      alert("You must have a party saved to start a battle!");
+    }
+  };
+
+  // Callback for the "Start Battle" button in PreBattleSetup
+  const startBattle = (positionedParty: UnitState[]) => {
+    console.log("Starting battle with this positioned party:", positionedParty);
+    //
+    // DEVELOPER NOTE: When Milestone 2 is complete, the line below will be uncommented.
+    // const log = battleSimulator(positionedParty, [MOCK_ENEMIES.GOBLIN]);
+    // setBattleLog(log);
+    //
+    setActiveScreen('battle');
+  };
+
+  const renderScreen = () => {
+    switch (activeScreen) {
+      case 'pre-battle':
+        return <PreBattleSetup initialParty={savedParty} onStartBattle={startBattle} />;
+      case 'battle':
+        // The BattleViewer will be mostly empty until the simulator is integrated
+        return <BattleViewer log={battleLog} />;
+      case 'town':
+      default:
+        // Pass the navigation function to the TownHub
+        return <TownHub onStartSkirmish={navigateToPreBattle} />;
+    }
+  };
+
+  return <div>{renderScreen()}</div>;
 }
+
+export default App;

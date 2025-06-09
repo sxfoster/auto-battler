@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate, Link, useLocation } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom"; // Re-added useNavigate and Link
 import { useGameState } from "../GameStateProvider.jsx";
 import CharacterCard from "./CharacterCard.tsx";
 import BattleViewer from "./BattleViewer.tsx";
@@ -10,9 +10,13 @@ import {
 import { simulateBattle as battleSimulator } from "../../../game/src/logic/battleSimulator.js";
 import { playerParty, enemyParty } from "../../../game/src/logic/sampleBattleData.js";
 
-export default function TownHub() {
-  const navigate = useNavigate();
-  const location = useLocation();
+interface TownHubProps {
+  onStartSkirmish: () => void;
+  // We can add the savedParty prop here later to display it
+}
+
+const TownHub: React.FC<TownHubProps> = ({ onStartSkirmish }) => {
+  const navigate = useNavigate(); // Reinstated navigate
   const party = useGameState((s) => s.party);
   const [battleSteps, setBattleSteps] = useState(null);
 
@@ -102,7 +106,7 @@ export default function TownHub() {
         </button>
         <button
           className={styles.card}
-          onClick={() => navigate("/pre-battle")}
+          onClick={onStartSkirmish} // Changed to use onStartSkirmish callback
           aria-label="Battle"
         >
           <span className={styles.icon}>⚔️</span>

@@ -1,179 +1,87 @@
-import React, { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { useGameStore } from '../store/gameStore'
-import type { PartyCharacter } from './PartySetup'
-import type { Card } from '../../../shared/models/Card'
-import { sampleCards } from '../../../shared/models/cards.js'
-import CardAssignmentPanel from './CardAssignmentPanel'
-import { saveFormation, loadFormation } from '../../../src/game/SetupManager'
-import type { Formation, Position } from '../../../src/game/Formation'
-import styles from './PreBattleSetup.module.css'
-import defaultPortrait from '../../../shared/images/default-portrait.png'
+import React, { useState } from 'react';
+import { UnitState } from '../../shared/models/UnitState'; // Assuming models from Milestone 1
 
-const GRID_SIZE = 3
-
-const emptyFormation = (): Formation => ({ gridSize: GRID_SIZE, units: [] })
-
-const PreBattleSetup: React.FC = () => {
-  const navigate = useNavigate()
-  const party = useGameStore(state => state.party)
-  const [characters, setCharacters] = useState<PartyCharacter[]>([])
-  const [placement, setPlacement] = useState<Record<string, Position>>({})
-  const [selectedId, setSelectedId] = useState<string | null>(null)
-  const [dragId, setDragId] = useState<string | null>(null)
-  const [availableCards, setAvailableCards] = useState<Card[]>([])
-
-  useEffect(() => {
-    if (party) {
-      const chars: PartyCharacter[] = party.characters.map(c => ({
-        ...c,
-        assignedCards: c.deck || [],
-      }))
-      setCharacters(chars)
-    }
-  }, [party])
-
-  useEffect(() => {
-    setAvailableCards(sampleCards.map(c => ({ ...c, description: c.description || 'No description.' })))
-  }, [])
-
-  useEffect(() => {
-    const saved = loadFormation()
-    if (saved && saved.gridSize === GRID_SIZE) {
-      const map: Record<string, Position> = {}
-      saved.units.forEach(u => { map[u.unitId] = u.position })
-      setPlacement(map)
-    }
-  }, [])
-
-  const handleDragStart = (id: string) => {
-    setDragId(id)
-  }
-
-  const handleDrop = (x: number, y: number) => {
-    if (dragId) {
-      setPlacement(prev => ({ ...prev, [dragId]: { x, y } }))
-      setDragId(null)
-    }
-  }
-
-  const handleAssignCard = (characterId: string, card: Card) => {
-    setCharacters(chars =>
-      chars.map(c => (c.id === characterId ? { ...c, assignedCards: [...c.assignedCards, card] } : c)),
-    )
-  }
-
-  const handleRemoveCard = (characterId: string, cardId: string) => {
-    setCharacters(chars =>
-      chars.map(c =>
-        c.id === characterId
-          ? { ...c, assignedCards: c.assignedCards.filter(cd => cd.id !== cardId) }
-          : c,
-      ),
-    )
-  }
-
-  const saveSetup = () => {
-    const formation: Formation = {
-      gridSize: GRID_SIZE,
-      units: characters.map(c => ({
-        unitId: c.id,
-        position: placement[c.id] || { x: 0, y: 0 },
-        cardIds: c.assignedCards.map(card => card.id),
-      })),
-    }
-    saveFormation(formation)
-  }
-
-  const selectedChar = characters.find(c => c.id === selectedId) || null
-
-  return (
-    <div className={styles.screen}>
-      <div className={styles.setupCard}>
-        <h1 className={styles.title}>Pre-Battle Setup</h1>
-        <div className={styles.grid}>
-          {Array.from({ length: GRID_SIZE }).map((_, y) =>
-            Array.from({ length: GRID_SIZE }).map((__, x) => {
-              const occupant = characters.find(c => placement[c.id]?.x === x && placement[c.id]?.y === y)
-              return (
-                <div
-                  key={`${x}-${y}`}
-                  className={styles.cell}
-                  onDragOver={e => e.preventDefault()}
-                  onDrop={() => handleDrop(x, y)}
-                >
-                  {occupant ? (
-                    <div
-                      draggable
-                      onDragStart={() => handleDragStart(occupant.id)}
-                      onClick={() => setSelectedId(occupant.id)}
-                      className={`${styles.unitCard} ${selectedId === occupant.id ? styles.unitSelected : ''}`}
-                    >
-                      <img
-                        src={occupant.portrait || defaultPortrait}
-                        alt={occupant.name}
-                        className={styles.portrait}
-                        onError={e => {
-                          if ((e.currentTarget as HTMLImageElement).src !== defaultPortrait) {
-                            (e.currentTarget as HTMLImageElement).src = defaultPortrait
-                          }
-                        }}
-                      />
-                      <span className={styles.unitName}>{occupant.name}</span>
-                    </div>
-                  ) : (
-                    <div className={styles.emptySlot}>+</div>
-                  )}
-                </div>
-              )
-            }),
-          )}
-        </div>
-        <div className={styles.unitList}>
-          {characters.map(c => (
-            <div
-              key={c.id}
-              draggable
-              onDragStart={() => handleDragStart(c.id)}
-              onClick={() => setSelectedId(c.id)}
-              className={`${styles.unit} ${selectedId === c.id ? styles.unitSelected : ''}`}
-            >
-              <img
-                src={c.portrait || defaultPortrait}
-                alt={c.name}
-                className={styles.portraitSmall}
-                onError={e => {
-                  if ((e.currentTarget as HTMLImageElement).src !== defaultPortrait) {
-                    (e.currentTarget as HTMLImageElement).src = defaultPortrait
-                  }
-                }}
-              />
-              <span className={styles.unitName}>{c.name}</span>
-            </div>
-          ))}
-        </div>
-        {selectedChar && (
-          <CardAssignmentPanel
-            character={selectedChar}
-            availableCards={availableCards}
-            onAssignCard={handleAssignCard}
-            onRemoveCard={handleRemoveCard}
-          />
-        )}
-        <div className={styles.buttons}>
-          <button onClick={saveSetup}>Save</button>
-          <button
-            onClick={() => {
-              saveSetup()
-              navigate('/battle')
-            }}
-          >
-            Start Battle (Simulated)
-          </button>
-        </div>
-      </div>
-    </div>
-  )
+interface PreBattleSetupProps {
+  initialParty: UnitState[];
+  onStartBattle: (positionedParty: UnitState[]) => void;
 }
 
-export default PreBattleSetup
+const PreBattleSetup: React.FC<PreBattleSetupProps> = ({ initialParty, onStartBattle }) => {
+  // State to hold units placed on the 3x3 grid (9 slots)
+  const [gridSlots, setGridSlots] = useState<(UnitState | null)[]>(new Array(9).fill(null));
+
+  // State to hold heroes from the party that have not yet been placed
+  const [roster, setRoster] = useState<UnitState[]>(initialParty);
+
+  const handlePlaceUnit = (unitId: string) => {
+    const unitToPlace = roster.find(u => u.id === unitId);
+    if (!unitToPlace) return;
+
+    // Find the first empty slot on the grid
+    const firstEmptyIndex = gridSlots.findIndex(slot => slot === null);
+    if (firstEmptyIndex === -1) {
+      alert("Grid is full!"); // Consider a more user-friendly notification
+      return;
+    }
+
+    const newGridSlots = [...gridSlots];
+    // Assign position based on the grid index
+    unitToPlace.position = { row: Math.floor(firstEmptyIndex / 3), col: firstEmptyIndex % 3 };
+    newGridSlots[firstEmptyIndex] = unitToPlace;
+    setGridSlots(newGridSlots);
+
+    // Remove the unit from the roster
+    setRoster(roster.filter(u => u.id !== unitId));
+  };
+
+  // Render logic will be added in subsequent steps...
+  return (
+    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-900 text-white p-8">
+      <h1 className="text-4xl font-bold mb-8">Pre-Battle Setup</h1>
+      {/* Tactical Grid */}
+      <div className="grid grid-cols-3 gap-4 w-96 h-96 mb-8 border-2 border-gray-600 p-4 rounded-lg">
+        {gridSlots.map((unit, index) => (
+          <div
+            key={index}
+            className="w-full h-full bg-gray-800 rounded-lg flex items-center justify-center border border-dashed border-gray-500"
+          >
+            {unit && (
+              <div className="w-20 h-20 bg-blue-600 rounded-full flex flex-col items-center justify-center text-center">
+                {/* Placeholder for portrait */}
+                <span className="text-xs font-bold">{unit.name}</span>
+                <span className="text-xs opacity-75">{unit.class}</span>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+
+      {/* Unplaced Roster */}
+      <h2 className="text-2xl font-bold mb-4">Your Party</h2>
+      <div className="flex gap-4 p-4 bg-gray-900 rounded-lg min-h-[120px]">
+        {roster.map((unit) => (
+          <div
+            key={unit.id}
+            onClick={() => handlePlaceUnit(unit.id)} // Use simple click-to-place for MVP
+            className="w-20 h-20 bg-gray-700 hover:bg-gray-600 rounded-full flex flex-col items-center justify-center cursor-pointer p-2 text-center"
+          >
+            <span className="text-xs font-bold">{unit.name}</span>
+            <span className="text-xs opacity-75">{unit.class}</span>
+          </div>
+        ))}
+      </div>
+      <button
+        onClick={() => {
+          const positionedParty = gridSlots.filter(u => u !== null) as UnitState[];
+          // For now, this just passes the data up. Later it will trigger the battle view.
+          onStartBattle(positionedParty);
+        }}
+        className="mt-8 px-6 py-3 bg-green-600 hover:bg-green-700 rounded-lg text-xl font-bold transition-colors"
+      >
+        Start Battle (Simulated)
+      </button>
+    </div>
+  );
+};
+
+export default PreBattleSetup;
