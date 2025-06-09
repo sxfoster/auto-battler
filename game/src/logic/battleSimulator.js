@@ -39,8 +39,20 @@ const snapshot = (party, foes) => {
  * @returns {import('../../shared/models/BattleStep').BattleStep[]}
  */
 export function simulateBattle(partyData, enemyData) {
-  const parties = deepClone(partyData).map(d => ({ ...d, currentHp: d.hp, currentEnergy: 0, deck: [...(d.cards || d.actions || [])], hand: [] }));
-  const enemies = deepClone(enemyData).map(d => ({ ...d, currentHp: d.hp, currentEnergy: 0, deck: [...(d.cards || d.actions || [])], hand: [] }));
+  const normalizeUnit = (d) => {
+    const hp = d.hp ?? d.stats?.hp ?? 0;
+    const energy = d.energy ?? d.stats?.mana ?? d.stats?.energy ?? 0;
+    const deckData = [...(d.deck || d.cards || d.actions || [])].map((card) => {
+      if (typeof card === 'string') {
+        return cardDataMap[card] || { id: card, cost: 0 };
+      }
+      return card;
+    });
+    return { ...d, hp, energy, currentHp: hp, currentEnergy: 0, deck: deckData, hand: [] };
+  };
+
+  const parties = deepClone(partyData).map(normalizeUnit);
+  const enemies = deepClone(enemyData).map(normalizeUnit);
 
   const turnOrder = [...parties, ...enemies];
 
@@ -94,30 +106,22 @@ export function simulateBattle(partyData, enemyData) {
       drawCard(unit);
       addStep(unit.id, 'startTurn', {}, [], preTurn, snapshot(parties, enemies), `${unit.id} starts turn`);
 
-      // unit.hand contains card IDs (strings). We need to get full card data from cardDataMap
-      const playableCardIds = unit.hand.filter(cardId => {
-        const cardData = cardDataMap[cardId];
-        return cardData && (cardData.energyCost ?? cardData.cost ?? 0) <= unit.currentEnergy;
+      const playableCards = unit.hand.filter(card => {
+        const data = card;
+        const cost = data.energyCost ?? data.cost ?? 0;
+        return cost <= unit.currentEnergy;
       });
 
-      if (playableCardIds.length === 0) {
+      if (playableCards.length === 0) {
         continue;
       }
 
-      const playedCardId = playableCardIds[0]; // This is a string (card ID)
-      const playedCardData = cardDataMap[playedCardId]; // This is the full card object
-
-      if (!playedCardData) { // Should not happen if filter works
-        console.error(`Card data not found for ${playedCardId}`);
-        continue;
-      }
-
-      const cost = playedCardData.energyCost ?? playedCardData.cost ?? 0;
+      const playedCard = playableCards[0];
+      const cost = playedCard.energyCost ?? playedCard.cost ?? 0;
       const prePlay = snapshot(parties, enemies);
       unit.currentEnergy = Math.max(0, unit.currentEnergy - cost);
 
-      // Remove played card (ID) from hand
-      const cardIndexInHand = unit.hand.indexOf(playedCardId);
+      const cardIndexInHand = unit.hand.indexOf(playedCard);
       if (cardIndexInHand > -1) {
         unit.hand.splice(cardIndexInHand, 1);
       }
@@ -126,8 +130,7 @@ export function simulateBattle(partyData, enemyData) {
       const target = chooseTarget(defenders);
       if (!target) continue; // Should not happen if battle doesn't end prematurely
 
-      // Pass the full card object to applyCardEffects
-      const { damage, heal } = applyCardEffects(unit, target, playedCardData);
+      const { damage, heal } = applyCardEffects(unit, target, playedCard);
       if (heal) {
         unit.currentHp = Math.min(unit.hp, unit.currentHp + heal); // Use direct hp property for max HP
       }
@@ -138,11 +141,11 @@ export function simulateBattle(partyData, enemyData) {
       addStep(
         unit.id,
         'playCard',
-        { cardId: playedCardId, cost, heal, damage }, // Log with cardId (string)
+        { cardId: playedCard.id, cost, heal, damage },
         [target.id],
         prePlay,
         afterPlay,
-        `${unit.id} played ${playedCardId} on ${target.id}`
+        `${unit.id} played ${playedCard.id} on ${target.id}`
       );
 
       if (damage) {
