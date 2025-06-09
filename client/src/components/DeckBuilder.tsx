@@ -5,9 +5,10 @@ import { Card } from '../../shared/models/Card';
 interface Props {
   unit: UnitState;
   onComplete: (unit: UnitState) => void;
+  onBack: () => void;
 }
 
-const DeckBuilder: React.FC<Props> = ({ unit, onComplete }) => {
+const DeckBuilder: React.FC<Props> = ({ unit, onComplete, onBack }) => {
   const [selected, setSelected] = useState<Card[]>(unit.battleDeck || []);
 
   const toggleCard = (card: Card) => {
@@ -36,7 +37,10 @@ const DeckBuilder: React.FC<Props> = ({ unit, onComplete }) => {
           </button>
         ))}
       </div>
-      <button onClick={handleConfirm}>Finish Deck</button>
+      <div style={{ marginTop: '1rem', display: 'flex', gap: '1rem' }}>
+        <button onClick={onBack}>Back</button>
+        <button onClick={handleConfirm}>Finish Deck</button>
+      </div>
     </div>
   );
 };
