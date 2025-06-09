@@ -11,7 +11,6 @@ import CollectionPage from "./components/CollectionPage.tsx";
 import CraftingPage from "./components/CraftingPage.tsx";
 import Shop from "./routes/Shop.jsx";
 import DeckManager from "./components/DeckManager.jsx";
-import Battle from "./routes/Battle";
 import ReplayBattle from "./routes/ReplayBattle";
 
 export default function App() {
@@ -27,7 +26,7 @@ export default function App() {
       <Route path="/crafting" element={<CraftingPage />} />
       <Route path="/shop" element={<Shop />} />
       <Route path="/pre-battle" element={<PreBattleSetup />} />
-      <Route path="/battle" element={<Battle />} />
+      <Route path="/battle" element={<ReplayBattle />} />
       <Route path="/battle-replay" element={<ReplayBattle />} />
       <Route path="/battle-sim" element={<ReplayBattle />} />
       <Route path="/event" element={<Event />} />

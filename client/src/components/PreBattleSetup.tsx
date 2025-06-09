@@ -168,7 +168,7 @@ const PreBattleSetup: React.FC = () => {
               navigate('/battle')
             }}
           >
-            Start Battle
+            Start Battle (Simulated)
           </button>
         </div>
       </div>
