@@ -1,135 +1,179 @@
-import { MOCK_HEROES, MOCK_ENEMIES, MOCK_CARDS } from './mock-data.js';
-import { v4 as uuidv4 } from 'uuid'; // Use a library for unique IDs for battle steps
+import { applyCardEffects, chooseTarget, shuffleArray } from './battleUtils.js';
 
-// A helper to deep clone units to avoid mutating the original mock data
-const deepClone = (obj) => JSON.parse(JSON.stringify(obj));
+// Temporary card definitions to make the simulator work with new sampleBattleData
+const cardDataMap = {
+  // Valerius
+  'Shield Bash': { id: 'Shield Bash', cost: 1, effect: { type: 'damage', magnitude: 5 } },
+  'Vigilant Strike': { id: 'Vigilant Strike', cost: 1, effect: { type: 'damage', magnitude: 6 } },
+  // Lyra
+  'Quick Shot': { id: 'Quick Shot', cost: 1, effect: { type: 'damage', magnitude: 4 } },
+  'Pinning Arrow': { id: 'Pinning Arrow', cost: 1, effect: { type: 'damage', magnitude: 3 } },
+  // Goblin Slinger
+  'Hurl Rock': { id: 'Hurl Rock', cost: 1, effect: { type: 'damage', magnitude: 2 } },
+  // Grumpy Slime
+  'Corrosive Spit': { id: 'Corrosive Spit', cost: 1, effect: { type: 'damage', magnitude: 3 } },
+};
+
+const deepClone = (value) => {
+  if (typeof globalThis.structuredClone === 'function') {
+    return globalThis.structuredClone(value);
+  }
+  return JSON.parse(JSON.stringify(value));
+};
+
+const snapshot = (party, foes) => {
+  return [...party, ...foes].map(u => ({
+    id: u.id,
+    name: u.name,
+    hp: u.currentHp,
+    energy: u.currentEnergy,
+    buffs: u.buffs || {},
+    team: party.includes(u) ? 'party' : 'enemy',
+  }));
+};
 
 /**
- * Simulates a complete battle based on GDD rules.
- * @param {UnitState[]} playerParty - Array of player units.
- * @param {UnitState[]} enemyParty - Array of enemy units.
- * @returns {object[]} - An array of BattleStep objects detailing the entire fight.
+ * Simulate a full battle between two sides.
+ * @param {Object[]} partyData
+ * @param {Object[]} enemyData
+ * @returns {import('../../shared/models/BattleStep').BattleStep[]}
  */
-export function battleSimulator(playerParty, enemyParty) {
-  const battleLog = [];
+export function simulateBattle(partyData, enemyData) {
+  const normalizeUnit = (d) => {
+    const hp = d.hp ?? d.stats?.hp ?? 0;
+    const energy = d.energy ?? d.stats?.mana ?? d.stats?.energy ?? 0;
+    const deckData = [...(d.deck || d.cards || d.actions || [])].map((card) => {
+      if (typeof card === 'string') {
+        return cardDataMap[card] || { id: card, cost: 0 };
+      }
+      return card;
+    });
+    return { ...d, hp, energy, currentHp: hp, currentEnergy: 0, deck: deckData, hand: [] };
+  };
 
-  // --- BATTLE SETUP ---
-  const allUnits = [
-    ...playerParty.map(deepClone),
-    ...enemyParty.map(deepClone)
-  ].map(unit => ({ ...unit, currentHp: unit.hp })); // Use currentHp for tracking damage
+  const parties = deepClone(partyData).map(normalizeUnit);
+  const enemies = deepClone(enemyData).map(normalizeUnit);
 
-  // Deal starting hands
-  allUnits.forEach(unit => {
-    // For MVP, we draw 2 cards from the battle deck.
-    // Ensure the battleDeck has cards before trying to draw.
-    if (unit.battleDeck && unit.battleDeck.length > 0) {
-      unit.cardsInHand = [...unit.battleDeck.slice(0, 2)];
-    } else {
-      unit.cardsInHand = [];
+  const turnOrder = [...parties, ...enemies];
+
+  /** @type {import('../../shared/models/BattleStep').BattleStep[]} */
+  const steps = [];
+  const addStep = (actorId, actionType, details, targets, pre, post, msg) => {
+    steps.push({
+      actorId,
+      actionType,
+      details: details || {},
+      targets: targets || [],
+      preState: pre,
+      postState: post,
+      logMessage: msg || '',
+    });
+  };
+
+  const gainEnergy = (unit) => {
+    const max = unit.energy ?? 0; // Use direct energy property
+    unit.currentEnergy = Math.min(max, (unit.currentEnergy || 0) + 1);
+  };
+
+  const drawCard = (unit) => {
+    if (unit.deck.length === 0) {
+      unit.deck = shuffleArray(unit.hand.splice(0));
     }
-  });
+    if (unit.deck.length) {
+      const card = unit.deck.shift();
+      unit.hand.push(card);
+    }
+  };
 
-  const createLogEntry = (type, message, state) => ({
-    id: uuidv4(),
-    type,
-    message,
-    state: deepClone(state)
-  });
+  let aliveParties = true;
+  let aliveEnemies = true;
+  let maxRounds = 200; // Safeguard against infinite loops
+  let currentRound = 0;
 
-  battleLog.push(createLogEntry(
-    'BATTLE_START',
-    'The battle has begun!',
-    allUnits
-  ));
+  while (aliveParties && aliveEnemies) {
+    currentRound++;
+    if (currentRound > maxRounds) {
+      console.error("Battle simulation exceeded maximum rounds, likely an infinite loop.");
+      addStep('system', 'error', { message: 'Max rounds exceeded' }, [], snapshot(parties, enemies), snapshot(parties, enemies), 'Error: Max rounds exceeded');
+      break;
+    }
 
-  // --- MAIN BATTLE LOOP ---
-  let roundCount = 0;
-  const isTeamAlive = (team) => team.some(unit => unit.currentHp > 0);
+    for (const unit of turnOrder) {
+      if (unit.currentHp <= 0) continue;
 
-  while (isTeamAlive(allUnits.filter(u => playerParty.some(p => p.id === u.id))) && isTeamAlive(allUnits.filter(u => enemyParty.some(e => e.id === u.id))) && roundCount < 50) { // Safety break
-    roundCount++;
-    battleLog.push(createLogEntry('ROUND_START', `Round ${roundCount} begins.`, allUnits));
+      const preTurn = snapshot(parties, enemies);
+      gainEnergy(unit);
+      drawCard(unit);
+      addStep(unit.id, 'startTurn', {}, [], preTurn, snapshot(parties, enemies), `${unit.id} starts turn`);
 
-    // --- TURN ORDER DETERMINATION ---
-    const turnQueue = allUnits
-      .filter(unit => unit.currentHp > 0)
-      .sort((a, b) => b.speed - a.speed);
+      const playableCards = unit.hand.filter(card => {
+        const data = card;
+        const cost = data.energyCost ?? data.cost ?? 0;
+        return cost <= unit.currentEnergy;
+      });
 
-    // --- PROCESS TURNS FOR THE ROUND ---
-    for (const activeUnit of turnQueue) {
-      if (activeUnit.currentHp <= 0) continue; // Skip if defeated earlier in the round
+      if (playableCards.length === 0) {
+        continue;
+      }
 
-      // 1. Gain Energy
-      activeUnit.energy += 1;
-      battleLog.push(createLogEntry('ENERGY_GAIN', `${activeUnit.name} gains 1 Energy.`, allUnits));
+      const playedCard = playableCards[0];
+      const cost = playedCard.energyCost ?? playedCard.cost ?? 0;
+      const prePlay = snapshot(parties, enemies);
+      unit.currentEnergy = Math.max(0, unit.currentEnergy - cost);
 
-      // 2. Action Selection (MVP AI)
-      let cardToPlay = null;
-      for (const card of activeUnit.cardsInHand) {
-        if (activeUnit.energy >= card.cost) {
-          cardToPlay = card;
-          break; // Play the first affordable card
+      const cardIndexInHand = unit.hand.indexOf(playedCard);
+      if (cardIndexInHand > -1) {
+        unit.hand.splice(cardIndexInHand, 1);
+      }
+
+      const defenders = parties.includes(unit) ? enemies : parties;
+      const target = chooseTarget(defenders);
+      if (!target) continue; // Should not happen if battle doesn't end prematurely
+
+      const { damage, heal } = applyCardEffects(unit, target, playedCard);
+      if (heal) {
+        unit.currentHp = Math.min(unit.hp, unit.currentHp + heal); // Use direct hp property for max HP
+      }
+      if (damage) {
+        target.currentHp = Math.max(0, target.currentHp - damage);
+      }
+      const afterPlay = snapshot(parties, enemies);
+      addStep(
+        unit.id,
+        'playCard',
+        { cardId: playedCard.id, cost, heal, damage },
+        [target.id],
+        prePlay,
+        afterPlay,
+        `${unit.id} played ${playedCard.id} on ${target.id}`
+      );
+
+      if (damage) {
+        const preDamage = afterPlay; // before further modifications
+        const postDamage = snapshot(parties, enemies);
+        addStep(unit.id, 'dealDamage', { amount: damage }, [target.id], preDamage, postDamage, `${target.id} takes ${damage}`);
+        if (target.currentHp <= 0) {
+          const preDeath = postDamage;
+          const postDeath = snapshot(parties, enemies);
+          addStep(target.id, 'death', {}, [], preDeath, postDeath, `${target.id} is defeated`);
         }
       }
 
-      // 3. Execute Action
-      if (cardToPlay) {
-        // Deduct cost and remove card from hand
-        activeUnit.energy -= cardToPlay.cost;
-        activeUnit.cardsInHand = activeUnit.cardsInHand.filter(c => c.id !== cardToPlay.id);
-
-        // Find a random, living target from the opposing team
-        const isPlayerTeam = playerParty.some(p => p.id === activeUnit.id);
-        const opposingTeam = allUnits.filter(u => u.currentHp > 0 && (isPlayerTeam ? !playerParty.some(p => p.id === u.id) : playerParty.some(p => p.id === u.id)));
-
-        if (opposingTeam.length > 0) {
-            const target = opposingTeam[Math.floor(Math.random() * opposingTeam.length)];
-
-            // For now, assume damage is hardcoded in description (e.g., "3 damage")
-            // Ensure there's a match and a number before trying to access it.
-            const damageMatch = cardToPlay.description.match(/\d+/);
-            const damage = damageMatch && damageMatch[0] ? parseInt(damageMatch[0]) : 0;
-            target.currentHp -= damage;
-
-            battleLog.push(createLogEntry(
-                'ACTION',
-                `${activeUnit.name} uses ${cardToPlay.name} on ${target.name}, dealing ${damage} damage.`,
-                allUnits
-            ));
-
-            if (target.currentHp <= 0) {
-                battleLog.push(createLogEntry('DEFEAT', `${target.name} has been defeated.`, allUnits));
-            }
-        }
-      } else {
-        battleLog.push(createLogEntry('NO_ACTION', `${activeUnit.name} has no affordable cards and ends its turn.`, allUnits));
+      aliveParties = parties.some(u => u.currentHp > 0);
+      aliveEnemies = enemies.some(u => u.currentHp > 0);
+      if (!aliveParties && !aliveEnemies) {
+        addStep(unit.id, 'endBattle', { result: 'draw' }, [], snapshot(parties, enemies), snapshot(parties, enemies), 'Battle ends in a draw');
+        return steps;
+      }
+      if (!aliveEnemies) {
+        addStep(unit.id, 'endBattle', { result: 'victory' }, [], snapshot(parties, enemies), snapshot(parties, enemies), 'Victory');
+        return steps;
+      }
+      if (!aliveParties) {
+        addStep(unit.id, 'endBattle', { result: 'defeat' }, [], snapshot(parties, enemies), snapshot(parties, enemies), 'Defeat');
+        return steps;
       }
     }
   }
-
-  // --- BATTLE CONCLUSION ---
-  const playerTeamAlive = isTeamAlive(allUnits.filter(u => playerParty.some(p => p.id === u.id)));
-
-  if (playerTeamAlive) {
-    battleLog.push(createLogEntry('BATTLE_END', 'Victory! The player\'s party is victorious.', allUnits));
-  } else {
-    battleLog.push(createLogEntry('BATTLE_END', 'Defeat! The player\'s party has been defeated.', allUnits));
-  }
-
-  return battleLog;
+  return steps;
 }
-
-// --- TEMPORARY TEST ---
-// This allows you to run `node game/src/logic/battleSimulator.js` to see the output.
-const testPlayerParty = [MOCK_HEROES.RANGER, MOCK_HEROES.BARD];
-const testEnemyParty = [MOCK_ENEMIES.GOBLIN, MOCK_ENEMIES.GOBLIN];
-
-// Assign battle decks for the test
-testPlayerParty[0].battleDeck = [MOCK_CARDS.ARROW_SHOT, MOCK_CARDS.EAGLE_EYE];
-testPlayerParty[1].battleDeck = [MOCK_CARDS.INSPIRE, MOCK_CARDS.LULLABY];
-
-// Need to import MOCK_CARDS for the test to work
-
-const finalLog = battleSimulator(testPlayerParty, testEnemyParty);
-console.log(JSON.stringify(finalLog, null, 2));
