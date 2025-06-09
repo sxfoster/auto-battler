@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate, Link } from "react-router-dom"; // Re-added useNavigate and Link
+import { Link } from "react-router-dom";
 import { useGameState } from "../GameStateProvider.jsx";
 import CharacterCard from "./CharacterCard.tsx";
 import BattleViewer from "./BattleViewer.tsx";
@@ -12,11 +12,10 @@ import { playerParty, enemyParty } from "../../../game/src/logic/sampleBattleDat
 
 interface TownHubProps {
   onStartSkirmish: () => void;
-  // We can add the savedParty prop here later to display it
+  onEnterDungeon: () => void;
 }
 
-const TownHub: React.FC<TownHubProps> = ({ onStartSkirmish }) => {
-  const navigate = useNavigate(); // Reinstated navigate
+const TownHub: React.FC<TownHubProps> = ({ onStartSkirmish, onEnterDungeon }) => {
   const party = useGameState((s) => s.party);
   const [battleSteps, setBattleSteps] = useState(null);
 
@@ -61,7 +60,7 @@ const TownHub: React.FC<TownHubProps> = ({ onStartSkirmish }) => {
       <div className={styles.grid}>
         <button
           className={styles.card}
-          onClick={() => navigate("/party-setup")}
+          onClick={() => {}}
           aria-label="Manage Party"
         >
           <span className={styles.icon}>⚔️</span>
@@ -70,7 +69,7 @@ const TownHub: React.FC<TownHubProps> = ({ onStartSkirmish }) => {
         </button>
         <button
           className={styles.card}
-          onClick={() => navigate("/inventory")}
+          onClick={() => {}}
           aria-label="View Inventory"
         >
           <span className={styles.icon}>🎒</span>
@@ -79,7 +78,7 @@ const TownHub: React.FC<TownHubProps> = ({ onStartSkirmish }) => {
         </button>
         <button
           className={styles.card}
-          onClick={() => navigate("/cards")}
+          onClick={() => {}}
           aria-label="Browse Cards"
         >
           <span className={styles.icon}>📜</span>
@@ -88,7 +87,7 @@ const TownHub: React.FC<TownHubProps> = ({ onStartSkirmish }) => {
         </button>
         <button
           className={styles.card}
-          onClick={() => navigate("/crafting")}
+          onClick={() => {}}
           aria-label="Craft Items"
         >
           <span className={styles.icon}>🛠️</span>
@@ -97,7 +96,7 @@ const TownHub: React.FC<TownHubProps> = ({ onStartSkirmish }) => {
         </button>
         <button
           className={styles.card}
-          onClick={() => navigate("/shop")}
+          onClick={() => {}}
           aria-label="Visit Shop"
         >
           <span className={styles.icon}>🛒</span>
@@ -115,7 +114,7 @@ const TownHub: React.FC<TownHubProps> = ({ onStartSkirmish }) => {
         </button>
         <button
           className={`${styles.card} ${!party ? styles.disabled : ""}`}
-          onClick={() => party && navigate("/dungeon")}
+          onClick={() => party && onEnterDungeon()}
           aria-label="Enter Dungeon"
         >
           <span className={styles.icon}>🏰</span>

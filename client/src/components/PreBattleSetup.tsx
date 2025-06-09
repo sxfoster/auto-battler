@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { UnitState } from '../../shared/models/UnitState'; // Assuming models from Milestone 1
 
 interface PreBattleSetupProps {
@@ -11,7 +11,11 @@ const PreBattleSetup: React.FC<PreBattleSetupProps> = ({ initialParty, onStartBa
   const [gridSlots, setGridSlots] = useState<(UnitState | null)[]>(new Array(9).fill(null));
 
   // State to hold heroes from the party that have not yet been placed
-  const [roster, setRoster] = useState<UnitState[]>(initialParty);
+  const [roster, setRoster] = useState<UnitState[]>([]);
+
+  useEffect(() => {
+    setRoster(initialParty);
+  }, [initialParty]);
 
   const handlePlaceUnit = (unitId: string) => {
     const unitToPlace = roster.find(u => u.id === unitId);
