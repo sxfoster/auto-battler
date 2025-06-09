@@ -4,7 +4,8 @@ import BattleScene from 'game/src/scenes/BattleScene';
 import BattleHUD from '../components/BattleHUD';
 // Use the game workspace's party state utilities directly
 import { loadPartyState } from '../../../game/src/shared/partyState.js';
-import { loadGameState } from 'game/state';
+// Use the game workspace's saved game state utilities directly
+import { loadGameState } from 'game/src/state.js';
 
 export default function Battle() {
   const containerRef = useRef<HTMLDivElement | null>(null);
