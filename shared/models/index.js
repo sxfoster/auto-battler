@@ -14,6 +14,7 @@ export * from './Encounter';
 export * from './GameState';
 export * from './DecisionPoint';
 export { sampleRecipes } from './recipes.js';
+export * from './BattleStep';
 export * from './Profession';
 export * from './Recipe';
 export * from './CraftingAttempt';
