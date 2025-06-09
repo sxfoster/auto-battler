@@ -33,7 +33,7 @@ const TownHub: React.FC<TownHubProps> = ({ onStartSkirmish, onEnterDungeon }) =>
 };
 
   return (
-    <div className={styles.container}>
+    <div className={`min-h-screen flex flex-col justify-center items-center ${styles.container}`}>
       {battleSteps && <BattleViewer steps={battleSteps} />}
       <header className={styles.header}>
         <h2>Town Hub</h2>
