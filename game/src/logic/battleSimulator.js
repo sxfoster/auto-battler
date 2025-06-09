@@ -221,7 +221,8 @@ export function simulateBattle(partyData, enemyData) {
 }
 
 // --- TEMPORARY TEST ---
-if (import.meta.url === `file://${process.argv[1]}`) {
+// Only run the following test when executed directly via Node.
+if (typeof process !== 'undefined' && import.meta.url === `file://${process.argv[1]}`) {
   const testPlayerParty = [MOCK_HEROES.RANGER, MOCK_HEROES.BARD];
   const testEnemyParty = [
     deepClone(MOCK_ENEMIES.GOBLIN),
