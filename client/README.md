@@ -20,6 +20,14 @@ The UI communicates with the Phaser game primarily through `localStorage` for ga
 See [GAME_DESIGN.md](../GAME_DESIGN.md) for a broader overview of the
 gameplay systems this UI interacts with.
 
+### Battle Simulation Prototype
+
+To test the current battle simulation prototype:
+
+1.  Start the application and navigate to the Town Hub.
+2.  Click the "Test Battle" button.
+3.  The battle simulation will run, and a viewer will appear directly on the Town Hub page, displaying the battle steps and log.
+
 ## Scripts
 
 - `npm start` – start the Vite dev server.

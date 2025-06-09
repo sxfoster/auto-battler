@@ -16,6 +16,13 @@ These scenes can run independently for development purposes or be embedded and c
 For a full description of the underlying systems see
 [../GAME_DESIGN.md](../GAME_DESIGN.md).
 
+### Battle Simulation Prototype
+
+The core logic for the turn-based battle simulation is implemented in `src/logic/battleSimulator.js`.
+Sample data for player and enemy parties used in testing the simulation can be found in `src/logic/sampleBattleData.js`.
+
+This simulation can be visually tested via the "Test Battle" button in the Town Hub of the client application (see `client/README.md` for more details on triggering it).
+
 ## Scripts
 
 - `npm start` – launch the dev server on <http://localhost:8080>.

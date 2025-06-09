@@ -1,7 +1,8 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate, Link, useLocation } from "react-router-dom";
 import { useGameState } from "../GameStateProvider.jsx";
 import CharacterCard from "./CharacterCard.tsx";
+import BattleViewer from "./BattleViewer.tsx";
 import styles from "./TownView.module.css";
 import {
   loadPartyState,
@@ -13,6 +14,7 @@ export default function TownHub() {
   const navigate = useNavigate();
   const location = useLocation();
   const party = useGameState((s) => s.party);
+  const [battleSteps, setBattleSteps] = useState(null);
 
   useEffect(() => {
     loadPartyState();
@@ -21,11 +23,15 @@ export default function TownHub() {
 
   const onTestBattle = () => {
     const steps = battleSimulator(playerParty, enemyParty);
-    navigate('/viewer', { state: { steps } });
+    console.log('Total battle steps:', steps.length);
+    console.log('First step:', steps[0]);
+    console.log('Last step:', steps[steps.length - 1]);
+    setBattleSteps(steps);
   };
 
   return (
     <div className={styles.container}>
+      {battleSteps && <BattleViewer steps={battleSteps} />}
       <header className={styles.header}>
         <h2>Town Hub</h2>
         <div className={styles.partyCards}>
