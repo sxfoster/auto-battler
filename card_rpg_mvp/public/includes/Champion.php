@@ -1,7 +1,7 @@
 <?php
 // includes/Champion.php
 
-require_once INCLUDES_PATH . '/GameEntity.php';
+require_once __DIR__ . '/GameEntity.php';
 
 class Champion extends GameEntity {
     public $champion_id; // FK to champions table

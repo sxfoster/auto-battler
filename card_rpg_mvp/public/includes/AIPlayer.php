@@ -1,9 +1,9 @@
 <?php
 // includes/AIPlayer.php
 
-require_once INCLUDES_PATH . '/Card.php';
-require_once INCLUDES_PATH . '/GameEntity.php';
-require_once INCLUDES_PATH . '/db.php'; // To fetch persona data
+require_once __DIR__ . '/Card.php';
+require_once __DIR__ . '/GameEntity.php';
+require_once __DIR__ . '/db.php'; // To fetch persona data
 
 class AIPlayer {
     private $persona; // AI Persona object (from db)

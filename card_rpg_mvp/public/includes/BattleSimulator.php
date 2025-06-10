@@ -1,15 +1,15 @@
 <?php
 // includes/BattleSimulator.php
 
-require_once INCLUDES_PATH . '/db.php';
-require_once INCLUDES_PATH . '/GameEntity.php';
-require_once INCLUDES_PATH . '/Champion.php';
-require_once INCLUDES_PATH . '/Monster.php';
-require_once INCLUDES_PATH . '/Card.php';
-require_once INCLUDES_PATH . '/StatusEffect.php';
-require_once INCLUDES_PATH . '/BuffManager.php';
-require_once INCLUDES_PATH . '/AIPlayer.php';
-require_once INCLUDES_PATH . '/utils.php'; // For logging functions
+require_once __DIR__ . '/db.php';
+require_once __DIR__ . '/GameEntity.php';
+require_once __DIR__ . '/Champion.php';
+require_once __DIR__ . '/Monster.php';
+require_once __DIR__ . '/Card.php';
+require_once __DIR__ . '/StatusEffect.php';
+require_once __DIR__ . '/BuffManager.php';
+require_once __DIR__ . '/AIPlayer.php';
+require_once __DIR__ . '/utils.php'; // For logging functions
 
 class BattleSimulator {
     private $db_conn;
