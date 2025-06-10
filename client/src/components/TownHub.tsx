@@ -1,130 +1,50 @@
-import React, { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
-import { useGameState } from "../GameStateProvider.jsx";
-import CharacterCard from "./CharacterCard.tsx";
-import BattleViewer from "./BattleViewer.tsx";
-import styles from "./TownView.module.css";
-import {
-  loadPartyState,
-} from "../../../game/src/shared/partyState.js";
-import { simulateBattle as battleSimulator } from "../../../game/src/logic/battleSimulator.js";
-import { playerParty, enemyParty } from "../../../game/src/logic/sampleBattleData.js";
+import React from 'react';
+import EnterDungeonButton from './EnterDungeonButton';
+import HubIconButton from './HubIconButton';
+// You will need to find or create SVG icons for each button
+// For example, using a library like `react-icons`
+
+// Placeholder icons - replace with actual SVGs
+const PartyIcon = () => <span>P</span>; 
+const CardsIcon = () => <span>C</span>;
+const SkirmishIcon = () => <span>S</span>;
+const InventoryIcon = () => <span>I</span>;
+const CraftingIcon = () => <span>Cr</span>;
+const ShopIcon = () => <span>Sh</span>;
 
 interface TownHubProps {
-  onStartSkirmish: () => void;
   onEnterDungeon: () => void;
   onNavigateToParty: () => void;
+  onStartSkirmish: () => void;
 }
 
-const TownHub: React.FC<TownHubProps> = ({ onStartSkirmish, onEnterDungeon, onNavigateToParty }) => {
-  const party = useGameState((s) => s.party);
-  const [battleSteps, setBattleSteps] = useState(null);
-
-  useEffect(() => {
-    loadPartyState();
-    console.log('TownHub mounted - party state loaded');
-  }, []);
-
-  const onTestBattle = () => {
-    const steps = battleSimulator(playerParty, enemyParty);
-    console.log('Total battle steps:', steps.length);
-    console.log('First step:', steps[0]);
-    console.log('Last step:', steps[steps.length - 1]);
-    setBattleSteps(steps);
-};
-
+export const TownHub: React.FC<TownHubProps> = ({ onEnterDungeon, onNavigateToParty, onStartSkirmish }) => {
   return (
-    <div className={`min-h-screen flex flex-col justify-center items-center ${styles.container}`}>
-      {battleSteps && <BattleViewer steps={battleSteps} />}
-      <header className={styles.header}>
-        <h2>Town Hub</h2>
-        <div className={styles.partyCards}>
-          {party?.characters && party.characters.length > 0 ? (
-            party.characters.map((character) => (
-              <CharacterCard
-                key={character.id}
-                character={character}
-                onSelect={() => {}}
-                isSelected={false}
-                isDisabled={false}
-              />
-            ))
-          ) : (
-            <p>No party</p>
-          )}
+    // Main container with background and padding
+    <div className="min-h-screen w-full flex items-center justify-center p-8 bg-gray-900" style={{ backgroundImage: `url('/path/to/your/forest-background.jpg')`, backgroundSize: 'cover' }}>
+      
+      <div className="w-full max-w-7xl flex items-center justify-between">
+
+        {/* --- Left Column: Secondary Actions --- */}
+        <div className="flex flex-col gap-6">
+          <HubIconButton label="Party Roster" icon={<PartyIcon />} onClick={onNavigateToParty} />
+          <HubIconButton label="Card Collection" icon={<CardsIcon />} isDisabled={true} />
+          <HubIconButton label="Skirmish" icon={<SkirmishIcon />} onClick={onStartSkirmish} />
         </div>
-        <button onClick={onTestBattle}>Test Battle</button>
-        <Link to="/" className={styles.mainMenu}>
-          Return to Main Menu
-        </Link>
-      </header>
-      <div className={styles.grid}>
-        <button
-          className="p-6 bg-gray-800 hover:bg-gray-700 rounded-lg cursor-pointer text-center"
-          onClick={onNavigateToParty}
-          aria-label="Manage Party"
-        >
-          <span className={styles.icon}>⚔️</span>
-          <span className={styles.title}>Party</span>
-          <span className={styles.subtitle}>Manage your heroes</span>
-        </button>
-        <button
-          className="p-6 bg-gray-800 rounded-lg text-center opacity-50 cursor-not-allowed"
-          onClick={() => {}}
-          aria-label="View Inventory"
-        >
-          <span className={styles.icon}>🎒</span>
-          <span className={styles.title}>Inventory</span>
-          <span className={styles.subtitle}>View your items</span>
-        </button>
-        <button
-          className="p-6 bg-gray-800 hover:bg-gray-700 rounded-lg cursor-pointer text-center"
-          onClick={() => {}}
-          aria-label="Browse Cards"
-        >
-          <span className={styles.icon}>📜</span>
-          <span className={styles.title}>Cards</span>
-          <span className={styles.subtitle}>Browse your card collection</span>
-        </button>
-        <button
-          className="p-6 bg-gray-800 rounded-lg text-center opacity-50 cursor-not-allowed"
-          onClick={() => {}}
-          aria-label="Craft Items"
-        >
-          <span className={styles.icon}>🛠️</span>
-          <span className={styles.title}>Crafting</span>
-          <span className={styles.subtitle}>Prepare for battle</span>
-        </button>
-        <button
-          className="p-6 bg-gray-800 rounded-lg text-center opacity-50 cursor-not-allowed"
-          onClick={() => {}}
-          aria-label="Visit Shop"
-        >
-          <span className={styles.icon}>🛒</span>
-          <span className={styles.title}>Shop</span>
-          <span className={styles.subtitle}>Browse wares</span>
-        </button>
-        <button
-          className="p-6 bg-gray-800 hover:bg-gray-700 rounded-lg cursor-pointer text-center"
-          onClick={onStartSkirmish}
-          aria-label="Battle"
-        >
-          <span className={styles.icon}>⚔️</span>
-          <span className={styles.title}>Battle</span>
-          <span className={styles.subtitle}>Skirmish test</span>
-        </button>
-        <button
-          className="p-6 bg-purple-700 hover:bg-purple-600 rounded-lg cursor-pointer text-center transform hover:scale-105 transition-transform"
-          onClick={onEnterDungeon}
-          aria-label="Enter Dungeon"
-        >
-          <span className={styles.icon}>🏰</span>
-          <span className={styles.title}>Enter Dungeon</span>
-          <span className={styles.subtitle}>Begin an adventure</span>
-        </button>
+
+        {/* --- Center Column: Primary Action --- */}
+        <div className="flex-shrink-0 mx-12">
+          <EnterDungeonButton onClick={onEnterDungeon} />
+        </div>
+
+        {/* --- Right Column: Future Actions --- */}
+        <div className="flex flex-col gap-6">
+          <HubIconButton label="Inventory" icon={<InventoryIcon />} isDisabled={true} />
+          <HubIconButton label="Crafting" icon={<CraftingIcon />} isDisabled={true} />
+          <HubIconButton label="Shop" icon={<ShopIcon />} isDisabled={true} />
+        </div>
+        
       </div>
     </div>
   );
-}
-
-export default TownHub;
+};
