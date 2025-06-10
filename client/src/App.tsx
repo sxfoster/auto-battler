@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import TownHub from './components/TownHub';
+import { TownHub } from './components/TownHub';
 import PreBattleSetup from './components/PreBattleSetup';
 import BattleViewer from './components/BattleViewer';
 import PartySetup from './components/PartySetup';
