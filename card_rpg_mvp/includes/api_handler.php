@@ -31,7 +31,7 @@ function handleApiRequest($endpoint, $action) {
                     sendError("Card type is required.", 400);
                 }
 
-                $query = "SELECT id, name, energy_cost, description, damage_type, armor_type, effect_details, flavor_text
+                $query = "SELECT id, name, card_type, class_affinity, energy_cost, description, damage_type, armor_type, effect_details, flavor_text
                           FROM cards
                           WHERE rarity = 'Common' AND card_type = :card_type";
 
@@ -73,17 +73,18 @@ function handleApiRequest($endpoint, $action) {
                     sendError("Invalid setup data provided. Requires champion_id and 3 card_ids.", 400);
                 }
 
-                // Check if champion_id exists
-                $stmt = $db->prepare("SELECT id FROM champions WHERE id = :champion_id");
+                // Fetch champion data
+                $stmt = $db->prepare("SELECT id, name, role, starting_hp, speed FROM champions WHERE id = :champion_id");
                 $stmt->bindParam(':champion_id', $championId, PDO::PARAM_INT);
                 $stmt->execute();
-                if (!$stmt->fetch()) {
+                $championRow = $stmt->fetch(PDO::FETCH_ASSOC);
+                if (!$championRow) {
                     sendError("Champion ID not found.", 404);
                 }
 
                 // Check if all card_ids exist and are valid common cards
                 $cardIdsPlaceholder = implode(',', array_fill(0, count($cardIds), '?'));
-                $stmt = $db->prepare("SELECT id, card_type, class_affinity FROM cards WHERE id IN ($cardIdsPlaceholder) AND rarity = 'Common'");
+                $stmt = $db->prepare("SELECT id, name, card_type, class_affinity, rarity, energy_cost, description, damage_type, armor_type, effect_details, flavor_text FROM cards WHERE id IN ($cardIdsPlaceholder) AND rarity = 'Common'");
                 $stmt->execute($cardIds);
                 $fetchedCards = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
@@ -91,11 +92,8 @@ function handleApiRequest($endpoint, $action) {
                     sendError("One or more card IDs are invalid or not common cards.", 400);
                 }
 
-                // Get champion name to verify card affinity
-                $champStmt = $db->prepare("SELECT name FROM champions WHERE id = :champion_id");
-                $champStmt->bindParam(':champion_id', $championId, PDO::PARAM_INT);
-                $champStmt->execute();
-                $championName = $champStmt->fetchColumn();
+                // Use champion name from earlier fetch to verify card affinity
+                $championName = $championRow['name'];
 
                 foreach ($fetchedCards as $card) {
                     if ($card['card_type'] === 'ability' || $card['card_type'] === 'armor' || $card['card_type'] === 'weapon') {
@@ -114,11 +112,8 @@ function handleApiRequest($endpoint, $action) {
                 $stmt = $db->prepare("INSERT INTO player_session_data (champion_id, deck_card_ids, current_hp, current_energy, current_speed, current_xp, current_level, wins, losses) VALUES (:champion_id, :deck_card_ids, :current_hp, :current_energy, :current_speed, :current_xp, :current_level, :wins, :losses)");
                 $deckJson = json_encode($cardIds);
 
-                // Fetch champion's base stats for initial player_session_data
-                $champStatsStmt = $db->prepare("SELECT starting_hp, speed FROM champions WHERE id = :champion_id");
-                $champStatsStmt->bindParam(':champion_id', $championId, PDO::PARAM_INT);
-                $champStatsStmt->execute();
-                $champStats = $champStatsStmt->fetch(PDO::FETCH_ASSOC);
+                // Champion base stats from earlier query
+                $champStats = ['starting_hp' => $championRow['starting_hp'], 'speed' => $championRow['speed']];
 
                 $stmt->bindParam(':champion_id', $championId);
                 $stmt->bindParam(':deck_card_ids', $deckJson);
@@ -132,7 +127,24 @@ function handleApiRequest($endpoint, $action) {
 
                 $stmt->execute();
 
-                sendResponse(["message" => "Player setup complete.", "champion_id" => $championId, "deck_card_ids" => $cardIds]);
+                // Prepare full card details for response
+                foreach ($fetchedCards as &$card) {
+                    if ($card['effect_details']) {
+                        $card['effect_details'] = json_decode($card['effect_details'], true);
+                    }
+                }
+
+                sendResponse([
+                    "message" => "Player setup complete.",
+                    "champion" => [
+                        "id" => $championRow['id'],
+                        "name" => $championRow['name'],
+                        "role" => $championRow['role'],
+                        "starting_hp" => $championRow['starting_hp'],
+                        "speed" => $championRow['speed']
+                    ],
+                    "deck" => $fetchedCards
+                ]);
 
             } else if ($action === 'current_setup') {
                 // GET /api/player/current_setup - Retrieve current player's setup
@@ -144,6 +156,21 @@ function handleApiRequest($endpoint, $action) {
 
                 if ($playerData) {
                     $playerData['deck_card_ids'] = json_decode($playerData['deck_card_ids'], true);
+
+                    $cards = [];
+                    if (!empty($playerData['deck_card_ids'])) {
+                        $placeholder = implode(',', array_fill(0, count($playerData['deck_card_ids']), '?'));
+                        $cardStmt = $db->prepare("SELECT id, name, card_type, class_affinity, rarity, energy_cost, description, damage_type, armor_type, effect_details, flavor_text FROM cards WHERE id IN ($placeholder)");
+                        $cardStmt->execute($playerData['deck_card_ids']);
+                        $cards = $cardStmt->fetchAll(PDO::FETCH_ASSOC);
+                        foreach ($cards as &$card) {
+                            if ($card['effect_details']) {
+                                $card['effect_details'] = json_decode($card['effect_details'], true);
+                            }
+                        }
+                    }
+
+                    $playerData['deck'] = $cards;
                     sendResponse($playerData);
                 } else {
                     sendError("No player setup found. Please go through setup first.", 404);
@@ -161,6 +188,10 @@ function handleApiRequest($endpoint, $action) {
                                    JOIN champions c ON psd.champion_id = c.id
                                    LIMIT 1");
                 $playerSessionData = $stmt->fetch(PDO::FETCH_ASSOC);
+
+                if ($playerSessionData && !empty($playerSessionData['deck_card_ids'])) {
+                    $playerSessionData['deck_card_ids'] = json_decode($playerSessionData['deck_card_ids'], true);
+                }
                 
                 if (!$playerSessionData) {
                     sendError("Player not set up for battle. Please complete character setup first.", 400);
@@ -227,7 +258,7 @@ function handleApiRequest($endpoint, $action) {
             if ($action === 'status') {
                 // GET /api/tournament/status
                 // For MVP, just return player's wins/losses and current opponent data for next match
-                $stmt = $db->query("SELECT psd.wins, psd.losses, psd.current_level, c.name as champion_name
+                $stmt = $db->query("SELECT psd.wins, psd.losses, psd.current_level, psd.current_hp, psd.current_energy, psd.current_speed, c.name as champion_name, c.starting_hp, c.speed
                                    FROM player_session_data psd
                                    JOIN champions c ON psd.champion_id = c.id
                                    LIMIT 1");

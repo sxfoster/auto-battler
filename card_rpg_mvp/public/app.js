@@ -459,4 +459,3 @@ async function resetTournament() {
         }
     }
 }
-

@@ -126,9 +126,16 @@ class BattleSimulator {
                 if ($chosenAction && $activeEntity->current_energy >= $chosenAction['card']->energy_cost) {
                     $card = $chosenAction['card'];
                     $target = $chosenAction['target'];
+                    $energyBefore = $activeEntity->current_energy;
                     $activeEntity->current_energy -= $card->energy_cost;
 
-                    $this->logAction($turn, $activeEntity->name, "Plays Card", ["card_name" => $card->name, "energy_spent" => $card->energy_cost, "target" => $target->name]);
+                    $this->logAction($turn, $activeEntity->name, "Plays Card", [
+                        "card_name" => $card->name,
+                        "energy_spent" => $card->energy_cost,
+                        "energy_before" => $energyBefore,
+                        "energy_after" => $activeEntity->current_energy,
+                        "target" => $target->name
+                    ]);
 
                     // Apply card effect (this is where BuffManager will shine)
                     // This is a placeholder for complex card effect application based on effect_details JSON
@@ -185,6 +192,8 @@ class BattleSimulator {
 
         return [
             "message" => "Battle simulated.",
+            "player_name" => $this->player->name,
+            "opponent_name" => $this->opponent->name,
             "player_final_hp" => $this->player->current_hp,
             "opponent_final_hp" => $this->opponent->current_hp,
             "winner" => $winner,
@@ -239,44 +248,49 @@ class BattleSimulator {
         
         // This is a simplified mapping of GDD effect types to actions.
         // This needs to be expanded extensively to handle all card types and effect_details.
+        $turn = $this->battleLog[count($this->battleLog)-1]['turn'];
         switch ($effectDetails['type']) {
             case 'damage':
+                $beforeHp = $actualTarget->current_hp;
                 $damageDealt = calculateDamage($effectDetails['damage'], $card->damage_type, $actualTarget->armor_type ?? NULL);
                 $actualTarget->takeDamage($damageDealt);
-                $this->logAction($this->battleLog[count($this->battleLog)-1]['turn'], $caster->name, "Deals Damage", ["target" => $actualTarget->name, "amount" => $damageDealt, "target_hp_after" => $actualTarget->current_hp]);
+                $this->logAction($turn, $caster->name, "Deals Damage", ["target" => $actualTarget->name, "amount" => $damageDealt, "target_hp_before" => $beforeHp, "target_hp_after" => $actualTarget->current_hp]);
                 break;
             case 'heal':
+                $beforeHp = $actualTarget->current_hp;
                 $actualTarget->heal($effectDetails['amount']);
-                $this->logAction($this->battleLog[count($this->battleLog)-1]['turn'], $caster->name, "Heals", ["target" => $actualTarget->name, "amount" => $effectDetails['amount'], "target_hp_after" => $actualTarget->current_hp]);
+                $this->logAction($turn, $caster->name, "Heals", ["target" => $actualTarget->name, "amount" => $effectDetails['amount'], "target_hp_before" => $beforeHp, "target_hp_after" => $actualTarget->current_hp]);
                 break;
             case 'buff':
                 BuffManager::applyEffect($actualTarget, $card, $effectDetails);
-                $this->logAction($this->battleLog[count($this->battleLog)-1]['turn'], $caster->name, "Applies Buff", ["target" => $actualTarget->name, "stat" => $effectDetails['stat'], "amount" => $effectDetails['amount'], "duration" => $effectDetails['duration']]);
+                $this->logAction($turn, $caster->name, "Applies Buff", ["target" => $actualTarget->name, "stat" => $effectDetails['stat'], "amount" => $effectDetails['amount'], "duration" => $effectDetails['duration']]);
                 break;
             case 'debuff':
                 BuffManager::applyEffect($actualTarget, $card, $effectDetails);
-                $this->logAction($this->battleLog[count($this->battleLog)-1]['turn'], $caster->name, "Applies Debuff", ["target" => $actualTarget->name, "stat" => $effectDetails['stat'], "amount" => $effectDetails['amount'], "duration" => $effectDetails['duration']]);
+                $this->logAction($turn, $caster->name, "Applies Debuff", ["target" => $actualTarget->name, "stat" => $effectDetails['stat'], "amount" => $effectDetails['amount'], "duration" => $effectDetails['duration']]);
                 break;
             case 'status_effect': // Stun, Root, Confuse, Shock
                 BuffManager::applyEffect($actualTarget, $card, $effectDetails);
-                 $this->logAction($this->battleLog[count($this->battleLog)-1]['turn'], $caster->name, "Applies Status", ["target" => $actualTarget->name, "effect" => $effectDetails['effect'], "duration" => $effectDetails['duration']]);
+                 $this->logAction($turn, $caster->name, "Applies Status", ["target" => $actualTarget->name, "effect" => $effectDetails['effect'], "duration" => $effectDetails['duration']]);
                 break;
             case 'damage_dot':
+                $beforeHp = $actualTarget->current_hp;
                 $damageDealt = calculateDamage($effectDetails['damage'], $card->damage_type, $actualTarget->armor_type ?? NULL);
                 $actualTarget->takeDamage($damageDealt);
-                $this->logAction($this->battleLog[count($this->battleLog)-1]['turn'], $caster->name, "Deals Damage", ["target" => $actualTarget->name, "amount" => $damageDealt, "target_hp_after" => $actualTarget->current_hp]);
+                $this->logAction($turn, $caster->name, "Deals Damage", ["target" => $actualTarget->name, "amount" => $damageDealt, "target_hp_before" => $beforeHp, "target_hp_after" => $actualTarget->current_hp]);
                 BuffManager::applyEffect($actualTarget, $card, $effectDetails); // Apply DOT as a status effect
-                $this->logAction($this->battleLog[count($this->battleLog)-1]['turn'], $caster->name, "Applies DOT", ["target" => $actualTarget->name, "type" => $effectDetails['dot_type'], "amount" => $effectDetails['dot_amount'], "duration" => $effectDetails['dot_duration']]);
+                $this->logAction($turn, $caster->name, "Applies DOT", ["target" => $actualTarget->name, "type" => $effectDetails['dot_type'], "amount" => $effectDetails['dot_amount'], "duration" => $effectDetails['dot_duration']]);
                 break;
             case 'aoe_damage': // For MVP 1v1, this just hits the single opponent
+                $beforeHp = $actualTarget->current_hp;
                 $damageDealt = calculateDamage($effectDetails['damage'], $card->damage_type, $actualTarget->armor_type ?? NULL);
                 $actualTarget->takeDamage($damageDealt);
-                 $this->logAction($this->battleLog[count($this->battleLog)-1]['turn'], $caster->name, "Deals AOE Damage", ["target" => $actualTarget->name, "amount" => $damageDealt, "target_hp_after" => $actualTarget->current_hp]);
+                 $this->logAction($turn, $caster->name, "Deals AOE Damage", ["target" => $actualTarget->name, "amount" => $damageDealt, "target_hp_before" => $beforeHp, "target_hp_after" => $actualTarget->current_hp]);
                 break;
             // Add other effect types based on your card data's effect_details
             // Example: 'damage_self_debuff', 'aoe_damage_self_damage', 'prevent_defeat', etc.
             default:
-                $this->logAction($this->battleLog[count($this->battleLog)-1]['turn'], $caster->name, "Unhandled Effect", ["card_name" => $card->name, "effect_type" => $effectDetails['type']]);
+                $this->logAction($turn, $caster->name, "Unhandled Effect", ["card_name" => $card->name, "effect_type" => $effectDetails['type']]);
                 break;
         }
     }
