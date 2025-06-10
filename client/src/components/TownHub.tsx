@@ -1,16 +1,15 @@
 import React from 'react';
+// Make sure these components exist from the previous work plan
 import EnterDungeonButton from './EnterDungeonButton';
 import HubIconButton from './HubIconButton';
-// You will need to find or create SVG icons for each button
-// For example, using a library like `react-icons`
 
-// Placeholder icons - replace with actual SVGs
-const PartyIcon = () => <span>P</span>; 
-const CardsIcon = () => <span>C</span>;
-const SkirmishIcon = () => <span>S</span>;
-const InventoryIcon = () => <span>I</span>;
-const CraftingIcon = () => <span>Cr</span>;
-const ShopIcon = () => <span>Sh</span>;
+// Placeholder icons - replace with your actual SVGs
+const PartyIcon = () => <svg /* ... */ />;
+const CardsIcon = () => <svg /* ... */ />;
+const SkirmishIcon = () => <svg /* ... */ />;
+const InventoryIcon = () => <svg /* ... */ />;
+const CraftingIcon = () => <svg /* ... */ />;
+const ShopIcon = () => <svg /* ... */ />;
 
 interface TownHubProps {
   onEnterDungeon: () => void;
@@ -20,9 +19,16 @@ interface TownHubProps {
 
 export const TownHub: React.FC<TownHubProps> = ({ onEnterDungeon, onNavigateToParty, onStartSkirmish }) => {
   return (
-    // Main container with background and padding
-    <div className="min-h-screen w-full flex items-center justify-center p-8 bg-gray-900" style={{ backgroundImage: `url('/path/to/your/forest-background.jpg')`, backgroundSize: 'cover' }}>
-      
+    // Main container that centers everything and applies the background
+    <div
+      className="min-h-screen w-full flex items-center justify-center p-8"
+      style={{
+        backgroundImage: `url('/forest-bg.jpg')`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center'
+      }}
+    >
+      {/* Flex container to arrange the columns */}
       <div className="w-full max-w-7xl flex items-center justify-between">
 
         {/* --- Left Column: Secondary Actions --- */}
