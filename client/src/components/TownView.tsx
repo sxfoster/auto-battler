@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
 import { useNavigate, Link, useLocation } from "react-router-dom";
 import { useGameState } from "../GameStateProvider.jsx";
-import CharacterCard from "./CharacterCard.tsx";
+import SelectableCharacterCard from "./SelectableCharacterCard.tsx";
 import styles from "./TownView.module.css";
 import {
   partyState,
@@ -25,7 +25,7 @@ export default function TownView() {
         <div className={styles.partyCards}>
           {party?.characters && party.characters.length > 0 ? (
             party.characters.map((character) => (
-              <CharacterCard
+              <SelectableCharacterCard
                 key={character.id}
                 character={character}
                 onSelect={() => {}}
