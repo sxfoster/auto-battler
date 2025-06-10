@@ -32,11 +32,12 @@ class AIPlayer {
     /**
      * Decides which card an AI entity should play and on whom.
      * @param GameEntity $aiEntity The AI-controlled entity.
-     * @param GameEntity $playerEntity The human player's entity.
+     * @param Team $actingTeam The team the entity belongs to.
+     * @param Team $opposingTeam The enemy team.
      * @param Card[] $availableCards The cards currently in the AI entity's hand/deck.
      * @return array|null Returns ['card' => Card object, 'target' => GameEntity object] or null if no action.
      */
-    public function decideAction(GameEntity $aiEntity, GameEntity $playerEntity, array $availableCards) {
+    public function decideAction(GameEntity $aiEntity, Team $actingTeam, Team $opposingTeam, array $availableCards) {
         $chosenCard = null;
         $chosenTarget = null;
         $bestScore = -1;
@@ -82,18 +83,16 @@ class AIPlayer {
                 $targetCandidate = null;
                 if ($card->card_type === 'ability' || $card->card_type === 'weapon' || $card->card_type === 'item') {
                     if (strpos($card->effect_details['type'] ?? '', 'damage') !== false) {
-                         // Damaging cards target based on target_priority (lowest_hp for aggressive)
                          if ($targetPriorities === 'lowest_hp') {
-                            $targetCandidate = ($playerEntity->current_hp <= $aiEntity->current_hp) ? $playerEntity : $aiEntity; // Simple low HP check
+                            $targetCandidate = $opposingTeam->getLowestHpActiveEntity();
                          } else {
-                            $targetCandidate = $playerEntity; // Default to player
+                            $targetCandidate = $opposingTeam->getRandomActiveEntity();
                          }
                     } elseif (strpos($card->effect_details['type'] ?? '', 'heal') !== false || strpos($card->effect_details['type'] ?? '', 'buff') !== false) {
-                        // Healing/buffing cards target based on persona (self_lowest_hp for defensive)
                         if ($targetPriorities === 'self_lowest_hp') {
-                            $targetCandidate = ($aiEntity->current_hp < $aiEntity->max_hp) ? $aiEntity : null; // Only heal if not full HP
+                            $targetCandidate = $actingTeam->getLowestHpActiveEntity() ?: $aiEntity;
                         } else {
-                            $targetCandidate = $aiEntity; // Default to self
+                            $targetCandidate = $aiEntity;
                         }
                     }
                 }

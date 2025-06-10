@@ -20,6 +20,7 @@ class GameEntity {
     public $hand = []; // Array of Card objects currently in hand (for MVP, maybe just 'available cards')
     public $discard = []; // Array of Card objects in discard
     public $team; // Reference to the team this entity belongs to (PlayerTeam or AITeam)
+    public $isPlayerTeam = false; // flag for which side owns this entity
     public $role; // Tank, DPS, Support etc.
 
     public function __construct($id, $name, $hp, $speed, $role = 'unknown', $base_attack = 1) {
