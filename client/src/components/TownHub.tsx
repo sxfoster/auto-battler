@@ -18,7 +18,7 @@ export const TownHub: React.FC<TownHubProps> = ({
           <span className="hub-label">Party</span>
         </button>
         <button className="hub-icon" aria-label="Inventory">
-          <i className="fa-solid fa-backpack" />
+          <i className="fa-solid fa-bag-shopping" />
           <span className="hub-label">Inventory</span>
         </button>
         <button className="hub-icon" aria-label="Cards">
@@ -36,7 +36,7 @@ export const TownHub: React.FC<TownHubProps> = ({
           <span className="hub-label">Shop</span>
         </button>
         <button className="hub-icon" onClick={onStartSkirmish} aria-label="Battle">
-          <i className="fa-solid fa-swords" />
+          <i className="fa-solid fa-user-ninja" />
           <span className="hub-label">Battle</span>
         </button>
       </div>
