@@ -3,6 +3,7 @@
 
 require_once INCLUDES_PATH . '/db.php';
 require_once INCLUDES_PATH . '/utils.php';
+require_once INCLUDES_PATH . '/BattleSimulator.php'; // New include
 
 function handleApiRequest($endpoint, $action) {
     $database = new Database();
@@ -35,15 +36,16 @@ function handleApiRequest($endpoint, $action) {
                           WHERE rarity = 'Common' AND card_type = :card_type";
 
                 if (!empty($classAffinity)) {
-                    // This is a simple LIKE for comma-separated affinity. A join table is better long-term.
-                    $query .= " AND (class_affinity LIKE :class_affinity OR class_affinity IS NULL)";
+                    $query .= " AND (class_affinity LIKE :class_affinity_start OR class_affinity LIKE :class_affinity_middle OR class_affinity LIKE :class_affinity_end OR class_affinity LIKE :class_affinity_exact OR class_affinity IS NULL)";
                 }
 
                 $stmt = $db->prepare($query);
                 $stmt->bindParam(':card_type', $cardType);
                 if (!empty($classAffinity)) {
-                     $searchClass = "%" . $classAffinity . "%";
-                     $stmt->bindParam(':class_affinity', $searchClass);
+                     $stmt->bindValue(':class_affinity_start', $classAffinity . ',%');
+                     $stmt->bindValue(':class_affinity_middle', '%,' . $classAffinity . ',%');
+                     $stmt->bindValue(':class_affinity_end', '%,' . $classAffinity);
+                     $stmt->bindValue(':class_affinity_exact', $classAffinity);
                 }
                 $stmt->execute();
                 $cards = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -63,35 +65,78 @@ function handleApiRequest($endpoint, $action) {
         
         case 'player':
             if ($action === 'setup' && $_SERVER['REQUEST_METHOD'] === 'POST') {
-                // POST /api/player/setup
                 $input = json_decode(file_get_contents('php://input'), true);
                 $championId = $input['champion_id'] ?? null;
-                $cardIds = $input['card_ids'] ?? []; // Array of 3 card IDs
+                $cardIds = $input['card_ids'] ?? [];
 
                 if (empty($championId) || count($cardIds) !== 3) {
-                    sendError("Invalid setup data provided.", 400);
+                    sendError("Invalid setup data provided. Requires champion_id and 3 card_ids.", 400);
                 }
 
-                // In a real game, you'd store this against a user ID.
-                // For MVP, we'll store it as a temporary "current player session".
-                // Simplistic: Overwrite previous setup or use a unique session ID.
-                // For now, let's just assume one "active" player setup for the tournament.
-                
+                // Check if champion_id exists
+                $stmt = $db->prepare("SELECT id FROM champions WHERE id = :champion_id");
+                $stmt->bindParam(':champion_id', $championId, PDO::PARAM_INT);
+                $stmt->execute();
+                if (!$stmt->fetch()) {
+                    sendError("Champion ID not found.", 404);
+                }
+
+                // Check if all card_ids exist and are valid common cards
+                $cardIdsPlaceholder = implode(',', array_fill(0, count($cardIds), '?'));
+                $stmt = $db->prepare("SELECT id, card_type, class_affinity FROM cards WHERE id IN ($cardIdsPlaceholder) AND rarity = 'Common'");
+                $stmt->execute($cardIds);
+                $fetchedCards = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+                if (count($fetchedCards) !== 3) {
+                    sendError("One or more card IDs are invalid or not common cards.", 400);
+                }
+
+                // Get champion name to verify card affinity
+                $champStmt = $db->prepare("SELECT name FROM champions WHERE id = :champion_id");
+                $champStmt->bindParam(':champion_id', $championId, PDO::PARAM_INT);
+                $champStmt->execute();
+                $championName = $champStmt->fetchColumn();
+
+                foreach ($fetchedCards as $card) {
+                    if ($card['card_type'] === 'ability' || $card['card_type'] === 'armor' || $card['card_type'] === 'weapon') {
+                        $affinities = explode(',', $card['class_affinity']);
+                        if (!in_array($championName, $affinities) && $card['class_affinity'] !== NULL) { // Allow NULL for generic items in future
+                             sendError("Card '{$card['name']}' is not usable by {$championName}.", 400);
+                        }
+                    }
+                }
+
                 // Clear any old player setup (simplistic MVP state management)
-                $db->exec("DELETE FROM player_session_data"); // Requires 'player_session_data' table
+                // This requires a player_session_data table
+                $db->exec("DELETE FROM player_session_data");
                 
                 // Store player's selected champion and deck for the current tournament run
-                $stmt = $db->prepare("INSERT INTO player_session_data (champion_id, deck_card_ids) VALUES (:champion_id, :deck_card_ids)");
+                $stmt = $db->prepare("INSERT INTO player_session_data (champion_id, deck_card_ids, current_hp, current_energy, current_speed, current_xp, current_level, wins, losses) VALUES (:champion_id, :deck_card_ids, :current_hp, :current_energy, :current_speed, :current_xp, :current_level, :wins, :losses)");
                 $deckJson = json_encode($cardIds);
+
+                // Fetch champion's base stats for initial player_session_data
+                $champStatsStmt = $db->prepare("SELECT starting_hp, speed FROM champions WHERE id = :champion_id");
+                $champStatsStmt->bindParam(':champion_id', $championId, PDO::PARAM_INT);
+                $champStatsStmt->execute();
+                $champStats = $champStatsStmt->fetch(PDO::FETCH_ASSOC);
+
                 $stmt->bindParam(':champion_id', $championId);
                 $stmt->bindParam(':deck_card_ids', $deckJson);
+                $stmt->bindParam(':current_hp', $champStats['starting_hp']);
+                $stmt->bindValue(':current_energy', 1); // Start with 1 energy
+                $stmt->bindParam(':current_speed', $champStats['speed']);
+                $stmt->bindValue(':current_xp', 0);
+                $stmt->bindValue(':current_level', 1);
+                $stmt->bindValue(':wins', 0);
+                $stmt->bindValue(':losses', 0);
+
                 $stmt->execute();
 
                 sendResponse(["message" => "Player setup complete.", "champion_id" => $championId, "deck_card_ids" => $cardIds]);
 
             } else if ($action === 'current_setup') {
                 // GET /api/player/current_setup - Retrieve current player's setup
-                $stmt = $db->query("SELECT psd.champion_id, c.name as champion_name, c.starting_hp, c.speed, psd.deck_card_ids
+                $stmt = $db->query("SELECT psd.champion_id, c.name as champion_name, c.role, c.starting_hp, c.speed, psd.deck_card_ids, psd.current_hp, psd.current_energy, psd.current_speed, psd.wins, psd.losses, psd.current_xp, psd.current_level
                                    FROM player_session_data psd
                                    JOIN champions c ON psd.champion_id = c.id
                                    LIMIT 1"); // Assuming only one active player session for MVP
@@ -101,7 +146,7 @@ function handleApiRequest($endpoint, $action) {
                     $playerData['deck_card_ids'] = json_decode($playerData['deck_card_ids'], true);
                     sendResponse($playerData);
                 } else {
-                    sendError("No player setup found.", 404);
+                    sendError("No player setup found. Please go through setup first.", 404);
                 }
             } else {
                 sendError("Invalid action for player endpoint.", 404);
@@ -110,168 +155,68 @@ function handleApiRequest($endpoint, $action) {
 
         case 'battle':
             if ($action === 'simulate' && $_SERVER['REQUEST_METHOD'] === 'POST') {
-                // POST /api/battle/simulate
-                // This is where the core battle simulation logic will go.
-                // For now, let's return a placeholder.
-                
-                // Get player's current setup
-                $stmt = $db->query("SELECT psd.champion_id, c.name as champion_name, c.starting_hp, c.speed, psd.deck_card_ids
+                // Load player's current session data
+                $stmt = $db->query("SELECT psd.champion_id, c.name as champion_name, c.role, c.starting_hp, c.speed, psd.deck_card_ids, psd.current_hp, psd.current_energy, psd.current_speed, psd.wins, psd.losses, psd.current_xp, psd.current_level
                                    FROM player_session_data psd
                                    JOIN champions c ON psd.champion_id = c.id
                                    LIMIT 1");
-                $playerData = $stmt->fetch(PDO::FETCH_ASSOC);
+                $playerSessionData = $stmt->fetch(PDO::FETCH_ASSOC);
                 
-                if (!$playerData) {
-                    sendError("Player not set up for battle.", 400);
+                if (!$playerSessionData) {
+                    sendError("Player not set up for battle. Please complete character setup first.", 400);
                 }
-                
-                // 1. Generate AI Opponent (simplistic for MVP)
-                $allMonstersStmt = $db->query("SELECT id, name, starting_hp, speed FROM monsters ORDER BY RAND() LIMIT 1");
-                $aiMonster = $allMonstersStmt->fetch(PDO::FETCH_ASSOC);
 
-                if (!$aiMonster) {
+                // Pick a random AI Monster opponent (from GDD)
+                $allMonstersStmt = $db->query("SELECT id, name, role, starting_hp, speed FROM monsters ORDER BY RAND() LIMIT 1");
+                $aiMonsterData = $allMonstersStmt->fetch(PDO::FETCH_ASSOC);
+
+                if (!$aiMonsterData) {
                     sendError("No monsters available for AI opponent.", 500);
                 }
                 
-                // Fetch random common cards for AI Monster (need to adjust for monster abilities)
-                // For MVP, let's just give AI a random 3 common ability cards.
-                $aiCardsStmt = $db->prepare("SELECT id, name, energy_cost, description, damage_type, effect_details FROM cards WHERE card_type = 'ability' AND rarity = 'Common' ORDER BY RAND() LIMIT 3");
-                $aiCardsStmt->execute();
-                $aiDeck = $aiCardsStmt->fetchAll(PDO::FETCH_ASSOC);
-                 foreach ($aiDeck as &$card) { // Decode effect details for AI cards too
-                    if ($card['effect_details']) {
-                        $card['effect_details'] = json_decode($card['effect_details'], true);
-                    }
-                }
+                $battleSimulator = new BattleSimulator();
+                $simulationResult = $battleSimulator->simulateBattle($playerSessionData, $aiMonsterData['id']);
 
-                // 2. Initialize Battle State (PHP objects for entities/cards)
-                // This would be your PHP classes for Champion, Monster, Card, BattleSimulator
-                $playerChampion = [
-                    'id' => $playerData['champion_id'],
-                    'name' => $playerData['champion_name'],
-                    'current_hp' => $playerData['starting_hp'],
-                    'max_hp' => $playerData['starting_hp'],
-                    'current_energy' => 1, // Start with 1 energy
-                    'speed' => $playerData['speed'],
-                    'deck' => $playerData['deck_card_ids'] // Just IDs for now, need to fetch full card data
+                // Update player's session data after battle (HP, XP, wins/losses)
+                if ($simulationResult['result'] === 'win') {
+                    $playerSessionData['wins']++;
+                    $playerSessionData['current_xp'] += $simulationResult['xp_awarded'];
+                } else {
+                    $playerSessionData['losses']++;
+                    $playerSessionData['current_xp'] += $simulationResult['xp_awarded'];
+                }
+                $playerSessionData['current_hp'] = $simulationResult['player_final_hp'];
+                $playerSessionData['current_energy'] = 1; // Reset energy after battle
+                $playerSessionData['current_speed'] = $playerSessionData['speed']; // Reset speed after battle
+
+                // Check for level up (simplistic for MVP)
+                $xpTable = [
+                    1 => 60, 2 => 70, 3 => 80, 4 => 90, 5 => 100,
+                    6 => 110, 7 => 120, 8 => 130, 9 => 140, 10 => 99999 // Max level
                 ];
-                
-                // Fetch full card data for player's deck
-                $playerDeckCards = [];
-                if (!empty($playerData['deck_card_ids'])) {
-                    $cardIdsPlaceholder = implode(',', array_fill(0, count($playerData['deck_card_ids']), '?'));
-                    $playerCardsStmt = $db->prepare("SELECT id, name, card_type, rarity, energy_cost, description, damage_type, armor_type, effect_details FROM cards WHERE id IN ($cardIdsPlaceholder)");
-                    $playerCardsStmt->execute($playerData['deck_card_ids']);
-                    $playerDeckCards = $playerCardsStmt->fetchAll(PDO::FETCH_ASSOC);
-                     foreach ($playerDeckCards as &$card) { // Decode effect details
-                        if ($card['effect_details']) {
-                            $card['effect_details'] = json_decode($card['effect_details'], true);
-                        }
-                    }
+                $currentLevelXpRequired = $xpTable[$playerSessionData['current_level']] ?? 0;
+                while ($playerSessionData['current_xp'] >= $currentLevelXpRequired && $playerSessionData['current_level'] < 10) {
+                    $playerSessionData['current_level']++;
+                    $playerSessionData['current_hp'] += 2; // +2 HP per level
+                    $playerSessionData['starting_hp'] = $playerSessionData['current_hp']; // Max HP increases
+                    $playerSessionData['current_energy'] = min($playerSessionData['current_energy'] + 1, 4); // Max energy increases
+                    // Speed updates are conditional in GDD (Task 2.3 - 2.3. Level-Up Matrix (Level 1 to Level 10))
+                    // For MVP, skip conditional speed for now or add simple +1 every 3 levels or so.
+                    $currentLevelXpRequired = $xpTable[$playerSessionData['current_level']] ?? 0;
                 }
-                $playerChampion['full_deck'] = $playerDeckCards; // Store full card data
 
-                $opponentMonster = [
-                    'id' => $aiMonster['id'],
-                    'name' => $aiMonster['name'],
-                    'current_hp' => $aiMonster['starting_hp'],
-                    'max_hp' => $aiMonster['starting_hp'],
-                    'current_energy' => 1, // Start with 1 energy
-                    'speed' => $aiMonster['speed'],
-                    'deck' => $aiDeck // AI's full card data
-                ];
 
-                $battleLog = [];
-                $winner = null;
-                $turn = 0;
-                $maxTurns = 10; // Prevent infinite loops for MVP
+                $updateStmt = $db->prepare("UPDATE player_session_data SET current_hp = :current_hp, current_energy = :current_energy, current_speed = :current_speed, wins = :wins, losses = :losses, current_xp = :current_xp, current_level = :current_level LIMIT 1");
+                $updateStmt->bindParam(':current_hp', $playerSessionData['current_hp']);
+                $updateStmt->bindParam(':current_energy', $playerSessionData['current_energy']);
+                $updateStmt->bindParam(':current_speed', $playerSessionData['current_speed']);
+                $updateStmt->bindParam(':wins', $playerSessionData['wins']);
+                $updateStmt->bindParam(':losses', $playerSessionData['losses']);
+                $updateStmt->bindParam(':current_xp', $playerSessionData['current_xp']);
+                $updateStmt->bindParam(':current_level', $playerSessionData['current_level']);
+                $updateStmt->execute();
 
-                // Simple Battle Simulation Loop (PLACEHOLDER LOGIC)
-                while ($playerChampion['current_hp'] > 0 && $opponentMonster['current_hp'] > 0 && $turn < $maxTurns) {
-                    $turn++;
-                    $logEntry = ["turn" => $turn, "actions" => []];
-
-                    // Determine initiative (simple: player always first for MVP)
-                    $activeActors = [$playerChampion, $opponentMonster];
-                    // You'd sort by speed here if implementing full initiative from GDD (Battle System - 5. Initiative System)
-                    
-                    foreach ($activeActors as $actorIndex => &$actor) { // Using & to modify original arrays
-                        if ($actor['current_hp'] <= 0) continue; // Skip if defeated
-
-                        $isPlayer = ($actor['name'] === $playerChampion['name'] && $actor['id'] === $playerChampion['id']);
-                        $actorName = $isPlayer ? $playerChampion['name'] : $opponentMonster['name'];
-                        $target = $isPlayer ? $opponentMonster : $playerChampion; // Simple single target for MVP
-
-                        $logEntry['actions'][] = ["actor" => $actorName, "action_type" => "start_turn", "energy" => $actor['current_energy']];
-                        
-                        // Draw card (simple: always have all 3 cards in hand for MVP for now)
-                        // Add energy (GDD: Level 1 base energy is 1)
-                        $actor['current_energy'] = min($actor['current_energy'] + 1, 4); // Capped at 4 for level 9+
-                        
-                        // Play a card (simplistic AI/player: pick first affordable card)
-                        $playedCard = null;
-                        $actorCards = $isPlayer ? $playerChampion['full_deck'] : $opponentMonster['deck']; // Get full card data
-                        
-                        foreach ($actorCards as $card) {
-                            if ($actor['current_energy'] >= $card['energy_cost']) {
-                                $playedCard = $card;
-                                break; // Play the first affordable card
-                            }
-                        }
-
-                        if ($playedCard) {
-                            $actor['current_energy'] -= $playedCard['energy_cost'];
-                            $logEntry['actions'][] = ["actor" => $actorName, "action_type" => "play_card", "card_name" => $playedCard['name'], "energy_spent" => $playedCard['energy_cost']];
-
-                            // Apply card effect (very simplified for MVP)
-                            if (isset($playedCard['effect_details']) && $playedCard['effect_details']) {
-                                $effect = $playedCard['effect_details'];
-                                if ($effect['type'] == 'damage') {
-                                    $damageDealt = calculateDamage($effect['damage'], $playedCard['damage_type'], $target['armor_type'] ?? null); // Add armor_type to entity later
-                                    $target['current_hp'] -= $damageDealt;
-                                    $logEntry['actions'][] = ["actor" => $actorName, "action_type" => "deal_damage", "target" => $target['name'], "amount" => $damageDealt, "target_hp_after" => $target['current_hp']];
-                                } elseif ($effect['type'] == 'heal') {
-                                    $healedTarget = $isPlayer ? $playerChampion : $opponentMonster; // Self-heal for MVP simplicity
-                                    $healedTarget['current_hp'] = min($healedTarget['current_hp'] + $effect['amount'], $healedTarget['max_hp']);
-                                    $logEntry['actions'][] = ["actor" => $actorName, "action_type" => "heal", "target" => $healedTarget['name'], "amount" => $effect['amount'], "target_hp_after" => $healedTarget['current_hp']];
-                                }
-                                // ... extend with other effect types later
-                            }
-                        } else {
-                            $logEntry['actions'][] = ["actor" => $actorName, "action_type" => "pass_turn", "reason" => "No affordable cards"];
-                        }
-                    }
-
-                    // Re-assign actors back to their original variables after loop (important for `&` usage)
-                    $playerChampion = $activeActors[0];
-                    $opponentMonster = $activeActors[1];
-                    
-                    // Check for battle end conditions
-                    if ($playerChampion['current_hp'] <= 0) {
-                        $winner = $opponentMonster['name'];
-                        break;
-                    }
-                    if ($opponentMonster['current_hp'] <= 0) {
-                        $winner = $playerChampion['name'];
-                        break;
-                    }
-                }
-                
-                $result = $winner === $playerChampion['name'] ? 'win' : 'loss';
-                $xp_awarded = ($result === 'win' ? 60 : 30); // From GDD: Game Modes - 1.2. XP Rewards Per Match
-                
-                // Update player's XP and tournament status (requires tournament_status table)
-                // For MVP, just return XP for now.
-                
-                sendResponse([
-                    "message" => "Battle simulated.",
-                    "player_final_hp" => $playerChampion['current_hp'],
-                    "opponent_final_hp" => $opponentMonster['current_hp'],
-                    "winner" => $winner,
-                    "result" => $result,
-                    "xp_awarded" => $xp_awarded,
-                    "log" => $battleLog
-                ]);
+                sendResponse($simulationResult);
 
             } else {
                 sendError("Invalid action for battle endpoint.", 404);
@@ -279,8 +224,44 @@ function handleApiRequest($endpoint, $action) {
             break;
 
         case 'tournament':
-            // Placeholder for tournament endpoints (status, progress, reset)
-            sendError("Tournament endpoint not yet implemented for MVP.", 501);
+            if ($action === 'status') {
+                // GET /api/tournament/status
+                // For MVP, just return player's wins/losses and current opponent data for next match
+                $stmt = $db->query("SELECT psd.wins, psd.losses, psd.current_level, c.name as champion_name
+                                   FROM player_session_data psd
+                                   JOIN champions c ON psd.champion_id = c.id
+                                   LIMIT 1");
+                $playerTournamentStatus = $stmt->fetch(PDO::FETCH_ASSOC);
+
+                if ($playerTournamentStatus) {
+                    // Determine if game over
+                    $gameOver = ($playerTournamentStatus['losses'] >= 2); // GDD: 2 losses = elimination
+
+                    $nextOpponentName = "TBD Opponent"; // Placeholder
+                    if (!$gameOver) {
+                         // In a full tournament, you'd calculate the next opponent based on bracket logic
+                         // For MVP, let's just indicate there will be a next battle if not eliminated.
+                         $randomMonsterStmt = $db->query("SELECT name FROM monsters ORDER BY RAND() LIMIT 1");
+                         $nextOpponentName = $randomMonsterStmt->fetchColumn() . " (AI)";
+                    }
+                    
+                    sendResponse([
+                        "player_status" => $playerTournamentStatus,
+                        "game_over" => $gameOver,
+                        "next_opponent" => $nextOpponentName,
+                        "message" => $gameOver ? "You have been eliminated from the tournament." : "Ready for the next round!"
+                    ]);
+                } else {
+                    sendError("Tournament status not found. Please setup player first.", 404);
+                }
+
+            } else if ($action === 'reset' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+                // POST /api/tournament/reset
+                $db->exec("TRUNCATE TABLE player_session_data"); // Reset player progress
+                sendResponse(["message" => "Tournament and player progress reset."]);
+            } else {
+                sendError("Invalid action for tournament endpoint.", 404);
+            }
             break;
 
         default:
