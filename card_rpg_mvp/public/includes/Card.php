@@ -21,10 +21,10 @@ class Card {
         $this->rarity = $data['rarity'];
         $this->energy_cost = $data['energy_cost'];
         $this->description = $data['description'];
-        $this->damage_type = $data['damage_type'];
-        $this->armor_type = $data['armor_type'];
-        $this->class_affinity = $data['class_affinity'];
-        $this->flavor_text = $data['flavor_text'];
+        $this->damage_type = $data['damage_type'] ?? NULL;
+        $this->armor_type = $data['armor_type'] ?? NULL;
+        $this->class_affinity = $data['class_affinity'] ?? NULL;
+        $this->flavor_text = $data['flavor_text'] ?? NULL;
         $this->effect_details = $data['effect_details']; // Already decoded JSON
     }
 
