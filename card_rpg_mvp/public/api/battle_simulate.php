@@ -6,7 +6,7 @@ require_once __DIR__ . '/../includes/db.php';
 require_once __DIR__ . '/../includes/utils.php';
 require_once __DIR__ . '/../includes/BattleSimulator.php'; // Requires all its dependencies too
 
-// header('Content-Type: application/json'); // Temporarily disabled for debugging
+header('Content-Type: application/json');
 
 $database = new Database();
 $db = $database->getConnection();
@@ -31,8 +31,7 @@ try {
     }
     
     if (!$playerSessionData) {
-        echo "<pre>ERROR: Player not set up for battle. Please complete character setup first.</pre>";
-        exit();
+        sendError('Player not set up for battle. Please complete character setup first.', 400);
     }
 
     // Pick a random AI Monster opponent (from GDD)
@@ -40,8 +39,7 @@ try {
     $aiMonsterData = $allMonstersStmt->fetch(PDO::FETCH_ASSOC);
 
     if (!$aiMonsterData) {
-        echo "<pre>ERROR: No monsters available for AI opponent.</pre>";
-        exit();
+        sendError('No monsters available for AI opponent.', 500);
     }
     
     $battleSimulator = new BattleSimulator();
@@ -95,14 +93,11 @@ try {
     $simulationResult['opponent_start_hp'] = $aiMonsterData['starting_hp'];
     $simulationResult['player_start_hp'] = $playerSessionData['starting_hp']; // Pass initial HP for UI bar calcs
     
-    echo "<pre>" . print_r($simulationResult, true) . "</pre>";
-    exit();
+    sendResponse($simulationResult);
 
 } catch (PDOException $e) {
-    echo "<pre>ERROR: Database error during battle simulation: " . $e->getMessage() . "</pre>";
-    exit();
+    sendError('Database error during battle simulation: ' . $e->getMessage(), 500);
 } catch (Exception $e) {
-    echo "<pre>ERROR: General error during battle simulation: " . $e->getMessage() . "</pre>";
-    exit();
+    sendError('General error during battle simulation: ' . $e->getMessage(), 500);
 }
 ?>

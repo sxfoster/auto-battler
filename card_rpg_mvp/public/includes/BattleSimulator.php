@@ -58,8 +58,17 @@ class BattleSimulator {
         $personaId = $randomPersonaStmt->fetchColumn();
         $this->aiPlayer = new AIPlayer($personaId);
 
-        // Load AI Monster's cards (random 3 common ability cards for MVP)
-        $aiCardsStmt = $this->db_conn->prepare("SELECT id, name, card_type, rarity, energy_cost, description, damage_type, armor_type, effect_details, flavor_text FROM cards WHERE card_type = 'ability' AND rarity = 'Common' ORDER BY RAND() LIMIT 3");
+        // Load AI Monster's cards
+        // Only grab generic ability cards or equipment with no class affinity so monsters don't use champion-only abilities
+        $aiCardsStmt = $this->db_conn->prepare(
+            "SELECT id, name, card_type, rarity, energy_cost, description, damage_type, armor_type, effect_details, flavor_text
+             FROM cards
+             WHERE rarity = 'Common' AND (
+                 (card_type = 'ability' AND class_affinity IS NULL)
+                 OR card_type IN ('armor', 'weapon', 'item')
+             )
+             ORDER BY RAND() LIMIT 3"
+        );
         $aiCardsStmt->execute();
         $aiDeckData = $aiCardsStmt->fetchAll(PDO::FETCH_ASSOC);
         $aiFullDeckCards = [];
@@ -343,6 +352,25 @@ class BattleSimulator {
                 ]);
                 break;
 
+            case 'damage_random_debuff':
+                $damageDealt = calculateDamage($effectDetails['damage'], $card->damage_type, $actualTarget->armor_type ?? NULL);
+                $actualTarget->takeDamage($damageDealt);
+                $this->logAction($turn, $caster->name, 'Deals Damage', [
+                    'target' => $actualTarget->name,
+                    'amount' => $damageDealt,
+                    'target_hp_after' => $actualTarget->current_hp
+                ]);
+                $debuffs = $effectDetails['debuff_types'];
+                $chosenDebuff = $debuffs[array_rand($debuffs)];
+                $debuffEffect = new StatusEffect($chosenDebuff, null, $effectDetails['duration'], true);
+                $actualTarget->addStatusEffect($debuffEffect);
+                $this->logAction($turn, $caster->name, 'Applies Random Debuff', [
+                    'target' => $actualTarget->name,
+                    'debuff' => $chosenDebuff,
+                    'duration' => $effectDetails['duration']
+                ]);
+                break;
+
             case 'heal_over_time':
                 $hotEffect = new StatusEffect('HoT', $effectDetails['amount_per_turn'], $effectDetails['duration'], false, 'hp');
                 $actualTarget->addStatusEffect($hotEffect);
@@ -378,6 +406,19 @@ class BattleSimulator {
                 $caster->addStatusEffect($blockEffect);
                 $this->logAction($turn, $caster->name, 'Applies Block', [
                     'amount' => $effectDetails['amount']
+                ]);
+                break;
+
+            case 'buff_disengage':
+                $buffEffect = new StatusEffect('Evasion', $effectDetails['amount'], $effectDetails['duration'], false, 'evasion');
+                $caster->addStatusEffect($buffEffect);
+                $this->logAction($turn, $caster->name, 'Applies Evasion Buff', [
+                    'target' => $caster->name,
+                    'amount' => $effectDetails['amount'],
+                    'duration' => $effectDetails['duration']
+                ]);
+                $this->logAction($turn, $caster->name, 'Disengages', [
+                    'target' => $caster->name
                 ]);
                 break;
 
