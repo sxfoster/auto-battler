@@ -14,7 +14,8 @@ class Champion extends GameEntity {
             $data['champion_name'],
             $data['starting_hp'],
             $data['speed'],
-            $data['role'] // Assuming role is passed from champions table
+            $data['role'],
+            $data['base_attack'] ?? 1
         );
         $this->champion_id = $data['champion_id'];
         $this->level = $data['current_level'] ?? 1;

@@ -13,7 +13,8 @@ class Monster extends GameEntity {
             $data['name'],
             $data['starting_hp'],
             $data['speed'],
-            $data['role'] ?? 'unknown' // Role might not be in base monsters table
+            $data['role'] ?? 'unknown',
+            $data['base_attack'] ?? 1
         );
         $this->monster_id = $data['id'];
         // Monsters might have special properties like taking 2 team slots (from GDD)
