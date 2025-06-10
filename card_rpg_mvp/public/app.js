@@ -8,7 +8,8 @@ let battleLog = []; // Store the battle log for Scene 2 playback
 
 // --- API Helper Functions ---
 async function callApi(endpoint, method = 'GET', data = null) {
-    const url = `/api/${endpoint}`; // Adjust if your API is in a subfolder like /mygame/api/
+    // Prefix API calls with /public/ so requests hit the proper PHP scripts
+    const url = `/public/api/${endpoint}`;
     const options = {
         method: method,
         headers: {
