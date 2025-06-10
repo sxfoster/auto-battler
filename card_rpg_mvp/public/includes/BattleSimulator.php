@@ -71,7 +71,7 @@ class BattleSimulator {
 
 
         $turn = 0;
-        $maxTurns = 20; // Max turns to prevent infinite loops
+        $maxTurns = 50; // Max turns to prevent infinite loops
 
         $this->logAction(0, "System", "Battle Start", [
             "player" => ["name" => $this->player->name, "hp" => $this->player->current_hp, "speed" => $this->player->current_speed],

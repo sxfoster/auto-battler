@@ -11,10 +11,6 @@ require_once __DIR__ . '/../includes/BattleSimulator.php'; // Requires all its d
 $database = new Database();
 $db = $database->getConnection();
 
-if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    echo "<pre>ERROR: Invalid request method. Only POST is allowed.</pre>";
-    exit();
-}
 
 try {
     // Load player's current session data
