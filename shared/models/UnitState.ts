@@ -4,6 +4,10 @@ export interface UnitState {
   id: string;
   name: string;
   class: string;
+  /** Optional path to a portrait image for UI cards */
+  portrait?: string;
+  /** Short description used in roster screens */
+  description?: string;
   hp: number;
   maxHp: number;
   energy: number;
