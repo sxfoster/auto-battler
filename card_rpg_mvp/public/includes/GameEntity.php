@@ -12,6 +12,8 @@ class GameEntity {
     public $current_energy;
     public $current_evasion; // temporary evasion from buffs/debuffs
     public $current_defense_reduction; // temporary defense reduction from buffs/debuffs
+    public $base_attack; // baseline attack value
+    public $current_attack; // attack after buffs/debuffs
     public $buffs = []; // Array of active StatusEffect objects
     public $debuffs = []; // Array of active StatusEffect objects
     public $deck = []; // Array of Card objects (the full deck)
@@ -20,7 +22,7 @@ class GameEntity {
     public $team; // Reference to the team this entity belongs to (PlayerTeam or AITeam)
     public $role; // Tank, DPS, Support etc.
 
-    public function __construct($id, $name, $hp, $speed, $role = 'unknown') {
+    public function __construct($id, $name, $hp, $speed, $role = 'unknown', $base_attack = 1) {
         $this->id = $id;
         $this->name = $name;
         $this->max_hp = $hp;
@@ -31,6 +33,8 @@ class GameEntity {
         $this->current_evasion = 0;
         $this->current_defense_reduction = 0;
         $this->role = $role;
+        $this->base_attack = $base_attack;
+        $this->current_attack = $base_attack;
     }
 
     public function takeDamage($amount, $damage_type = NULL) {
@@ -111,7 +115,7 @@ class GameEntity {
 
     // Placeholder for getting actual damage dealt by entity (needs card logic)
     public function getAttackPower() {
-        return 1; // Very basic placeholder
+        return $this->current_attack;
     }
 }
 ?>
