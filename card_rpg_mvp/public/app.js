@@ -263,7 +263,7 @@ async function confirmSetup() {
     });
 
     if (response && response.message === "Player setup complete.") {
-        alert('Setup complete! Starting tournament...');
+        // alert('Setup complete! Starting tournament...'); // removed debugging alert
         renderBattleScene(); // Move to battle scene
     } else {
         alert('Failed to confirm setup. Please try again.');
@@ -387,21 +387,49 @@ function updateCombatantUI(side, currentHp, maxHp) {
 
 // Basic formatting for battle log entries (expand as needed)
 function formatLogEntry(entry) {
-    let message = '';
     switch (entry.action_type) {
-        case "Battle Start": return `The battle begins!`;
-        case "Turn Start": return `${entry.actor} starts turn.`;
-        case "Energy Gain": return `${entry.actor} gained ${entry.energy_gained} energy. (Current: ${entry.energy_after})`;
-        case "Plays Card": return `${entry.actor} plays "${entry.card_name}" on ${entry.target}.`;
-        case "Deals Damage": return `${entry.actor} deals ${entry.amount} damage to ${entry.target}. HP: ${entry.target_hp_after}`;
-        case "Heals": return `${entry.actor} heals ${entry.target} for ${entry.amount}. HP: ${entry.target_hp_after}`;
-        case "Applies Buff": return `${entry.actor} applies ${entry.stat} buff to ${entry.target}.`;
-        case "Applies Debuff": return `${entry.actor} applies ${entry.stat} debuff to ${entry.target}.`;
-        case "Applies Status": return `${entry.actor} applies ${entry.effect} to ${entry.target}.`;
-        case "Passes Turn": return `${entry.actor} passes turn (${entry.reason}).`;
-        case "Skipped Turn": return `${entry.actor}'s turn skipped (${entry.reason}).`;
-        case "Battle End": return `Battle Ends! Winner: ${entry.winner}`;
-        default: return JSON.stringify(entry);
+        case "Battle Start":
+            return `The battle begins! ${entry.player.name} (HP: ${entry.player.hp}) vs. ${entry.opponent.name} (HP: ${entry.opponent.hp}).`;
+        case "Turn Start":
+            return `--- Turn ${entry.turn} Begins ---`;
+        case "Turn Action":
+            return `${entry.actor} takes action.`;
+        case "Energy Gain":
+            return `${entry.actor} gained ${entry.energy_gained} energy. (Current: ${entry.energy_after})`;
+        case "Plays Card":
+            return `${entry.actor} plays "${entry.card_name}" on ${entry.target}.`;
+        case "Deals Damage":
+            return `${entry.actor} deals ${entry.amount} damage to ${entry.target}. ${entry.target}'s HP: ${entry.target_hp_after}`;
+        case "Deals Bypass Damage":
+            return `${entry.actor} deals ${entry.amount} direct damage to ${entry.target}. ${entry.target}'s HP: ${entry.target_hp_after}`;
+        case "Heals":
+            return `${entry.actor} heals ${entry.target} for ${entry.amount}. ${entry.target}'s HP: ${entry.target_hp_after}`;
+        case "Heals Self":
+            return `${entry.actor} heals self for ${entry.amount}. ${entry.actor}'s HP: ${entry.target_hp_after}`;
+        case "Applies Buff":
+            return `${entry.actor} applies ${entry.stat} buff to ${entry.target} for ${entry.duration} turns.`;
+        case "Applies Debuff":
+            return `${entry.actor} applies ${entry.stat} debuff to ${entry.target} for ${entry.duration} turns.`;
+        case "Applies Status":
+            return `${entry.actor} applies ${entry.effect} to ${entry.target} for ${entry.duration} turns.`;
+        case "Applies DOT":
+            return `${entry.actor} applies ${entry.type} (${entry.amount} dmg/turn for ${entry.duration} turns) to ${entry.target}.`;
+        case "Applies HoT":
+            return `${entry.actor} applies HoT (${entry.amount} heal/turn for ${entry.duration} turns) to ${entry.target}.`;
+        case "Applies Block":
+            return `${entry.actor} gains ${entry.amount} block.`;
+        case "Disengages":
+            return `${entry.actor} disengages from combat.`;
+        case "Passes Turn":
+            return `${entry.actor} passes turn (${entry.reason}).`;
+        case "Skipped Turn":
+            return `${entry.actor}'s turn skipped (${entry.reason}).`;
+        case "Unhandled Effect":
+            return `${entry.actor} plays "${entry.card_name}" causing an unhandled effect: ${entry.effect_type}.`;
+        case "Battle End":
+            return `Battle Ends! Winner: ${entry.winner}`;
+        default:
+            return `[Log Error] Unrecognized action: ${entry.action_type} - ${JSON.stringify(entry)}`;
     }
 }
 
