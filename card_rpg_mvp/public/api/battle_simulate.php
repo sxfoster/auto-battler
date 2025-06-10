@@ -6,13 +6,14 @@ require_once __DIR__ . '/../includes/db.php';
 require_once __DIR__ . '/../includes/utils.php';
 require_once __DIR__ . '/../includes/BattleSimulator.php'; // Requires all its dependencies too
 
-header('Content-Type: application/json');
+// header('Content-Type: application/json'); // Temporarily disabled for debugging
 
 $database = new Database();
 $db = $database->getConnection();
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    sendError("Invalid request method. Only POST is allowed.", 405);
+    echo "<pre>ERROR: Invalid request method. Only POST is allowed.</pre>";
+    exit();
 }
 
 try {
@@ -34,7 +35,8 @@ try {
     }
     
     if (!$playerSessionData) {
-        sendError("Player not set up for battle. Please complete character setup first.", 400);
+        echo "<pre>ERROR: Player not set up for battle. Please complete character setup first.</pre>";
+        exit();
     }
 
     // Pick a random AI Monster opponent (from GDD)
@@ -42,7 +44,8 @@ try {
     $aiMonsterData = $allMonstersStmt->fetch(PDO::FETCH_ASSOC);
 
     if (!$aiMonsterData) {
-        sendError("No monsters available for AI opponent.", 500);
+        echo "<pre>ERROR: No monsters available for AI opponent.</pre>";
+        exit();
     }
     
     $battleSimulator = new BattleSimulator();
@@ -96,11 +99,14 @@ try {
     $simulationResult['opponent_start_hp'] = $aiMonsterData['starting_hp'];
     $simulationResult['player_start_hp'] = $playerSessionData['starting_hp']; // Pass initial HP for UI bar calcs
     
-    sendResponse($simulationResult);
+    echo "<pre>" . print_r($simulationResult, true) . "</pre>";
+    exit();
 
 } catch (PDOException $e) {
-    sendError("Database error during battle simulation: " . $e->getMessage(), 500);
+    echo "<pre>ERROR: Database error during battle simulation: " . $e->getMessage() . "</pre>";
+    exit();
 } catch (Exception $e) {
-    sendError("Error during battle simulation: " . $e->getMessage(), 500);
+    echo "<pre>ERROR: General error during battle simulation: " . $e->getMessage() . "</pre>";
+    exit();
 }
 ?>
