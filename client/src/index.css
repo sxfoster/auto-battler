@@ -2,7 +2,11 @@
 @tailwind components;
 @tailwind utilities;
 
+body, #root {
+  min-height: 100vh;
+  background: url('/forest-bg.png') center/cover no-repeat fixed;
+}
+
 body {
-  background-color: #1a202c; /* A dark slate gray */
   color: #cbd5e0; /* A light gray for text */
 }

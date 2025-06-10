@@ -75,7 +75,6 @@ function App() {
         return (
           <TownHub
             onStartSkirmish={navigateToPreBattle}
-            onEnterDungeon={navigateToPartySetup}
             onNavigateToParty={navigateToPartyRoster}
           />
         );
