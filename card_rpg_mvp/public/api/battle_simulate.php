@@ -22,6 +22,16 @@ try {
                                    JOIN champions c ON psd.champion_id = c.id
                                    LIMIT 1");
     $playerSessionData = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if ($playerSessionData && !empty($playerSessionData['deck_card_ids'])) {
+        $decoded = json_decode($playerSessionData['deck_card_ids'], true);
+        if (json_last_error() === JSON_ERROR_NONE) {
+            $playerSessionData['deck_card_ids'] = $decoded;
+        } else {
+            // If decoding fails, treat as empty to avoid SQL errors later
+            $playerSessionData['deck_card_ids'] = [];
+        }
+    }
     
     if (!$playerSessionData) {
         sendError("Player not set up for battle. Please complete character setup first.", 400);
