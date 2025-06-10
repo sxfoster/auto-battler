@@ -18,22 +18,19 @@ if (empty($cardType)) {
 }
 
 try {
-    $query = "SELECT id, name, energy_cost, description, damage_type, armor_type, effect_details, flavor_text
+    $query = "SELECT id, name, card_type, rarity, energy_cost, description, damage_type, armor_type, effect_details, flavor_text
               FROM cards
               WHERE rarity = 'Common' AND card_type = :card_type";
 
     if (!empty($classAffinity)) {
-        // This handles affinities like 'Warrior', 'Warrior,Paladin', 'Paladin,Warrior,Ranger'
-        $query .= " AND (class_affinity = :class_affinity_exact OR class_affinity LIKE :class_affinity_start OR class_affinity LIKE :class_affinity_middle OR class_affinity LIKE :class_affinity_end OR class_affinity IS NULL)";
+        // Include cards with matching affinity or generic (NULL) affinity
+        $query .= " AND (FIND_IN_SET(:class_affinity_name, class_affinity) > 0 OR class_affinity IS NULL)";
     }
 
     $stmt = $db->prepare($query);
     $stmt->bindParam(':card_type', $cardType);
     if (!empty($classAffinity)) {
-         $stmt->bindValue(':class_affinity_exact', $classAffinity);
-         $stmt->bindValue(':class_affinity_start', $classAffinity . ',%');
-         $stmt->bindValue(':class_affinity_middle', '%,' . $classAffinity . ',%');
-         $stmt->bindValue(':class_affinity_end', '%,' . $classAffinity);
+        $stmt->bindParam(':class_affinity_name', $classAffinity);
     }
     $stmt->execute();
     $cards = $stmt->fetchAll(PDO::FETCH_ASSOC);
