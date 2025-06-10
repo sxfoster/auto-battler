@@ -10,14 +10,12 @@ const PartyRoster: React.FC<PartyRosterProps> = ({ onBackToTown }) => {
   const heroes = Object.values(MOCK_HEROES);
 
   return (
-    <div className="min-h-screen w-full flex flex-col items-center p-8">
+    <div className="min-h-screen w-full flex flex-col items-center p-8 bg-gradient-to-br from-slate-900 via-gray-900 to-black text-gray-200">
       <div className="text-center mb-12">
-        <h1 className="text-5xl font-bold">Party Roster</h1>
-        <p className="text-lg text-gray-400 mt-2">
-          Review your available adventurers and their abilities.
-        </p>
+        <h1 className="text-5xl font-extrabold tracking-wide">Party Roster</h1>
+        <p className="text-lg text-gray-400 mt-2">Review your available adventurers and their abilities.</p>
       </div>
-      <div className="w-full max-w-4xl grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="w-full max-w-5xl grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {heroes.map((hero) => (
           <HeroCard key={hero.id} hero={hero} />
         ))}
@@ -30,6 +28,6 @@ const PartyRoster: React.FC<PartyRosterProps> = ({ onBackToTown }) => {
       </button>
     </div>
   );
-};
+}; 
 
 export default PartyRoster;
