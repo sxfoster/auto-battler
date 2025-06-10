@@ -2,9 +2,9 @@
 // public/api/battle_simulate.php
 
 // Adjust path based on your server's directory structure
-require_once __DIR__ . '/../../includes/db.php';
-require_once __DIR__ . '/../../includes/utils.php';
-require_once __DIR__ . '/../../includes/BattleSimulator.php'; // Requires all its dependencies too
+require_once __DIR__ . '/../includes/db.php';
+require_once __DIR__ . '/../includes/utils.php';
+require_once __DIR__ . '/../includes/BattleSimulator.php'; // Requires all its dependencies too
 
 header('Content-Type: application/json');
 

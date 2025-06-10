@@ -1,7 +1,7 @@
 <?php
 // includes/Monster.php
 
-require_once INCLUDES_PATH . '/GameEntity.php';
+require_once __DIR__ . '/GameEntity.php';
 
 class Monster extends GameEntity {
     public $monster_id; // FK to monsters table

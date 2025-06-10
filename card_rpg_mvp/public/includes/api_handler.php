@@ -1,9 +1,9 @@
 <?php
 // includes/api_handler.php
 
-require_once INCLUDES_PATH . '/db.php';
-require_once INCLUDES_PATH . '/utils.php';
-require_once INCLUDES_PATH . '/BattleSimulator.php'; // New include
+require_once __DIR__ . '/db.php';
+require_once __DIR__ . '/utils.php';
+require_once __DIR__ . '/BattleSimulator.php'; // New include
 
 function handleApiRequest($endpoint, $action) {
     $database = new Database();
