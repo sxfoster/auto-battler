@@ -1,15 +1,13 @@
 import React, { useState } from 'react';
-import { UnitState } from '../../../shared/models/UnitState';
-import { MOCK_HEROES } from '../../../game/src/logic/mock-data.js';
+import { UnitState } from '@shared/models/UnitState';
 
 interface Props {
+  availableHeroes: UnitState[];
   onComplete: (party: UnitState[]) => void;
   onBack: () => void;
 }
 
-const availableHeroes: UnitState[] = Object.values(MOCK_HEROES).map(h => ({ ...h }));
-
-const ClassDraft: React.FC<Props> = ({ onComplete, onBack }) => {
+const ClassDraft: React.FC<Props> = ({ availableHeroes, onComplete, onBack }) => {
   const [selected, setSelected] = useState<UnitState[]>([]);
 
   const toggleHero = (hero: UnitState) => {
