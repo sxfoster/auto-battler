@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { UnitState } from '@shared/models/UnitState';
+import { MOCK_HEROES } from '@shared/mock-data';
+import HeroCard from './HeroCard';
 
 interface Props {
   availableHeroes: UnitState[];
@@ -18,19 +20,35 @@ const ClassDraft: React.FC<Props> = ({ availableHeroes, onComplete, onBack }) =>
     );
   };
 
+  const isSelected = (hero: UnitState) => selected.find(h => h.id === hero.id);
+
   return (
-    <div>
-      <h2>Class Draft</h2>
-      <div style={{ display: 'flex', gap: '1rem', marginBottom: '1rem' }}>
+    <div className="w-full max-w-4xl mx-auto text-center p-8">
+      <h2 className="text-4xl font-bold mb-6">Class Draft</h2>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
         {availableHeroes.map(hero => (
-          <button key={hero.id} onClick={() => toggleHero(hero)}>
-            {selected.find(h => h.id === hero.id) ? 'Remove' : 'Add'} {hero.name}
-          </button>
+          <div
+            key={hero.id}
+            onClick={() => toggleHero(hero)}
+            className={`cursor-pointer ${isSelected(hero) ? 'ring-2 ring-blue-500' : ''}`}
+          >
+            <HeroCard hero={hero} />
+          </div>
         ))}
       </div>
-      <div style={{ marginTop: '1rem', display: 'flex', gap: '1rem' }}>
-        <button onClick={onBack}>Back</button>
-        <button onClick={() => onComplete(selected)}>Confirm Party</button>
+      <div className="flex justify-center gap-4">
+        <button
+          onClick={onBack}
+          className="px-6 py-2 bg-gray-600 hover:bg-gray-700 rounded-lg font-semibold"
+        >
+          Back
+        </button>
+        <button
+          onClick={() => onComplete(selected)}
+          className="px-6 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg font-semibold"
+        >
+          Confirm Party
+        </button>
       </div>
     </div>
   );
