@@ -82,7 +82,11 @@ function App() {
     }
   };
 
-  return <div>{renderScreen()}</div>;
+  return (
+    <div className="min-h-screen flex flex-col items-center justify-center">
+      {renderScreen()}
+    </div>
+  );
 }
 
 export default App;
