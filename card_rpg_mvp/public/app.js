@@ -341,8 +341,17 @@ async function startBattleSimulation() {
     const playbackInterval = setInterval(() => {
         if (logIndex < battleLog.length) {
             const entry = battleLog[logIndex];
-            logEntriesDiv.innerHTML += `<p><strong>Turn ${entry.turn}:</strong> ${formatLogEntry(entry)}</p>`;
-            logEntriesDiv.scrollTop = logEntriesDiv.scrollHeight; // Scroll to bottom
+            const formattedEntry = formatLogEntry(entry); // Get the formatted string
+
+            // Only add if there's actual content to display (due to empty returns in formatLogEntry)
+            if (formattedEntry.trim() !== '') {
+                const pElement = document.createElement('p');
+                pElement.innerHTML = `<strong>Turn ${entry.turn}:</strong> ${formattedEntry}`;
+
+                // Prepend the new paragraph element to the log container
+                logEntriesDiv.prepend(pElement);
+                // For a reverse log, auto-scrolling isn't necessary. Users can scroll down for older entries.
+            }
 
             // Update combatant UI based on log entry (simplified for MVP)
             if (entry.action_type === "Deals Damage") {
@@ -364,8 +373,9 @@ async function startBattleSimulation() {
         } else {
             clearInterval(playbackInterval);
             // Battle finished, show result and proceed button
-            logEntriesDiv.innerHTML += `<p><strong>Battle Concluded! Winner: ${winner}</strong></p>`;
-            logEntriesDiv.innerHTML += `<p>You ${result} this battle. Gained ${xpAwarded} XP.</p>`;
+            const battleEndP = document.createElement('p');
+            battleEndP.innerHTML = `<strong>Battle Concluded! Winner: ${winner}</strong><br>You ${result} this battle. Gained ${xpAwarded} XP.`;
+            logEntriesDiv.prepend(battleEndP); // Prepend final summary too
             
             appDiv.querySelector('.button-container').innerHTML = ''; // Clear previous buttons
             const continueButton = document.createElement('button');
