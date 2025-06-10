@@ -1,8 +1,0 @@
-.minimap { display: grid; grid-template-columns: repeat(5, 12px); gap: 2px; }
-.minimap-tile {
-  width: 12px; height: 12px;
-  background: #1f2230;
-  opacity: 0.2;
-}
-.minimap-tile.visited { opacity: 1; background: #44475a; }
-.minimap-tile.current { background: #50fa7b; }
