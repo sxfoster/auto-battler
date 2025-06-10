@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { UnitState } from '../../shared/models/UnitState';
-import { Card } from '../../shared/models/Card';
+import { UnitState } from '@shared/models/UnitState';
+import { Card } from '@shared/models/Card';
+import GameCard from './GameCard';
 
 interface Props {
   unit: UnitState;
@@ -28,18 +29,32 @@ const DeckBuilder: React.FC<Props> = ({ unit, onComplete, onBack }) => {
   };
 
   return (
-    <div>
-      <h2>Build Deck for {unit.name}</h2>
-      <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>
+    <div className="w-full max-w-4xl mx-auto text-center p-8">
+      <h2 className="text-4xl font-bold mb-6">Build Deck for {unit.name}</h2>
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
         {unit.cardPool.map(card => (
-          <button key={card.id} onClick={() => toggleCard(card)}>
-            {selected.find(c => c.id === card.id) ? 'Remove' : 'Add'} {card.name}
-          </button>
+          <div
+            key={card.id}
+            onClick={() => toggleCard(card)}
+            className="flex justify-center"
+          >
+            <GameCard card={card} selected={!!selected.find(c => c.id === card.id)} />
+          </div>
         ))}
       </div>
-      <div style={{ marginTop: '1rem', display: 'flex', gap: '1rem' }}>
-        <button onClick={onBack}>Back</button>
-        <button onClick={handleConfirm}>Finish Deck</button>
+      <div className="flex justify-center gap-4">
+        <button
+          onClick={onBack}
+          className="px-6 py-2 bg-gray-600 hover:bg-gray-700 rounded-lg font-semibold"
+        >
+          Back
+        </button>
+        <button
+          onClick={handleConfirm}
+          className="px-6 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg font-semibold"
+        >
+          Finish Deck
+        </button>
       </div>
     </div>
   );

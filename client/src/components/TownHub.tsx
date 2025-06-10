@@ -60,7 +60,7 @@ const TownHub: React.FC<TownHubProps> = ({ onStartSkirmish, onEnterDungeon, onNa
       </header>
       <div className={styles.grid}>
         <button
-          className={styles.card}
+          className="p-6 bg-gray-800 hover:bg-gray-700 rounded-lg cursor-pointer text-center"
           onClick={onNavigateToParty}
           aria-label="Manage Party"
         >
@@ -69,7 +69,7 @@ const TownHub: React.FC<TownHubProps> = ({ onStartSkirmish, onEnterDungeon, onNa
           <span className={styles.subtitle}>Manage your heroes</span>
         </button>
         <button
-          className={styles.card}
+          className="p-6 bg-gray-800 rounded-lg text-center opacity-50 cursor-not-allowed"
           onClick={() => {}}
           aria-label="View Inventory"
         >
@@ -78,7 +78,7 @@ const TownHub: React.FC<TownHubProps> = ({ onStartSkirmish, onEnterDungeon, onNa
           <span className={styles.subtitle}>View your items</span>
         </button>
         <button
-          className={styles.card}
+          className="p-6 bg-gray-800 hover:bg-gray-700 rounded-lg cursor-pointer text-center"
           onClick={() => {}}
           aria-label="Browse Cards"
         >
@@ -87,7 +87,7 @@ const TownHub: React.FC<TownHubProps> = ({ onStartSkirmish, onEnterDungeon, onNa
           <span className={styles.subtitle}>Browse your card collection</span>
         </button>
         <button
-          className={styles.card}
+          className="p-6 bg-gray-800 rounded-lg text-center opacity-50 cursor-not-allowed"
           onClick={() => {}}
           aria-label="Craft Items"
         >
@@ -96,7 +96,7 @@ const TownHub: React.FC<TownHubProps> = ({ onStartSkirmish, onEnterDungeon, onNa
           <span className={styles.subtitle}>Prepare for battle</span>
         </button>
         <button
-          className={styles.card}
+          className="p-6 bg-gray-800 rounded-lg text-center opacity-50 cursor-not-allowed"
           onClick={() => {}}
           aria-label="Visit Shop"
         >
@@ -105,8 +105,8 @@ const TownHub: React.FC<TownHubProps> = ({ onStartSkirmish, onEnterDungeon, onNa
           <span className={styles.subtitle}>Browse wares</span>
         </button>
         <button
-          className={styles.card}
-          onClick={onStartSkirmish} // Changed to use onStartSkirmish callback
+          className="p-6 bg-gray-800 hover:bg-gray-700 rounded-lg cursor-pointer text-center"
+          onClick={onStartSkirmish}
           aria-label="Battle"
         >
           <span className={styles.icon}>⚔️</span>
@@ -114,7 +114,7 @@ const TownHub: React.FC<TownHubProps> = ({ onStartSkirmish, onEnterDungeon, onNa
           <span className={styles.subtitle}>Skirmish test</span>
         </button>
         <button
-          className={`${styles.card} ${!party ? styles.disabled : ""}`}
+          className="p-6 bg-purple-700 hover:bg-purple-600 rounded-lg cursor-pointer text-center transform hover:scale-105 transition-transform"
           onClick={onEnterDungeon}
           aria-label="Enter Dungeon"
         >
