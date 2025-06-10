@@ -85,25 +85,28 @@ class BuffManager {
     }
     
     public static function decrementDurations(GameEntity $entity) {
-        // Decrement durations and remove expired effects
+        // Apply HoTs first
         foreach ($entity->buffs as $key => $effect) {
+            if ($effect->type === 'HoT' && $effect->stat_affected === 'hp_over_time') {
+                $entity->heal($effect->amount);
+            }
             $effect->duration--;
             if ($effect->duration <= 0) {
                 unset($entity->buffs[$key]);
             }
         }
+        $entity->buffs = array_values($entity->buffs);
+
+        // Apply DOTs
         foreach ($entity->debuffs as $key => $effect) {
-            // Apply DOT damage before decrementing duration if it's a DOT
-            if (in_array($effect->type, ['Poison', 'Bleed', 'Burn'])) {
-                $entity->takeDamage($effect->amount); // Damage applied directly
-                // Log this DOT damage as part of turn actions
+            if (in_array($effect->type, ['Poison', 'Bleed', 'Burn']) && $effect->stat_affected === 'dot_damage') {
+                $entity->takeDamage($effect->amount);
             }
             $effect->duration--;
             if ($effect->duration <= 0) {
                 unset($entity->debuffs[$key]);
             }
         }
-        $entity->buffs = array_values($entity->buffs);
         $entity->debuffs = array_values($entity->debuffs);
     }
 }

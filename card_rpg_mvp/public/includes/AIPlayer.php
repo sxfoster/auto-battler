@@ -37,17 +37,15 @@ class AIPlayer {
      * @param Card[] $availableCards The cards currently in the AI entity's hand/deck.
      * @return array|null Returns ['card' => Card object, 'target' => GameEntity object] or null if no action.
      */
-    public function decideAction(GameEntity $aiEntity, Team $actingTeam, Team $opposingTeam, array $availableCards) {
-        $chosenCard = null;
-        $chosenTarget = null;
+    public function decideAction(GameEntity $activeEntity, Team $actingTeam, Team $opposingTeam, array $availableCards) {
+        $bestAction = null;
         $bestScore = -1;
 
-        $targetPriorities = $this->persona['target_priority'];
-        $cardPriorities = $this->persona['card_priority'];
+        $targetPriorities = $this->persona['target_priority'] ?? 'random';
+        $cardPriorities = $this->persona['card_priority'] ?? ['damage', 'heal', 'defense', 'utility'];
 
-        // Filter for affordable cards
-        $affordableCards = array_filter($availableCards, function($card) use ($aiEntity) {
-            return $aiEntity->current_energy >= $card->energy_cost;
+        $affordableCards = array_filter($availableCards, function($card) use ($activeEntity) {
+            return $activeEntity->current_energy >= $card->energy_cost;
         });
 
         if (empty($affordableCards)) {
@@ -56,63 +54,73 @@ class AIPlayer {
 
         foreach ($cardPriorities as $priorityType) {
             foreach ($affordableCards as $card) {
-                $score = 0;
-
-                // Score cards based on persona's card priorities
-                if ($priorityType === 'damage' && ($card->card_type === 'ability' || $card->card_type === 'weapon')) {
-                    // Placeholder: Check effect_details for damage type
-                    if (isset($card->effect_details['type']) && (strpos($card->effect_details['type'], 'damage') !== false)) {
-                         $score += 10; // High score for damage cards
-                         if (isset($card->effect_details['aoe_damage'])) $score += 5; // Bonus for AOE
+                $potentialTargets = [];
+                if (isset($card->effect_details['target'])) {
+                    switch ($card->effect_details['target']) {
+                        case 'self':
+                            $potentialTargets = [$activeEntity];
+                            break;
+                        case 'single_ally':
+                            $potentialTargets = $actingTeam->getActiveEntities();
+                            break;
+                        case 'all_allies':
+                            $potentialTargets = $actingTeam->getActiveEntities();
+                            break;
+                        case 'single_enemy':
+                            $potentialTargets = $opposingTeam->getActiveEntities();
+                            break;
+                        case 'all_enemies':
+                            $potentialTargets = $opposingTeam->getActiveEntities();
+                            break;
+                        default:
+                            $potentialTargets = $opposingTeam->getActiveEntities();
+                            break;
                     }
-                } elseif ($priorityType === 'defense' && $card->card_type === 'armor') {
-                    if (isset($card->effect_details['type']) && (strpos($card->effect_details['type'], 'reduction') !== false || strpos($card->effect_details['type'], 'block') !== false || strpos($card->effect_details['type'], 'immunity') !== false)) {
-                        $score += 8; // High score for defense cards
-                    }
-                } elseif ($priorityType === 'heal' && $card->card_type === 'item') {
-                     if (isset($card->effect_details['type']) && (strpos($card->effect_details['type'], 'heal') !== false)) {
-                        $score += 7;
-                        if ($aiEntity->current_hp / $aiEntity->max_hp < ($this->persona['buff_use_threshold'] ?? 0.5)) { // Use threshold for buffs/healing
-                            $score += 5; // Bonus if low HP
-                        }
-                     }
+                } else {
+                    $potentialTargets = $opposingTeam->getActiveEntities();
                 }
-                // ... more complex scoring based on GDD details for other card types/effects
 
-                // Target selection (simplistic for MVP)
-                $targetCandidate = null;
-                if ($card->card_type === 'ability' || $card->card_type === 'weapon' || $card->card_type === 'item') {
-                    if (strpos($card->effect_details['type'] ?? '', 'damage') !== false) {
-                         if ($targetPriorities === 'lowest_hp') {
-                            $targetCandidate = $opposingTeam->getLowestHpActiveEntity();
-                         } else {
-                            $targetCandidate = $opposingTeam->getRandomActiveEntity();
-                         }
-                    } elseif (strpos($card->effect_details['type'] ?? '', 'heal') !== false || strpos($card->effect_details['type'] ?? '', 'buff') !== false) {
-                        if ($targetPriorities === 'self_lowest_hp') {
-                            $targetCandidate = $actingTeam->getLowestHpActiveEntity() ?: $aiEntity;
-                        } else {
-                            $targetCandidate = $aiEntity;
-                        }
-                    }
+                $potentialTargets = array_filter($potentialTargets, fn($t) => $t->current_hp > 0);
+                if (empty($potentialTargets) && ($card->card_type === 'weapon' || ($card->card_type === 'ability' && strpos($card->effect_details['type'] ?? '', 'damage') !== false))) {
+                    continue;
                 }
-                
-                // Ensure chosen target is valid and alive
-                if ($targetCandidate && $targetCandidate->current_hp > 0) {
-                    if ($score > $bestScore) {
-                        $bestScore = $score;
-                        $chosenCard = $card;
-                        $chosenTarget = $targetCandidate;
+
+                foreach ($potentialTargets as $targetCandidate) {
+                    $currentScore = 0;
+
+                    if ($priorityType === 'damage' && strpos($card->effect_details['type'] ?? '', 'damage') !== false) {
+                        $currentScore += ($card->effect_details['damage'] ?? 0);
+                        if (isset($card->effect_details['aoe_damage'])) $currentScore += 5;
+                        if ($targetCandidate->current_hp <= ($card->effect_details['damage'] ?? 0)) $currentScore += 10;
+                    } elseif ($priorityType === 'defense' && (strpos($card->effect_details['type'] ?? '', 'reduction') !== false || strpos($card->effect_details['type'] ?? '', 'block') !== false || strpos($card->effect_details['type'] ?? '', 'immunity') !== false)) {
+                        $currentScore += 8;
+                        if ($activeEntity->current_hp / $activeEntity->max_hp < ($this->persona['buff_use_threshold'] ?? 0.5)) $currentScore += 5;
+                    } elseif ($priorityType === 'heal' && strpos($card->effect_details['type'] ?? '', 'heal') !== false) {
+                        $currentScore += 7;
+                        if ($activeEntity->current_hp / $activeEntity->max_hp < ($this->persona['buff_use_threshold'] ?? 0.5)) $currentScore += 10;
+                    }
+
+                    if ($targetPriorities === 'lowest_hp') {
+                        if ($targetCandidate->team->isPlayerTeam !== $activeEntity->team->isPlayerTeam) {
+                            $currentScore += (100 - ($targetCandidate->current_hp / $targetCandidate->max_hp * 100));
+                        }
+                    } elseif ($targetPriorities === 'self_lowest_hp') {
+                        if ($targetCandidate->team->isPlayerTeam === $activeEntity->team->isPlayerTeam) {
+                            $currentScore += (100 - ($targetCandidate->current_hp / $targetCandidate->max_hp * 100));
+                        }
+                    } else {
+                        $currentScore += 1;
+                    }
+
+                    if ($currentScore > $bestScore) {
+                        $bestScore = $currentScore;
+                        $bestAction = ['card' => $card, 'target_entity' => $targetCandidate];
                     }
                 }
             }
         }
-        
-        if ($chosenCard) {
-            return ['card' => $chosenCard, 'target' => $chosenTarget];
-        }
 
-        return null; // No suitable action found
+        return $bestAction;
     }
 }
 ?>
