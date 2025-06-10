@@ -374,7 +374,7 @@ async function startBattleSimulation() {
             continueButton.onclick = renderTournamentView;
             appDiv.querySelector('.button-container').appendChild(continueButton);
         }
-    }, 500); // Playback speed (500ms per log entry)
+    }, 250); // Playback speed (set to 250ms per log entry)
 }
 
 function updateCombatantUI(side, currentHp, maxHp) {
@@ -393,7 +393,7 @@ function formatLogEntry(entry) {
         case "Turn Start":
             return `--- Turn ${entry.turn} Begins ---`;
         case "Turn Action":
-            return `${entry.actor} takes action.`;
+            return ''; // Do not log generic "takes action" lines
         case "Energy Gain":
             return `${entry.actor} gained ${entry.energy_gained} energy. (Current: ${entry.energy_after})`;
         case "Plays Card":
@@ -425,11 +425,11 @@ function formatLogEntry(entry) {
         case "Skipped Turn":
             return `${entry.actor}'s turn skipped (${entry.reason}).`;
         case "Unhandled Effect":
-            return `${entry.actor} plays "${entry.card_name}" causing an unhandled effect: ${entry.effect_type}.`;
+            return ''; // Suppress unhandled effect messages
         case "Battle End":
             return `Battle Ends! Winner: ${entry.winner}`;
         default:
-            return `[Log Error] Unrecognized action: ${entry.action_type} - ${JSON.stringify(entry)}`;
+            return ''; // Filter out any unrecognized action types
     }
 }
 
