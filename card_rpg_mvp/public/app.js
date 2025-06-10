@@ -114,7 +114,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 async function loadGame() {
-    const response = await callApi('player/current_setup');
+    const response = await callApi('player_current_setup.php');
     if (response && response.champion_id) {
         playerData = response;
         // If player already set up, maybe jump to tournament view or next battle
@@ -136,7 +136,7 @@ let selectedCards = {
 
 async function renderCharacterSetup() {
     // 1. Fetch 4 random champions
-    const championsResponse = await callApi('champions');
+    const championsResponse = await callApi('champions.php');
     if (!championsResponse || championsResponse.length === 0) {
         appDiv.innerHTML = '<p>Error: No champions found. Please check database population.</p>';
         return;
@@ -202,7 +202,7 @@ async function selectChampion(championId, championData) {
 }
 
 async function fetchDraftCards(cardType, championName) {
-    const cardsResponse = await callApi(`cards/common_by_type?type=${cardType}&class=${championName}`);
+    const cardsResponse = await callApi(`cards_common_by_type.php?type=${cardType}&class=${championName}`);
     if (!cardsResponse || cardsResponse.length === 0) {
         document.getElementById(`${cardType}-cards`).innerHTML = `<p>No ${cardType} cards found for ${championName}.</p>`;
         return;
@@ -256,7 +256,7 @@ async function confirmSetup() {
         selectedCards.weapon.id
     ];
 
-    const response = await callApi('player/setup', 'POST', {
+    const response = await callApi('player_setup.php', 'POST', {
         champion_id: selectedChampionId,
         card_ids: cardIds
     });
@@ -310,7 +310,7 @@ async function renderBattleScene() {
 }
 
 async function startBattleSimulation() {
-    const battleResult = await callApi('battle/simulate', 'POST', {}); // Empty POST body to trigger simulation
+    const battleResult = await callApi('battle_simulate.php', 'POST', {}); // Empty POST body to trigger simulation
     if (!battleResult) {
         alert('Failed to simulate battle.');
         return;
@@ -406,7 +406,7 @@ function formatLogEntry(entry) {
 
 // --- Scene 3: Tournament View ---
 async function renderTournamentView() {
-    const statusResponse = await callApi('tournament/status');
+    const statusResponse = await callApi('tournament_status.php');
     if (!statusResponse || !statusResponse.player_status) {
         appDiv.innerHTML = '<p>Error: Could not retrieve tournament status.</p>';
         return;
@@ -446,7 +446,7 @@ async function renderTournamentView() {
 async function resetTournament() {
     const confirmReset = confirm("Are you sure you want to start a new tournament? Your current progress will be lost.");
     if (confirmReset) {
-        const response = await callApi('tournament/reset', 'POST');
+        const response = await callApi('tournament_reset.php', 'POST');
         if (response && response.message === "Tournament and player progress reset.") {
             alert('Tournament reset. Starting new game...');
             // Clear client-side player data too
