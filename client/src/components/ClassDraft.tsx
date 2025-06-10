@@ -4,13 +4,12 @@ import { MOCK_HEROES } from '@shared/mock-data';
 import HeroCard from './HeroCard';
 
 interface Props {
+  availableHeroes: UnitState[];
   onComplete: (party: UnitState[]) => void;
   onBack: () => void;
 }
 
-const availableHeroes: UnitState[] = Object.values(MOCK_HEROES).map(h => ({ ...h }));
-
-const ClassDraft: React.FC<Props> = ({ onComplete, onBack }) => {
+const ClassDraft: React.FC<Props> = ({ availableHeroes, onComplete, onBack }) => {
   const [selected, setSelected] = useState<UnitState[]>([]);
 
   const toggleHero = (hero: UnitState) => {

@@ -1,5 +1,7 @@
-import React, { useState } from 'react';
-import { UnitState } from '../../shared/models/UnitState';
+import React, { useState, useMemo } from 'react';
+import { UnitState } from '@shared/models/UnitState';
+import { MOCK_HEROES } from '@shared/mock-data';
+import { getRandomizedArchetypeDraft } from '../utils/heroUtils';
 import ClassDraft from './ClassDraft';
 import DeckBuilder from './DeckBuilder';
 import PartySummary from './PartySummary';
@@ -15,6 +17,10 @@ const PartySetup: React.FC<PartySetupProps> = ({ onPartySaved, onCancelSetup }) 
   const [step, setStep] = useState<Step>('DRAFTING');
   const [draftedParty, setDraftedParty] = useState<UnitState[]>([]);
   const [deckIndex, setDeckIndex] = useState(0);
+
+  const draftableHeroes = useMemo(() => {
+    return getRandomizedArchetypeDraft(Object.values(MOCK_HEROES));
+  }, []);
 
   // Handler for backward navigation between steps
   const handleBack = () => {
@@ -60,7 +66,13 @@ const PartySetup: React.FC<PartySetupProps> = ({ onPartySaved, onCancelSetup }) 
   };
 
   if (step === 'DRAFTING') {
-    return <ClassDraft onComplete={handleDraftComplete} onBack={handleBack} />;
+    return (
+      <ClassDraft
+        availableHeroes={draftableHeroes}
+        onComplete={handleDraftComplete}
+        onBack={handleBack}
+      />
+    );
   }
 
   if (step === 'DECK_BUILDING') {
