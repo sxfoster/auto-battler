@@ -1,103 +1,201 @@
 <?php
 // public/api/battle_simulate.php
 
-// Adjust path based on your server's directory structure
 require_once __DIR__ . '/../includes/db.php';
 require_once __DIR__ . '/../includes/utils.php';
-require_once __DIR__ . '/../includes/BattleSimulator.php'; // Requires all its dependencies too
+require_once __DIR__ . '/../includes/GameEntity.php';
+require_once __DIR__ . '/../includes/Champion.php';
+require_once __DIR__ . '/../includes/Monster.php';
+require_once __DIR__ . '/../includes/Card.php';
+require_once __DIR__ . '/../includes/Team.php';
+require_once __DIR__ . '/../includes/AIPlayer.php';
+require_once __DIR__ . '/../includes/BattleSimulator.php';
 
 header('Content-Type: application/json');
 
 $database = new Database();
 $db = $database->getConnection();
 
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    sendError("Invalid request method. Only POST is allowed.", 405);
+}
 
 try {
-    // Load player's current session data
-    $stmt = $db->query("SELECT psd.champion_id, c.name as champion_name, c.role, c.starting_hp, c.speed, psd.deck_card_ids, psd.current_hp, psd.current_energy, psd.current_speed, psd.wins, psd.losses, psd.current_xp, psd.current_level
-                                   FROM player_session_data psd
-                                   JOIN champions c ON psd.champion_id = c.id
-                                   LIMIT 1");
+    $stmt = $db->query("SELECT
+        psd.champion_id, c1.name as champion_name_1, c1.role as champion_role_1, c1.starting_hp as champion_max_hp_1, c1.speed as champion_base_speed_1, psd.deck_card_ids, psd.champion_hp_1, psd.champion_energy_1, psd.champion_speed_1,
+        psd.champion_id_2, c2.name as champion_name_2, c2.role as champion_role_2, c2.starting_hp as champion_max_hp_2, c2.speed as champion_base_speed_2, psd.deck_card_ids_2, psd.champion_hp_2, psd.champion_energy_2, psd.champion_speed_2,
+        psd.wins, psd.losses, psd.current_xp, psd.current_level
+    FROM player_session_data psd
+    JOIN champions c1 ON psd.champion_id = c1.id
+    JOIN champions c2 ON psd.champion_id_2 = c2.id
+    LIMIT 1");
     $playerSessionData = $stmt->fetch(PDO::FETCH_ASSOC);
 
-    if ($playerSessionData && !empty($playerSessionData['deck_card_ids'])) {
-        $decoded = json_decode($playerSessionData['deck_card_ids'], true);
-        if (json_last_error() === JSON_ERROR_NONE) {
-            $playerSessionData['deck_card_ids'] = $decoded;
-        } else {
-            // If decoding fails, treat as empty to avoid SQL errors later
-            $playerSessionData['deck_card_ids'] = [];
-        }
-    }
-    
     if (!$playerSessionData) {
-        sendError('Player not set up for battle. Please complete character setup first.', 400);
+        sendError("Player not set up for battle. Please complete character setup first.", 400);
     }
 
-    // Pick a random AI Monster opponent (from GDD)
-    $allMonstersStmt = $db->query("SELECT id, name, role, starting_hp, speed FROM monsters ORDER BY RAND() LIMIT 1");
-    $aiMonsterData = $allMonstersStmt->fetch(PDO::FETCH_ASSOC);
+    // --- Create Player Team ---
+    $playerTeam = new Team(true);
 
-    if (!$aiMonsterData) {
-        sendError('No monsters available for AI opponent.', 500);
+    $champ1 = new Champion([
+        'champion_id' => $playerSessionData['champion_id'],
+        'champion_name' => $playerSessionData['champion_name_1'],
+        'role' => $playerSessionData['champion_role_1'],
+        'starting_hp' => $playerSessionData['champion_max_hp_1'],
+        'speed' => $playerSessionData['champion_base_speed_1'],
+        'current_hp' => $playerSessionData['champion_hp_1'],
+        'current_energy' => $playerSessionData['champion_energy_1'],
+        'current_speed' => $playerSessionData['champion_speed_1'],
+    ]);
+    $champ1->deck = loadCardsFromIds($db, json_decode($playerSessionData['deck_card_ids'], true));
+    $champ1->hand = $champ1->deck;
+    $playerTeam->addEntity($champ1);
+
+    $champ2 = new Champion([
+        'champion_id' => $playerSessionData['champion_id_2'],
+        'champion_name' => $playerSessionData['champion_name_2'],
+        'role' => $playerSessionData['champion_role_2'],
+        'starting_hp' => $playerSessionData['champion_max_hp_2'],
+        'speed' => $playerSessionData['champion_base_speed_2'],
+        'current_hp' => $playerSessionData['champion_hp_2'],
+        'current_energy' => $playerSessionData['champion_energy_2'],
+        'current_speed' => $playerSessionData['champion_speed_2'],
+    ]);
+    $champ2->deck = loadCardsFromIds($db, json_decode($playerSessionData['deck_card_ids_2'], true));
+    $champ2->hand = $champ2->deck;
+    $playerTeam->addEntity($champ2);
+
+    // --- Create Opponent Team ---
+    $opponentTeam = new Team(false);
+    $aiChampsStmt = $db->query("SELECT id, name, role, starting_hp, speed FROM champions ORDER BY RAND() LIMIT 2");
+    $aiChampsData = $aiChampsStmt->fetchAll(PDO::FETCH_ASSOC);
+    if (count($aiChampsData) < 2) {
+        sendError("Not enough champions available for AI opponent team. Need at least 2.", 500);
     }
-    
+
+    $personaStmt = $db->query("SELECT id FROM ai_personas ORDER BY RAND() LIMIT 1");
+    $aiPersonaId = $personaStmt->fetchColumn();
+    $aiPlayer = new AIPlayer($aiPersonaId);
+
+    foreach ($aiChampsData as $cData) {
+        $aiChamp = new Champion([
+            'champion_id' => $cData['id'],
+            'champion_name' => $cData['name'],
+            'role' => $cData['role'],
+            'starting_hp' => $cData['starting_hp'],
+            'speed' => $cData['speed'],
+            'current_hp' => $cData['starting_hp'],
+            'current_energy' => 1,
+            'current_speed' => $cData['speed'],
+        ]);
+        $aiChamp->deck = loadRandomCommonCards($db, $cData['name']);
+        $aiChamp->hand = $aiChamp->deck;
+        $opponentTeam->addEntity($aiChamp);
+    }
+
+    // --- Simulate Battle ---
     $battleSimulator = new BattleSimulator();
-    $simulationResult = $battleSimulator->simulateBattle($playerSessionData, $aiMonsterData['id']);
+    $simulationResult = $battleSimulator->simulateBattle($playerTeam, $opponentTeam, $aiPlayer);
 
-    // Update player's session data after battle (HP, XP, wins/losses, etc.)
+    // Update player's session data after battle
+    $playerTeam->updateTeamHp();
+    $playerSessionData['champion_hp_1'] = $playerTeam->entities[0]->current_hp;
+    $playerSessionData['champion_hp_2'] = $playerTeam->entities[1]->current_hp;
+    $playerSessionData['champion_energy_1'] = $playerTeam->entities[0]->current_energy;
+    $playerSessionData['champion_energy_2'] = $playerTeam->entities[1]->current_energy;
+    $playerSessionData['champion_speed_1'] = $playerTeam->entities[0]->current_speed;
+    $playerSessionData['champion_speed_2'] = $playerTeam->entities[1]->current_speed;
+
     if ($simulationResult['result'] === 'win') {
         $playerSessionData['wins']++;
         $playerSessionData['current_xp'] += $simulationResult['xp_awarded'];
-    } else { // loss or draw
-        $playerSessionData['losses']++; // For MVP, draw also counts as a loss for elimination purposes
+    } else {
+        $playerSessionData['losses']++;
         $playerSessionData['current_xp'] += $simulationResult['xp_awarded'];
     }
-    $playerSessionData['current_hp'] = $simulationResult['player_final_hp'];
-    $playerSessionData['current_energy'] = 1; // Reset energy after battle
-    $playerSessionData['current_speed'] = $playerSessionData['speed']; // Reset speed after battle (base speed)
 
-    // Check for level up
     $xpTable = [
         1 => 60, 2 => 70, 3 => 80, 4 => 90, 5 => 100,
-        6 => 110, 7 => 120, 8 => 130, 9 => 140, 10 => 99999 // Max level, very high XP
+        6 => 110, 7 => 120, 8 => 130, 9 => 140, 10 => 99999
     ];
-    
-    // Check if player leveled up
-    $levelUpOccurred = false;
     $currentLevelXpRequired = $xpTable[$playerSessionData['current_level']] ?? 0;
     while ($playerSessionData['current_xp'] >= $currentLevelXpRequired && $playerSessionData['current_level'] < 10) {
         $playerSessionData['current_level']++;
-        $playerSessionData['current_hp'] += 2; // +2 HP per level
-        $playerSessionData['starting_hp'] = $playerSessionData['current_hp']; // Update max HP for reference
-        $playerSessionData['current_energy'] = min($playerSessionData['current_energy'] + 1, 4); // Max energy increases
-        // GDD: Speed updates are conditional (+1 speed every 3 levels or so for agile types)
-        // For MVP, we'll keep it simple for now and rely on base speed + potential card buffs.
-        $levelUpOccurred = true;
+        $playerSessionData['champion_hp_1'] += 2;
+        $playerSessionData['champion_hp_2'] += 2;
+        $playerSessionData['champion_max_hp_1'] += 2;
+        $playerSessionData['champion_max_hp_2'] += 2;
+        $playerSessionData['champion_energy_1'] = min($playerSessionData['champion_energy_1'] + 1, 4);
+        $playerSessionData['champion_energy_2'] = min($playerSessionData['champion_energy_2'] + 1, 4);
         $currentLevelXpRequired = $xpTable[$playerSessionData['current_level']] ?? 0;
     }
 
-
-    $updateStmt = $db->prepare("UPDATE player_session_data SET current_hp = :current_hp, current_energy = :current_energy, current_speed = :current_speed, wins = :wins, losses = :losses, current_xp = :current_xp, current_level = :current_level LIMIT 1");
-    $updateStmt->bindParam(':current_hp', $playerSessionData['current_hp']);
-    $updateStmt->bindParam(':current_energy', $playerSessionData['current_energy']);
-    $updateStmt->bindParam(':current_speed', $playerSessionData['current_speed']);
+    $updateStmt = $db->prepare("UPDATE player_session_data SET
+        champion_hp_1 = :champion_hp_1, champion_energy_1 = :champion_energy_1, champion_speed_1 = :champion_speed_1,
+        champion_hp_2 = :champion_hp_2, champion_energy_2 = :champion_energy_2, champion_speed_2 = :champion_speed_2,
+        wins = :wins, losses = :losses, current_xp = :current_xp, current_level = :current_level
+        LIMIT 1");
+    $updateStmt->bindParam(':champion_hp_1', $playerSessionData['champion_hp_1']);
+    $updateStmt->bindParam(':champion_energy_1', $playerSessionData['champion_energy_1']);
+    $updateStmt->bindParam(':champion_speed_1', $playerSessionData['champion_speed_1']);
+    $updateStmt->bindParam(':champion_hp_2', $playerSessionData['champion_hp_2']);
+    $updateStmt->bindParam(':champion_energy_2', $playerSessionData['champion_energy_2']);
+    $updateStmt->bindParam(':champion_speed_2', $playerSessionData['champion_speed_2']);
     $updateStmt->bindParam(':wins', $playerSessionData['wins']);
     $updateStmt->bindParam(':losses', $playerSessionData['losses']);
     $updateStmt->bindParam(':current_xp', $playerSessionData['current_xp']);
     $updateStmt->bindParam(':current_level', $playerSessionData['current_level']);
     $updateStmt->execute();
 
-    // Add opponent data to the response for frontend display
-    $simulationResult['opponent_monster_name'] = $aiMonsterData['name'];
-    $simulationResult['opponent_start_hp'] = $aiMonsterData['starting_hp'];
-    $simulationResult['player_start_hp'] = $playerSessionData['starting_hp']; // Pass initial HP for UI bar calcs
-    
+    $simulationResult['opponent_team_names'] = [$opponentTeam->entities[0]->name, $opponentTeam->entities[1]->name];
+    $simulationResult['opponent_start_hp_1'] = $opponentTeam->entities[0]->max_hp;
+    $simulationResult['opponent_start_hp_2'] = $opponentTeam->entities[1]->max_hp;
+    $simulationResult['player_start_hp_1'] = $playerTeam->entities[0]->max_hp;
+    $simulationResult['player_start_hp_2'] = $playerTeam->entities[1]->max_hp;
+
     sendResponse($simulationResult);
 
 } catch (PDOException $e) {
-    sendError('Database error during battle simulation: ' . $e->getMessage(), 500);
+    sendError("Database error during battle simulation: " . $e->getMessage(), 500);
 } catch (Exception $e) {
-    sendError('General error during battle simulation: ' . $e->getMessage(), 500);
+    sendError("General error during battle simulation: " . $e->getMessage(), 500);
+}
+
+function loadCardsFromIds($db_conn, $cardIds) {
+    $fullCards = [];
+    if (!empty($cardIds)) {
+        $placeholder = implode(',', array_fill(0, count($cardIds), '?'));
+        $stmt = $db_conn->prepare("SELECT id, name, card_type, rarity, energy_cost, description, damage_type, armor_type, class_affinity, effect_details, flavor_text FROM cards WHERE id IN ($placeholder)");
+        $stmt->execute($cardIds);
+        $cardsData = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        foreach ($cardsData as $c) {
+            $fullCards[] = new Card(array_merge($c, ['effect_details' => json_decode($c['effect_details'], true)]));
+        }
+    }
+    return $fullCards;
+}
+
+function loadRandomCommonCards($db_conn, $championName) {
+    $cards = [];
+    $stmtA = $db_conn->prepare("SELECT id, name, card_type, rarity, energy_cost, description, damage_type, armor_type, class_affinity, effect_details, flavor_text FROM cards WHERE card_type = 'ability' AND rarity = 'Common' AND (FIND_IN_SET(:name_ab, class_affinity) > 0 OR class_affinity IS NULL) ORDER BY RAND() LIMIT 1");
+    $stmtA->bindParam(':name_ab', $championName);
+    $stmtA->execute();
+    if ($card = $stmtA->fetch(PDO::FETCH_ASSOC)) {
+        $cards[] = new Card(array_merge($card, ['effect_details' => json_decode($card['effect_details'], true)]));
+    }
+    $stmtAr = $db_conn->prepare("SELECT id, name, card_type, rarity, energy_cost, description, damage_type, armor_type, class_affinity, effect_details, flavor_text FROM cards WHERE card_type = 'armor' AND rarity = 'Common' AND (FIND_IN_SET(:name_ar, class_affinity) > 0 OR class_affinity IS NULL) ORDER BY RAND() LIMIT 1");
+    $stmtAr->bindParam(':name_ar', $championName);
+    $stmtAr->execute();
+    if ($card = $stmtAr->fetch(PDO::FETCH_ASSOC)) {
+        $cards[] = new Card(array_merge($card, ['effect_details' => json_decode($card['effect_details'], true)]));
+    }
+    $stmtW = $db_conn->prepare("SELECT id, name, card_type, rarity, energy_cost, description, damage_type, armor_type, class_affinity, effect_details, flavor_text FROM cards WHERE card_type = 'weapon' AND rarity = 'Common' AND (FIND_IN_SET(:name_we, class_affinity) > 0 OR class_affinity IS NULL) ORDER BY RAND() LIMIT 1");
+    $stmtW->bindParam(':name_we', $championName);
+    $stmtW->execute();
+    if ($card = $stmtW->fetch(PDO::FETCH_ASSOC)) {
+        $cards[] = new Card(array_merge($card, ['effect_details' => json_decode($card['effect_details'], true)]));
+    }
+    return $cards;
 }
 ?>
