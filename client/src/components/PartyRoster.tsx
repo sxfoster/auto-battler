@@ -1,6 +1,6 @@
 import React from 'react';
 import { MOCK_HEROES } from '@shared/mock-data';
-import HeroCard from './HeroCard';
+import CharacterCard from './CharacterCard';
 
 interface PartyRosterProps {
   onBackToTown: () => void;
@@ -15,9 +15,18 @@ const PartyRoster: React.FC<PartyRosterProps> = ({ onBackToTown }) => {
         <h1 className="text-5xl font-extrabold tracking-wide">Party Roster</h1>
         <p className="text-lg text-gray-400 mt-2">Review your available adventurers and their abilities.</p>
       </div>
-      <div className="w-full max-w-5xl grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="w-full max-w-5xl flex flex-wrap justify-center gap-6">
         {heroes.map((hero) => (
-          <HeroCard key={hero.id} hero={hero} />
+          <CharacterCard
+            key={hero.id}
+            name={hero.name}
+            heroClass={hero.class}
+            role={hero.archetype}
+            portrait={hero.portrait}
+            description={hero.description || ''}
+            hp={hero.hp}
+            maxHp={hero.maxHp}
+          />
         ))}
       </div>
       <button
