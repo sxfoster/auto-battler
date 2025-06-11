@@ -17,8 +17,7 @@ class BattleSimulator {
     private $battleLog = [];
     private $playerTeam;
     private $opponentTeam;
-    private $playerAi;
-    private $opponentAi;
+    private $aiPlayer;
 
     public function __construct() {
         $database = new Database();
@@ -37,11 +36,10 @@ class BattleSimulator {
         return @vsprintf($template, $args) ?: $template;
     }
 
-    public function simulateBattle(Team $playerTeam, Team $opponentTeam, AIPlayer $playerAi, AIPlayer $opponentAi) {
+    public function simulateBattle(Team $playerTeam, Team $opponentTeam, AIPlayer $aiPlayer) {
         $this->playerTeam = $playerTeam;
         $this->opponentTeam = $opponentTeam;
-        $this->playerAi = $playerAi;
-        $this->opponentAi = $opponentAi;
+        $this->aiPlayer = $aiPlayer;
 
         $turn = 0;
         $maxTurns = 50;
@@ -97,8 +95,7 @@ class BattleSimulator {
 
                 $actingTeam = $actor->team;
                 $opposingTeam = ($actingTeam === $this->playerTeam) ? $this->opponentTeam : $this->playerTeam;
-                $ai = ($actingTeam === $this->playerTeam) ? $this->playerAi : $this->opponentAi;
-                $chosen = $ai->decideAction($actor, $actingTeam, $opposingTeam, $actor->hand);
+                $chosen = $this->aiPlayer->decideAction($actor, $actingTeam, $opposingTeam, $actor->hand);
 
                 $statusFail = null;
                 foreach ($actor->debuffs as $effect) {
@@ -205,8 +202,8 @@ class BattleSimulator {
             "opponent_display_name_1_short" => explode(' ', $this->opponentTeam->entities[0]->display_name)[1] ?? $this->opponentTeam->entities[0]->display_name,
             "opponent_class_name_2" => $this->opponentTeam->entities[1]->name,
             "opponent_display_name_2_short" => explode(' ', $this->opponentTeam->entities[1]->display_name)[1] ?? $this->opponentTeam->entities[1]->display_name,
-            "player_team_persona_name" => $this->playerAi->getPersonaName(),
-            "opponent_team_persona_name" => $this->opponentAi->getPersonaName()
+            "player_team_persona_name" => $this->aiPlayer->getPersonaName(),
+            "opponent_team_persona_name" => $this->aiPlayer->getPersonaName()
         ];
     }
 
