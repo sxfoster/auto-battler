@@ -165,5 +165,38 @@ class GameEntity {
     public function getAttackPower() {
         return $this->current_attack;
     }
+
+    // Serialize the entity state for logging/JSON output
+    public function toArray() {
+        return [
+            'id' => $this->id,
+            'name' => $this->name,
+            'displayName' => $this->display_name,
+            'role' => $this->role,
+            'max_hp' => $this->max_hp,
+            'current_hp' => $this->current_hp,
+            'current_energy' => $this->current_energy,
+            'base_speed' => $this->base_speed,
+            'current_speed' => $this->current_speed,
+            'base_attack' => $this->base_attack,
+            'current_attack' => $this->current_attack,
+            'base_crit_chance' => $this->base_crit_chance,
+            'current_crit_chance' => $this->current_crit_chance,
+            'buffs' => array_map(fn($b) => [
+                'type' => $b->type,
+                'amount' => $b->amount,
+                'duration' => $b->duration,
+                'is_debuff' => $b->is_debuff,
+                'stat_affected' => $b->stat_affected
+            ], $this->buffs),
+            'debuffs' => array_map(fn($d) => [
+                'type' => $d->type,
+                'amount' => $d->amount,
+                'duration' => $d->duration,
+                'is_debuff' => $d->is_debuff,
+                'stat_affected' => $d->stat_affected
+            ], $this->debuffs)
+        ];
+    }
 }
 ?>

@@ -38,5 +38,22 @@ class Card {
         $affinities = explode(',', $this->class_affinity);
         return in_array($championName, $affinities);
     }
+
+    // Return array representation excluding log_template for safe JSON serialization
+    public function toArray() {
+        return [
+            'id' => $this->id,
+            'name' => $this->name,
+            'card_type' => $this->card_type,
+            'rarity' => $this->rarity,
+            'energy_cost' => $this->energy_cost,
+            'description' => $this->description,
+            'damage_type' => $this->damage_type,
+            'armor_type' => $this->armor_type,
+            'class_affinity' => $this->class_affinity,
+            'flavor_text' => $this->flavor_text,
+            'effect_details' => $this->effect_details
+        ];
+    }
 }
 ?>
