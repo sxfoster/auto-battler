@@ -6,6 +6,15 @@ let currentScene = ''; // To track which scene is active (setup, battle, tournam
 let playerData = {}; // Store player's champion and deck
 let battleLog = []; // Store the battle log for Scene 2 playback
 
+// --- Global State for 2v2 Setup ---
+let selectedChampion1Id = null;
+let selectedChampion2Id = null;
+let selectedChampion1Data = null;
+let selectedChampion2Data = null;
+let selectedCards1 = { ability: null, armor: null, weapon: null };
+let selectedCards2 = { ability: null, armor: null, weapon: null };
+let currentSetupStage = 0; // 0: Choose Champ 1, 1: Draft Champ 1, 2: Choose Champ 2, 3: Draft Champ 2
+
 // --- API Helper Functions ---
 async function callApi(endpoint, method = 'GET', data = null) {
     // Prefix API calls with /public/ so requests hit the proper PHP scripts
@@ -109,43 +118,42 @@ function getDamageTypeIcon(damageType) {
 }
 
 // Initial application load
+// --- Initial Application Load ---
 document.addEventListener('DOMContentLoaded', () => {
-    // Start the game by trying to load player setup, or go to setup if none
-    loadGame();
+    // Always start with fresh setup for MVP 2v2 demo
+    renderCharacterSetup();
 });
 
-async function loadGame() {
-    const response = await callApi('player_current_setup.php');
-    if (response && response.champion_id) {
-        playerData = response;
-        // If player already set up, maybe jump to tournament view or next battle
-        // For MVP, always start fresh for simplicity, so just go to setup.
-        // In a real game, you'd resume from last state.
-        renderCharacterSetup(); // Force setup for MVP
-    } else {
-        renderCharacterSetup();
-    }
+// --- Scene 1: Character Setup ---
+async function renderCharacterSetup() {
+    // Reset any previous state
+    selectedChampion1Id = null;
+    selectedChampion2Id = null;
+    selectedChampion1Data = null;
+    selectedChampion2Data = null;
+    selectedCards1 = { ability: null, armor: null, weapon: null };
+    selectedCards2 = { ability: null, armor: null, weapon: null };
+    currentSetupStage = 0;
+
+    await renderChooseChampion(1); // Begin with champion 1 selection
 }
 
-// --- Scene 1: Character Setup ---
-let selectedChampionId = null;
-let selectedCards = {
-    ability: null,
-    armor: null,
-    weapon: null
-};
+async function renderChooseChampion(championNumber) {
+    currentSetupStage = championNumber === 1 ? 0 : 2;
 
-async function renderCharacterSetup() {
-    // 1. Fetch 4 random champions
     const championsResponse = await callApi('champions.php');
     if (!championsResponse || championsResponse.length === 0) {
         appDiv.innerHTML = '<p>Error: No champions found. Please check database population.</p>';
         return;
     }
 
-    const availableChampions = shuffleArray(championsResponse).slice(0, 4);
+    let availableChampions = shuffleArray(championsResponse);
+    if (championNumber === 2 && selectedChampion1Data) {
+        availableChampions = availableChampions.filter(c => c.id != selectedChampion1Id);
+    }
+    availableChampions = availableChampions.slice(0, 4);
 
-    let championsHtml = availableChampions.map(champ => `
+    const championsHtml = availableChampions.map(champ => `
         <div class="champion-card" data-champion-id="${champ.id}">
             <h3>${champ.name}</h3>
             <p>Role: ${champ.role}</p>
@@ -154,119 +162,130 @@ async function renderCharacterSetup() {
     `).join('');
 
     renderScene('character-setup', `
-        <h2>Choose Your Champion</h2>
-        <div id="champion-selection" class="selection-grid">
+        <h2>Choose Your Champion ${championNumber}</h2>
+        <div id="champion-selection-${championNumber}" class="selection-grid">
             ${championsHtml}
         </div>
-        <div id="deck-draft-area" style="display: none;">
-            <h3>Draft Your Starting Deck (3 Cards)</h3>
-            <p>Select 1 Ability, 1 Armor, 1 Weapon.</p>
-            <div class="draft-category">
-                <h4>Ability Card</h4>
-                <div id="ability-cards" class="card-selection-grid"></div>
-            </div>
-            <div class="draft-category">
-                <h4>Armor Card</h4>
-                <div id="armor-cards" class="card-selection-grid"></div>
-            </div>
-            <div class="draft-category">
-                <h4>Weapon Card</h4>
-                <div id="weapon-cards" class="card-selection-grid"></div>
-            </div>
-        </div>
-    `, []); // No initial buttons, they are added dynamically
+    `, []);
 
-    // Add event listeners for champion selection
-    document.querySelectorAll('.champion-card').forEach(card => {
-        card.onclick = () => selectChampion(card.dataset.championId, availableChampions.find(c => c.id == card.dataset.championId));
+    document.querySelectorAll(`#champion-selection-${championNumber} .champion-card`).forEach(card => {
+        card.onclick = () => {
+            const champId = card.dataset.championId;
+            const champData = availableChampions.find(c => c.id == champId);
+            if (championNumber === 1) {
+                selectedChampion1Id = champId;
+                selectedChampion1Data = champData;
+                document.querySelectorAll('.champion-card').forEach(c => c.classList.remove('selected'));
+                card.classList.add('selected');
+                renderDeckDraft(1);
+            } else {
+                selectedChampion2Id = champId;
+                selectedChampion2Data = champData;
+                document.querySelectorAll('.champion-card').forEach(c => c.classList.remove('selected'));
+                card.classList.add('selected');
+                renderDeckDraft(2);
+            }
+        };
     });
 }
 
-async function selectChampion(championId, championData) {
-    selectedChampionId = championId;
-    playerData = championData; // Store chosen champion data for later use
+async function renderDeckDraft(championNumber) {
+    currentSetupStage = championNumber === 1 ? 1 : 3;
 
-    // Visually indicate selection
-    document.querySelectorAll('.champion-card').forEach(card => card.classList.remove('selected'));
-    document.querySelector(`.champion-card[data-champion-id="${championId}"]`).classList.add('selected');
+    const currentChampionData = championNumber === 1 ? selectedChampion1Data : selectedChampion2Data;
+    const championName = currentChampionData.name;
 
-    // Show deck drafting area
-    document.getElementById('deck-draft-area').style.display = 'block';
+    renderScene('deck-draft', `
+        <h2>Draft Deck for ${currentChampionData.name} (Champion ${championNumber})</h2>
+        <p>Select 1 Ability, 1 Armor, 1 Weapon for this Champion.</p>
+        <div class="draft-category">
+            <h4>Ability Card</h4>
+            <div id="ability-cards-${championNumber}" class="card-selection-grid"></div>
+        </div>
+        <div class="draft-category">
+            <h4>Armor Card</h4>
+            <div id="armor-cards-${championNumber}" class="card-selection-grid"></div>
+        </div>
+        <div class="draft-category">
+            <h4>Weapon Card</h4>
+            <div id="weapon-cards-${championNumber}" class="card-selection-grid"></div>
+        </div>
+    `, []);
 
-    // Fetch and display common cards for drafting
-    await fetchDraftCards('ability', championData.name);
-    await fetchDraftCards('armor', championData.name);
-    await fetchDraftCards('weapon', championData.name);
+    await fetchDraftCards('ability', championName, championNumber);
+    await fetchDraftCards('armor', championName, championNumber);
+    await fetchDraftCards('weapon', championName, championNumber);
 
-    // Add the "Confirm Deck" button once a champion is selected
-    updateSetupButtons();
+    updateDeckDraftButtons(championNumber);
 }
 
-async function fetchDraftCards(cardType, championName) {
+async function fetchDraftCards(cardType, championName, championNumber) {
     const cardsResponse = await callApi(`cards_common_by_type.php?type=${cardType}&class=${championName}`);
+    const container = document.getElementById(`${cardType}-cards-${championNumber}`);
     if (!cardsResponse || cardsResponse.length === 0) {
-        document.getElementById(`${cardType}-cards`).innerHTML = `<p>No ${cardType} cards found for ${championName}.</p>`;
+        container.innerHTML = `<p>No common ${cardType} cards found for ${championName}. Please ensure database is populated for this class.</p>`;
         return;
     }
 
-    const availableCards = shuffleArray(cardsResponse).slice(0, 3); // Pick 3 random cards for drafting
-
-    const cardContainer = document.getElementById(`${cardType}-cards`);
-    cardContainer.innerHTML = ''; // Clear previous cards
+    const availableCards = shuffleArray(cardsResponse).slice(0, 3);
+    container.innerHTML = '';
     availableCards.forEach(card => {
-        const cardElement = renderCard(card, true, () => selectDraftCard(cardType, card));
-        cardContainer.appendChild(cardElement);
+        const cardElement = renderCard(card, true, () => selectDraftCard(championNumber, cardType, card));
+        container.appendChild(cardElement);
     });
 }
 
-function selectDraftCard(cardType, card) {
-    selectedCards[cardType] = card;
+function selectDraftCard(championNumber, cardType, card) {
+    const targetSelectedCards = championNumber === 1 ? selectedCards1 : selectedCards2;
+    targetSelectedCards[cardType] = card;
 
-    // Visually indicate selection
-    document.querySelectorAll(`#${cardType}-cards .card`).forEach(el => el.classList.remove('selected'));
-    document.querySelector(`#${cardType}-cards .card[data-card-id="${card.id}"]`).classList.add('selected');
+    document.querySelectorAll(`#${cardType}-cards-${championNumber} .card`).forEach(el => el.classList.remove('selected'));
+    document.querySelector(`#${cardType}-cards-${championNumber} .card[data-card-id="${card.id}"]`).classList.add('selected');
 
-    // Update Confirm button state
-    updateSetupButtons();
+    updateDeckDraftButtons(championNumber);
 }
 
-function updateSetupButtons() {
+function updateDeckDraftButtons(championNumber) {
     const buttonContainer = appDiv.querySelector('.button-container');
-    buttonContainer.innerHTML = ''; // Clear existing buttons
+    buttonContainer.innerHTML = '';
 
-    const allCardsSelected = selectedCards.ability && selectedCards.armor && selectedCards.weapon;
+    const currentSelectedCards = championNumber === 1 ? selectedCards1 : selectedCards2;
+    const allCardsSelected = currentSelectedCards.ability && currentSelectedCards.armor && currentSelectedCards.weapon;
 
-    if (selectedChampionId && allCardsSelected) {
-        const confirmButton = document.createElement('button');
-        confirmButton.textContent = 'Confirm Setup & Start Tournament';
-        confirmButton.className = 'game-button';
-        confirmButton.onclick = confirmSetup;
-        buttonContainer.appendChild(confirmButton);
-    } else if (selectedChampionId) {
+    if (allCardsSelected) {
+        const nextButton = document.createElement('button');
+        nextButton.className = 'game-button';
+        if (championNumber === 1) {
+            nextButton.textContent = 'Configure Champion 2';
+            nextButton.onclick = () => renderChooseChampion(2);
+        } else {
+            nextButton.textContent = 'Confirm Team & Start Tournament';
+            nextButton.onclick = confirmTeamSetup;
+        }
+        buttonContainer.appendChild(nextButton);
+    } else {
         const hint = document.createElement('p');
-        hint.textContent = 'Select one of each card type to proceed.';
+        hint.textContent = 'Select one of each card type to proceed for this champion.';
         hint.style.color = '#aaa';
         buttonContainer.appendChild(hint);
     }
 }
 
-async function confirmSetup() {
-    const cardIds = [
-        selectedCards.ability.id,
-        selectedCards.armor.id,
-        selectedCards.weapon.id
-    ];
+async function confirmTeamSetup() {
+    const cardIds1 = [selectedCards1.ability.id, selectedCards1.armor.id, selectedCards1.weapon.id];
+    const cardIds2 = [selectedCards2.ability.id, selectedCards2.armor.id, selectedCards2.weapon.id];
 
     const response = await callApi('player_setup.php', 'POST', {
-        champion_id: selectedChampionId,
-        card_ids: cardIds
+        champion_id_1: selectedChampion1Id,
+        card_ids_1: cardIds1,
+        champion_id_2: selectedChampion2Id,
+        card_ids_2: cardIds2
     });
 
-    if (response && response.message === "Player setup complete.") {
-        // alert('Setup complete! Starting tournament...'); // removed debugging alert
-        renderBattleScene(); // Move to battle scene
+    if (response && response.message === 'Player team setup complete.') {
+        renderBattleScene();
     } else {
-        alert('Failed to confirm setup. Please try again.');
+        alert('Failed to confirm team setup. Please try again.');
     }
 }
 
@@ -281,118 +300,125 @@ function shuffleArray(array) {
 
 // --- Scene 2: Battle Scene ---
 async function renderBattleScene() {
+    // Fetch player and opponent data
+    const initialPlayerState = await callApi('player_current_setup.php');
+    if (!initialPlayerState) {
+        alert('Error: Could not load player data for battle.');
+        renderCharacterSetup();
+        return;
+    }
+
+    const battleResult = await callApi('battle_simulate.php', 'POST', {});
+    if (!battleResult) {
+        alert('Failed to simulate battle.');
+        return;
+    }
+
+    battleLog = battleResult.log;
+
+    const playerChamp1 = initialPlayerState.champion_name_1;
+    const playerChamp2 = initialPlayerState.champion_name_2;
+    const opponentChamp1 = battleResult.opponent_team_names[0];
+    const opponentChamp2 = battleResult.opponent_team_names[1];
+
+    const initialPlayerHp1 = initialPlayerState.champion_max_hp_1;
+    const initialPlayerHp2 = initialPlayerState.champion_max_hp_2;
+    const initialOpponentHp1 = battleResult.opponent_start_hp_1;
+    const initialOpponentHp2 = battleResult.opponent_start_hp_2;
+
     renderScene('battle-scene', `
         <h2>Battle!</h2>
         <div class="battle-arena">
-            <div class="combatant player-side">
-                <h3 id="player-name">Player</h3>
-                <div class="hp-bar-container"><div id="player-hp-bar" class="hp-bar" style="width: 100%;"></div></div>
-                <span id="player-hp-text" class="hp-text">HP: --/--</span>
-                <div id="player-energy" class="energy-display"></div>
-                <div id="player-status-effects" class="status-effects-container"></div>
+            <div class="team-container player-side">
+                <div class="combatant player-1">
+                    <h3 id="player-1-name">${playerChamp1}</h3>
+                    <div class="hp-bar-container"><div id="player-1-hp-bar" class="hp-bar" style="width: 100%;"></div></div>
+                    <span id="player-1-hp-text" class="hp-text">HP: --/--</span>
+                    <div id="player-1-energy" class="energy-display"></div>
+                    <div id="player-1-status-effects" class="status-effects-container"></div>
+                </div>
+                <div class="combatant player-2">
+                    <h3 id="player-2-name">${playerChamp2}</h3>
+                    <div class="hp-bar-container"><div id="player-2-hp-bar" class="hp-bar" style="width: 100%;"></div></div>
+                    <span id="player-2-hp-text" class="hp-text">HP: --/--</span>
+                    <div id="player-2-energy" class="energy-display"></div>
+                    <div id="player-2-status-effects" class="status-effects-container"></div>
+                </div>
             </div>
             <div class="vs-text">VS</div>
-            <div class="combatant opponent-side">
-                <h3 id="opponent-name">Opponent</h3>
-                <div class="hp-bar-container"><div id="opponent-hp-bar" class="hp-bar" style="width: 100%;"></div></div>
-                <span id="opponent-hp-text" class="hp-text">HP: --/--</span>
-                <div id="opponent-energy" class="energy-display"></div>
-                <div id="opponent-status-effects" class="status-effects-container"></div>
+            <div class="team-container opponent-side">
+                <div class="combatant opponent-1">
+                    <h3 id="opponent-1-name">${opponentChamp1}</h3>
+                    <div class="hp-bar-container"><div id="opponent-1-hp-bar" class="hp-bar" style="width: 100%;"></div></div>
+                    <span id="opponent-1-hp-text" class="hp-text">HP: --/--</span>
+                    <div id="opponent-1-energy" class="energy-display"></div>
+                    <div id="opponent-1-status-effects" class="status-effects-container"></div>
+                </div>
+                <div class="combatant opponent-2">
+                    <h3 id="opponent-2-name">${opponentChamp2}</h3>
+                    <div class="hp-bar-container"><div id="opponent-2-hp-bar" class="hp-bar" style="width: 100%;"></div></div>
+                    <span id="opponent-2-hp-text" class="hp-text">HP: --/--</span>
+                    <div id="opponent-2-energy" class="energy-display"></div>
+                    <div id="opponent-2-status-effects" class="status-effects-container"></div>
+                </div>
             </div>
         </div>
         <div id="battle-log" class="battle-log">
             <h4>Battle Log</h4>
             <div id="log-entries"></div>
         </div>
-    `, []); // Buttons will appear after battle
+    `, []);
 
-    // Fetch initial player/opponent data and then simulate battle
-    await startBattleSimulation();
-}
+    updateCombatantUI('player-1', initialPlayerState.champion_hp_1, initialPlayerHp1);
+    updateCombatantUI('player-2', initialPlayerState.champion_hp_2, initialPlayerHp2);
+    updateCombatantUI('opponent-1', initialOpponentHp1, initialOpponentHp1);
+    updateCombatantUI('opponent-2', initialOpponentHp2, initialOpponentHp2);
 
-async function startBattleSimulation() {
-    const battleResult = await callApi('battle_simulate.php', 'POST', {}); // Empty POST body to trigger simulation
-    if (!battleResult) {
-        alert('Failed to simulate battle.');
-        return;
-    }
-
-    battleLog = battleResult.log; // Store the full log
-    const playerFinalHp = battleResult.player_final_hp;
-    const opponentFinalHp = battleResult.opponent_final_hp;
-    const winner = battleResult.winner;
-    const result = battleResult.result; // 'win', 'loss', 'draw'
-    const xpAwarded = battleResult.xp_awarded;
-
-    // Display initial HP/Names (mock for now, will get from battleResult)
-    document.getElementById('player-name').textContent = playerData.name || 'Your Champion';
-    document.getElementById('opponent-name').textContent = battleResult.opponent_monster_name || 'AI Opponent'; // Assuming simulate endpoint returns opponent name
-    
-    // Simulate turn-by-turn playback for visual effect
     let logIndex = 0;
     const logEntriesDiv = document.getElementById('log-entries');
-    
-    // Initial HP setup before playback
-    const initialPlayerHp = battleResult.player_start_hp; // You'll need to add these to the PHP battle result
-    const initialOpponentHp = battleResult.opponent_start_hp; // You'll need to add these to the PHP battle result
-    updateCombatantUI('player', initialPlayerHp, initialPlayerHp);
-    updateCombatantUI('opponent', initialOpponentHp, initialOpponentHp);
-
     const playbackInterval = setInterval(() => {
         if (logIndex < battleLog.length) {
             const entry = battleLog[logIndex];
-            const formattedEntry = formatLogEntry(entry); // Get the formatted string
+            const formattedEntry = formatLogEntry(entry);
 
-            // Only add if there's actual content to display (due to empty returns in formatLogEntry)
             if (formattedEntry.trim() !== '') {
                 const pElement = document.createElement('p');
                 pElement.innerHTML = `<strong>Turn ${entry.turn}:</strong> ${formattedEntry}`;
-
-                // Prepend the new paragraph element to the log container
                 logEntriesDiv.prepend(pElement);
-                // For a reverse log, auto-scrolling isn't necessary. Users can scroll down for older entries.
             }
 
-            // Update combatant UI based on log entry (simplified for MVP)
-            if (entry.action_type === "Deals Damage") {
-                if (entry.target === document.getElementById('player-name').textContent) {
-                    updateCombatantUI('player', entry.target_hp_after, initialPlayerHp); // Needs max HP
-                } else if (entry.target === document.getElementById('opponent-name').textContent) {
-                    updateCombatantUI('opponent', entry.target_hp_after, initialOpponentHp); // Needs max HP
-                }
-            } else if (entry.action_type === "Heals") {
-                 if (entry.target === document.getElementById('player-name').textContent) {
-                    updateCombatantUI('player', entry.target_hp_after, initialPlayerHp); // Needs max HP
-                } else if (entry.target === document.getElementById('opponent-name').textContent) {
-                    updateCombatantUI('opponent', entry.target_hp_after, initialOpponentHp); // Needs max HP
-                }
+            if (entry.action_type === 'Turn End') {
+                if (entry.player_hp_1 !== undefined) updateCombatantUI('player-1', entry.player_hp_1, initialPlayerHp1);
+                if (entry.player_hp_2 !== undefined) updateCombatantUI('player-2', entry.player_hp_2, initialPlayerHp2);
+                if (entry.opponent_hp_1 !== undefined) updateCombatantUI('opponent-1', entry.opponent_hp_1, initialOpponentHp1);
+                if (entry.opponent_hp_2 !== undefined) updateCombatantUI('opponent-2', entry.opponent_hp_2, initialOpponentHp2);
             }
-            // Implement more granular updates for energy, status effects as needed from log
 
             logIndex++;
         } else {
             clearInterval(playbackInterval);
-            // Battle finished, show result and proceed button
             const battleEndP = document.createElement('p');
-            battleEndP.innerHTML = `<strong>Battle Concluded! Winner: ${winner}</strong><br>You ${result} this battle. Gained ${xpAwarded} XP.`;
-            logEntriesDiv.prepend(battleEndP); // Prepend final summary too
-            
-            appDiv.querySelector('.button-container').innerHTML = ''; // Clear previous buttons
+            battleEndP.innerHTML = `<strong>Battle Concluded! Winner: ${battleResult.winner}</strong><br>You ${battleResult.result} this battle. Gained ${battleResult.xp_awarded} XP.`;
+            logEntriesDiv.prepend(battleEndP);
+
+            appDiv.querySelector('.button-container').innerHTML = '';
             const continueButton = document.createElement('button');
             continueButton.textContent = 'Proceed to Tournament Results';
             continueButton.className = 'game-button';
             continueButton.onclick = renderTournamentView;
             appDiv.querySelector('.button-container').appendChild(continueButton);
         }
-    }, 250); // Playback speed (set to 250ms per log entry)
+    }, 250);
 }
 
-function updateCombatantUI(side, currentHp, maxHp) {
-    const hpBar = document.getElementById(`${side}-hp-bar`);
-    const hpText = document.getElementById(`${side}-hp-text`);
-    const hpPercent = (currentHp / maxHp) * 100;
-    hpBar.style.width = `${hpPercent}%`;
-    hpText.textContent = `HP: ${currentHp}/${maxHp}`;
+function updateCombatantUI(elementIdPrefix, currentHp, maxHp) {
+    const hpBar = document.getElementById(`${elementIdPrefix}-hp-bar`);
+    const hpText = document.getElementById(`${elementIdPrefix}-hp-text`);
+    if (hpBar && hpText) {
+        const hpPercent = (currentHp / maxHp) * 100;
+        hpBar.style.width = `${Math.max(0, hpPercent)}%`;
+        hpText.textContent = `HP: ${Math.max(0, currentHp)}/${maxHp}`;
+    }
 }
 
 // Basic formatting for battle log entries (expand as needed)
@@ -453,18 +479,21 @@ async function renderTournamentView() {
 
     const playerStatus = statusResponse.player_status;
     const gameOver = statusResponse.game_over;
-    const nextOpponent = statusResponse.next_opponent; // PHP should provide a name here
+    const nextOpponent = statusResponse.next_opponent;
+
+    const playerTeamName = `${playerStatus.champion_name_1} & ${playerStatus.champion_name_2}`;
+    const nextOpponentTeamName = `AI Team: ${nextOpponent}`;
 
     let contentHtml = `
         <h2>Tournament Progress</h2>
         <div class="tournament-bracket">
-            <p><strong>Your Champion:</strong> ${playerStatus.champion_name}</p>
+            <p><strong>Your Team:</strong> ${playerTeamName}</p>
             <p><strong>Level:</strong> ${playerStatus.current_level} | <strong>XP:</strong> ${playerStatus.current_xp}</p>
             <p><strong>Record:</strong> Wins: ${playerStatus.wins} | Losses: ${playerStatus.losses}</p>
-            
-            ${gameOver ? 
-                `<h3 class="game-over-text">Game Over! You were eliminated.</h3>` : 
-                `<p>Next Opponent: <strong>${nextOpponent}</strong></p>`
+
+            ${gameOver ?
+                `<h3 class="game-over-text">Game Over! Your team was eliminated.</h3>` :
+                `<p>Next Opponent Team: <strong>${nextOpponentTeamName}</strong></p>`
             }
         </div>
     `;
@@ -489,9 +518,13 @@ async function resetTournament() {
         if (response && response.message === "Tournament and player progress reset.") {
             alert('Tournament reset. Starting new game...');
             // Clear client-side player data too
-            playerData = {}; 
-            selectedChampionId = null;
-            selectedCards = { ability: null, armor: null, weapon: null };
+            playerData = {};
+            selectedChampion1Id = null;
+            selectedChampion2Id = null;
+            selectedChampion1Data = null;
+            selectedChampion2Data = null;
+            selectedCards1 = { ability: null, armor: null, weapon: null };
+            selectedCards2 = { ability: null, armor: null, weapon: null };
             renderCharacterSetup(); // Go back to setup
         } else {
             alert('Failed to reset tournament.');
