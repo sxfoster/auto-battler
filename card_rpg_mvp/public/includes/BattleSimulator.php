@@ -152,57 +152,43 @@ class BattleSimulator {
         return 0; // obsolete
     }
 
-    private function applyCardEffect(GameEntity $caster, Card $card, Team $opposingTeam, Team $actingTeam, ?GameEntity $chosenTargetEntity) {
+    private function applyCardEffect(GameEntity $caster, Card $card, Team $opposingTeam, Team $actingTeam, ?GameEntity $explicitTarget) {
         $effectDetails = $card->effect_details;
         if (!$effectDetails) return;
 
         $targets = [];
 
-        if ($chosenTargetEntity && $chosenTargetEntity->current_hp > 0) {
-            $targets = [$chosenTargetEntity];
+        if ($explicitTarget) {
+            $targets = [$explicitTarget];
         } elseif (isset($effectDetails['target'])) {
             switch ($effectDetails['target']) {
-                case 'self':
-                    $targets = [$caster];
-                    break;
-                case 'single_ally':
-                    $targets = [$actingTeam->getLowestHpActiveEntity() ?: $caster];
-                    break;
-                case 'all_allies':
-                    $targets = $actingTeam->getActiveEntities();
-                    break;
-                case 'single_enemy':
-                case 'random_enemy':
-                    $targets = [$opposingTeam->getRandomActiveEntity()];
-                    break;
-                case 'all_enemies':
-                    $targets = $opposingTeam->getActiveEntities();
-                    break;
-                default:
-                    $targets = [$opposingTeam->getRandomActiveEntity()];
-                    break;
+                case 'self': $targets = [$caster]; break;
+                case 'single_ally': $targets = $actingTeam->getActiveEntities(); break;
+                case 'all_allies': $targets = $actingTeam->getActiveEntities(); break;
+                case 'single_enemy': $targets = $opposingTeam->getActiveEntities(); break;
+                case 'random_enemy': $targets = $opposingTeam->getActiveEntities(); break;
+                case 'all_enemies': $targets = $opposingTeam->getActiveEntities(); break;
+                default: $targets = [$caster]; break;
             }
         } else {
-            if ($card->card_type === 'weapon' || ($card->card_type === 'ability' && strpos($effectDetails['type'] ?? '', 'damage') !== false)) {
-                $targets = [$opposingTeam->getRandomActiveEntity()];
+            if ($card->card_type === 'armor' || (strpos($effectDetails['type'] ?? '', 'buff') !== false && !strpos($effectDetails['type'] ?? '', 'damage') !== false)) {
+                $targets = [$caster];
+            } elseif ($card->card_type === 'weapon' || strpos($effectDetails['type'] ?? '', 'damage') !== false) {
+                $targets = $opposingTeam->getActiveEntities();
             } else {
                 $targets = [$caster];
             }
         }
 
         $targets = array_filter($targets, fn($t) => $t instanceof GameEntity && $t->current_hp > 0);
+
         if (empty($targets)) {
-            $this->logAction($this->battleLog[count($this->battleLog)-1]['turn'], $caster->display_name, "Action Failed", ["card_name"=>$card->name, "reason"=>"No active or valid targets for card effect."]);
-            return;
+             $this->logAction($this->battleLog[count($this->battleLog)-1]['turn'], $caster->display_name, "Action Failed", ["card_name" => $card->name, "reason" => "No active or valid targets for card effect."]);
+             return;
         }
 
         foreach ($targets as $actualTarget) {
-            if (!$actualTarget || $actualTarget->current_hp <= 0) {
-                $this->logAction($this->battleLog[count($this->battleLog)-1]['turn'], $caster->display_name, "Action Ignored", ["card_name"=>$card->name, "reason"=>"Target invalid/defeated", "target"=>$actualTarget->display_name ?? "N/A"]);
-                continue;
-            }
-
-            $this->logAction($this->battleLog[count($this->battleLog)-1]['turn'], $caster->display_name, "Applying Effect", ["card_name"=>$card->name, "effect_type"=>$effectDetails['type'], "target"=>$actualTarget->display_name]);
+            $this->logAction($this->battleLog[count($this->battleLog)-1]['turn'], $caster->display_name, "Applying Effect", ["card_name" => $card->name, "effect_type" => $effectDetails['type'], "target" => $actualTarget->display_name]);
 
             switch ($effectDetails['type']) {
                 case 'damage':
@@ -259,11 +245,19 @@ class BattleSimulator {
                     break;
 
                 case 'damage_random_element':
+                case 'damage_random_debuff':
                     $elements = $effectDetails['elements'];
                     $chosenElement = $elements[array_rand($elements)];
                     $damageDealt = calculateDamage($effectDetails['damage'], $chosenElement, $actualTarget->armor_type ?? NULL);
-                    $actualTarget->takeDamage($damageDealt);
+                    $actualTarget->takeDamage($damageDealt, $chosenElement);
                     $this->logAction($this->battleLog[count($this->battleLog)-1]['turn'], $caster->display_name, "Deals Random Elemental Damage", ["target"=>$actualTarget->display_name, "amount"=>$damageDealt, "element"=>$chosenElement, "target_hp_after"=>$actualTarget->current_hp]);
+                    if ($effectDetails['type'] === 'damage_random_debuff') {
+                         $debuffs = $effectDetails['debuff_types'];
+                         $chosenDebuff = $debuffs[array_rand($debuffs)];
+                         $debuffEffect = new StatusEffect($chosenDebuff, null, $effectDetails['duration'], true);
+                         $actualTarget->addStatusEffect($debuffEffect);
+                         $this->logAction($this->battleLog[count($this->battleLog)-1]['turn'], $caster->display_name, "Applies Random Debuff", ["target"=>$actualTarget->display_name, "debuff"=>$chosenDebuff, "duration"=>$effectDetails['duration']]);
+                    }
                     break;
 
                 case 'damage_self_debuff':
@@ -272,6 +266,12 @@ class BattleSimulator {
                     $this->logAction($this->battleLog[count($this->battleLog)-1]['turn'], $caster->display_name, "Deals Damage", ["target"=>$actualTarget->display_name, "amount"=>$damageDealt, "target_hp_after"=>$actualTarget->current_hp]);
                     BuffManager::applyEffect($caster, $card, $effectDetails);
                     $this->logAction($this->battleLog[count($this->battleLog)-1]['turn'], $caster->display_name, "Applies Self Debuff", ["stat"=>$effectDetails['debuff_stat'], "amount"=>$effectDetails['debuff_amount'], "duration"=>$effectDetails['debuff_duration']]);
+                    break;
+
+                case 'damage_conditional':
+                    $damageDealt = calculateDamage($effectDetails['damage'], $card->damage_type, $actualTarget->armor_type ?? NULL);
+                    $actualTarget->takeDamage($damageDealt, $card->damage_type);
+                    $this->logAction($this->battleLog[count($this->battleLog)-1]['turn'], $caster->display_name, "Deals Conditional Damage", ["target"=>$actualTarget->display_name, "amount"=>$damageDealt, "target_hp_after"=>$actualTarget->current_hp]);
                     break;
 
                 case 'energy_gain':
@@ -370,6 +370,15 @@ class BattleSimulator {
                     $this->logAction($this->battleLog[count($this->battleLog)-1]['turn'], $caster->display_name, "Applies Debuff", ["target"=>$actualTarget->display_name, "stat"=>$effectDetails['debuff_stat'], "amount"=>$effectDetails['debuff_amount'], "duration"=>$effectDetails['debuff_duration']]);
                     break;
 
+                case 'aoe_damage_dot':
+                    $damageDealt = calculateDamage($effectDetails['damage'], $card->damage_type, $actualTarget->armor_type ?? NULL);
+                    $actualTarget->takeDamage($damageDealt);
+                    $this->logAction($this->battleLog[count($this->battleLog)-1]['turn'], $caster->display_name, "Deals AOE Damage", ["target"=>$actualTarget->display_name, "amount"=>$damageDealt, "target_hp_after"=>$actualTarget->current_hp]);
+                    $dotEffect = new StatusEffect($effectDetails['dot_type'], $effectDetails['dot_amount'], $effectDetails['dot_duration'], true, 'dot_damage');
+                    $actualTarget->addStatusEffect($dotEffect);
+                    $this->logAction($this->battleLog[count($this->battleLog)-1]['turn'], $caster->display_name, "Applies DOT", ["target"=>$actualTarget->display_name, "type"=>$effectDetails['dot_type'], "amount"=>$effectDetails['dot_amount'], "duration"=>$effectDetails['dot_duration']]);
+                    break;
+
                 case 'extra_actions_next_turn':
                     $this->logAction($this->battleLog[count($this->battleLog)-1]['turn'], $caster->display_name, "Gains Extra Actions Next Turn", ["target"=>$actualTarget->display_name, "amount"=>$effectDetails['amount'] ?? 1]);
                     break;
@@ -408,6 +417,40 @@ class BattleSimulator {
                         $actualTarget->current_hp = min($reviveAmount, $actualTarget->max_hp);
                         $this->logAction($this->battleLog[count($this->battleLog)-1]['turn'], $caster->display_name, "Revives", ["target"=>$actualTarget->display_name, "amount"=>$actualTarget->current_hp]);
                     }
+                    break;
+
+                case 'aoe_heal_cleanse':
+                    $actualTarget->heal($effectDetails['heal']);
+                    $this->logAction($this->battleLog[count($this->battleLog)-1]['turn'], $caster->display_name, "Heals", ["target"=>$actualTarget->display_name, "amount"=>$effectDetails['heal'], "target_hp_after"=>$actualTarget->current_hp]);
+                    $this->logAction($this->battleLog[count($this->battleLog)-1]['turn'], $caster->display_name, "Cleanses Debuffs", ["target"=>$actualTarget->display_name]);
+                    break;
+
+                case 'aoe_heal_buff':
+                    $actualTarget->heal($effectDetails['heal']);
+                    $this->logAction($this->battleLog[count($this->battleLog)-1]['turn'], $caster->display_name, "Heals", ["target"=>$actualTarget->display_name, "amount"=>$effectDetails['heal'], "target_hp_after"=>$actualTarget->current_hp]);
+                    BuffManager::applyEffect($actualTarget, $card, $effectDetails);
+                    $this->logAction($this->battleLog[count($this->battleLog)-1]['turn'], $caster->display_name, "Applies Buff", ["target"=>$actualTarget->display_name, "stat"=>$effectDetails['buff_stat'], "amount"=>$effectDetails['buff_amount'], "duration"=>$effectDetails['duration']]);
+                    break;
+
+                case 'initiative_manipulation':
+                    $this->logAction($this->battleLog[count($this->battleLog)-1]['turn'], $caster->display_name, "Manipulates Initiative", ["target"=>$actualTarget->display_name]);
+                    break;
+
+                case 'untargetable':
+                case 'untargetable_buff':
+                    $statusEffect = new StatusEffect('Untargetable', null, $effectDetails['duration'], false, 'untargetable');
+                    $actualTarget->addStatusEffect($statusEffect);
+                    $this->logAction($this->battleLog[count($this->battleLog)-1]['turn'], $caster->display_name, "Becomes Untargetable", ["target"=>$actualTarget->display_name, "duration"=>$effectDetails['duration']]);
+                    break;
+
+                case 'mind_control':
+                    $this->logAction($this->battleLog[count($this->battleLog)-1]['turn'], $caster->display_name, "Mind Controls", ["target"=>$actualTarget->display_name, "duration"=>$effectDetails['duration']]);
+                    break;
+
+                case 'conditional_damage_modifier':
+                    $buffEffect = new StatusEffect('Damage Modifier', $effectDetails['modifier_type'], $effectDetails['duration'], false, 'damage_modifier');
+                    $caster->addStatusEffect($buffEffect);
+                    $this->logAction($this->battleLog[count($this->battleLog)-1]['turn'], $caster->display_name, "Gains Conditional Damage Boost", ["target"=>$caster->display_name, "modifier"=>$effectDetails['modifier_type'], "duration"=>$effectDetails['duration']]);
                     break;
 
                 default:
