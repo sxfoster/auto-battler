@@ -425,7 +425,11 @@ function updateCombatantUI(elementIdPrefix, currentHp, maxHp) {
 function formatLogEntry(entry) {
     switch (entry.action_type) {
         case "Battle Start":
-            return `The battle begins! ${entry.player.name} (HP: ${entry.player.hp}) vs. ${entry.opponent.name} (HP: ${entry.opponent.hp}).`;
+            const playerTeamNames = entry.player_team_names.join(' & ');
+            const opponentTeamNames = entry.opponent_team_names.join(' & ');
+            const playerInitialHp = entry.player_initial_hp_1 + entry.player_initial_hp_2;
+            const opponentInitialHp = entry.opponent_initial_hp_1 + entry.opponent_initial_hp_2;
+            return `The battle begins! Your team (${playerTeamNames}, Total HP: ${playerInitialHp}) vs. Opponent team (${opponentTeamNames}, Total HP: ${opponentInitialHp}).`;
         case "Turn Start":
             return `--- Turn ${entry.turn} Begins ---`;
         case "Turn Action":
