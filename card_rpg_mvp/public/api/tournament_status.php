@@ -11,21 +11,26 @@ $database = new Database();
 $db = $database->getConnection();
 
 try {
-    $stmt = $db->query("SELECT psd.wins, psd.losses, psd.current_level, psd.current_xp, c.name as champion_name
+    $stmt = $db->query("SELECT
+                                   psd.wins, psd.losses, psd.current_level, psd.current_xp,
+                                   c1.name as champion_name_1, c2.name as champion_name_2
                                    FROM player_session_data psd
-                                   JOIN champions c ON psd.champion_id = c.id
+                                   JOIN champions c1 ON psd.champion_id = c1.id
+                                   JOIN champions c2 ON psd.champion_id_2 = c2.id
                                    LIMIT 1");
     $playerTournamentStatus = $stmt->fetch(PDO::FETCH_ASSOC);
 
     if ($playerTournamentStatus) {
         $gameOver = ($playerTournamentStatus['losses'] >= 2); // GDD: 2 losses = elimination
 
-        $nextOpponentName = "N/A"; 
+        $nextOpponentName = "N/A";
         if (!$gameOver) {
-             // In a real tournament, this would be determined by bracket logic.
-             // For MVP, just randomly select a monster for the next potential fight display.
-             $randomMonsterStmt = $db->query("SELECT name FROM monsters ORDER BY RAND() LIMIT 1");
-             $nextOpponentName = $randomMonsterStmt->fetchColumn() . " (AI)";
+            // For MVP, pick two random champions for the AI team name display
+            $randomStmt = $db->query("SELECT name FROM champions ORDER BY RAND() LIMIT 2");
+            $names = $randomStmt->fetchAll(PDO::FETCH_COLUMN);
+            if (count($names) === 2) {
+                $nextOpponentName = $names[0] . ' & ' . $names[1];
+            }
         }
         
         sendResponse([
