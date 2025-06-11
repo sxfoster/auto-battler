@@ -15,38 +15,32 @@ function sendError($message, $statusCode = 400) {
 // Reference GDD: Weapon Design Document (Weapon GDD) - 4. Damage Type vs. Armor Effectiveness Matrix
 // This is still simplified; needs full GDD logic.
 function calculateDamage($baseDamage, $damageType, $targetArmorType) {
-    $finalDamage = $baseDamage;
+    $calculatedDamage = $baseDamage;
 
-    // MVP simplified damage calculation based on GDD matrix:
-    // This assumes targetArmorType is 'Light', 'Medium', 'Heavy', 'Magic'
-    // You'll need to fetch the target's equipped armor's armor_type to pass here.
-
+    // Apply simplified armor effectiveness matrix
     if ($damageType === 'Slashing') {
         if ($targetArmorType === 'Medium') {
-            $finalDamage -= 1;
+            $calculatedDamage -= 1;
         } elseif ($targetArmorType === 'Heavy') {
-            $finalDamage -= 2;
+            $calculatedDamage -= 2;
         }
     } elseif ($damageType === 'Piercing') {
         if ($targetArmorType === 'Light') {
-            $finalDamage += 1;
+            $calculatedDamage += 1;
         } elseif ($targetArmorType === 'Heavy') {
-            $finalDamage -= 1;
+            $calculatedDamage -= 1;
         }
     } elseif ($damageType === 'Bludgeoning') {
         if ($targetArmorType === 'Medium') {
-            $finalDamage += 1;
+            $calculatedDamage += 1;
         } elseif ($targetArmorType === 'Heavy') {
-            $finalDamage += 2;
+            $calculatedDamage += 2;
         }
     } elseif ($damageType === 'Magic') {
-        if ($targetArmorType === 'Magic') {
-            $finalDamage -= 2; // Assuming '-2 damage (if warded)' means reduction
-        }
+        // Magic vs magic armor handled in takeDamage
     }
-    
-    // Ensure damage is not negative after reductions unless specifically allowed by a card effect
-    return max(0, $finalDamage);
+
+    return max(0, $calculatedDamage);
 }
 
 // Helper for battle logging

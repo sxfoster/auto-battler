@@ -12,6 +12,9 @@ class GameEntity {
     public $current_energy;
     public $current_evasion; // temporary evasion from buffs/debuffs
     public $current_defense_reduction; // temporary defense reduction from buffs/debuffs
+    public $current_magic_defense_reduction; // reduction against magic damage
+    public $current_block_charges; // physical block charges
+    public $current_magic_block_charges; // magic block charges
     public $base_attack; // baseline attack value
     public $current_attack; // attack after buffs/debuffs
     public $buffs = []; // Array of active StatusEffect objects
@@ -33,36 +36,39 @@ class GameEntity {
         $this->current_energy = 1; // All start with 1 energy at Level 1, as per GDD
         $this->current_evasion = 0;
         $this->current_defense_reduction = 0;
+        $this->current_magic_defense_reduction = 0;
+        $this->current_block_charges = 0;
+        $this->current_magic_block_charges = 0;
         $this->role = $role;
         $this->base_attack = $base_attack;
         $this->current_attack = $base_attack;
     }
 
     public function takeDamage($amount, $damage_type = NULL) {
-        // Apply defense reduction based on active buffs/debuffs and armor
-        $effectiveDamage = $amount - $this->current_defense_reduction;
+        $effectiveDamage = $amount; // Already adjusted by calculateDamage
 
-        // Check for Block status (consumed when damage is taken)
-        foreach ($this->buffs as $key => $effect) {
-            if ($effect->stat_affected === 'block_incoming' || $effect->type === 'Block') {
-                if ($effect->amount >= $effectiveDamage) {
-                    $effectiveDamage = 0;
-                } else {
-                    $effectiveDamage -= $effect->amount;
-                }
-                unset($this->buffs[$key]);
-                break; // Only one block effect consumed per hit
-            }
+        // Physical and magic block charges fully negate damage once
+        if ($damage_type !== 'Magic' && $this->current_block_charges > 0) {
+            $this->current_block_charges--;
+            return 0;
+        }
+        if ($damage_type === 'Magic' && $this->current_magic_block_charges > 0) {
+            $this->current_magic_block_charges--;
+            return 0;
         }
 
-        // Damage cannot go below 0 due to reduction
-        if ($effectiveDamage < 0) $effectiveDamage = 0;
+        // Flat reductions from defense buffs
+        $effectiveDamage -= $this->current_defense_reduction;
+        if ($damage_type === 'Magic') {
+            $effectiveDamage -= $this->current_magic_defense_reduction;
+        }
 
-        $this->current_hp -= $effectiveDamage;
+        $damageToApply = max(0, $effectiveDamage);
+        $this->current_hp -= $damageToApply;
         if ($this->current_hp < 0) {
             $this->current_hp = 0;
         }
-        return $effectiveDamage; // Return actual damage taken
+        return $damageToApply;
     }
 
     public function heal($amount) {
@@ -112,6 +118,9 @@ class GameEntity {
         $this->current_speed = $this->base_speed;
         $this->current_evasion = 0;
         $this->current_defense_reduction = 0;
+        $this->current_magic_defense_reduction = 0;
+        $this->current_block_charges = 0;
+        $this->current_magic_block_charges = 0;
 
         // Re-apply buffs/debuffs that last multiple turns
         $this->applyActiveStatModifiers(); // This function will be called here
