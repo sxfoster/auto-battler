@@ -47,30 +47,34 @@ class GameEntity {
     }
 
     public function takeDamage($amount, $damage_type = NULL) {
-        $effectiveDamage = $amount; // Already adjusted by calculateDamage
+        $effectiveDamage = $amount; // This 'amount' is the base damage *after* calculateDamage (type vs armor)
 
-        // Physical and magic block charges fully negate damage once
+        // 1. Handle Block charges (consume first if damage is completely blocked)
         if ($damage_type !== 'Magic' && $this->current_block_charges > 0) {
-            $this->current_block_charges--;
-            return 0;
+            $this->current_block_charges--; // Consume a charge
+            return 0; // Damage completely blocked
         }
         if ($damage_type === 'Magic' && $this->current_magic_block_charges > 0) {
-            $this->current_magic_block_charges--;
-            return 0;
+            $this->current_magic_block_charges--; // Consume a charge
+            return 0; // Magic damage completely blocked
         }
 
-        // Flat reductions from defense buffs
-        $effectiveDamage -= $this->current_defense_reduction;
+        // 2. Apply general defense reduction
+        $effectiveDamage = $effectiveDamage - $this->current_defense_reduction;
+
+        // 3. Apply magic defense reduction (only if damage is magic)
         if ($damage_type === 'Magic') {
-            $effectiveDamage -= $this->current_magic_defense_reduction;
+            $effectiveDamage = $effectiveDamage - $this->current_magic_defense_reduction;
         }
 
+        // Ensure damage doesn't go below zero after reductions
         $damageToApply = max(0, $effectiveDamage);
+
         $this->current_hp -= $damageToApply;
         if ($this->current_hp < 0) {
             $this->current_hp = 0;
         }
-        return $damageToApply;
+        return $damageToApply; // Return actual damage taken
     }
 
     public function heal($amount) {

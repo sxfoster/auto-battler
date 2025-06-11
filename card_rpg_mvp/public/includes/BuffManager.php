@@ -45,9 +45,9 @@ class BuffManager {
         $entity->current_speed = $entity->base_speed;
         $entity->current_evasion = 0;
         $entity->current_defense_reduction = 0;
-        $entity->current_magic_defense_reduction = 0;
-        $entity->current_block_charges = 0;
-        $entity->current_magic_block_charges = 0;
+        $entity->current_magic_defense_reduction = 0; // NEW: reset magic defense
+        $entity->current_block_charges = 0; // NEW: reset block charges
+        $entity->current_magic_block_charges = 0; // NEW: reset magic block charges
         // Add current_attack to GameEntity, initialize to base_attack
         $entity->current_attack = $entity->base_attack ?? 1; // Assuming base attack of 1 if not set
 
