@@ -9,6 +9,7 @@ require_once __DIR__ . '/Team.php'; // Ensure Team.php is included
 class AIPlayer {
     private $persona; // Decoded AI Persona priorities from DB
     private $db_conn;
+    private $personaName; // store persona name for logging/testing
 
     public function __construct($personaId) {
         $database = new Database();
@@ -17,32 +18,49 @@ class AIPlayer {
     }
 
     private function loadPersona($personaId) {
-        $stmt = $this->db_conn->prepare("SELECT priorities FROM ai_personas WHERE id = :id");
+        $stmt = $this->db_conn->prepare("SELECT name, priorities FROM ai_personas WHERE id = :id");
         $stmt->bindParam(':id', $personaId, PDO::PARAM_INT);
         $stmt->execute();
         $personaData = $stmt->fetch(PDO::FETCH_ASSOC);
         if ($personaData && $personaData['priorities']) {
-            $this->persona = json_decode($personaData['priorities'], true);
+            $this->personaName = $personaData['name'];
+            $decodedPersona = json_decode($personaData['priorities'], true);
+            if (json_last_error() === JSON_ERROR_NONE) {
+                $this->persona = $decodedPersona;
+                return;
+            } else {
+                error_log("AI Persona ID {$personaId} found but JSON is malformed: " . json_last_error_msg());
+            }
         } else {
-            // Default to a balanced persona if not found or empty
-            $this->persona = [
-                'card_priority' => ['damage', 'heal', 'defense', 'utility'],
-                'target_priority_damage' => 'lowest_hp_enemy',
-                'target_priority_heal_defense' => 'lowest_hp_ally',
-                'target_priority_control' => 'highest_dps_enemy',
-                'heal_use_threshold' => 0.6,
-                'defense_use_threshold' => 0.6,
-                'damage_card_score_multiplier' => 1,
-                'aoe_damage_bonus_score' => 0,
-                'lethal_damage_bonus_score' => 0,
-                'energy_save_chance_2_cost' => 0,
-                'min_energy_to_save' => 2,
-                'prioritize_higher_reward_over_immediate' => false,
-                'play_defensive_chance' => 0.0, // Default to no bias
-                'max_damage_card_choice_chance' => 0.0 // Default to no bias
-            ];
-            error_log("AI Persona ID {$personaId} not found or empty. Defaulting to generic base.");
+            error_log("AI Persona ID {$personaId} not found or empty. Falling back to default aggressive persona.");
         }
+
+        // Fallback to default aggressive persona
+        $this->persona = $this->getDefaultAggressivePersona();
+        $this->personaName = 'DefaultAggressive';
+    }
+
+    private function getDefaultAggressivePersona(): array {
+        return [
+            'card_priority' => ['damage', 'utility', 'heal', 'defense'],
+            'target_priority_damage' => 'lowest_hp_enemy',
+            'target_priority_heal_defense' => 'lowest_hp_ally',
+            'target_priority_control' => 'lowest_hp_enemy',
+            'heal_use_threshold' => 0.5,
+            'defense_use_threshold' => 0.5,
+            'damage_card_score_multiplier' => 100,
+            'aoe_damage_bonus_score' => 50,
+            'lethal_damage_bonus_score' => 100,
+            'energy_save_chance_2_cost' => 1.0,
+            'min_energy_to_save' => 2,
+            'prioritize_higher_reward_over_immediate' => true,
+            'play_defensive_chance' => 0.0,
+            'max_damage_card_choice_chance' => 0.0
+        ];
+    }
+
+    public function getPersonaName(): string {
+        return $this->personaName;
     }
 
     /**
@@ -72,13 +90,11 @@ class AIPlayer {
         $minEnergyToSave = $this->persona['min_energy_to_save'] ?? 2;
 
         if ($activeEntity->current_energy < $minEnergyToSave && ($prioritizeHigherReward || mt_rand(0, 100) / 100 < $energySaveChance)) {
-            // Check if there's a higher cost card (e.g., 2-cost) that would provide better value later
             $hasHigherCostCard = false;
-            foreach ($affordableCards as $card) {
+            foreach ($availableCards as $card) {
                 if ($card->energy_cost >= $minEnergyToSave) {
-                    // Check if this higher cost card is actually good (e.g., a damage card for Aggressive)
-                    $score = $this->scoreCard($card, $this->persona['card_priority'][0] ?? 'damage', $activeEntity, $opposingTeam, $actingTeam); // Score by highest priority type
-                    if ($score > 10) { // arbitrary threshold for 'good value'
+                    $score = $this->scoreCard($card, $this->persona['card_priority'][0] ?? 'damage', $activeEntity, $opposingTeam, $actingTeam);
+                    if ($score > 10) {
                         $hasHigherCostCard = true;
                         break;
                     }
@@ -91,24 +107,39 @@ class AIPlayer {
 
 
         // --- Step 2: Iterate through persona's card priorities ---
+        $playDefChance = $this->persona['play_defensive_chance'] ?? 0.0;
+
         foreach ($cardPriorities as $currentPriorityType) {
-            // Sort affordable cards by this priority type (descending) to find the 'best' card first
+            // Chance to switch to defensive play even if persona prioritizes damage
+            if ($currentPriorityType === 'damage' && $playDefChance > 0) {
+                $defCards = array_filter($affordableCards, function($c){
+                    $type = $c->effect_details['type'] ?? '';
+                    return strpos($type, 'reduction') !== false || strpos($type, 'block') !== false || strpos($type, 'immunity') !== false || $c->card_type === 'armor';
+                });
+                if (!empty($defCards) && mt_rand(0,100)/100 < $playDefChance) {
+                    $currentPriorityType = 'defense';
+                }
+            }
+
+            // Sort affordable cards by this priority type (descending)
             usort($affordableCards, function($a, $b) use ($currentPriorityType, $activeEntity, $opposingTeam, $actingTeam) {
                 return $this->scoreCard($b, $currentPriorityType, $activeEntity, $opposingTeam, $actingTeam) <=> $this->scoreCard($a, $currentPriorityType, $activeEntity, $opposingTeam, $actingTeam);
             });
 
-            foreach ($affordableCards as $card) {
-                // If it's a damage card and max_damage_card_choice_chance is set, roll the dice
-                if ($currentPriorityType === 'damage' && ($this->persona['max_damage_card_choice_chance'] ?? 0.0) > 0.0) {
-                    if (mt_rand(0, 100) / 100 < $this->persona['max_damage_card_choice_chance']) {
-                        // This card is chosen based on random chance to be highest damage,
-                        // it will be the first one in the sorted list IF damage is highest priority.
-                    } else {
-                        // Skip this damage card if we failed the random chance to pick the absolute highest
-                        // This logic needs to be more refined for multi-card decks. For now, it's a simplification.
-                        // A better way: sort by specific criteria within the loop, not before.
+            // Special branch: if choosing damage and random chance hits, immediately pick highest damage card
+            if ($currentPriorityType === 'damage' && ($this->persona['max_damage_card_choice_chance'] ?? 0.0) > 0.0 && mt_rand(0,100)/100 < $this->persona['max_damage_card_choice_chance']) {
+                $topCard = $affordableCards[0];
+                $targets = $this->getPotentialTargets($activeEntity, $topCard, $actingTeam, $opposingTeam);
+                $targets = array_filter($targets, fn($t) => $t instanceof GameEntity && $t->current_hp > 0);
+                if (!empty($targets)) {
+                    $chosenTargetEntity = $this->selectBestTarget($activeEntity, $topCard, $targets, $opposingTeam, $actingTeam);
+                    if ($chosenTargetEntity) {
+                        return ['card' => $topCard, 'target_entity' => $chosenTargetEntity];
                     }
                 }
+            }
+
+            foreach ($affordableCards as $card) {
 
 
                 // --- Determine potential targets for this card ---
