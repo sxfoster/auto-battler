@@ -467,44 +467,9 @@ async function renderBattleScene() {
     const playbackInterval = setInterval(() => {
         if (logIndex < battleLog.length) {
             const entry = battleLog[logIndex];
-            const formattedEntry = formatLogEntry(entry);
-
-            if (formattedEntry.trim() !== '') {
-                const pElement = document.createElement('p');
-                pElement.innerHTML = `<strong>Turn ${entry.turn}:</strong> ${formattedEntry}`;
-                logEntriesDiv.prepend(pElement);
-            }
-
-            let targetElementIdPrefix = '';
-            if (entry.actor === initialPlayerState.champion_name_1_display) targetElementIdPrefix = 'player-1';
-            else if (entry.actor === initialPlayerState.champion_name_2_display) targetElementIdPrefix = 'player-2';
-            else if (entry.actor === battleResult.opponent_team_names[0]) targetElementIdPrefix = 'opponent-1';
-            else if (entry.actor === battleResult.opponent_team_names[1]) targetElementIdPrefix = 'opponent-2';
-
-            if (targetElementIdPrefix && (entry.action_type.includes('Damage') || entry.action_type.includes('Heal'))) {
-                const maxHp = (targetElementIdPrefix === 'player-1') ? initialPlayerHp1 :
-                              (targetElementIdPrefix === 'player-2') ? initialPlayerHp2 :
-                              (targetElementIdPrefix === 'opponent-1') ? initialOpponentHp1 :
-                              initialOpponentHp2;
-                if (entry.target_hp_after !== undefined) {
-                    updateCombatantUI(targetElementIdPrefix, entry.target_hp_after, maxHp, undefined, []);
-                }
-            }
-
-            if (targetElementIdPrefix && (entry.action_type === 'Energy Gain' || entry.action_type === 'Plays Card')) {
-                const energyDisplay = document.getElementById(`${targetElementIdPrefix}-energy`);
-                if (energyDisplay && entry.energy_after !== undefined) {
-                    energyDisplay.innerHTML = `<i class="fa-solid fa-bolt"></i> ${entry.energy_after}`;
-                }
-            }
-
-            if (entry.action_type === 'Turn End') {
-                if (entry.player_hp_1 !== undefined) updateCombatantUI('player-1', entry.player_hp_1, initialPlayerHp1, entry.player_energy_1, entry.player_1_active_effects);
-                if (entry.player_hp_2 !== undefined) updateCombatantUI('player-2', entry.player_hp_2, initialPlayerHp2, entry.player_energy_2, entry.player_2_active_effects);
-                if (entry.opponent_hp_1 !== undefined) updateCombatantUI('opponent-1', entry.opponent_hp_1, initialOpponentHp1, entry.opponent_energy_1, entry.opponent_1_active_effects);
-                if (entry.opponent_hp_2 !== undefined) updateCombatantUI('opponent-2', entry.opponent_hp_2, initialOpponentHp2, entry.opponent_energy_2, entry.opponent_2_active_effects);
-            }
-
+            const pElement = document.createElement('p');
+            pElement.textContent = entry;
+            logEntriesDiv.prepend(pElement);
             logIndex++;
         } else {
             clearInterval(playbackInterval);

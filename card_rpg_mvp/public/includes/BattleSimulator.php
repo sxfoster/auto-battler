@@ -108,7 +108,8 @@ class BattleSimulator {
                     $this->logAction($turn, $actor->display_name, "Plays Card", [
                         "card_name" => $card->name,
                         "energy_spent" => $card->energy_cost,
-                        "target" => $targetForLog
+                        "target" => $targetForLog,
+                        "log_template" => $card->log_template
                     ]);
                     $this->applyCardEffect($actor, $card, $opposingTeam, $actingTeam, $chosen['target_entity'] ?? null);
                 } else {
@@ -151,6 +152,8 @@ class BattleSimulator {
 
         $this->logAction($turn, "System", "Battle End", ["winner"=>$winner, "result"=>$result]);
 
+        $condensedLog = $this->formatBattleLog($this->battleLog);
+
         return [
             "message" => "Battle simulated.",
             "player_final_hp_1" => $this->playerTeam->entities[0]->current_hp,
@@ -160,7 +163,7 @@ class BattleSimulator {
             "winner" => $winner,
             "result" => $result,
             "xp_awarded" => $xp_awarded,
-            "log" => $this->battleLog,
+            "log" => $condensedLog,
             // Final energy values for each combatant
             "player_energy_1" => $this->playerTeam->entities[0]->current_energy,
             "player_energy_2" => $this->playerTeam->entities[1]->current_energy,
@@ -194,6 +197,42 @@ class BattleSimulator {
             "player_team_persona_name" => $this->aiPlayer->getPersonaName(),
             "opponent_team_persona_name" => $this->aiPlayer->getPersonaName()
         ];
+    }
+
+    private function formatBattleLog(array $rawLog): array {
+        $formatted = [];
+        foreach ($rawLog as $entry) {
+            $type = $entry['action_type'] ?? '';
+            switch ($type) {
+                case 'Battle Start':
+                    $playerNames = implode(' & ', $entry['player_team_names']);
+                    $opponentNames = implode(' & ', $entry['opponent_team_names']);
+                    $pHp = $entry['player_initial_hp_1'] + $entry['player_initial_hp_2'];
+                    $oHp = $entry['opponent_initial_hp_1'] + $entry['opponent_initial_hp_2'];
+                    $formatted[] = "The battle begins! Your team ({$playerNames}, Total HP: {$pHp}) vs. Opponent team ({$opponentNames}, Total HP: {$oHp}).";
+                    break;
+                case 'Turn Start':
+                    $formatted[] = "--- Turn {$entry['turn']} Begins ---";
+                    break;
+                case 'Plays Card':
+                    $template = $entry['log_template'] ?? '%s plays "%s" on %s.';
+                    $formatted[] = sprintf($template, $entry['actor'], $entry['card_name'], $entry['target']);
+                    break;
+                case 'Passes Turn':
+                    $formatted[] = "{$entry['actor']} passes turn ({$entry['reason']}).";
+                    break;
+                case 'Skipped Turn':
+                    $formatted[] = "Turn {$entry['turn']}: {$entry['actor']}'s turn skipped ({$entry['reason']}).";
+                    break;
+                case 'Battle End':
+                    $formatted[] = "Battle Ends! Winner: {$entry['winner']}";
+                    break;
+                default:
+                    // Skip other granular events for condensed log
+                    break;
+            }
+        }
+        return $formatted;
     }
 
     private function determineInitiative(GameEntity $entity1, GameEntity $entity2) {
