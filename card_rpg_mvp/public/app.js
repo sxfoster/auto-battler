@@ -316,8 +316,8 @@ async function renderBattleScene() {
 
     battleLog = battleResult.log;
 
-    const playerChamp1 = initialPlayerState.champion_name_1;
-    const playerChamp2 = initialPlayerState.champion_name_2;
+    const playerChamp1 = initialPlayerState.champion_name_1_display || initialPlayerState.champion_name_1;
+    const playerChamp2 = initialPlayerState.champion_name_2_display || initialPlayerState.champion_name_2;
     const opponentChamp1 = battleResult.opponent_team_names[0];
     const opponentChamp2 = battleResult.opponent_team_names[1];
 
@@ -485,7 +485,7 @@ async function renderTournamentView() {
     const gameOver = statusResponse.game_over;
     const nextOpponent = statusResponse.next_opponent;
 
-    const playerTeamName = `${playerStatus.champion_name_1} & ${playerStatus.champion_name_2}`;
+    const playerTeamName = `${playerStatus.champion_name_1_display || playerStatus.champion_name_1} & ${playerStatus.champion_name_2_display || playerStatus.champion_name_2}`;
     const nextOpponentTeamName = `AI Team: ${nextOpponent}`;
 
     let contentHtml = `
