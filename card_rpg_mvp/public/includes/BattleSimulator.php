@@ -24,8 +24,18 @@ class BattleSimulator {
         $this->db_conn = $database->getConnection();
     }
 
+    private function logEvent(string $eventType, array $payload = []) {
+        $this->battleLog[] = [
+            'eventType' => $eventType,
+            'payload' => $payload,
+            'timestamp' => microtime(true)
+        ];
+    }
+
+    // Backwards compatibility for older logging calls
     private function logAction($turn, $actorName, $actionType, $details = []) {
-        $this->battleLog[] = createBattleLogEntry($turn, $actorName, $actionType, $details);
+        $payload = array_merge(['turn' => $turn, 'actor' => $actorName], $details);
+        $this->logEvent(strtoupper(str_replace(' ', '_', $actionType)), $payload);
     }
 
     private function safeFormat(string $template, array $args): string {
@@ -44,18 +54,20 @@ class BattleSimulator {
         $turn = 0;
         $maxTurns = 50;
 
-        $this->logAction(0, "System", "Battle Start", [
-            "player_team_names" => array_map(fn($e) => $e->display_name, $playerTeam->entities),
-            "player_initial_hp_1" => $playerTeam->entities[0]->current_hp,
-            "player_initial_hp_2" => $playerTeam->entities[1]->current_hp,
-            "opponent_team_names" => array_map(fn($e) => $e->display_name, $opponentTeam->entities),
-            "opponent_initial_hp_1" => $opponentTeam->entities[0]->current_hp,
-            "opponent_initial_hp_2" => $opponentTeam->entities[1]->current_hp
+        $this->logEvent('BATTLE_START', [
+            'turn' => 0,
+            'actor' => 'System',
+            'player_team_names' => array_map(fn($e) => $e->display_name, $playerTeam->entities),
+            'player_initial_hp_1' => $playerTeam->entities[0]->current_hp,
+            'player_initial_hp_2' => $playerTeam->entities[1]->current_hp,
+            'opponent_team_names' => array_map(fn($e) => $e->display_name, $opponentTeam->entities),
+            'opponent_initial_hp_1' => $opponentTeam->entities[0]->current_hp,
+            'opponent_initial_hp_2' => $opponentTeam->entities[1]->current_hp
         ]);
 
         while (!$this->playerTeam->isDefeated() && !$this->opponentTeam->isDefeated() && $turn < $maxTurns) {
             $turn++;
-            $this->logAction($turn, "System", "Turn Start");
+            $this->logEvent('TURN_START', ['turn' => $turn, 'actor' => 'System']);
 
             foreach ($this->playerTeam->entities as $entity) {
                 $entity->resetTemporaryStats();
@@ -74,7 +86,7 @@ class BattleSimulator {
 
             foreach ($allActive as $actor) {
                 if ($actor->current_hp <= 0) {
-                    $this->logAction($turn, $actor->display_name, "Skipped Turn", ["reason" => "Defeated"]);
+                    $this->logEvent('TURN_SKIPPED', ['turn'=>$turn,'actor'=>$actor->display_name,'reason'=>'Defeated']);
                     continue;
                 }
                 $skipReason = null;
@@ -85,13 +97,13 @@ class BattleSimulator {
                     }
                 }
                 if ($skipReason) {
-                    $this->logAction($turn, $actor->display_name, "Skipped Turn", ["reason"=>$skipReason]);
+                    $this->logEvent('TURN_SKIPPED', ['turn'=>$turn,'actor'=>$actor->display_name,'reason'=>$skipReason]);
                     continue;
                 }
 
-                $this->logAction($turn, $actor->display_name, "Turn Action", ["energy_before" => $actor->current_energy]);
+                $this->logEvent('TURN_ACTION', ['turn'=>$turn,'actor'=>$actor->display_name,'energy_before'=>$actor->current_energy]);
                 $actor->current_energy = min($actor->current_energy + 1, 4);
-                $this->logAction($turn, $actor->display_name, "Energy Gain", ["energy_gained"=>1, "energy_after"=>$actor->current_energy]);
+                $this->logEvent('ENERGY_GAIN', ['turn'=>$turn,'actor'=>$actor->display_name,'energy_gained'=>1,'energy_after'=>$actor->current_energy]);
 
                 $actingTeam = $actor->team;
                 $opposingTeam = ($actingTeam === $this->playerTeam) ? $this->opponentTeam : $this->playerTeam;
@@ -105,7 +117,7 @@ class BattleSimulator {
                     }
                 }
                 if ($statusFail) {
-                    $this->logAction($turn, $actor->display_name, "Skipped Turn", ["reason"=>$statusFail]);
+                    $this->logEvent('TURN_SKIPPED', ['turn'=>$turn,'actor'=>$actor->display_name,'reason'=>$statusFail]);
                     continue;
                 }
 
@@ -113,15 +125,15 @@ class BattleSimulator {
                     $card = $chosen['card'];
                     $targetForLog = $chosen['target_entity'] ? $chosen['target_entity']->display_name : '(self or no specific target)';
                     $actor->current_energy -= $card->energy_cost;
-                    $this->logAction($turn, $actor->display_name, "Plays Card", [
-                        "card_name" => $card->name,
-                        "energy_spent" => $card->energy_cost,
-                        "target" => $targetForLog,
-                        "log_template" => $card->log_template
+                    $this->logEvent('CARD_PLAYED', [
+                        'turn' => $turn,
+                        'caster' => $actor->toArray(),
+                        'card' => $card->toArray(),
+                        'target' => $targetForLog
                     ]);
                     $this->applyCardEffect($actor, $card, $opposingTeam, $actingTeam, $chosen['target_entity'] ?? null);
                 } else {
-                    $this->logAction($turn, $actor->display_name, "Passes Turn", ["reason"=>"No affordable cards or valid action"]);
+                    $this->logEvent('TURN_PASSED', ['turn'=>$turn,'actor'=>$actor->display_name,'reason'=>'No affordable cards or valid action']);
                 }
 
                 if ($this->playerTeam->isDefeated() || $this->opponentTeam->isDefeated()) break;
@@ -132,11 +144,13 @@ class BattleSimulator {
 
             if ($this->playerTeam->isDefeated() || $this->opponentTeam->isDefeated()) break;
 
-            $this->logAction($turn, "System", "Turn End", [
-                "player_hp_1"=>$this->playerTeam->entities[0]->current_hp,
-                "player_hp_2"=>$this->playerTeam->entities[1]->current_hp,
-                "opponent_hp_1"=>$this->opponentTeam->entities[0]->current_hp,
-                "opponent_hp_2"=>$this->opponentTeam->entities[1]->current_hp
+            $this->logEvent('TURN_END', [
+                'turn' => $turn,
+                'actor' => 'System',
+                'player_hp_1'=>$this->playerTeam->entities[0]->current_hp,
+                'player_hp_2'=>$this->playerTeam->entities[1]->current_hp,
+                'opponent_hp_1'=>$this->opponentTeam->entities[0]->current_hp,
+                'opponent_hp_2'=>$this->opponentTeam->entities[1]->current_hp
             ]);
         }
 
@@ -158,9 +172,13 @@ class BattleSimulator {
 
         $xp_awarded = ($result === 'win' ? 60 : 30);
 
-        $this->logAction($turn, "System", "Battle End", ["winner"=>$winner, "result"=>$result]);
+        $this->logEvent('BATTLE_END', [
+            'turn' => $turn,
+            'actor' => 'System',
+            'winner' => $winner,
+            'result' => $result
+        ]);
 
-        $condensedLog = $this->formatBattleLog($this->battleLog);
 
         return [
             "message" => "Battle simulated.",
@@ -171,7 +189,7 @@ class BattleSimulator {
             "winner" => $winner,
             "result" => $result,
             "xp_awarded" => $xp_awarded,
-            "log" => $condensedLog,
+            "log" => $this->battleLog,
             // Final energy values for each combatant
             "player_energy_1" => $this->playerTeam->entities[0]->current_energy,
             "player_energy_2" => $this->playerTeam->entities[1]->current_energy,
@@ -284,12 +302,23 @@ class BattleSimulator {
 
         $targets = array_filter($targets, fn($t) => $t instanceof GameEntity && $t->current_hp > 0);
         if (empty($targets)) {
-            $this->logAction($this->battleLog[count($this->battleLog)-1]['turn'], $caster->display_name, 'Action Failed', ['card_name' => $card->name, 'reason' => 'No active or valid targets for card effect.']);
+            $this->logEvent('ACTION_FAILED', [
+                'turn' => $this->battleLog[count($this->battleLog)-1]['turn'] ?? 0,
+                'caster' => $caster->toArray(),
+                'card' => $card->toArray(),
+                'reason' => 'No active or valid targets for card effect.'
+            ]);
             return;
         }
 
         foreach ($targets as $actualTarget) {
-            $this->logAction($this->battleLog[count($this->battleLog)-1]['turn'], $caster->display_name, 'Applying Effect', ['card_name' => $card->name, 'effect_type' => $effectDetails['type'], 'target' => $actualTarget->display_name]);
+            $this->logEvent('EFFECT_APPLYING', [
+                'turn' => $this->battleLog[count($this->battleLog)-1]['turn'] ?? 0,
+                'caster' => $caster->toArray(),
+                'card' => $card->toArray(),
+                'effect_type' => $effectDetails['type'],
+                'target' => $actualTarget->toArray()
+            ]);
 
             switch ($effectDetails['type']) {
                 case 'damage':
@@ -297,40 +326,88 @@ class BattleSimulator {
                 case 'damage_heal':
                     $damageDealt = calculateDamage($effectDetails['damage'], $card->damage_type, $actualTarget->armor_type ?? NULL);
                     $actualTarget->takeDamage($damageDealt, $card->damage_type);
-                    $this->logAction($this->battleLog[count($this->battleLog)-1]['turn'], $caster->display_name, 'Deals Damage', ['target' => $actualTarget->display_name, 'amount' => $damageDealt, 'target_hp_after' => $actualTarget->current_hp]);
+                    $this->logEvent('DAMAGE_DEALT', [
+                        'turn' => $this->battleLog[count($this->battleLog)-1]['turn'] ?? 0,
+                        'caster' => $caster->toArray(),
+                        'target' => $actualTarget->toArray(),
+                        'card' => $card->toArray(),
+                        'result' => ['damageDealt' => $damageDealt]
+                    ]);
                     if ($effectDetails['type'] === 'damage_heal') {
                         $caster->heal($effectDetails['heal']);
-                        $this->logAction($this->battleLog[count($this->battleLog)-1]['turn'], $caster->display_name, 'Heals Self', ['amount' => $effectDetails['heal'], 'target_hp_after' => $caster->current_hp]);
+                        $this->logEvent('HEAL_APPLIED', [
+                            'turn' => $this->battleLog[count($this->battleLog)-1]['turn'] ?? 0,
+                            'caster' => $caster->toArray(),
+                            'target' => $caster->toArray(),
+                            'card' => $card->toArray(),
+                            'result' => ['healed' => $effectDetails['heal'], 'targetHpAfter' => $caster->current_hp]
+                        ]);
                     }
                     break;
 
                 case 'heal':
                     $actualTarget->heal($effectDetails['amount']);
-                    $this->logAction($this->battleLog[count($this->battleLog)-1]['turn'], $caster->display_name, 'Heals', ['target' => $actualTarget->display_name, 'amount' => $effectDetails['amount'], 'target_hp_after' => $actualTarget->current_hp]);
+                    $this->logEvent('HEAL_APPLIED', [
+                        'turn' => $this->battleLog[count($this->battleLog)-1]['turn'] ?? 0,
+                        'caster' => $caster->toArray(),
+                        'target' => $actualTarget->toArray(),
+                        'card' => $card->toArray(),
+                        'result' => ['healed' => $effectDetails['amount'], 'targetHpAfter' => $actualTarget->current_hp]
+                    ]);
                     break;
 
                 case 'buff':
                     BuffManager::applyEffect($actualTarget, $card, $effectDetails);
-                    $this->logAction($this->battleLog[count($this->battleLog)-1]['turn'], $caster->display_name, 'Applies Buff', ['target' => $actualTarget->display_name, 'stat' => $effectDetails['stat'], 'amount' => $effectDetails['amount'], 'duration' => $effectDetails['duration']]);
+                    $this->logEvent('STATUS_EFFECT_APPLIED', [
+                        'turn' => $this->battleLog[count($this->battleLog)-1]['turn'] ?? 0,
+                        'caster' => $caster->toArray(),
+                        'target' => $actualTarget->toArray(),
+                        'card' => $card->toArray(),
+                        'effect' => ['type' => 'buff', 'stat' => $effectDetails['stat'], 'amount' => $effectDetails['amount'], 'duration' => $effectDetails['duration']]
+                    ]);
                     break;
 
                 case 'debuff':
                     BuffManager::applyEffect($actualTarget, $card, $effectDetails);
-                    $this->logAction($this->battleLog[count($this->battleLog)-1]['turn'], $caster->display_name, 'Applies Debuff', ['target' => $actualTarget->display_name, 'stat' => $effectDetails['stat'], 'amount' => $effectDetails['amount'], 'duration' => $effectDetails['duration']]);
+                    $this->logEvent('STATUS_EFFECT_APPLIED', [
+                        'turn' => $this->battleLog[count($this->battleLog)-1]['turn'] ?? 0,
+                        'caster' => $caster->toArray(),
+                        'target' => $actualTarget->toArray(),
+                        'card' => $card->toArray(),
+                        'effect' => ['type' => 'debuff', 'stat' => $effectDetails['stat'], 'amount' => $effectDetails['amount'], 'duration' => $effectDetails['duration']]
+                    ]);
                     break;
 
                 case 'status_effect':
                     BuffManager::applyEffect($actualTarget, $card, $effectDetails);
-                    $this->logAction($this->battleLog[count($this->battleLog)-1]['turn'], $caster->display_name, 'Applies Status', ['target' => $actualTarget->display_name, 'effect' => $effectDetails['effect'], 'duration' => $effectDetails['duration']]);
+                    $this->logEvent('STATUS_EFFECT_APPLIED', [
+                        'turn' => $this->battleLog[count($this->battleLog)-1]['turn'] ?? 0,
+                        'caster' => $caster->toArray(),
+                        'target' => $actualTarget->toArray(),
+                        'card' => $card->toArray(),
+                        'effect' => ['type' => $effectDetails['effect'], 'duration' => $effectDetails['duration']]
+                    ]);
                     break;
 
                 case 'damage_dot':
                     $damageDealt = calculateDamage($effectDetails['damage'], $card->damage_type, $actualTarget->armor_type ?? NULL);
                     $actualTarget->takeDamage($damageDealt, $card->damage_type);
-                    $this->logAction($this->battleLog[count($this->battleLog)-1]['turn'], $caster->display_name, 'Deals Damage', ['target' => $actualTarget->display_name, 'amount' => $damageDealt, 'target_hp_after' => $actualTarget->current_hp]);
+                    $this->logEvent('DAMAGE_DEALT', [
+                        'turn' => $this->battleLog[count($this->battleLog)-1]['turn'] ?? 0,
+                        'caster' => $caster->toArray(),
+                        'target' => $actualTarget->toArray(),
+                        'card' => $card->toArray(),
+                        'result' => ['damageDealt' => $damageDealt]
+                    ]);
                     $dotEffect = new StatusEffect($effectDetails['dot_type'], $effectDetails['dot_amount'], $effectDetails['dot_duration'], true, 'dot_damage');
                     $actualTarget->addStatusEffect($dotEffect);
-                    $this->logAction($this->battleLog[count($this->battleLog)-1]['turn'], $caster->display_name, 'Applies DOT', ['target' => $actualTarget->display_name, 'type' => $effectDetails['dot_type'], 'amount' => $effectDetails['dot_amount'], 'duration' => $effectDetails['dot_duration']]);
+                    $this->logEvent('STATUS_EFFECT_APPLIED', [
+                        'turn' => $this->battleLog[count($this->battleLog)-1]['turn'] ?? 0,
+                        'caster' => $caster->toArray(),
+                        'target' => $actualTarget->toArray(),
+                        'card' => $card->toArray(),
+                        'effect' => ['type' => 'dot', 'dot_type' => $effectDetails['dot_type'], 'amount' => $effectDetails['dot_amount'], 'duration' => $effectDetails['dot_duration']]
+                    ]);
                     break;
 
                 case 'heal_over_time':

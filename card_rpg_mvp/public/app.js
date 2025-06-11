@@ -504,10 +504,8 @@ async function renderBattleScene() {
     const logEntriesDiv = document.getElementById('log-entries');
     const playbackInterval = setInterval(() => {
         if (logIndex < battleLog.length) {
-            const entry = battleLog[logIndex];
-            const pElement = document.createElement('p');
-            pElement.textContent = entry;
-            logEntriesDiv.prepend(pElement);
+            const event = battleLog[logIndex];
+            logEntriesDiv.insertAdjacentHTML('afterbegin', formatLogEntry(event));
             logIndex++;
         } else {
             clearInterval(playbackInterval);
@@ -612,55 +610,36 @@ function updateCombatantUI(elementIdPrefix, currentHp, maxHp, currentEnergy, act
     }
 }
 
-// Basic formatting for battle log entries (expand as needed)
-function formatLogEntry(entry) {
-    switch (entry.action_type) {
-        case "Battle Start":
-            const playerTeamNames = entry.player_team_names.join(' & ');
-            const opponentTeamNames = entry.opponent_team_names.join(' & ');
-            const playerInitialHp = entry.player_initial_hp_1 + entry.player_initial_hp_2;
-            const opponentInitialHp = entry.opponent_initial_hp_1 + entry.opponent_initial_hp_2;
-            return `The battle begins! Your team (${playerTeamNames}, Total HP: ${playerInitialHp}) vs. Opponent team (${opponentTeamNames}, Total HP: ${opponentInitialHp}).`;
-        case "Turn Start":
-            return `--- Turn ${entry.turn} Begins ---`;
-        case "Turn Action":
-            return ''; // Do not log generic "takes action" lines
-        case "Energy Gain":
-            return `${entry.actor} gained ${entry.energy_gained} energy. (Current: ${entry.energy_after})`;
-        case "Plays Card":
-            return `${entry.actor} plays "${entry.card_name}" on ${entry.target}.`;
-        case "Deals Damage":
-            return `${entry.actor} deals ${entry.amount} damage to ${entry.target}. ${entry.target}'s HP: ${entry.target_hp_after}`;
-        case "Deals Bypass Damage":
-            return `${entry.actor} deals ${entry.amount} direct damage to ${entry.target}. ${entry.target}'s HP: ${entry.target_hp_after}`;
-        case "Heals":
-            return `${entry.actor} heals ${entry.target} for ${entry.amount}. ${entry.target}'s HP: ${entry.target_hp_after}`;
-        case "Heals Self":
-            return `${entry.actor} heals self for ${entry.amount}. ${entry.actor}'s HP: ${entry.target_hp_after}`;
-        case "Applies Buff":
-            return `${entry.actor} applies ${entry.stat} buff to ${entry.target} for ${entry.duration} turns.`;
-        case "Applies Debuff":
-            return `${entry.actor} applies ${entry.stat} debuff to ${entry.target} for ${entry.duration} turns.`;
-        case "Applies Status":
-            return `${entry.actor} applies ${entry.effect} to ${entry.target} for ${entry.duration} turns.`;
-        case "Applies DOT":
-            return `${entry.actor} applies ${entry.type} (${entry.amount} dmg/turn for ${entry.duration} turns) to ${entry.target}.`;
-        case "Applies HoT":
-            return `${entry.actor} applies HoT (${entry.amount} heal/turn for ${entry.duration} turns) to ${entry.target}.`;
-        case "Applies Block":
-            return `${entry.actor} gains ${entry.amount} block.`;
-        case "Disengages":
-            return `${entry.actor} disengages from combat.`;
-        case "Passes Turn":
-            return `${entry.actor} passes turn (${entry.reason}).`;
-        case "Skipped Turn":
-            return `${entry.actor}'s turn skipped (${entry.reason}).`;
-        case "Unhandled Effect":
-            return ''; // Suppress unhandled effect messages
-        case "Battle End":
-            return `Battle Ends! Winner: ${entry.winner}`;
+// Translate backend events to styled HTML snippets
+function formatLogEntry(event) {
+    switch (event.eventType) {
+        case 'BATTLE_START': {
+            const pNames = event.payload.player_team_names.join(' & ');
+            const oNames = event.payload.opponent_team_names.join(' & ');
+            return `<p>The battle begins! <strong>${pNames}</strong> vs <strong>${oNames}</strong>.</p>`;
+        }
+        case 'TURN_START':
+            return `<p class="turn-start">--- Turn ${event.payload.turn} Begins ---</p>`;
+        case 'CARD_PLAYED': {
+            const { caster, card, target } = event.payload;
+            return `<p><span class="actor ${caster.role.toLowerCase()}">${caster.displayName}</span> uses <strong class="card-name">${card.name}</strong> on <span class="target">${target}</span>.</p>`;
+        }
+        case 'DAMAGE_DEALT': {
+            const { caster, target, card, result } = event.payload;
+            return `<p><span class="actor ${caster.role.toLowerCase()}">${caster.displayName}</span> deals <span class="damage-value">${result.damageDealt}</span> damage to <span class="target ${target.role.toLowerCase()}">${target.displayName}</span> with <strong class="card-name">${card.name}</strong>.</p>`;
+        }
+        case 'HEAL_APPLIED': {
+            const { caster, target, card, result } = event.payload;
+            return `<p><span class="actor ${caster.role.toLowerCase()}">${caster.displayName}</span> heals <span class="target ${target.role.toLowerCase()}">${target.displayName}</span> for <span class="heal-value">${result.healed}</span> using <strong class="card-name">${card.name}</strong>.</p>`;
+        }
+        case 'STATUS_EFFECT_APPLIED': {
+            const { caster, target, card, effect } = event.payload;
+            return `<p><span class="actor ${caster.role.toLowerCase()}">${caster.displayName}</span> applies <span class="status-effect">${effect.type}</span> to <span class="target ${target.role.toLowerCase()}">${target.displayName}</span> with <strong class="card-name">${card.name}</strong>.</p>`;
+        }
+        case 'BATTLE_END':
+            return `<p><strong>Battle Ends! Winner: ${event.payload.winner}</strong></p>`;
         default:
-            return ''; // Filter out any unrecognized action types
+            return '';
     }
 }
 
