@@ -69,12 +69,15 @@ class BattleSimulator {
                     $this->logAction($turn, $actor->display_name, "Skipped Turn", ["reason" => "Defeated"]);
                     continue;
                 }
-                $isStunned = false;
+                $skipReason = null;
                 foreach ($actor->debuffs as $effect) {
-                    if ($effect->type === 'Stun') { $isStunned = true; break; }
+                    if ($effect->type === 'Stun' || $effect->type === 'Root') {
+                        $skipReason = $effect->type;
+                        break;
+                    }
                 }
-                if ($isStunned) {
-                    $this->logAction($turn, $actor->display_name, "Skipped Turn", ["reason"=>"Stunned"]);
+                if ($skipReason) {
+                    $this->logAction($turn, $actor->display_name, "Skipped Turn", ["reason"=>$skipReason]);
                     continue;
                 }
 
@@ -85,6 +88,19 @@ class BattleSimulator {
                 $actingTeam = $actor->team;
                 $opposingTeam = ($actingTeam === $this->playerTeam) ? $this->opponentTeam : $this->playerTeam;
                 $chosen = $this->aiPlayer->decideAction($actor, $actingTeam, $opposingTeam, $actor->hand);
+
+                $statusFail = null;
+                foreach ($actor->debuffs as $effect) {
+                    if ($effect->type === 'Confuse' || $effect->type === 'Shock') {
+                        $statusFail = $effect->type;
+                        break;
+                    }
+                }
+                if ($statusFail) {
+                    $this->logAction($turn, $actor->display_name, "Skipped Turn", ["reason"=>$statusFail]);
+                    continue;
+                }
+
                 if ($chosen && $actor->current_energy >= $chosen['card']->energy_cost) {
                     $card = $chosen['card'];
                     $targetForLog = $chosen['target_entity'] ? $chosen['target_entity']->display_name : '(self or no specific target)';
@@ -343,6 +359,30 @@ class BattleSimulator {
                     $this->logAction($this->battleLog[count($this->battleLog)-1]['turn'], $caster->display_name, "Applies Root", ["target"=>$actualTarget->display_name, "duration"=>$effectDetails['duration'] ?? 1]);
                     break;
 
+                case 'slow':
+                    $slowEffect = new StatusEffect('Slow', $effectDetails['amount'] ?? 1, $effectDetails['duration'] ?? 1, true, 'speed');
+                    $actualTarget->addStatusEffect($slowEffect);
+                    $this->logAction($this->battleLog[count($this->battleLog)-1]['turn'], $caster->display_name, "Applies Status", ["target"=>$actualTarget->display_name, "effect"=>'Slow', "duration"=>$effectDetails['duration'] ?? 1]);
+                    break;
+
+                case 'confuse':
+                    $confEffect = new StatusEffect('Confuse', null, $effectDetails['duration'] ?? 1, true);
+                    $actualTarget->addStatusEffect($confEffect);
+                    $this->logAction($this->battleLog[count($this->battleLog)-1]['turn'], $caster->display_name, "Applies Status", ["target"=>$actualTarget->display_name, "effect"=>'Confuse', "duration"=>$effectDetails['duration'] ?? 1]);
+                    break;
+
+                case 'shock':
+                    $shockEffect = new StatusEffect('Shock', null, $effectDetails['duration'] ?? 1, true);
+                    $actualTarget->addStatusEffect($shockEffect);
+                    $this->logAction($this->battleLog[count($this->battleLog)-1]['turn'], $caster->display_name, "Applies Status", ["target"=>$actualTarget->display_name, "effect"=>'Shock', "duration"=>$effectDetails['duration'] ?? 1]);
+                    break;
+
+                case 'fear':
+                    $fearEffect = new StatusEffect('Fear', $effectDetails['amount'] ?? 1, $effectDetails['duration'] ?? 1, true, 'attack');
+                    $actualTarget->addStatusEffect($fearEffect);
+                    $this->logAction($this->battleLog[count($this->battleLog)-1]['turn'], $caster->display_name, "Applies Status", ["target"=>$actualTarget->display_name, "effect"=>'Fear', "duration"=>$effectDetails['duration'] ?? 1]);
+                    break;
+
                 case 'attack_down':
                     $atkDebuff = new StatusEffect('Attack Down', $effectDetails['amount'], $effectDetails['duration'], true, 'attack');
                     $actualTarget->addStatusEffect($atkDebuff);
@@ -359,6 +399,30 @@ class BattleSimulator {
                     $vulnDebuff = new StatusEffect('Vulnerable', $effectDetails['amount'], $effectDetails['duration'], true, 'defense');
                     $actualTarget->addStatusEffect($vulnDebuff);
                     $this->logAction($this->battleLog[count($this->battleLog)-1]['turn'], $caster->display_name, "Applies Vulnerable", ["target"=>$actualTarget->display_name, "amount"=>$effectDetails['amount'], "duration"=>$effectDetails['duration']]);
+                    break;
+
+                case 'evasion_buff':
+                    $buff = new StatusEffect('Evasion', $effectDetails['amount'], $effectDetails['duration'], false, 'evasion');
+                    $actualTarget->addStatusEffect($buff);
+                    $this->logAction($this->battleLog[count($this->battleLog)-1]['turn'], $caster->display_name, "Applies Buff", ["target"=>$actualTarget->display_name, "stat"=>'evasion', "amount"=>$effectDetails['amount'], "duration"=>$effectDetails['duration']]);
+                    break;
+
+                case 'speed_buff':
+                    $buff = new StatusEffect('Speed', $effectDetails['amount'], $effectDetails['duration'], false, 'speed');
+                    $actualTarget->addStatusEffect($buff);
+                    $this->logAction($this->battleLog[count($this->battleLog)-1]['turn'], $caster->display_name, "Applies Buff", ["target"=>$actualTarget->display_name, "stat"=>'speed', "amount"=>$effectDetails['amount'], "duration"=>$effectDetails['duration']]);
+                    break;
+
+                case 'crit_chance_buff':
+                    $buff = new StatusEffect('Crit Chance', $effectDetails['amount'], $effectDetails['duration'], false, 'crit_chance');
+                    $actualTarget->addStatusEffect($buff);
+                    $this->logAction($this->battleLog[count($this->battleLog)-1]['turn'], $caster->display_name, "Applies Buff", ["target"=>$actualTarget->display_name, "stat"=>'crit_chance', "amount"=>$effectDetails['amount'], "duration"=>$effectDetails['duration']]);
+                    break;
+
+                case 'total_immunity':
+                    $buff = new StatusEffect('Total Immunity', null, $effectDetails['duration'] ?? 1, false, 'total_immunity');
+                    $actualTarget->addStatusEffect($buff);
+                    $this->logAction($this->battleLog[count($this->battleLog)-1]['turn'], $caster->display_name, "Applies Total Immunity", ["target"=>$actualTarget->display_name, "duration"=>$effectDetails['duration'] ?? 1]);
                     break;
 
                 case 'aoe_damage_debuff':
