@@ -36,7 +36,6 @@ body {
     justify-content: flex-start;
     align-items: center;
     overflow: hidden;
-    width: 100%;
     padding-bottom: 0;
     background-color: #2a2a2a;
     padding: 25px; /* Slightly more padding */
@@ -56,8 +55,6 @@ h2, h3, h4 {
 /* --- Combatant Card Specific Styles (Pokémon Inspired) --- */
 .battle-arena {
     display: flex;
-    flex-direction: row; /* Default row layout */
-    flex-wrap: wrap; /* Allow wrapping */
     justify-content: space-around;
     align-items: flex-start;
     gap: 30px; /* More space between teams */
@@ -69,15 +66,13 @@ h2, h3, h4 {
     border: 2px solid #333;
     box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
     flex-shrink: 0; /* Prevent arena from shrinking when log grows */
-    width: 100%; /* Take full width of parent */
 }
 
 .team-container {
     display: flex;
     flex-direction: column; /* Stack champions vertically */
     gap: 20px; /* Space between champions within a team */
-    flex: 1; /* Allow teams to take equal space */
-    min-width: 250px; /* Minimum width before wrapping */
+    flex: 1;
     justify-content: flex-start;
     align-items: center;
     padding: 15px;
@@ -185,7 +180,7 @@ h2, h3, h4 {
 
 /* Class Icon (Below HP Bar) */
 .class-icon-container {
-    font-size: 3rem; /* Adjusted to 3rem for better visual balance */
+    font-size: 5em; /* Large icon for character */
     color: #00bcd4; /* Accent color */
     margin: 15px 0;
     text-shadow: 0 0 8px rgba(0,255,255,0.6); /* Glow effect */
@@ -332,74 +327,4 @@ h2, h3, h4 {
 }
 .battle-log p strong {
     color: #fff;
-}
-
-/* --- Media Queries for Responsiveness --- */
-@media (max-width: 800px) {
-    #app {
-        padding: 10px;
-    }
-
-    .battle-arena {
-        flex-direction: column;
-        align-items: center;
-        min-height: auto;
-        gap: 20px;
-        padding: 15px;
-    }
-
-    .team-container {
-        width: 100%;
-        max-width: 450px;
-        flex-direction: row;
-        flex-wrap: wrap;
-        justify-content: center;
-        gap: 15px;
-        padding: 10px;
-    }
-
-    .combatant {
-        width: 150px;
-        min-height: 200px;
-        padding: 10px;
-    }
-
-    .combatant-header .combatant-name {
-        font-size: 1.2em;
-    }
-
-    .class-icon-container {
-        font-size: 2.5rem;
-    }
-
-    .energy-display {
-        font-size: 1.2em;
-    }
-
-    .status-effects-container {
-        font-size: 1em;
-    }
-
-    .vs-text {
-        font-size: 2em;
-        margin: 15px 0;
-    }
-
-    .battle-log {
-        max-height: 200px;
-        width: 95%;
-        padding: 10px;
-    }
-}
-
-@media (max-width: 500px) {
-    .team-container {
-        flex-direction: column;
-        gap: 10px;
-    }
-
-    .combatant {
-        width: 100%;
-        max-width: 200px;
-    }
 }
