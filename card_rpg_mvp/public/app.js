@@ -449,6 +449,37 @@ async function renderBattleScene() {
             logIndex++;
         } else {
             clearInterval(playbackInterval);
+
+            // --- Ensure final UI reflects end-of-battle state ---
+            updateCombatantUI(
+                'player-1',
+                battleResult.player_final_hp_1,
+                initialPlayerHp1,
+                battleResult.player_energy_1 ?? initialPlayerState.champion_energy_1,
+                battleResult.player_1_active_effects ?? []
+            );
+            updateCombatantUI(
+                'player-2',
+                battleResult.player_final_hp_2,
+                initialPlayerHp2,
+                battleResult.player_energy_2 ?? initialPlayerState.champion_energy_2,
+                battleResult.player_2_active_effects ?? []
+            );
+            updateCombatantUI(
+                'opponent-1',
+                battleResult.opponent_final_hp_1,
+                battleResult.opponent_start_hp_1,
+                battleResult.opponent_energy_1 ?? 1,
+                battleResult.opponent_1_active_effects ?? []
+            );
+            updateCombatantUI(
+                'opponent-2',
+                battleResult.opponent_final_hp_2,
+                battleResult.opponent_start_hp_2,
+                battleResult.opponent_energy_2 ?? 1,
+                battleResult.opponent_2_active_effects ?? []
+            );
+
             const battleEndP = document.createElement('p');
             battleEndP.innerHTML = `<strong>Battle Concluded! Winner: ${battleResult.winner}</strong><br>You ${battleResult.result} this battle. Gained ${battleResult.xp_awarded} XP.`;
             logEntriesDiv.prepend(battleEndP);

@@ -160,7 +160,33 @@ class BattleSimulator {
             "winner" => $winner,
             "result" => $result,
             "xp_awarded" => $xp_awarded,
-            "log" => $this->battleLog
+            "log" => $this->battleLog,
+            // Final energy values for each combatant
+            "player_energy_1" => $this->playerTeam->entities[0]->current_energy,
+            "player_energy_2" => $this->playerTeam->entities[1]->current_energy,
+            "opponent_energy_1" => $this->opponentTeam->entities[0]->current_energy,
+            "opponent_energy_2" => $this->opponentTeam->entities[1]->current_energy,
+            // Serialize active buffs and debuffs for final UI state
+            "player_1_active_effects" => array_map(fn($e) => [
+                'type' => $e->type,
+                'duration' => $e->duration,
+                'is_debuff' => $e->is_debuff
+            ], array_merge($this->playerTeam->entities[0]->buffs, $this->playerTeam->entities[0]->debuffs)),
+            "player_2_active_effects" => array_map(fn($e) => [
+                'type' => $e->type,
+                'duration' => $e->duration,
+                'is_debuff' => $e->is_debuff
+            ], array_merge($this->playerTeam->entities[1]->buffs, $this->playerTeam->entities[1]->debuffs)),
+            "opponent_1_active_effects" => array_map(fn($e) => [
+                'type' => $e->type,
+                'duration' => $e->duration,
+                'is_debuff' => $e->is_debuff
+            ], array_merge($this->opponentTeam->entities[0]->buffs, $this->opponentTeam->entities[0]->debuffs)),
+            "opponent_2_active_effects" => array_map(fn($e) => [
+                'type' => $e->type,
+                'duration' => $e->duration,
+                'is_debuff' => $e->is_debuff
+            ], array_merge($this->opponentTeam->entities[1]->buffs, $this->opponentTeam->entities[1]->debuffs))
         ];
     }
 
