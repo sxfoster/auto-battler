@@ -408,7 +408,7 @@ async function renderBattleScene() {
             continueButton.onclick = renderTournamentView;
             appDiv.querySelector('.button-container').appendChild(continueButton);
         }
-    }, 250);
+    }, 125);
 }
 
 function updateCombatantUI(elementIdPrefix, currentHp, maxHp) {
