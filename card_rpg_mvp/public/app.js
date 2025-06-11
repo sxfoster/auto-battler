@@ -8,17 +8,17 @@ let battleLog = []; // Store the battle log for Scene 2 playback
 
 // --- Global Data for Class Icons ---
 const CLASS_ICONS = {
-    'Warrior': 'fa-sword',
-    'Bard': 'fa-lute',
-    'Barbarian': 'fa-axe-battle',
-    'Cleric': 'fa-cross',
-    'Druid': 'fa-leaf',
-    'Enchanter': 'fa-hat-wizard',
-    'Paladin': 'fa-shield-cross',
-    'Rogue': 'fa-dagger',
-    'Ranger': 'fa-bow-arrow',
-    'Sorcerer': 'fa-bolt',
-    'Wizard': 'fa-wand-magic-sparkles'
+    'Warrior': 'fa-solid fa-sword',
+    'Bard': 'fa-solid fa-guitar',
+    'Barbarian': 'fa-solid fa-axe-battle',
+    'Cleric': 'fa-solid fa-cross',
+    'Druid': 'fa-solid fa-leaf',
+    'Enchanter': 'fa-solid fa-hat-wizard',
+    'Paladin': 'fa-solid fa-shield-cross',
+    'Rogue': 'fa-solid fa-dagger',
+    'Ranger': 'fa-solid fa-bow-arrow',
+    'Sorcerer': 'fa-solid fa-bolt',
+    'Wizard': 'fa-solid fa-wand-magic-sparkles'
 };
 
 // --- Global State for 2v2 Setup ---
@@ -102,11 +102,11 @@ function renderCard(card, isSelectable = false, clickHandler = null) {
         <div class="card ${card.rarity.toLowerCase()}-card ${card.card_type}-card">
             <div class="card-header">
                 <span class="card-name">${card.name}</span>
-                <span class="energy-cost"><i class="fas fa-bolt"></i> ${card.energy_cost}</span>
+                <span class="energy-cost"><i class="fa-solid fa-bolt"></i> ${card.energy_cost}</span>
             </div>
             <div class="card-body">
                 <p class="card-description">${card.description}</p>
-                ${card.damage_type ? `<span class="damage-type-icon"><i class="fas fa-${getDamageTypeIcon(card.damage_type)}"></i> ${card.damage_type}</span>` : ''}
+                ${card.damage_type ? `<span class="damage-type-icon"><i class="fa-solid fa-${getDamageTypeIcon(card.damage_type)}"></i> ${card.damage_type}</span>` : ''}
             </div>
             ${card.flavor_text ? `<div class="card-flavor-text">${card.flavor_text}</div>` : ''}
         </div>
@@ -159,7 +159,7 @@ function getEffectIcon(effectType) {
 
 // Helper to map class names to Font Awesome icons
 function getClassIcon(className) {
-    return CLASS_ICONS[className] || 'fa-question-circle';
+    return CLASS_ICONS[className] || 'fa-solid fa-question-circle';
 }
 
 // Initial application load
@@ -487,7 +487,7 @@ async function renderBattleScene() {
             if (targetElementIdPrefix && (entry.action_type === 'Energy Gain' || entry.action_type === 'Plays Card')) {
                 const energyDisplay = document.getElementById(`${targetElementIdPrefix}-energy`);
                 if (energyDisplay && entry.energy_after !== undefined) {
-                    energyDisplay.innerHTML = `<i class="fas fa-bolt"></i> ${entry.energy_after}`;
+                    energyDisplay.innerHTML = `<i class="fa-solid fa-bolt"></i> ${entry.energy_after}`;
                 }
             }
 
@@ -579,17 +579,17 @@ function updateCombatantUI(elementIdPrefix, currentHp, maxHp, currentEnergy, act
     }
 
     if (energyDisplay && currentEnergy !== undefined) {
-        energyDisplay.innerHTML = `<i class="fas fa-bolt"></i> ${currentEnergy}`;
+        energyDisplay.innerHTML = `<i class="fa-solid fa-bolt"></i> ${currentEnergy}`;
     }
 
     if (classIconContainer && className) {
-        classIconContainer.innerHTML = `<i class="fas ${getClassIcon(className)}"></i>`;
+        classIconContainer.innerHTML = `<i class="${getClassIcon(className)}"></i>`;
     }
 
     if (statusContainer) {
         statusContainer.innerHTML = '';
         activeEffects.forEach(effect => {
-            statusContainer.innerHTML += `<i class="fas fa-${getEffectIcon(effect.type)}" title="${effect.type} (${effect.duration} turns)" style="color:${effect.is_debuff ? 'red' : 'green'};"></i> `;
+            statusContainer.innerHTML += `<i class="fa-solid fa-${getEffectIcon(effect.type)}" title="${effect.type} (${effect.duration} turns)" style="color:${effect.is_debuff ? 'red' : 'green'};"></i> `;
         });
     }
 }
