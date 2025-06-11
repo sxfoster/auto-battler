@@ -6,6 +6,9 @@ let currentScene = ''; // To track which scene is active (setup, battle, tournam
 let playerData = {}; // Store player's champion and deck
 let battleLog = []; // Store the battle log for Scene 2 playback
 
+// Delay between battle log entries in milliseconds
+const TURN_PLAYBACK_DELAY_MS = 188; // Increased from 125ms by 50%
+
 // --- Global Data for Class Icons ---
 const CLASS_ICONS = {
     'Warrior': 'fa-solid fa-shield-halved',
@@ -553,7 +556,7 @@ async function renderBattleScene() {
             continueButton.onclick = renderTournamentView;
             appDiv.querySelector('.button-container').appendChild(continueButton);
         }
-    }, 125);
+    }, TURN_PLAYBACK_DELAY_MS);
 }
 
 function updateCombatantUI(elementIdPrefix, currentHp, maxHp, currentEnergy, activeEffects = [], className = null, characterDisplayName = null) {
