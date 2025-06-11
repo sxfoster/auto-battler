@@ -28,6 +28,14 @@ class BattleSimulator {
         $this->battleLog[] = createBattleLogEntry($turn, $actorName, $actionType, $details);
     }
 
+    private function safeFormat(string $template, array $args): string {
+        $expected = preg_match_all('/%[sd]/', $template, $matches);
+        if ($expected > count($args)) {
+            $args = array_pad($args, $expected, '');
+        }
+        return @vsprintf($template, $args) ?: $template;
+    }
+
     public function simulateBattle(Team $playerTeam, Team $opponentTeam, AIPlayer $aiPlayer) {
         $this->playerTeam = $playerTeam;
         $this->opponentTeam = $opponentTeam;
@@ -216,7 +224,7 @@ class BattleSimulator {
                     break;
                 case 'Plays Card':
                     $template = $entry['log_template'] ?? '%s plays "%s" on %s.';
-                    $formatted[] = sprintf($template, $entry['actor'], $entry['card_name'], $entry['target']);
+                    $formatted[] = $this->safeFormat($template, [$entry['actor'], $entry['card_name'], $entry['target']]);
                     break;
                 case 'Passes Turn':
                     $formatted[] = "{$entry['actor']} passes turn ({$entry['reason']}).";

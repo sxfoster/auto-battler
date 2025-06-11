@@ -1,6 +1,9 @@
 <?php
 // public/api/player_current_setup.php
 
+ini_set('display_errors', 1);
+error_reporting(E_ALL);
+
 // Adjust path based on your server's directory structure
 require_once __DIR__ . '/../includes/db.php';
 require_once __DIR__ . '/../includes/utils.php';
