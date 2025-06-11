@@ -19,6 +19,7 @@ class GameEntity {
     public $current_attack; // attack after buffs/debuffs
     public $base_crit_chance; // base critical hit chance
     public $current_crit_chance; // crit chance after buffs/debuffs
+    public $prevent_defeat_active = false; // Flag for "prevent defeat" status
     public $display_name; // Unique name for UI/logging
     public $buffs = []; // Array of active StatusEffect objects
     public $debuffs = []; // Array of active StatusEffect objects
@@ -48,10 +49,18 @@ class GameEntity {
         $this->display_name = $display_name ?? $name;
         $this->base_crit_chance = $base_crit_chance;
         $this->current_crit_chance = $base_crit_chance;
+        $this->prevent_defeat_active = false;
     }
 
     public function takeDamage($amount, $damage_type = NULL) {
         $effectiveDamage = $amount; // This 'amount' is the base damage *after* calculateDamage (type vs armor)
+
+        // Check for Total Immunity buff
+        foreach ($this->buffs as $effect) {
+            if ($effect->stat_affected === 'total_immunity') {
+                return 0;
+            }
+        }
 
         // 1. Handle Block charges (consume first if damage is completely blocked)
         if ($damage_type !== 'Magic' && $this->current_block_charges > 0) {
@@ -75,6 +84,12 @@ class GameEntity {
         $damageToApply = max(0, $effectiveDamage);
 
         $this->current_hp -= $damageToApply;
+
+        if ($this->current_hp <= 0 && $this->prevent_defeat_active) {
+            $this->current_hp = 1;
+            $this->prevent_defeat_active = false;
+        }
+
         if ($this->current_hp < 0) {
             $this->current_hp = 0;
         }
@@ -90,6 +105,9 @@ class GameEntity {
             $this->debuffs[] = $effect;
         } else {
             $this->buffs[] = $effect;
+        }
+        if ($effect->stat_affected === 'prevent_defeat') {
+            $this->prevent_defeat_active = true;
         }
     }
 

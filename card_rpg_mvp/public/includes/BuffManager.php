@@ -117,6 +117,9 @@ class BuffManager {
             }
             $effect->duration--;
             if ($effect->duration <= 0) {
+                if ($effect->stat_affected === 'prevent_defeat') {
+                    $entity->prevent_defeat_active = false;
+                }
                 unset($entity->buffs[$key]);
             }
         }
