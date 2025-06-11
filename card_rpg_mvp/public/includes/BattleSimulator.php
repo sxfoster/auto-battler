@@ -124,10 +124,14 @@ class BattleSimulator {
             if ($this->playerTeam->isDefeated() || $this->opponentTeam->isDefeated()) break;
 
             $this->logAction($turn, "System", "Turn End", [
-                "player_hp_1"=>$this->playerTeam->entities[0]->current_hp,
-                "player_hp_2"=>$this->playerTeam->entities[1]->current_hp,
-                "opponent_hp_1"=>$this->opponentTeam->entities[0]->current_hp,
-                "opponent_hp_2"=>$this->opponentTeam->entities[1]->current_hp
+                "player_hp_1" => $this->playerTeam->entities[0]->current_hp,
+                "player_hp_2" => $this->playerTeam->entities[1]->current_hp,
+                "opponent_hp_1" => $this->opponentTeam->entities[0]->current_hp,
+                "opponent_hp_2" => $this->opponentTeam->entities[1]->current_hp,
+                "player_1_active_effects" => array_map(function($e){ return ['type'=>$e->type,'duration'=>$e->duration,'is_debuff'=>$e->is_debuff]; }, array_merge($this->playerTeam->entities[0]->buffs, $this->playerTeam->entities[0]->debuffs)),
+                "player_2_active_effects" => array_map(function($e){ return ['type'=>$e->type,'duration'=>$e->duration,'is_debuff'=>$e->is_debuff]; }, array_merge($this->playerTeam->entities[1]->buffs, $this->playerTeam->entities[1]->debuffs)),
+                "opponent_1_active_effects" => array_map(function($e){ return ['type'=>$e->type,'duration'=>$e->duration,'is_debuff'=>$e->is_debuff]; }, array_merge($this->opponentTeam->entities[0]->buffs, $this->opponentTeam->entities[0]->debuffs)),
+                "opponent_2_active_effects" => array_map(function($e){ return ['type'=>$e->type,'duration'=>$e->duration,'is_debuff'=>$e->is_debuff]; }, array_merge($this->opponentTeam->entities[1]->buffs, $this->opponentTeam->entities[1]->debuffs))
             ]);
         }
 
