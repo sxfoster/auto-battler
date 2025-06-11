@@ -24,6 +24,8 @@ try {
     if ($playerData) {
         $playerData['deck_card_ids'] = json_decode($playerData['deck_card_ids'], true);
         $playerData['deck_card_ids_2'] = json_decode($playerData['deck_card_ids_2'], true);
+        $playerData['champion_name_1_display'] = $playerData['champion_name_1'] . ' Alpha';
+        $playerData['champion_name_2_display'] = $playerData['champion_name_2'] . ' Beta';
         sendResponse($playerData);
     } else {
         sendError("No player setup found. Please go through setup first.", 404);

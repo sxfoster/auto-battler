@@ -38,7 +38,7 @@ try {
     // --- Create Player Team ---
     $playerTeam = new Team(true);
 
-    $champ1 = new Champion([
+   $champ1 = new Champion([
         'champion_id' => $playerSessionData['champion_id'],
         'champion_name' => $playerSessionData['champion_name_1'],
         'role' => $playerSessionData['champion_role_1'],
@@ -47,12 +47,13 @@ try {
         'current_hp' => $playerSessionData['champion_hp_1'],
         'current_energy' => $playerSessionData['champion_energy_1'],
         'current_speed' => $playerSessionData['champion_speed_1'],
+        'display_name' => $playerSessionData['champion_name_1'] . ' Alpha'
     ]);
     $champ1->deck = loadCardsFromIds($db, json_decode($playerSessionData['deck_card_ids'], true));
     $champ1->hand = $champ1->deck;
     $playerTeam->addEntity($champ1);
 
-    $champ2 = new Champion([
+   $champ2 = new Champion([
         'champion_id' => $playerSessionData['champion_id_2'],
         'champion_name' => $playerSessionData['champion_name_2'],
         'role' => $playerSessionData['champion_role_2'],
@@ -61,6 +62,7 @@ try {
         'current_hp' => $playerSessionData['champion_hp_2'],
         'current_energy' => $playerSessionData['champion_energy_2'],
         'current_speed' => $playerSessionData['champion_speed_2'],
+        'display_name' => $playerSessionData['champion_name_2'] . ' Beta'
     ]);
     $champ2->deck = loadCardsFromIds($db, json_decode($playerSessionData['deck_card_ids_2'], true));
     $champ2->hand = $champ2->deck;
@@ -78,7 +80,10 @@ try {
     $aiPersonaId = $personaStmt->fetchColumn();
     $aiPlayer = new AIPlayer($aiPersonaId);
 
+    $aiIndex = 0;
     foreach ($aiChampsData as $cData) {
+        $aiIndex++;
+        $displaySuffix = $aiIndex === 1 ? 'One' : 'Two';
         $aiChamp = new Champion([
             'champion_id' => $cData['id'],
             'champion_name' => $cData['name'],
@@ -88,6 +93,7 @@ try {
             'current_hp' => $cData['starting_hp'],
             'current_energy' => 1,
             'current_speed' => $cData['speed'],
+            'display_name' => $cData['name'] . ' ' . $displaySuffix
         ]);
         $aiChamp->deck = loadRandomCommonCards($db, $cData['name']);
         $aiChamp->hand = $aiChamp->deck;
@@ -148,7 +154,7 @@ try {
     $updateStmt->bindParam(':current_level', $playerSessionData['current_level']);
     $updateStmt->execute();
 
-    $simulationResult['opponent_team_names'] = [$opponentTeam->entities[0]->name, $opponentTeam->entities[1]->name];
+    $simulationResult['opponent_team_names'] = [$opponentTeam->entities[0]->display_name, $opponentTeam->entities[1]->display_name];
     $simulationResult['opponent_start_hp_1'] = $opponentTeam->entities[0]->max_hp;
     $simulationResult['opponent_start_hp_2'] = $opponentTeam->entities[1]->max_hp;
     $simulationResult['player_start_hp_1'] = $playerTeam->entities[0]->max_hp;

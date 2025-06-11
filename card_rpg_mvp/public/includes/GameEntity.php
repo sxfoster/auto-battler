@@ -17,6 +17,7 @@ class GameEntity {
     public $current_magic_block_charges; // magic block charges
     public $base_attack; // baseline attack value
     public $current_attack; // attack after buffs/debuffs
+    public $display_name; // Unique name for UI/logging
     public $buffs = []; // Array of active StatusEffect objects
     public $debuffs = []; // Array of active StatusEffect objects
     public $deck = []; // Array of Card objects (the full deck)
@@ -26,7 +27,7 @@ class GameEntity {
     public $isPlayerTeam = false; // flag for which side owns this entity
     public $role; // Tank, DPS, Support etc.
 
-    public function __construct($id, $name, $hp, $speed, $role = 'unknown', $base_attack = 1) {
+    public function __construct($id, $name, $hp, $speed, $role = 'unknown', $base_attack = 1, $display_name = null) {
         $this->id = $id;
         $this->name = $name;
         $this->max_hp = $hp;
@@ -42,6 +43,7 @@ class GameEntity {
         $this->role = $role;
         $this->base_attack = $base_attack;
         $this->current_attack = $base_attack;
+        $this->display_name = $display_name ?? $name;
     }
 
     public function takeDamage($amount, $damage_type = NULL) {
