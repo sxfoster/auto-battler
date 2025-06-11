@@ -57,44 +57,45 @@ h2, h3, h4 {
     display: flex;
     justify-content: space-around;
     align-items: flex-start;
-    gap: 30px; /* More space between teams */
+    gap: 15px; /* Reduced gap between teams */
     margin-top: 40px;
     padding: 25px;
-    background-color: #1a1a1a; /* Darker arena background */
+    background-color: #1a1a1a;
     border-radius: 12px;
-    min-height: 450px; /* Taller arena to fit cards */
+    min-height: auto; /* Allow height to adapt to smaller cards */
     border: 2px solid #333;
     box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
-    flex-shrink: 0; /* Prevent arena from shrinking when log grows */
+    flex-shrink: 0;
 }
 
 .team-container {
     display: flex;
-    flex-direction: column; /* Stack champions vertically */
-    gap: 20px; /* Space between champions within a team */
+    flex-direction: column;
+    gap: 10px; /* Reduced gap between champions within a team */
     flex: 1;
     justify-content: flex-start;
     align-items: center;
     padding: 15px;
-    border: 1px solid #222; /* Very subtle border for team container */
+    border: 1px solid #222;
     border-radius: 10px;
-    background-color: #181818; /* Darker background for team area */
+    background-color: #181818;
     box-shadow: inset 0 0 8px rgba(0,0,0,0.3);
+    min-width: 120px; /* Adjust min width for smaller cards */
 }
 
 .combatant {
-    width: 200px; /* Fixed width for the card (similar to Pokémon card) */
-    background-color: #333; /* Dark background for the card body */
-    border-radius: 12px; /* Rounded corners for the card */
+    width: 100px; /* Reduced from 200px */
+    background-color: #333;
+    border-radius: 12px;
     box-shadow: 0 4px 10px rgba(0,0,0,0.5);
-    padding: 15px;
+    padding: 8px; /* Reduced padding */
     text-align: center;
-    border: 4px solid #feca57; /* Pokémon card border color */
-    position: relative; /* For defeated text positioning */
+    border: 4px solid #feca57;
+    position: relative;
     display: flex;
     flex-direction: column;
-    justify-content: space-between; /* Distribute content vertically */
-    min-height: 250px; /* Ensure consistent height for cards */
+    justify-content: space-between;
+    min-height: 125px; /* Reduced from 250px */
 }
 
 /* Defeated state (gray out, hide elements, show DEAD) */
@@ -114,16 +115,16 @@ h2, h3, h4 {
 }
 
 .combatant.defeated .defeated-text {
-    display: flex; /* Use flexbox to center text */
+    display: flex;
     justify-content: center;
     align-items: center;
-    position: absolute; /* Overlay on top of card */
+    position: absolute;
     top: 0; left: 0; right: 0; bottom: 0;
-    color: #e74c3c; /* Strong red for DEAD */
-    font-size: 2.5em; /* Very large "DEAD" */
+    color: #e74c3c;
+    font-size: 1.2em; /* Reduced from 2.5em */
     font-weight: bold;
     text-shadow: 0 0 10px rgba(255,0,0,0.9);
-    background-color: rgba(0,0,0,0.7); /* Dark overlay */
+    background-color: rgba(0,0,0,0.7);
     border-radius: 12px;
     z-index: 10;
 }
@@ -133,46 +134,47 @@ h2, h3, h4 {
     display: flex;
     justify-content: space-between;
     align-items: baseline;
-    margin-bottom: 15px;
+    margin-bottom: 5px; /* Reduced margin */
 }
 
 .combatant-header .combatant-name {
-    font-size: 1.5em; /* Larger character name */
+    font-size: 0.8em; /* Reduced from 1.5em */
     font-weight: bold;
     color: #fff;
     text-shadow: 1px 1px 2px rgba(0,0,0,0.7);
 }
 
 .combatant-header .max-hp-display {
-    font-size: 1em;
+    font-size: 0.6em; /* Reduced from 1em */
     color: #aaa;
     font-weight: normal;
 }
 
 /* HP Bar (central and prominent) */
 .hp-section {
-    margin-bottom: 15px;
+    margin-bottom: 5px; /* Reduced margin */
     text-align: center;
 }
 .hp-bar-container {
-    width: 100%; /* Fill card width */
-    height: 16px; /* A bit thinner for Pokémon feel */
-    background-color: #555; /* Gray background for empty part */
-    border-radius: 8px; /* More rounded */
+    width: 100%;
+    height: 8px; /* Reduced from 16px */
+    background-color: #555;
+    border-radius: 4px; /* Reduced rounded */
     overflow: hidden;
-    margin: 5px auto; /* Centered */
-    border: 1px solid #444; /* Subtle border */
+    margin: 2px auto; /* Reduced margin */
+    border: 1px solid #444;
+    box-shadow: inset 0 0 5px rgba(0,0,0,0.3); /* Adjusted shadow */
 }
 
 .hp-bar {
     height: 100%;
-    background-color: #e74c3c; /* Bright red HP fill */
+    background-color: #e74c3c;
     transition: width 0.3s ease-out;
-    border-radius: 8px;
+    border-radius: 4px; /* Adjusted rounded */
 }
 
 .hp-text {
-    font-size: 0.9em; /* Smaller HP text below bar */
+    font-size: 0.7em; /* Reduced from 0.9em */
     color: #eee;
     font-weight: bold;
     text-shadow: 0 0 2px rgba(0,0,0,0.8);
@@ -180,41 +182,41 @@ h2, h3, h4 {
 
 /* Class Icon (Below HP Bar) */
 .class-icon-container {
-    font-size: 5em; /* Large icon for character */
-    color: #00bcd4; /* Accent color */
-    margin: 15px 0;
-    text-shadow: 0 0 8px rgba(0,255,255,0.6); /* Glow effect */
+    font-size: 3rem; /* Set to 3rem as per explicit request */
+    color: #00bcd4;
+    margin: 8px 0; /* Reduced margin */
+    text-shadow: 0 0 8px rgba(0,255,255,0.6);
 }
 
 /* Energy & Status Effects (bottom section) */
 .bottom-stats-section {
     display: flex;
     justify-content: space-between;
-    align-items: flex-end; /* Align to bottom if space allows */
-    margin-top: auto; /* Pushes content to bottom */
-    padding-top: 10px;
-    border-top: 1px solid #444; /* Separator line */
+    align-items: flex-end;
+    margin-top: auto;
+    padding-top: 5px; /* Reduced padding */
+    border-top: 1px solid #444;
 }
 
 .energy-display {
-    font-size: 1.6em; /* Larger energy number */
+    font-size: 0.8em; /* Reduced from 1.6em */
     font-weight: bold;
-    color: #ffeb3b; /* Yellow energy */
+    color: #ffeb3b;
     display: flex;
     align-items: center;
-    gap: 5px;
+    gap: 2px; /* Reduced gap */
 }
 .energy-display i {
-    font-size: 0.8em; /* Smaller bolt icon relative to number */
+    font-size: 0.8em; /* Adjusted icon size relative to text */
 }
 
 .status-effects-container {
     display: flex;
-    flex-wrap: wrap; /* Allow effects to wrap if many */
-    justify-content: flex-end; /* Align icons to the right */
+    flex-wrap: wrap;
+    justify-content: flex-end;
     align-items: center;
-    gap: 5px; /* Space between icons */
-    font-size: 1.3em; /* Size of status icons */
+    gap: 2px; /* Reduced gap */
+    font-size: 0.8em; /* Reduced from 1.3em */
 }
 .status-effects-container i {
     filter: drop-shadow(1px 1px 1px rgba(0,0,0,0.5));
@@ -327,4 +329,22 @@ h2, h3, h4 {
 }
 .battle-log p strong {
     color: #fff;
+}
+
+@media (max-width: 800px) {
+    .combatant {
+        width: 90px; /* Further reduced for smaller screens */
+        min-height: 110px;
+    }
+    .combatant-header .combatant-name { font-size: 0.7em; }
+    .class-icon-container { font-size: 2.5rem; }
+    .energy-display { font-size: 0.7em; }
+    .status-effects-container { font-size: 0.7em; }
+}
+
+@media (max-width: 500px) {
+    .combatant {
+        width: 100%;
+        max-width: 150px;
+    }
 }
