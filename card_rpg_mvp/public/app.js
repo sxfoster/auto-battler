@@ -21,6 +21,12 @@ const CLASS_ICONS = {
     'Wizard': 'fa-solid fa-wand-magic-sparkles'
 };
 
+const AI_PERSONAS = [
+    { id: 1, name: 'Aggressive', description: 'Prioritizes offense.' },
+    { id: 2, name: 'Defensive', description: 'Focuses on survival & support.' },
+    { id: 3, name: 'Controller', description: 'Relies on debilitating foes.' }
+];
+
 // --- Global State for 2v2 Setup ---
 let selectedChampion1Id = null;
 let selectedChampion2Id = null;
@@ -29,6 +35,7 @@ let selectedChampion2Data = null;
 let selectedCards1 = { ability: null, armor: null, weapon: null };
 let selectedCards2 = { ability: null, armor: null, weapon: null };
 let currentSetupStage = 0; // 0: Choose Champ 1, 1: Draft Champ 1, 2: Choose Champ 2, 3: Draft Champ 2
+let selectedPersonaId = AI_PERSONAS[0].id;
 
 // --- API Helper Functions ---
 async function callApi(endpoint, method = 'GET', data = null) {
@@ -206,7 +213,27 @@ async function renderChooseChampion(championNumber) {
         </div>
     `).join('');
 
+    let personaSection = '';
+    if (championNumber === 1) {
+        const personaOptions = AI_PERSONAS.map(p => `
+            <label class="persona-card">
+                <input type="radio" name="aiPersona" value="${p.id}" class="hidden-radio" ${selectedPersonaId === p.id ? 'checked' : ''}>
+                <span class="persona-content">
+                    <span class="persona-name">${p.name}</span>
+                    <span class="persona-description">${p.description}</span>
+                </span>
+            </label>
+        `).join('');
+        personaSection = `
+            <div class="ai-persona-selection-container">
+                <h2 class="section-title ai-persona-title">Choose Your AI Persona</h2>
+                <div class="persona-options-grid">${personaOptions}</div>
+            </div>
+        `;
+    }
+
     renderScene('character-setup', `
+        ${personaSection}
         <h2>Choose Your Champion ${championNumber}</h2>
         <div id="champion-selection-${championNumber}" class="selection-grid">
             ${championsHtml}
@@ -232,6 +259,17 @@ async function renderChooseChampion(championNumber) {
             }
         };
     });
+
+    if (championNumber === 1) {
+        document.querySelectorAll('.persona-card').forEach(card => {
+            card.onclick = () => {
+                const radio = card.querySelector('input');
+                radio.checked = true;
+                selectedPersonaId = parseInt(radio.value);
+                document.querySelectorAll('.persona-card').forEach(c => c.classList.toggle('selected', c.querySelector('input').checked));
+            };
+        });
+    }
 }
 
 async function renderDeckDraft(championNumber) {
@@ -353,7 +391,7 @@ async function renderBattleScene() {
         return;
     }
 
-    const battleResult = await callApi('battle_simulate.php', 'POST', {});
+    const battleResult = await callApi('battle_simulate.php', 'POST', { persona_id: selectedPersonaId });
     if (!battleResult) {
         alert('Failed to simulate battle.');
         return;
