@@ -190,7 +190,9 @@ class BattleSimulator {
             "opponent_class_name_1" => $this->opponentTeam->entities[0]->name,
             "opponent_display_name_1_short" => explode(' ', $this->opponentTeam->entities[0]->display_name)[1] ?? $this->opponentTeam->entities[0]->display_name,
             "opponent_class_name_2" => $this->opponentTeam->entities[1]->name,
-            "opponent_display_name_2_short" => explode(' ', $this->opponentTeam->entities[1]->display_name)[1] ?? $this->opponentTeam->entities[1]->display_name
+            "opponent_display_name_2_short" => explode(' ', $this->opponentTeam->entities[1]->display_name)[1] ?? $this->opponentTeam->entities[1]->display_name,
+            "player_team_persona_name" => $this->aiPlayer->getPersonaName(),
+            "opponent_team_persona_name" => $this->aiPlayer->getPersonaName()
         ];
     }
 
