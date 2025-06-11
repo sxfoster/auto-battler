@@ -375,6 +375,7 @@ async function renderBattleScene() {
         <h2>Battle!</h2>
         <div class="battle-arena">
             <div class="team-container player-side">
+                <div class="team-persona-display">Your Team: <span id="player-persona-name"></span></div>
                 <div id="player-1" class="combatant player-1">
                     <div class="combatant-header">
                         <h3 id="player-1-name" class="combatant-name">${playerChamp1DisplayName}</h3>
@@ -410,6 +411,7 @@ async function renderBattleScene() {
             </div>
             <div class="vs-text">VS</div>
             <div class="team-container opponent-side">
+                <div class="team-persona-display">Opponent Team: <span id="opponent-persona-name"></span></div>
                 <div id="opponent-1" class="combatant opponent-1">
                     <div class="combatant-header">
                         <h3 id="opponent-1-name" class="combatant-name">${opponentChamp1DisplayName}</h3>
@@ -449,6 +451,11 @@ async function renderBattleScene() {
             <div id="log-entries"></div>
         </div>
     `, []);
+
+    if (battleResult) {
+        document.getElementById('player-persona-name').textContent = battleResult.player_team_persona_name || 'N/A';
+        document.getElementById('opponent-persona-name').textContent = battleResult.opponent_team_persona_name || 'N/A';
+    }
 
     updateCombatantUI('player-1', initialPlayerState.champion_hp_1, initialPlayerState.champion_max_hp_1, initialPlayerState.champion_energy_1, initialPlayerState.player_1_active_effects, initialPlayerState.champion_name_1, playerChamp1DisplayName);
     updateCombatantUI('player-2', initialPlayerState.champion_hp_2, initialPlayerState.champion_max_hp_2, initialPlayerState.champion_energy_2, initialPlayerState.player_2_active_effects, initialPlayerState.champion_name_2, playerChamp2DisplayName);
