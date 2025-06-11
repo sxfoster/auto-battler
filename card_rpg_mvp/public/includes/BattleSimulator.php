@@ -152,37 +152,42 @@ class BattleSimulator {
         if (!$effectDetails) return;
 
         $targets = [];
-        if (isset($effectDetails['target'])) {
+
+        if ($chosenTargetEntity) {
+            $targets = [$chosenTargetEntity];
+        } elseif (isset($effectDetails['target'])) {
             switch ($effectDetails['target']) {
                 case 'self':
                     $targets = [$caster];
                     break;
                 case 'single_ally':
-                    $targets = [$chosenTargetEntity ?? ($actingTeam->getLowestHpActiveEntity() ?: $caster)];
+                    $targets = [$actingTeam->getLowestHpActiveEntity() ?: $caster];
                     break;
                 case 'all_allies':
                     $targets = $actingTeam->getActiveEntities();
                     break;
                 case 'single_enemy':
                 case 'random_enemy':
-                    $targets = [$chosenTargetEntity ?? $opposingTeam->getRandomActiveEntity()];
+                    $targets = [$opposingTeam->getRandomActiveEntity()];
                     break;
                 case 'all_enemies':
                     $targets = $opposingTeam->getActiveEntities();
                     break;
                 default:
-                    $targets = [$chosenTargetEntity ?? $opposingTeam->getRandomActiveEntity()];
+                    $targets = [$opposingTeam->getRandomActiveEntity()];
                     break;
             }
-        } elseif ($chosenTargetEntity) {
-            $targets = [$chosenTargetEntity];
         } else {
-            $targets = [$opposingTeam->getRandomActiveEntity()];
+            if ($card->card_type === 'weapon' || ($card->card_type === 'ability' && strpos($effectDetails['type'] ?? '', 'damage') !== false)) {
+                $targets = [$opposingTeam->getRandomActiveEntity()];
+            } else {
+                $targets = [$caster];
+            }
         }
 
-        $targets = array_filter($targets, fn($t) => $t !== null && $t->current_hp > 0);
+        $targets = array_filter($targets, fn($t) => $t instanceof GameEntity);
         if (empty($targets)) {
-            $this->logAction($this->battleLog[count($this->battleLog)-1]['turn'], $caster->name, "Action Failed", ["card_name"=>$card->name, "reason"=>"No valid targets"]);
+            $this->logAction($this->battleLog[count($this->battleLog)-1]['turn'], $caster->name, "Action Failed", ["card_name"=>$card->name, "reason"=>"No valid targets found for card effect."]);
             return;
         }
 
@@ -284,6 +289,51 @@ class BattleSimulator {
                     $caster->current_energy = min($caster->current_energy + $effectDetails['energy_amount'], 4);
                     $actualTarget->current_energy = max(0, $actualTarget->current_energy - $effectDetails['energy_amount']);
                     $this->logAction($this->battleLog[count($this->battleLog)-1]['turn'], $caster->name, "Steals Energy", ["target"=>$actualTarget->name, "amount"=>$effectDetails['energy_amount'], "caster_energy"=>$caster->current_energy, "target_energy"=>$actualTarget->current_energy]);
+                    break;
+
+                case 'damage_debuff':
+                    $damageDealt = calculateDamage($effectDetails['damage'], $card->damage_type, $actualTarget->armor_type ?? NULL);
+                    $actualTarget->takeDamage($damageDealt);
+                    $this->logAction($this->battleLog[count($this->battleLog)-1]['turn'], $caster->name, "Deals Damage", ["target"=>$actualTarget->name, "amount"=>$damageDealt, "target_hp_after"=>$actualTarget->current_hp]);
+                    $debuffEffect = new StatusEffect($effectDetails['debuff_stat'], $effectDetails['debuff_amount'], $effectDetails['debuff_duration'], true, $effectDetails['debuff_stat']);
+                    $actualTarget->addStatusEffect($debuffEffect);
+                    $this->logAction($this->battleLog[count($this->battleLog)-1]['turn'], $caster->name, "Applies Debuff", ["target"=>$actualTarget->name, "stat"=>$effectDetails['debuff_stat'], "amount"=>$effectDetails['debuff_amount'], "duration"=>$effectDetails['debuff_duration']]);
+                    break;
+
+                case 'block':
+                    $blockEffect = new StatusEffect('Block', $effectDetails['amount'] ?? 999, 1, false, 'block_incoming');
+                    $caster->addStatusEffect($blockEffect);
+                    $this->logAction($this->battleLog[count($this->battleLog)-1]['turn'], $caster->name, "Applies Block", ["amount"=>$effectDetails['amount'] ?? 999]);
+                    break;
+
+                case 'stun':
+                    $stunEffect = new StatusEffect('Stun', null, $effectDetails['duration'] ?? 1, true);
+                    $actualTarget->addStatusEffect($stunEffect);
+                    $this->logAction($this->battleLog[count($this->battleLog)-1]['turn'], $caster->name, "Applies Stun", ["target"=>$actualTarget->name, "duration"=>$effectDetails['duration'] ?? 1]);
+                    break;
+
+                case 'root':
+                    $rootEffect = new StatusEffect('Root', null, $effectDetails['duration'] ?? 1, true);
+                    $actualTarget->addStatusEffect($rootEffect);
+                    $this->logAction($this->battleLog[count($this->battleLog)-1]['turn'], $caster->name, "Applies Root", ["target"=>$actualTarget->name, "duration"=>$effectDetails['duration'] ?? 1]);
+                    break;
+
+                case 'attack_down':
+                    $atkDebuff = new StatusEffect('Attack Down', $effectDetails['amount'], $effectDetails['duration'], true, 'attack');
+                    $actualTarget->addStatusEffect($atkDebuff);
+                    $this->logAction($this->battleLog[count($this->battleLog)-1]['turn'], $caster->name, "Applies Debuff", ["target"=>$actualTarget->name, "stat"=>'attack', "amount"=>$effectDetails['amount'], "duration"=>$effectDetails['duration']]);
+                    break;
+
+                case 'defense_down':
+                    $defDebuff = new StatusEffect('Defense Down', $effectDetails['amount'], $effectDetails['duration'], true, 'defense');
+                    $actualTarget->addStatusEffect($defDebuff);
+                    $this->logAction($this->battleLog[count($this->battleLog)-1]['turn'], $caster->name, "Applies Debuff", ["target"=>$actualTarget->name, "stat"=>'defense', "amount"=>$effectDetails['amount'], "duration"=>$effectDetails['duration']]);
+                    break;
+
+                case 'vulnerable':
+                    $vulnDebuff = new StatusEffect('Vulnerable', $effectDetails['amount'], $effectDetails['duration'], true, 'defense');
+                    $actualTarget->addStatusEffect($vulnDebuff);
+                    $this->logAction($this->battleLog[count($this->battleLog)-1]['turn'], $caster->name, "Applies Vulnerable", ["target"=>$actualTarget->name, "amount"=>$effectDetails['amount'], "duration"=>$effectDetails['duration']]);
                     break;
 
                 default:

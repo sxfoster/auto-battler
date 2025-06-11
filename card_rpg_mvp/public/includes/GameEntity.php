@@ -41,13 +41,23 @@ class GameEntity {
     public function takeDamage($amount, $damage_type = NULL) {
         // Apply defense reduction based on active buffs/debuffs and armor
         $effectiveDamage = $amount - $this->current_defense_reduction;
-        // Further apply armor reduction based on GDD (Weapon GDD - 4.)
-        // This is a placeholder for actual armor calculation
-        // For MVP, just simple reduction
-        if ($this->current_defense_reduction > 0) {
-            $effectiveDamage = max(0, $effectiveDamage); // Damage cannot go below 0 due to reduction
+
+        // Check for Block status (consumed when damage is taken)
+        foreach ($this->buffs as $key => $effect) {
+            if ($effect->stat_affected === 'block_incoming' || $effect->type === 'Block') {
+                if ($effect->amount >= $effectiveDamage) {
+                    $effectiveDamage = 0;
+                } else {
+                    $effectiveDamage -= $effect->amount;
+                }
+                unset($this->buffs[$key]);
+                break; // Only one block effect consumed per hit
+            }
         }
-        
+
+        // Damage cannot go below 0 due to reduction
+        if ($effectiveDamage < 0) $effectiveDamage = 0;
+
         $this->current_hp -= $effectiveDamage;
         if ($this->current_hp < 0) {
             $this->current_hp = 0;
