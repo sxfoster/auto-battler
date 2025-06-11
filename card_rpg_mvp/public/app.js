@@ -355,36 +355,40 @@ async function renderBattleScene() {
         <h2>Battle!</h2>
         <div class="battle-arena">
             <div class="team-container player-side">
-                <div class="combatant player-1">
+                <div id="player-1" class="combatant player-1">
                     <h3 id="player-1-name">${playerChamp1}</h3>
                     <div class="hp-bar-container"><div id="player-1-hp-bar" class="hp-bar" style="width: 100%;"></div></div>
                     <span id="player-1-hp-text" class="hp-text">HP: --/--</span>
                     <div id="player-1-energy" class="energy-display"></div>
                     <div id="player-1-status-effects" class="status-effects-container"></div>
+                    <div id="player-1-defeated-text" class="defeated-text" style="display: none;">DEAD</div>
                 </div>
-                <div class="combatant player-2">
+                <div id="player-2" class="combatant player-2">
                     <h3 id="player-2-name">${playerChamp2}</h3>
                     <div class="hp-bar-container"><div id="player-2-hp-bar" class="hp-bar" style="width: 100%;"></div></div>
                     <span id="player-2-hp-text" class="hp-text">HP: --/--</span>
                     <div id="player-2-energy" class="energy-display"></div>
                     <div id="player-2-status-effects" class="status-effects-container"></div>
+                    <div id="player-2-defeated-text" class="defeated-text" style="display: none;">DEAD</div>
                 </div>
             </div>
             <div class="vs-text">VS</div>
             <div class="team-container opponent-side">
-                <div class="combatant opponent-1">
+                <div id="opponent-1" class="combatant opponent-1">
                     <h3 id="opponent-1-name">${opponentChamp1}</h3>
                     <div class="hp-bar-container"><div id="opponent-1-hp-bar" class="hp-bar" style="width: 100%;"></div></div>
                     <span id="opponent-1-hp-text" class="hp-text">HP: --/--</span>
                     <div id="opponent-1-energy" class="energy-display"></div>
                     <div id="opponent-1-status-effects" class="status-effects-container"></div>
+                    <div id="opponent-1-defeated-text" class="defeated-text" style="display: none;">DEAD</div>
                 </div>
-                <div class="combatant opponent-2">
+                <div id="opponent-2" class="combatant opponent-2">
                     <h3 id="opponent-2-name">${opponentChamp2}</h3>
                     <div class="hp-bar-container"><div id="opponent-2-hp-bar" class="hp-bar" style="width: 100%;"></div></div>
                     <span id="opponent-2-hp-text" class="hp-text">HP: --/--</span>
                     <div id="opponent-2-energy" class="energy-display"></div>
                     <div id="opponent-2-status-effects" class="status-effects-container"></div>
+                    <div id="opponent-2-defeated-text" class="defeated-text" style="display: none;">DEAD</div>
                 </div>
             </div>
         </div>
@@ -460,10 +464,20 @@ async function renderBattleScene() {
 }
 
 function updateCombatantUI(elementIdPrefix, currentHp, maxHp, currentEnergy, activeEffects = []) {
+    const combatantElement = document.getElementById(elementIdPrefix);
     const hpBar = document.getElementById(`${elementIdPrefix}-hp-bar`);
     const hpText = document.getElementById(`${elementIdPrefix}-hp-text`);
     const energyDisplay = document.getElementById(`${elementIdPrefix}-energy`);
     const statusContainer = document.getElementById(`${elementIdPrefix}-status-effects`);
+    const defeatedText = document.getElementById(`${elementIdPrefix}-defeated-text`);
+
+    if (currentHp <= 0) {
+        if (combatantElement) combatantElement.classList.add('defeated');
+        if (defeatedText) defeatedText.style.display = 'block';
+    } else {
+        if (combatantElement) combatantElement.classList.remove('defeated');
+        if (defeatedText) defeatedText.style.display = 'none';
+    }
 
     if (hpBar && hpText) {
         const hpPercent = (currentHp / maxHp) * 100;
