@@ -190,6 +190,12 @@ try {
         'is_debuff' => $e->is_debuff
     ], array_merge($opponentTeam->entities[1]->buffs, $opponentTeam->entities[1]->debuffs));
 
+    // Add class names and short display names for opponent icons
+    $simulationResult['opponent_class_name_1'] = $opponentTeam->entities[0]->name;
+    $simulationResult['opponent_display_name_1_short'] = explode(' ', $opponentTeam->entities[0]->display_name)[1] ?? $opponentTeam->entities[0]->display_name;
+    $simulationResult['opponent_class_name_2'] = $opponentTeam->entities[1]->name;
+    $simulationResult['opponent_display_name_2_short'] = explode(' ', $opponentTeam->entities[1]->display_name)[1] ?? $opponentTeam->entities[1]->display_name;
+
     sendResponse($simulationResult);
 
 } catch (PDOException $e) {
