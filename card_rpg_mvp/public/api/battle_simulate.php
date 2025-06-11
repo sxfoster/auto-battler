@@ -23,6 +23,9 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     sendError("Invalid request method. Only POST is allowed.", 405);
 }
 
+$input = json_decode(file_get_contents('php://input'), true);
+$providedPersonaId = $input['persona_id'] ?? null;
+
 try {
     $stmt = $db->query("SELECT
         psd.champion_id, c1.name as champion_name_1, c1.role as champion_role_1, c1.starting_hp as champion_max_hp_1, c1.speed as champion_base_speed_1, psd.deck_card_ids, psd.champion_hp_1, psd.champion_energy_1, psd.champion_speed_1,
@@ -81,8 +84,12 @@ try {
         sendError("Not enough champions available for AI opponent team. Need at least 2.", 500);
     }
 
-    $personaStmt = $db->query("SELECT id FROM ai_personas ORDER BY RAND() LIMIT 1");
-    $aiPersonaId = $personaStmt->fetchColumn();
+    if ($providedPersonaId) {
+        $aiPersonaId = (int)$providedPersonaId;
+    } else {
+        $personaStmt = $db->query("SELECT id FROM ai_personas ORDER BY RAND() LIMIT 1");
+        $aiPersonaId = $personaStmt->fetchColumn();
+    }
     $aiPlayer = new AIPlayer($aiPersonaId);
 
     $aiIndex = 0;

@@ -375,6 +375,60 @@ h2, h3, h4 {
     border-color: #00bcd4;
     box-shadow: 0 0 0 3px #00bcd4;
 }
+
+.ai-persona-selection-container {
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.persona-options-grid {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-around;
+    gap: 15px;
+    margin-top: 10px;
+}
+
+.persona-card {
+    background-color: #3a3a3a;
+    border: 2px solid #555;
+    border-radius: 8px;
+    padding: 10px;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    width: 150px;
+    position: relative;
+    text-align: center;
+}
+.persona-card:hover {
+    border-color: #00bcd4;
+    box-shadow: 0 6px 12px rgba(0,0,0,0.4);
+}
+.persona-card.selected {
+    border-color: #00bcd4;
+    box-shadow: 0 0 0 3px #00bcd4;
+}
+.persona-card.selected::after {
+    content: '\2713';
+    position: absolute;
+    top: 6px;
+    right: 8px;
+    font-size: 1.2em;
+    color: #00bcd4;
+}
+.persona-card .hidden-radio {
+    display: none;
+}
+.persona-name {
+    color: #00bcd4;
+    font-weight: bold;
+    margin-bottom: 4px;
+}
+.persona-description {
+    font-size: 0.8em;
+    color: #ccc;
+}
 .game-button {
     background-color: #00bcd4;
     color: #1a1a1a;
