@@ -8,15 +8,15 @@ let battleLog = []; // Store the battle log for Scene 2 playback
 
 // --- Global Data for Class Icons ---
 const CLASS_ICONS = {
-    'Warrior': 'fa-solid fa-sword',
+    'Warrior': 'fa-solid fa-shield-halved',
     'Bard': 'fa-solid fa-guitar',
-    'Barbarian': 'fa-solid fa-axe-battle',
+    'Barbarian': 'fa-solid fa-hand-fist',
     'Cleric': 'fa-solid fa-cross',
     'Druid': 'fa-solid fa-leaf',
     'Enchanter': 'fa-solid fa-hat-wizard',
-    'Paladin': 'fa-solid fa-shield-cross',
-    'Rogue': 'fa-solid fa-dagger',
-    'Ranger': 'fa-solid fa-bow-arrow',
+    'Paladin': 'fa-solid fa-shield',
+    'Rogue': 'fa-solid fa-user-ninja',
+    'Ranger': 'fa-solid fa-person-rifle',
     'Sorcerer': 'fa-solid fa-bolt',
     'Wizard': 'fa-solid fa-wand-magic-sparkles'
 };
@@ -135,25 +135,25 @@ function getDamageTypeIcon(damageType) {
 // Helper to map status effect types to Font Awesome icons
 function getEffectIcon(effectType) {
     switch (effectType.toLowerCase()) {
-        case 'stun': return 'dizzy';
-        case 'poison': return 'skull-crossbones';
-        case 'bleed': return 'droplet';
-        case 'burn': return 'fire';
-        case 'slow': return 'hourglass-half';
-        case 'confuse': return 'brain';
-        case 'root': return 'tree';
-        case 'shock': return 'bolt';
-        case 'fear': return 'ghost';
-        case 'defense boost': return 'shield-alt';
-        case 'magic defense boost': return 'shield-alt';
-        case 'evasion': return 'running';
-        case 'attack': return 'fist-raised';
-        case 'vulnerable': return 'bullseye';
-        case 'block': return 'hand-paper';
-        case 'block magic': return 'hand-sparkles';
-        case 'hot': return 'heart-pulse';
-        case 'prevent defeat': return 'fist-raised';
-        default: return 'question-circle';
+        case 'stun': return 'fa-solid fa-face-dizzy';
+        case 'poison': return 'fa-solid fa-skull-crossbones';
+        case 'bleed': return 'fa-solid fa-droplet';
+        case 'burn': return 'fa-solid fa-fire';
+        case 'slow': return 'fa-solid fa-hourglass-half';
+        case 'confuse': return 'fa-solid fa-brain';
+        case 'root': return 'fa-solid fa-tree';
+        case 'shock': return 'fa-solid fa-bolt';
+        case 'fear': return 'fa-solid fa-ghost';
+        case 'defense boost': return 'fa-solid fa-shield-alt';
+        case 'magic defense boost': return 'fa-solid fa-shield-alt';
+        case 'evasion': return 'fa-solid fa-running';
+        case 'attack': return 'fa-solid fa-fist-raised';
+        case 'vulnerable': return 'fa-solid fa-bullseye';
+        case 'block': return 'fa-solid fa-hand-paper';
+        case 'block magic': return 'fa-solid fa-hand-sparkles';
+        case 'hot': return 'fa-solid fa-heart-pulse';
+        case 'prevent defeat': return 'fa-solid fa-fist-raised';
+        default: return 'fa-solid fa-question-circle';
     }
 }
 
@@ -596,7 +596,7 @@ function updateCombatantUI(elementIdPrefix, currentHp, maxHp, currentEnergy, act
     if (statusContainer) {
         statusContainer.innerHTML = '';
         activeEffects.forEach(effect => {
-            statusContainer.innerHTML += `<i class="fa-solid fa-${getEffectIcon(effect.type)}" title="${effect.type} (${effect.duration} turns)" style="color:${effect.is_debuff ? 'red' : 'green'};"></i> `;
+            statusContainer.innerHTML += `<i class="${getEffectIcon(effect.type)}" title="${effect.type} (${effect.duration} turns)" style="color:${effect.is_debuff ? 'red' : 'green'};"></i> `;
         });
     }
 }
