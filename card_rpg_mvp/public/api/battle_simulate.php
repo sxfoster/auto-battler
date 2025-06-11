@@ -1,6 +1,9 @@
 <?php
 // public/api/battle_simulate.php
 
+ini_set('display_errors', 1);
+error_reporting(E_ALL);
+
 require_once __DIR__ . '/../includes/db.php';
 require_once __DIR__ . '/../includes/utils.php';
 require_once __DIR__ . '/../includes/GameEntity.php';
