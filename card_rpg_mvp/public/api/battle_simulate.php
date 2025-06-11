@@ -47,7 +47,8 @@ try {
         'current_hp' => $playerSessionData['champion_hp_1'],
         'current_energy' => $playerSessionData['champion_energy_1'],
         'current_speed' => $playerSessionData['champion_speed_1'],
-        'display_name' => $playerSessionData['champion_name_1'] . ' Alpha'
+        'display_name' => $playerSessionData['champion_name_1'] . ' Alpha',
+        'base_crit_chance' => 0
     ]);
     $champ1->deck = loadCardsFromIds($db, json_decode($playerSessionData['deck_card_ids'], true));
     $champ1->hand = $champ1->deck;
@@ -62,7 +63,8 @@ try {
         'current_hp' => $playerSessionData['champion_hp_2'],
         'current_energy' => $playerSessionData['champion_energy_2'],
         'current_speed' => $playerSessionData['champion_speed_2'],
-        'display_name' => $playerSessionData['champion_name_2'] . ' Beta'
+        'display_name' => $playerSessionData['champion_name_2'] . ' Beta',
+        'base_crit_chance' => 0
     ]);
     $champ2->deck = loadCardsFromIds($db, json_decode($playerSessionData['deck_card_ids_2'], true));
     $champ2->hand = $champ2->deck;
@@ -93,7 +95,8 @@ try {
             'current_hp' => $cData['starting_hp'],
             'current_energy' => 1,
             'current_speed' => $cData['speed'],
-            'display_name' => $cData['name'] . ' ' . $displaySuffix
+            'display_name' => $cData['name'] . ' ' . $displaySuffix,
+            'base_crit_chance' => 0
         ]);
         $aiChamp->deck = loadRandomCommonCards($db, $cData['name']);
         $aiChamp->hand = $aiChamp->deck;

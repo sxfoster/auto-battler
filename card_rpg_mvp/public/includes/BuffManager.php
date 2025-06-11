@@ -48,6 +48,7 @@ class BuffManager {
         $entity->current_magic_defense_reduction = 0; // NEW: reset magic defense
         $entity->current_block_charges = 0; // NEW: reset block charges
         $entity->current_magic_block_charges = 0; // NEW: reset magic block charges
+        $entity->current_crit_chance = $entity->base_crit_chance ?? 0;
         // Add current_attack to GameEntity, initialize to base_attack
         $entity->current_attack = $entity->base_attack ?? 1; // Assuming base attack of 1 if not set
 
@@ -69,6 +70,9 @@ class BuffManager {
                 case 'speed':
                     $entity->current_speed += $effect->amount;
                     break;
+                case 'crit_chance':
+                    $entity->current_crit_chance = ($entity->current_crit_chance ?? 0) + $effect->amount;
+                    break;
                 case 'block_incoming':
                     $entity->current_block_charges += $effect->amount;
                     break;
@@ -89,6 +93,12 @@ class BuffManager {
                     break;
                 case 'speed':
                     $entity->current_speed -= $effect->amount;
+                    break;
+                case 'evasion':
+                    $entity->current_evasion -= $effect->amount;
+                    break;
+                case 'vulnerable':
+                    $entity->current_defense_reduction -= $effect->amount;
                     break;
             }
         }

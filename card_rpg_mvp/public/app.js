@@ -117,6 +117,31 @@ function getDamageTypeIcon(damageType) {
     }
 }
 
+// Helper to map status effect types to Font Awesome icons
+function getEffectIcon(effectType) {
+    switch (effectType.toLowerCase()) {
+        case 'stun': return 'dizzy';
+        case 'poison': return 'skull-crossbones';
+        case 'bleed': return 'droplet';
+        case 'burn': return 'fire';
+        case 'slow': return 'hourglass-half';
+        case 'confuse': return 'brain';
+        case 'root': return 'tree';
+        case 'shock': return 'bolt';
+        case 'fear': return 'ghost';
+        case 'defense boost': return 'shield-alt';
+        case 'magic defense boost': return 'shield-alt';
+        case 'evasion': return 'running';
+        case 'attack': return 'fist-raised';
+        case 'vulnerable': return 'bullseye';
+        case 'block': return 'hand-paper';
+        case 'block magic': return 'hand-sparkles';
+        case 'hot': return 'heart-pulse';
+        case 'prevent defeat': return 'fist-raised';
+        default: return 'question-circle';
+    }
+}
+
 // Initial application load
 // --- Initial Application Load ---
 document.addEventListener('DOMContentLoaded', () => {
@@ -385,6 +410,29 @@ async function renderBattleScene() {
                 const pElement = document.createElement('p');
                 pElement.innerHTML = `<strong>Turn ${entry.turn}:</strong> ${formattedEntry}`;
                 logEntriesDiv.prepend(pElement);
+            }
+
+            let targetElementIdPrefix = '';
+            if (entry.actor === initialPlayerState.champion_name_1_display) targetElementIdPrefix = 'player-1';
+            else if (entry.actor === initialPlayerState.champion_name_2_display) targetElementIdPrefix = 'player-2';
+            else if (entry.actor === battleResult.opponent_team_names[0]) targetElementIdPrefix = 'opponent-1';
+            else if (entry.actor === battleResult.opponent_team_names[1]) targetElementIdPrefix = 'opponent-2';
+
+            if (targetElementIdPrefix && (entry.action_type.includes('Damage') || entry.action_type.includes('Heal'))) {
+                const maxHp = (targetElementIdPrefix === 'player-1') ? initialPlayerHp1 :
+                              (targetElementIdPrefix === 'player-2') ? initialPlayerHp2 :
+                              (targetElementIdPrefix === 'opponent-1') ? initialOpponentHp1 :
+                              initialOpponentHp2;
+                if (entry.target_hp_after !== undefined) {
+                    updateCombatantUI(targetElementIdPrefix, entry.target_hp_after, maxHp);
+                }
+            }
+
+            if (targetElementIdPrefix && (entry.action_type === 'Energy Gain' || entry.action_type === 'Plays Card')) {
+                const energyDisplay = document.getElementById(`${targetElementIdPrefix}-energy`);
+                if (energyDisplay && entry.energy_after !== undefined) {
+                    energyDisplay.innerHTML = `<i class="fas fa-bolt"></i> ${entry.energy_after}`;
+                }
             }
 
             if (entry.action_type === 'Turn End') {
