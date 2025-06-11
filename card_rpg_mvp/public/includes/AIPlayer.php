@@ -49,78 +49,66 @@ class AIPlayer {
         });
 
         if (empty($affordableCards)) {
-            return null; // Cannot afford any cards
+            return null;
         }
 
         foreach ($cardPriorities as $priorityType) {
+            usort($affordableCards, function($a, $b) use ($priorityType) {
+                $scoreA = 0; $scoreB = 0;
+                if ($priorityType === 'damage') {
+                    if (strpos($a->effect_details['type'] ?? '', 'damage') !== false) $scoreA += ($a->effect_details['damage'] ?? 0);
+                    if (strpos($b->effect_details['type'] ?? '', 'damage') !== false) $scoreB += ($b->effect_details['damage'] ?? 0);
+                } elseif ($priorityType === 'defense') {
+                    if (strpos($a->effect_details['type'] ?? '', 'reduction') !== false || strpos($a->effect_details['type'] ?? '', 'block') !== false) $scoreA += 1;
+                    if (strpos($b->effect_details['type'] ?? '', 'reduction') !== false || strpos($b->effect_details['type'] ?? '', 'block') !== false) $scoreB += 1;
+                } elseif ($priorityType === 'heal') {
+                    if (strpos($a->effect_details['type'] ?? '', 'heal') !== false) $scoreA += ($a->effect_details['amount'] ?? 0);
+                    if (strpos($b->effect_details['type'] ?? '', 'heal') !== false) $scoreB += ($b->effect_details['amount'] ?? 0);
+                }
+                return $scoreB - $scoreA;
+            });
+
             foreach ($affordableCards as $card) {
                 $potentialTargets = [];
-                if (isset($card->effect_details['target'])) {
-                    switch ($card->effect_details['target']) {
-                        case 'self':
-                            $potentialTargets = [$activeEntity];
-                            break;
-                        case 'single_ally':
-                            $potentialTargets = $actingTeam->getActiveEntities();
-                            break;
-                        case 'all_allies':
-                            $potentialTargets = $actingTeam->getActiveEntities();
-                            break;
-                        case 'single_enemy':
-                            $potentialTargets = $opposingTeam->getActiveEntities();
-                            break;
-                        case 'all_enemies':
-                            $potentialTargets = $opposingTeam->getActiveEntities();
-                            break;
-                        default:
-                            $potentialTargets = $opposingTeam->getActiveEntities();
-                            break;
-                    }
-                } else {
+                $cardTargetType = $card->effect_details['target'] ?? null;
+
+                if ($cardTargetType === 'self') {
+                    $potentialTargets = [$activeEntity];
+                } elseif ($cardTargetType === 'single_ally' || $cardTargetType === 'all_allies') {
+                    $potentialTargets = $actingTeam->getActiveEntities();
+                } elseif ($cardTargetType === 'single_enemy' || $cardTargetType === 'random_enemy' || $cardTargetType === 'all_enemies') {
                     $potentialTargets = $opposingTeam->getActiveEntities();
+                } else {
+                    if ($card->card_type === 'weapon' || ($card->card_type === 'ability' && strpos($card->effect_details['type'] ?? '', 'damage') !== false)) {
+                        $potentialTargets = $opposingTeam->getActiveEntities();
+                    } else {
+                        $potentialTargets = [$activeEntity];
+                    }
                 }
 
-                $potentialTargets = array_filter($potentialTargets, fn($t) => $t->current_hp > 0);
-                if (empty($potentialTargets) && ($card->card_type === 'weapon' || ($card->card_type === 'ability' && strpos($card->effect_details['type'] ?? '', 'damage') !== false))) {
+                $potentialTargets = array_filter($potentialTargets, fn($t) => $t instanceof GameEntity && $t->current_hp > 0);
+                if (empty($potentialTargets)) {
                     continue;
                 }
 
-                foreach ($potentialTargets as $targetCandidate) {
-                    $currentScore = 0;
+                $chosenTargetEntity = null;
+                if ($targetPriorities === 'lowest_hp') {
+                    usort($potentialTargets, fn($a, $b) => $a->current_hp <=> $b->current_hp);
+                    $chosenTargetEntity = $potentialTargets[0];
+                } elseif ($targetPriorities === 'highest_hp') {
+                    usort($potentialTargets, fn($a, $b) => $b->current_hp <=> $a->current_hp);
+                    $chosenTargetEntity = $potentialTargets[0];
+                } else {
+                    $chosenTargetEntity = $potentialTargets[array_rand($potentialTargets)];
+                }
 
-                    if ($priorityType === 'damage' && strpos($card->effect_details['type'] ?? '', 'damage') !== false) {
-                        $currentScore += ($card->effect_details['damage'] ?? 0);
-                        if (isset($card->effect_details['aoe_damage'])) $currentScore += 5;
-                        if ($targetCandidate->current_hp <= ($card->effect_details['damage'] ?? 0)) $currentScore += 10;
-                    } elseif ($priorityType === 'defense' && (strpos($card->effect_details['type'] ?? '', 'reduction') !== false || strpos($card->effect_details['type'] ?? '', 'block') !== false || strpos($card->effect_details['type'] ?? '', 'immunity') !== false)) {
-                        $currentScore += 8;
-                        if ($activeEntity->current_hp / $activeEntity->max_hp < ($this->persona['buff_use_threshold'] ?? 0.5)) $currentScore += 5;
-                    } elseif ($priorityType === 'heal' && strpos($card->effect_details['type'] ?? '', 'heal') !== false) {
-                        $currentScore += 7;
-                        if ($activeEntity->current_hp / $activeEntity->max_hp < ($this->persona['buff_use_threshold'] ?? 0.5)) $currentScore += 10;
-                    }
-
-                    if ($targetPriorities === 'lowest_hp') {
-                        if ($targetCandidate->team->isPlayerTeam !== $activeEntity->team->isPlayerTeam) {
-                            $currentScore += (100 - ($targetCandidate->current_hp / $targetCandidate->max_hp * 100));
-                        }
-                    } elseif ($targetPriorities === 'self_lowest_hp') {
-                        if ($targetCandidate->team->isPlayerTeam === $activeEntity->team->isPlayerTeam) {
-                            $currentScore += (100 - ($targetCandidate->current_hp / $targetCandidate->max_hp * 100));
-                        }
-                    } else {
-                        $currentScore += 1;
-                    }
-
-                    if ($currentScore > $bestScore) {
-                        $bestScore = $currentScore;
-                        $bestAction = ['card' => $card, 'target_entity' => $targetCandidate];
-                    }
+                if ($chosenTargetEntity) {
+                    return ['card' => $card, 'target_entity' => $chosenTargetEntity];
                 }
             }
         }
 
-        return $bestAction;
+        return null;
     }
 }
 ?>
