@@ -545,3 +545,80 @@ h2, h3, h4 {
         padding: 10px;
     }
 }
+
+/* --- Battle Animations --- */
+
+@keyframes slide-in-left {
+    from { transform: translateX(-50px); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes slide-in-right {
+    from { transform: translateX(50px); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes turn-highlight {
+    0% { box-shadow: 0 0 0 0 rgba(255,255,0,0.7); }
+    50% { box-shadow: 0 0 10px 4px rgba(255,255,0,1); }
+    100% { box-shadow: 0 0 0 0 rgba(255,255,0,0.7); }
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+@keyframes lunge {
+    0% { transform: translateX(0); }
+    50% { transform: translateX(20px); }
+    100% { transform: translateX(0); }
+}
+
+@keyframes shake {
+    0%,100% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    75% { transform: translateX(5px); }
+}
+
+@keyframes heal-flash {
+    0% { box-shadow: 0 0 0 0 rgba(0,255,0,0.8); }
+    50% { box-shadow: 0 0 10px 5px rgba(0,255,0,0.8); }
+    100% { box-shadow: 0 0 0 0 rgba(0,255,0,0.8); }
+}
+
+@keyframes wobble {
+    0% { transform: rotate(0deg); }
+    25% { transform: rotate(-10deg); }
+    50% { transform: rotate(10deg); }
+    75% { transform: rotate(-6deg); }
+    100% { transform: rotate(0deg); }
+}
+
+@keyframes dim {
+    from { opacity: 1; }
+    to { opacity: 0.5; }
+}
+
+@keyframes fade-turn {
+    from { opacity: 1; }
+    to { opacity: 0; }
+}
+
+@keyframes winner-glow {
+    0% { box-shadow: 0 0 0 0 rgba(0,255,255,0.5); }
+    100% { box-shadow: 0 0 20px 10px rgba(0,255,255,0.8); }
+}
+
+.slide-in-left { animation: slide-in-left 0.6s ease-out forwards; }
+.slide-in-right { animation: slide-in-right 0.6s ease-out forwards; }
+.turn-highlight-animation { animation: turn-highlight 0.3s ease-out; }
+.pulse-animation { animation: pulse 0.2s ease-out; }
+.lunge-animation { animation: lunge 0.4s ease-out; }
+.shake-animation { animation: shake 0.4s ease-out; }
+.heal-flash-animation { animation: heal-flash 0.3s ease-out; }
+.wobble-animation { animation: wobble 0.3s ease-out; }
+.dim-animation { animation: dim 0.3s ease-out; }
+.fade-turn-animation { animation: fade-turn 0.2s ease-out; }
+.winner-glow-animation { animation: winner-glow 0.8s ease-out forwards; }

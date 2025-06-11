@@ -5,6 +5,27 @@ const appDiv = document.getElementById('app');
 let currentScene = ''; // To track which scene is active (setup, battle, tournament)
 let playerData = {}; // Store player's champion and deck
 let battleLog = []; // Store the battle log for Scene 2 playback
+let combatantIdMap = {}; // Map display names to DOM element IDs
+let battleEventQueue = []; // Queue of events for playback
+let currentBattleResult = null;
+let initialPlayerHp1, initialPlayerHp2, initialOpponentHp1, initialOpponentHp2;
+
+const ANIMATION_TIMING_MAP = {
+    BATTLE_START: { delay: 600 },
+    TURN_START: { actor: 'turn-highlight-animation', delay: 300 },
+    TURN_ACTION: { actor: 'pulse-animation', delay: 200 },
+    ENERGY_GAIN: { actor: 'pulse-animation', delay: 200 },
+    CARD_PLAYED: { actor: 'lunge-animation', delay: 400 },
+    DAMAGE_DEALT: { actor: 'lunge-animation', target: 'shake-animation', delay: 400 },
+    HEAL_APPLIED: { target: 'heal-flash-animation', delay: 300 },
+    STATUS_EFFECT_APPLIED: { target: 'turn-highlight-animation', delay: 500 },
+    ACTION_FAILED: { actor: 'wobble-animation', delay: 300 },
+    EFFECT_APPLYING: { actor: 'pulse-animation', target: 'pulse-animation', delay: 300 },
+    TURN_SKIPPED: { actor: 'dim-animation', delay: 300 },
+    TURN_PASSED: { actor: 'dim-animation', delay: 300 },
+    TURN_END: { delay: 200 },
+    BATTLE_END: { actor: 'winner-glow-animation', delay: 800 }
+};
 
 // --- Global Data for Class Icons ---
 const CLASS_ICONS = {
@@ -500,58 +521,22 @@ async function renderBattleScene() {
     updateCombatantUI('opponent-1', battleResult.opponent_start_hp_1, battleResult.opponent_start_hp_1, battleResult.opponent_energy_1, battleResult.opponent_1_active_effects, battleResult.opponent_class_name_1, opponentChamp1DisplayName);
     updateCombatantUI('opponent-2', battleResult.opponent_start_hp_2, battleResult.opponent_start_hp_2, battleResult.opponent_energy_2, battleResult.opponent_2_active_effects, battleResult.opponent_class_name_2, opponentChamp2DisplayName);
 
-    let logIndex = 0;
+    combatantIdMap = {
+        [playerChamp1DisplayName]: 'player-1',
+        [playerChamp2DisplayName]: 'player-2',
+        [opponentChamp1DisplayName]: 'opponent-1',
+        [opponentChamp2DisplayName]: 'opponent-2'
+    };
+
+    initialPlayerHp1 = initialPlayerState.champion_max_hp_1;
+    initialPlayerHp2 = initialPlayerState.champion_max_hp_2;
+    initialOpponentHp1 = battleResult.opponent_start_hp_1;
+    initialOpponentHp2 = battleResult.opponent_start_hp_2;
+    currentBattleResult = battleResult;
+
     const logEntriesDiv = document.getElementById('log-entries');
-    const playbackInterval = setInterval(() => {
-        if (logIndex < battleLog.length) {
-            const event = battleLog[logIndex];
-            logEntriesDiv.insertAdjacentHTML('afterbegin', formatLogEntry(event));
-            logIndex++;
-        } else {
-            clearInterval(playbackInterval);
-
-            // --- Ensure final UI reflects end-of-battle state ---
-            updateCombatantUI(
-                'player-1',
-                battleResult.player_final_hp_1,
-                initialPlayerHp1,
-                battleResult.player_energy_1 ?? initialPlayerState.champion_energy_1,
-                battleResult.player_1_active_effects ?? []
-            );
-            updateCombatantUI(
-                'player-2',
-                battleResult.player_final_hp_2,
-                initialPlayerHp2,
-                battleResult.player_energy_2 ?? initialPlayerState.champion_energy_2,
-                battleResult.player_2_active_effects ?? []
-            );
-            updateCombatantUI(
-                'opponent-1',
-                battleResult.opponent_final_hp_1,
-                battleResult.opponent_start_hp_1,
-                battleResult.opponent_energy_1 ?? 1,
-                battleResult.opponent_1_active_effects ?? []
-            );
-            updateCombatantUI(
-                'opponent-2',
-                battleResult.opponent_final_hp_2,
-                battleResult.opponent_start_hp_2,
-                battleResult.opponent_energy_2 ?? 1,
-                battleResult.opponent_2_active_effects ?? []
-            );
-
-            const battleEndP = document.createElement('p');
-            battleEndP.innerHTML = `<strong>Battle Concluded! Winner: ${battleResult.winner}</strong><br>You ${battleResult.result} this battle. Gained ${battleResult.xp_awarded} XP.`;
-            logEntriesDiv.prepend(battleEndP);
-
-            appDiv.querySelector('.button-container').innerHTML = '';
-            const continueButton = document.createElement('button');
-            continueButton.textContent = 'Proceed to Tournament Results';
-            continueButton.className = 'game-button';
-            continueButton.onclick = renderTournamentView;
-            appDiv.querySelector('.button-container').appendChild(continueButton);
-        }
-    }, 125);
+    logEntriesDiv.innerHTML = '';
+    startBattlePlayback(battleLog);
 }
 
 function updateCombatantUI(elementIdPrefix, currentHp, maxHp, currentEnergy, activeEffects = [], className = null, characterDisplayName = null) {
@@ -640,6 +625,74 @@ function formatLogEntry(event) {
             return `<p><strong>Battle Ends! Winner: ${event.payload.winner}</strong></p>`;
         default:
             return '';
+    }
+}
+
+function getCombatantElementByName(name) {
+    const id = combatantIdMap[name];
+    return id ? document.getElementById(id) : null;
+}
+
+function startBattlePlayback(log) {
+    battleEventQueue = Array.from(log);
+    processNextEvent();
+}
+
+function processNextEvent() {
+    if (battleEventQueue.length === 0) {
+        finalizeBattlePlayback();
+        return;
+    }
+
+    const event = battleEventQueue.shift();
+    const animInfo = ANIMATION_TIMING_MAP[event.eventType] || { delay: 300 };
+
+    const actorName = event.payload.caster?.displayName || event.payload.actor;
+    const targetName = event.payload.target?.displayName;
+    const actorEl = getCombatantElementByName(actorName);
+    const targetEl = getCombatantElementByName(targetName);
+
+    if (actorEl && animInfo.actor) actorEl.classList.add(animInfo.actor);
+    if (targetEl && animInfo.target) targetEl.classList.add(animInfo.target);
+
+    setTimeout(() => {
+        if (actorEl && animInfo.actor) actorEl.classList.remove(animInfo.actor);
+        if (targetEl && animInfo.target) targetEl.classList.remove(animInfo.target);
+
+        const logEntriesDiv = document.getElementById('log-entries');
+        if (logEntriesDiv) logEntriesDiv.insertAdjacentHTML('afterbegin', formatLogEntry(event));
+
+        processNextEvent();
+    }, animInfo.delay);
+}
+
+function finalizeBattlePlayback() {
+    if (!currentBattleResult) return;
+    const logEntriesDiv = document.getElementById('log-entries');
+
+    updateCombatantUI('player-1', currentBattleResult.player_final_hp_1, initialPlayerHp1,
+        currentBattleResult.player_energy_1 ?? 1, currentBattleResult.player_1_active_effects ?? []);
+    updateCombatantUI('player-2', currentBattleResult.player_final_hp_2, initialPlayerHp2,
+        currentBattleResult.player_energy_2 ?? 1, currentBattleResult.player_2_active_effects ?? []);
+    updateCombatantUI('opponent-1', currentBattleResult.opponent_final_hp_1, initialOpponentHp1,
+        currentBattleResult.opponent_energy_1 ?? 1, currentBattleResult.opponent_1_active_effects ?? []);
+    updateCombatantUI('opponent-2', currentBattleResult.opponent_final_hp_2, initialOpponentHp2,
+        currentBattleResult.opponent_energy_2 ?? 1, currentBattleResult.opponent_2_active_effects ?? []);
+
+    if (logEntriesDiv) {
+        const battleEndP = document.createElement('p');
+        battleEndP.innerHTML = `<strong>Battle Concluded! Winner: ${currentBattleResult.winner}</strong><br>You ${currentBattleResult.result} this battle. Gained ${currentBattleResult.xp_awarded} XP.`;
+        logEntriesDiv.prepend(battleEndP);
+    }
+
+    const btnContainer = appDiv.querySelector('.button-container');
+    if (btnContainer) {
+        btnContainer.innerHTML = '';
+        const continueButton = document.createElement('button');
+        continueButton.textContent = 'Proceed to Tournament Results';
+        continueButton.className = 'game-button';
+        continueButton.onclick = renderTournamentView;
+        btnContainer.appendChild(continueButton);
     }
 }
 
