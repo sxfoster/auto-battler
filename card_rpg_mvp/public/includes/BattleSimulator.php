@@ -226,61 +226,17 @@ class BattleSimulator {
                     $formatted[] = "--- Turn {$entry['turn']} Begins ---";
                     break;
                 case 'Plays Card':
-                    $formatted[] = sprintf('%s plays "%s" on %s.', $entry['actor'], $entry['card_name'], $entry['target']);
-                    break;
-                case 'Energy Gain':
-                    $formatted[] = sprintf('%s gained %d energy. (Current: %d)', $entry['actor'], $entry['energy_gained'], $entry['energy_after']);
-                    break;
-                case 'Deals Damage':
-                    $formatted[] = sprintf('%s deals %d damage to %s. %s\'s HP: %d', $entry['actor'], $entry['amount'], $entry['target'], $entry['target'], $entry['target_hp_after']);
-                    break;
-                case 'Deals Bypass Damage':
-                    $formatted[] = sprintf('%s deals %d direct damage to %s. %s\'s HP: %d', $entry['actor'], $entry['amount'], $entry['target'], $entry['target'], $entry['target_hp_after']);
-                    break;
-                case 'Heals':
-                    $formatted[] = sprintf('%s heals %s for %d. %s\'s HP: %d', $entry['actor'], $entry['target'], $entry['amount'], $entry['target'], $entry['target_hp_after']);
-                    break;
-                case 'Heals Self':
-                    $formatted[] = sprintf('%s heals self for %d. %s\'s HP: %d', $entry['actor'], $entry['amount'], $entry['actor'], $entry['target_hp_after']);
-                    break;
-                case 'Applies Buff':
-                    $formatted[] = sprintf('%s applies %s buff to %s for %d turns.', $entry['actor'], $entry['stat'], $entry['target'], $entry['duration']);
-                    break;
-                case 'Applies Debuff':
-                    $formatted[] = sprintf('%s applies %s debuff to %s for %d turns.', $entry['actor'], $entry['stat'], $entry['target'], $entry['duration']);
-                    break;
-                case 'Applies Status':
-                    $formatted[] = sprintf('%s applies %s to %s for %d turns.', $entry['actor'], $entry['effect'], $entry['target'], $entry['duration']);
-                    break;
-                case 'Applies DOT':
-                    $formatted[] = sprintf('%s applies %s (%d dmg/turn for %d turns) to %s.', $entry['actor'], $entry['type'], $entry['amount'], $entry['duration'], $entry['target']);
-                    break;
-                case 'Applies HoT':
-                    $formatted[] = sprintf('%s applies HoT (%d heal/turn for %d turns) to %s.', $entry['actor'], $entry['amount'], $entry['duration'], $entry['target']);
-                    break;
-                case 'Applies Block':
-                    $formatted[] = sprintf('%s gains %d block.', $entry['actor'], $entry['amount']);
-                    break;
-                case 'Gains Defense':
-                    $formatted[] = sprintf('%s gains %d defense for %d turns.', $entry['actor'], $entry['amount'], $entry['duration']);
-                    break;
-                case 'Gains Magic Defense':
-                    $formatted[] = sprintf('%s gains %d magic defense for %d turns.', $entry['actor'], $entry['amount'], $entry['duration']);
-                    break;
-                case 'Disengages':
-                    $formatted[] = sprintf('%s disengages from combat.', $entry['actor']);
+                    $template = $entry['log_template'] ?? '%s plays "%s" on %s.';
+                    $formatted[] = $this->safeFormat($template, [$entry['actor'], $entry['card_name'], $entry['target']]);
                     break;
                 case 'Passes Turn':
-                    $formatted[] = sprintf('%s passes turn (%s).', $entry['actor'], $entry['reason']);
+                    $formatted[] = "{$entry['actor']} passes turn ({$entry['reason']}).";
                     break;
                 case 'Skipped Turn':
-                    $formatted[] = sprintf('%s\'s turn skipped (%s).', $entry['actor'], $entry['reason']);
-                    break;
-                case 'Unhandled Effect':
-                    // Suppress unhandled effect messages
+                    $formatted[] = "Turn {$entry['turn']}: {$entry['actor']}'s turn skipped ({$entry['reason']}).";
                     break;
                 case 'Battle End':
-                    $formatted[] = sprintf('Battle Ends! Winner: %s', $entry['winner']);
+                    $formatted[] = "Battle Ends! Winner: {$entry['winner']}";
                     break;
                 default:
                     // Skip other granular events for condensed log
