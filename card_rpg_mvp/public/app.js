@@ -418,29 +418,20 @@ async function renderBattleScene() {
             else if (entry.actor === battleResult.opponent_team_names[0]) targetElementIdPrefix = 'opponent-1';
             else if (entry.actor === battleResult.opponent_team_names[1]) targetElementIdPrefix = 'opponent-2';
 
-            if (targetElementIdPrefix) {
-                if (entry.action_type === 'Energy Gain' || entry.action_type.includes('Plays Card')) {
-                    const energyDisplay = document.getElementById(`${targetElementIdPrefix}-energy`);
-                    if (energyDisplay && entry.energy_after !== undefined) {
-                        energyDisplay.innerHTML = `<i class="fas fa-bolt"></i> ${entry.energy_after}`;
-                    }
+            if (targetElementIdPrefix && (entry.action_type.includes('Damage') || entry.action_type.includes('Heal'))) {
+                const maxHp = (targetElementIdPrefix === 'player-1') ? initialPlayerHp1 :
+                              (targetElementIdPrefix === 'player-2') ? initialPlayerHp2 :
+                              (targetElementIdPrefix === 'opponent-1') ? initialOpponentHp1 :
+                              initialOpponentHp2;
+                if (entry.target_hp_after !== undefined) {
+                    updateCombatantUI(targetElementIdPrefix, entry.target_hp_after, maxHp);
                 }
             }
 
-            if (entry.action_type.includes('Damage') || entry.action_type.includes('Heal')) {
-                const targetName = entry.target;
-                let affectedElementIdPrefix = '';
-                if (targetName === initialPlayerState.champion_name_1_display) affectedElementIdPrefix = 'player-1';
-                else if (targetName === initialPlayerState.champion_name_2_display) affectedElementIdPrefix = 'player-2';
-                else if (targetName === battleResult.opponent_team_names[0]) affectedElementIdPrefix = 'opponent-1';
-                else if (targetName === battleResult.opponent_team_names[1]) affectedElementIdPrefix = 'opponent-2';
-
-                if (affectedElementIdPrefix && entry.target_hp_after !== undefined) {
-                    const maxHp = (affectedElementIdPrefix === 'player-1') ? initialPlayerHp1 :
-                                  (affectedElementIdPrefix === 'player-2') ? initialPlayerHp2 :
-                                  (affectedElementIdPrefix === 'opponent-1') ? initialOpponentHp1 :
-                                  initialOpponentHp2;
-                    updateCombatantUI(affectedElementIdPrefix, entry.target_hp_after, maxHp);
+            if (targetElementIdPrefix && (entry.action_type === 'Energy Gain' || entry.action_type === 'Plays Card')) {
+                const energyDisplay = document.getElementById(`${targetElementIdPrefix}-energy`);
+                if (energyDisplay && entry.energy_after !== undefined) {
+                    energyDisplay.innerHTML = `<i class="fas fa-bolt"></i> ${entry.energy_after}`;
                 }
             }
 
@@ -449,21 +440,6 @@ async function renderBattleScene() {
                 if (entry.player_hp_2 !== undefined) updateCombatantUI('player-2', entry.player_hp_2, initialPlayerHp2);
                 if (entry.opponent_hp_1 !== undefined) updateCombatantUI('opponent-1', entry.opponent_hp_1, initialOpponentHp1);
                 if (entry.opponent_hp_2 !== undefined) updateCombatantUI('opponent-2', entry.opponent_hp_2, initialOpponentHp2);
-
-                const containers = {
-                    'player-1': entry.player_1_active_effects || [],
-                    'player-2': entry.player_2_active_effects || [],
-                    'opponent-1': entry.opponent_1_active_effects || [],
-                    'opponent-2': entry.opponent_2_active_effects || []
-                };
-                Object.keys(containers).forEach(id => {
-                    const elem = document.getElementById(`${id}-status-effects`);
-                    if (!elem) return;
-                    elem.innerHTML = '';
-                    containers[id].forEach(effect => {
-                        elem.innerHTML += `<i class="fas fa-${getEffectIcon(effect.type)}" title="${effect.type} (${effect.duration} turns)" style="color:${effect.is_debuff ? 'red' : 'green'};"></i> `;
-                    });
-                });
             }
 
             logIndex++;
