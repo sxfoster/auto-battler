@@ -164,55 +164,67 @@ h2, h3, h4 {
 .battle-arena {
     display: flex;
     justify-content: space-around;
-    align-items: flex-start;
-    gap: 10px;
+    align-items: flex-start; /* Align teams at the top */
+    gap: 20px; /* Increase gap between teams */
     margin-top: 30px;
-    padding: 10px;
+    padding: 20px; /* More padding for the arena */
     background-color: #1f1f1f;
     border-radius: 8px;
-    min-height: 250px;
+    min-height: 350px; /* Increase overall height */
 }
 
 .team-container {
     display: flex;
-    flex-direction: row;
-    gap: 10px;
+    flex-direction: column; /* Stack champions vertically within a team */
+    gap: 15px; /* Space between champions within a team */
     flex: 1;
-    justify-content: center;
-    align-items: flex-start;
-    padding: 10px;
+    justify-content: flex-start; /* Align members at the top of their container */
+    align-items: center; /* Center horizontally */
+    padding: 15px;
     border: 1px solid #333;
     border-radius: 8px;
     background-color: #222;
+    min-width: 220px; /* Give more space to each champion card */
+    max-width: 280px;
 }
 
 .combatant {
-    flex: 1;
-    text-align: center;
-    padding: 15px;
     background-color: #2a2a2a;
+    border: 2px solid #555;
     border-radius: 8px;
-    box-shadow: inset 0 0 5px rgba(0,0,0,0.5);
-    position: relative;
-    min-width: 150px;
-    max-width: 200px;
+    padding: 15px; /* More padding inside combatant card */
+    box-shadow: 0 2px 5px rgba(0,0,0,0.4);
+    width: 100%; /* Fill team container width */
+    max-width: 250px; /* Max width for individual combatant card */
+    text-align: center;
+    flex-shrink: 0; /* Prevent shrinking too much */
+}
+
+.combatant h3 {
+    margin-top: 0;
+    margin-bottom: 10px;
+    color: #fff;
+    font-size: 1.4em; /* Larger name */
+    text-shadow: 0 0 5px rgba(0,255,255,0.5); /* Subtle glow for names */
 }
 
 .vs-text {
-    font-size: 2em;
+    font-size: 3em; /* Larger VS text */
     font-weight: bold;
     color: #ffeb3b;
-    align-self: center; /* Align with middle of arena */
+    align-self: center;
+    padding: 0 10px; /* Add some padding around VS */
 }
 
 .hp-bar-container {
     width: 90%;
-    height: 20px;
+    height: 25px; /* Taller HP bar */
     background-color: #550000;
-    border-radius: 10px;
+    border-radius: 12px; /* More rounded corners */
     margin: 10px auto 5px;
     overflow: hidden;
-    border: 1px solid #990000;
+    border: 2px solid #990000; /* Thicker border */
+    box-shadow: inset 0 0 5px rgba(0,0,0,0.7);
 }
 
 .hp-bar {
@@ -223,44 +235,62 @@ h2, h3, h4 {
 }
 
 .hp-text {
-    font-size: 0.9em;
+    font-size: 1em; /* Slightly larger HP text */
     color: #fff;
     font-weight: bold;
+    text-shadow: 0 0 3px rgba(0,0,0,0.8);
 }
 
 .energy-display {
-    margin-top: 5px;
+    margin-top: 10px;
     color: #ffeb3b;
-    font-size: 1.1em;
+    font-size: 1.4em; /* Larger energy text/icon */
+    font-weight: bold;
+    display: flex; /* Allow icon and text to align */
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+}
+
+.energy-display .fas.fa-bolt {
+    font-size: 1em; /* Keep bolt icon size reasonable relative to text */
 }
 
 .status-effects-container {
-    margin-top: 10px;
-    min-height: 20px; /* To prevent layout shift if no effects */
-    color: #ccc;
-    font-size: 0.8em;
+    margin-top: 15px;
+    min-height: 25px; /* Ensure space even if no effects */
+    display: flex; /* Arrange icons in a row */
+    justify-content: center;
+    gap: 5px; /* Space between icons */
+    font-size: 1.2em; /* Larger icons */
+}
+
+.status-effects-container i {
+    filter: drop-shadow(1px 1px 1px rgba(0,0,0,0.5)); /* Subtle shadow for icons */
 }
 
 .battle-log {
-    background-color: #1f1f1f;
+    background-color: #1a1a1a; /* Darker background for log */
     border-radius: 8px;
     padding: 15px;
-    margin-top: 20px;
-    max-height: 300px;
+    margin-top: 30px;
+    max-height: 400px; /* Increased max height */
     overflow-y: scroll;
     text-align: left;
     border: 1px solid #333;
+    box-shadow: inset 0 0 5px rgba(0,0,0,0.3);
 }
 
 .battle-log h4 {
     color: #00bcd4;
-    margin-top: 0;
+    text-align: center;
+    margin-bottom: 15px;
 }
 
 .battle-log p {
     margin: 5px 0;
-    font-size: 0.85em;
-    line-height: 1.4;
+    font-size: 0.9em; /* Slightly larger log text */
+    line-height: 1.5;
     color: #bbb;
 }
 .battle-log p strong {
