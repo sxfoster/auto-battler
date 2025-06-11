@@ -1,4 +1,5 @@
 /* public/style.css */
+@import url('https://fonts.googleapis.com/css2?family=Cinzel&display=swap');
 
 /* --- General Body and App Container (remain similar) --- */
 html, body {
@@ -9,13 +10,35 @@ html, body {
 }
 
 body {
-    background-color: #222; /* Darker background */
+    background: radial-gradient(circle at center, var(--color-dark-gradient-start, #141414) 0%, var(--color-dark-gradient-end, #0a0a0a) 80%);
     font-family: 'Arial', sans-serif;
     color: #fff;
     display: flex;
     align-items: center;
     justify-content: center;
     box-sizing: border-box;
+    position: relative; /* For overlay pseudo-elements */
+}
+
+body::before,
+body::after {
+    content: '';
+    position: fixed;
+    left: 0;
+    width: 100%;
+    height: 100px;
+    pointer-events: none;
+    z-index: 1000;
+}
+
+body::before {
+    top: 0;
+    background: linear-gradient(to bottom, rgba(30,30,50,0.2), transparent);
+}
+
+body::after {
+    bottom: 0;
+    background: linear-gradient(to top, rgba(30,30,50,0.2), transparent);
 }
 
 #app {
@@ -64,8 +87,24 @@ h2, h3, h4 {
     border-radius: 12px;
     min-height: auto; /* Allow height to adapt to smaller cards */
     border: 2px solid #333;
-    box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
+    box-shadow:
+        inset 0 0 10px rgba(0,0,0,0.6),
+        0 0 20px rgba(0,0,0,0.6);
     flex-shrink: 0;
+    position: relative; /* For pseudo-element */
+    overflow: hidden;
+}
+
+.battle-arena::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 60px;
+    background: linear-gradient(to bottom, transparent, rgba(50,50,50,0.2));
+    opacity: 0.7;
+    z-index: -1;
 }
 
 .team-container {
@@ -81,8 +120,24 @@ h2, h3, h4 {
     border: 1px solid #222;
     border-radius: 10px;
     background-color: #181818;
-    box-shadow: inset 0 0 8px rgba(0,0,0,0.3);
+    box-shadow:
+        0 5px 15px rgba(0,0,0,0.8),
+        0 0 10px rgba(70,70,100,0.3),
+        inset 0 0 8px rgba(0,0,0,0.3);
     min-width: 120px; /* Adjust min width for smaller cards */
+}
+
+.player-side { --team-accent-color: #4CAF50; }
+.opponent-side { --team-accent-color: #F44336; }
+
+.team-persona-display::after {
+    content: '';
+    display: block;
+    width: 60%;
+    margin: 4px auto 0;
+    height: 2px;
+    background-color: var(--team-accent-color);
+    box-shadow: 0 0 5px var(--team-accent-color);
 }
 
 .team-persona-display {
@@ -100,6 +155,8 @@ h2, h3, h4 {
     border-radius: 5px;
     box-shadow: inset 0 0 5px rgba(0,0,0,0.5);
     z-index: 1;
+    font-family: 'Cinzel', serif;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.7);
 }
 .team-persona-display span {
     color: #ffeb3b;
@@ -119,6 +176,22 @@ h2, h3, h4 {
     flex-direction: column;
     justify-content: space-between;
     min-height: 125px; /* Reduced from 250px */
+    transition: transform 0.2s ease-out, filter 0.2s ease-out, box-shadow 0.2s ease-out;
+}
+
+@keyframes breathe {
+    0%, 100% {
+        transform: scale(1);
+        box-shadow: 0 0 15px rgba(0, 200, 255, 0.3);
+    }
+    50% {
+        transform: scale(1.005);
+        box-shadow: 0 0 25px rgba(0, 200, 255, 0.6);
+    }
+}
+
+.combatant.active {
+    animation: breathe 4s ease-in-out infinite;
 }
 
 /* Defeated state (gray out, hide elements, show DEAD) */
@@ -127,6 +200,21 @@ h2, h3, h4 {
     border-color: #666; /* Gray border */
     box-shadow: none;
     pointer-events: none; /* Prevent any unintended interaction */
+    position: relative;
+}
+
+.combatant.defeated::after {
+    content: "\f00d"; /* Font Awesome X */
+    font-family: "Font Awesome 6 Free";
+    font-weight: 900;
+    color: var(--color-dead-x, #F44336);
+    font-size: 4rem;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    opacity: 0.8;
+    z-index: 11;
 }
 
 .combatant.defeated .hp-bar-container,
@@ -191,10 +279,13 @@ h2, h3, h4 {
 
 .hp-bar {
     height: 100%;
-    background-color: #e74c3c;
-    transition: width 0.3s ease-out;
+    background-color: #4CAF50;
+    transition: width 0.3s ease-out, background-color 0.3s ease-out;
     border-radius: 4px; /* Adjusted rounded */
 }
+
+.hp-bar.mid { background-color: #FFC107; }
+.hp-bar.low { background-color: #F44336; }
 
 .hp-text {
     font-size: 0.7em; /* Reduced from 0.9em */
@@ -317,7 +408,7 @@ h2, h3, h4 {
     overflow-y: auto;
     text-align: left;
     border: 1px solid #333;
-    box-shadow: inset 0 0 5px rgba(0,0,0,0.3);
+    box-shadow: inset 0 0 5px rgba(0,0,0,0.5), 0 0 10px rgba(0,0,0,0.3);
     flex-shrink: 1;
     width: 95%;
     align-self: center;
@@ -353,6 +444,30 @@ h2, h3, h4 {
 .battle-log p strong {
     color: #fff;
 }
+
+/* VS separator */
+.vs-text {
+    font-weight: bold;
+    color: var(--color-accent-vs, #FFD700);
+    text-shadow: 0 0 5px rgba(255,215,0,0.7);
+    position: relative;
+    padding: 0 15px;
+    display: flex;
+    align-items: center;
+}
+
+.vs-text::before,
+.vs-text::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: linear-gradient(to bottom, transparent 0%, var(--color-accent-vs, #FFD700) 50%, transparent 100%);
+    opacity: 0.5;
+}
+.vs-text::before { left: 0; }
+.vs-text::after { right: 0; }
 
 @media (max-width: 800px) {
     .combatant {
