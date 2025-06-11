@@ -6,6 +6,21 @@ let currentScene = ''; // To track which scene is active (setup, battle, tournam
 let playerData = {}; // Store player's champion and deck
 let battleLog = []; // Store the battle log for Scene 2 playback
 
+// --- Global Data for Class Icons ---
+const CLASS_ICONS = {
+    'Warrior': 'fa-sword',
+    'Bard': 'fa-lute',
+    'Barbarian': 'fa-axe-battle',
+    'Cleric': 'fa-cross',
+    'Druid': 'fa-leaf',
+    'Enchanter': 'fa-hat-wizard',
+    'Paladin': 'fa-shield-cross',
+    'Rogue': 'fa-dagger',
+    'Ranger': 'fa-bow-arrow',
+    'Sorcerer': 'fa-bolt',
+    'Wizard': 'fa-wand-magic-sparkles'
+};
+
 // --- Global State for 2v2 Setup ---
 let selectedChampion1Id = null;
 let selectedChampion2Id = null;
@@ -140,6 +155,11 @@ function getEffectIcon(effectType) {
         case 'prevent defeat': return 'fist-raised';
         default: return 'question-circle';
     }
+}
+
+// Helper to map class names to Font Awesome icons
+function getClassIcon(className) {
+    return CLASS_ICONS[className] || 'fa-question-circle';
 }
 
 // Initial application load
@@ -341,10 +361,10 @@ async function renderBattleScene() {
 
     battleLog = battleResult.log;
 
-    const playerChamp1 = initialPlayerState.champion_name_1_display || initialPlayerState.champion_name_1;
-    const playerChamp2 = initialPlayerState.champion_name_2_display || initialPlayerState.champion_name_2;
-    const opponentChamp1 = battleResult.opponent_team_names[0];
-    const opponentChamp2 = battleResult.opponent_team_names[1];
+    const playerChamp1DisplayName = initialPlayerState.champion_name_1_display_short || initialPlayerState.champion_name_1;
+    const playerChamp2DisplayName = initialPlayerState.champion_name_2_display_short || initialPlayerState.champion_name_2;
+    const opponentChamp1DisplayName = battleResult.opponent_display_name_1_short || battleResult.opponent_team_names[0];
+    const opponentChamp2DisplayName = battleResult.opponent_display_name_2_short || battleResult.opponent_team_names[1];
 
     const initialPlayerHp1 = initialPlayerState.champion_max_hp_1;
     const initialPlayerHp2 = initialPlayerState.champion_max_hp_2;
@@ -356,38 +376,70 @@ async function renderBattleScene() {
         <div class="battle-arena">
             <div class="team-container player-side">
                 <div id="player-1" class="combatant player-1">
-                    <h3 id="player-1-name">${playerChamp1}</h3>
-                    <div class="hp-bar-container"><div id="player-1-hp-bar" class="hp-bar" style="width: 100%;"></div></div>
-                    <span id="player-1-hp-text" class="hp-text">HP: --/--</span>
-                    <div id="player-1-energy" class="energy-display"></div>
-                    <div id="player-1-status-effects" class="status-effects-container"></div>
+                    <div class="combatant-header">
+                        <h3 id="player-1-name" class="combatant-name">${playerChamp1DisplayName}</h3>
+                        <span id="player-1-max-hp" class="max-hp-display">HP ${initialPlayerState.champion_max_hp_1}</span>
+                    </div>
+                    <div class="hp-section">
+                        <div class="hp-bar-container"><div id="player-1-hp-bar" class="hp-bar" style="width: 100%;"></div></div>
+                        <span id="player-1-hp-text" class="hp-text">HP: --/--</span>
+                    </div>
+                    <div id="player-1-class-icon" class="class-icon-container"></div>
+                    <div class="bottom-stats-section">
+                        <div id="player-1-energy" class="energy-display"></div>
+                        <div id="player-1-status-effects" class="status-effects-container"></div>
+                    </div>
                     <div id="player-1-defeated-text" class="defeated-text" style="display: none;">DEAD</div>
                 </div>
                 <div id="player-2" class="combatant player-2">
-                    <h3 id="player-2-name">${playerChamp2}</h3>
-                    <div class="hp-bar-container"><div id="player-2-hp-bar" class="hp-bar" style="width: 100%;"></div></div>
-                    <span id="player-2-hp-text" class="hp-text">HP: --/--</span>
-                    <div id="player-2-energy" class="energy-display"></div>
-                    <div id="player-2-status-effects" class="status-effects-container"></div>
+                    <div class="combatant-header">
+                        <h3 id="player-2-name" class="combatant-name">${playerChamp2DisplayName}</h3>
+                        <span id="player-2-max-hp" class="max-hp-display">HP ${initialPlayerState.champion_max_hp_2}</span>
+                    </div>
+                    <div class="hp-section">
+                        <div class="hp-bar-container"><div id="player-2-hp-bar" class="hp-bar" style="width: 100%;"></div></div>
+                        <span id="player-2-hp-text" class="hp-text">HP: --/--</span>
+                    </div>
+                    <div id="player-2-class-icon" class="class-icon-container"></div>
+                    <div class="bottom-stats-section">
+                        <div id="player-2-energy" class="energy-display"></div>
+                        <div id="player-2-status-effects" class="status-effects-container"></div>
+                    </div>
                     <div id="player-2-defeated-text" class="defeated-text" style="display: none;">DEAD</div>
                 </div>
             </div>
             <div class="vs-text">VS</div>
             <div class="team-container opponent-side">
                 <div id="opponent-1" class="combatant opponent-1">
-                    <h3 id="opponent-1-name">${opponentChamp1}</h3>
-                    <div class="hp-bar-container"><div id="opponent-1-hp-bar" class="hp-bar" style="width: 100%;"></div></div>
-                    <span id="opponent-1-hp-text" class="hp-text">HP: --/--</span>
-                    <div id="opponent-1-energy" class="energy-display"></div>
-                    <div id="opponent-1-status-effects" class="status-effects-container"></div>
+                    <div class="combatant-header">
+                        <h3 id="opponent-1-name" class="combatant-name">${opponentChamp1DisplayName}</h3>
+                        <span id="opponent-1-max-hp" class="max-hp-display">HP ${battleResult.opponent_start_hp_1}</span>
+                    </div>
+                    <div class="hp-section">
+                        <div class="hp-bar-container"><div id="opponent-1-hp-bar" class="hp-bar" style="width: 100%;"></div></div>
+                        <span id="opponent-1-hp-text" class="hp-text">HP: --/--</span>
+                    </div>
+                    <div id="opponent-1-class-icon" class="class-icon-container"></div>
+                    <div class="bottom-stats-section">
+                        <div id="opponent-1-energy" class="energy-display"></div>
+                        <div id="opponent-1-status-effects" class="status-effects-container"></div>
+                    </div>
                     <div id="opponent-1-defeated-text" class="defeated-text" style="display: none;">DEAD</div>
                 </div>
                 <div id="opponent-2" class="combatant opponent-2">
-                    <h3 id="opponent-2-name">${opponentChamp2}</h3>
-                    <div class="hp-bar-container"><div id="opponent-2-hp-bar" class="hp-bar" style="width: 100%;"></div></div>
-                    <span id="opponent-2-hp-text" class="hp-text">HP: --/--</span>
-                    <div id="opponent-2-energy" class="energy-display"></div>
-                    <div id="opponent-2-status-effects" class="status-effects-container"></div>
+                    <div class="combatant-header">
+                        <h3 id="opponent-2-name" class="combatant-name">${opponentChamp2DisplayName}</h3>
+                        <span id="opponent-2-max-hp" class="max-hp-display">HP ${battleResult.opponent_start_hp_2}</span>
+                    </div>
+                    <div class="hp-section">
+                        <div class="hp-bar-container"><div id="opponent-2-hp-bar" class="hp-bar" style="width: 100%;"></div></div>
+                        <span id="opponent-2-hp-text" class="hp-text">HP: --/--</span>
+                    </div>
+                    <div id="opponent-2-class-icon" class="class-icon-container"></div>
+                    <div class="bottom-stats-section">
+                        <div id="opponent-2-energy" class="energy-display"></div>
+                        <div id="opponent-2-status-effects" class="status-effects-container"></div>
+                    </div>
                     <div id="opponent-2-defeated-text" class="defeated-text" style="display: none;">DEAD</div>
                 </div>
             </div>
@@ -398,10 +450,10 @@ async function renderBattleScene() {
         </div>
     `, []);
 
-    updateCombatantUI('player-1', initialPlayerState.champion_hp_1, initialPlayerHp1, initialPlayerState.champion_energy_1, initialPlayerState.player_1_active_effects);
-    updateCombatantUI('player-2', initialPlayerState.champion_hp_2, initialPlayerHp2, initialPlayerState.champion_energy_2, initialPlayerState.player_2_active_effects);
-    updateCombatantUI('opponent-1', initialOpponentHp1, initialOpponentHp1, battleResult.opponent_energy_1, battleResult.opponent_1_active_effects);
-    updateCombatantUI('opponent-2', initialOpponentHp2, initialOpponentHp2, battleResult.opponent_energy_2, battleResult.opponent_2_active_effects);
+    updateCombatantUI('player-1', initialPlayerState.champion_hp_1, initialPlayerState.champion_max_hp_1, initialPlayerState.champion_energy_1, initialPlayerState.player_1_active_effects, initialPlayerState.champion_name_1, playerChamp1DisplayName);
+    updateCombatantUI('player-2', initialPlayerState.champion_hp_2, initialPlayerState.champion_max_hp_2, initialPlayerState.champion_energy_2, initialPlayerState.player_2_active_effects, initialPlayerState.champion_name_2, playerChamp2DisplayName);
+    updateCombatantUI('opponent-1', battleResult.opponent_start_hp_1, battleResult.opponent_start_hp_1, battleResult.opponent_energy_1, battleResult.opponent_1_active_effects, battleResult.opponent_class_name_1, opponentChamp1DisplayName);
+    updateCombatantUI('opponent-2', battleResult.opponent_start_hp_2, battleResult.opponent_start_hp_2, battleResult.opponent_energy_2, battleResult.opponent_2_active_effects, battleResult.opponent_class_name_2, opponentChamp2DisplayName);
 
     let logIndex = 0;
     const logEntriesDiv = document.getElementById('log-entries');
@@ -494,20 +546,30 @@ async function renderBattleScene() {
     }, 125);
 }
 
-function updateCombatantUI(elementIdPrefix, currentHp, maxHp, currentEnergy, activeEffects = []) {
+function updateCombatantUI(elementIdPrefix, currentHp, maxHp, currentEnergy, activeEffects = [], className = null, characterDisplayName = null) {
     const combatantElement = document.getElementById(elementIdPrefix);
     const hpBar = document.getElementById(`${elementIdPrefix}-hp-bar`);
     const hpText = document.getElementById(`${elementIdPrefix}-hp-text`);
     const energyDisplay = document.getElementById(`${elementIdPrefix}-energy`);
     const statusContainer = document.getElementById(`${elementIdPrefix}-status-effects`);
     const defeatedText = document.getElementById(`${elementIdPrefix}-defeated-text`);
+    const combatantNameDisplay = document.getElementById(`${elementIdPrefix}-name`);
+    const maxHpDisplay = document.getElementById(`${elementIdPrefix}-max-hp`);
+    const classIconContainer = document.getElementById(`${elementIdPrefix}-class-icon`);
 
     if (currentHp <= 0) {
         if (combatantElement) combatantElement.classList.add('defeated');
-        if (defeatedText) defeatedText.style.display = 'block';
+        if (defeatedText) defeatedText.style.display = 'flex';
     } else {
         if (combatantElement) combatantElement.classList.remove('defeated');
         if (defeatedText) defeatedText.style.display = 'none';
+    }
+
+    if (combatantNameDisplay && characterDisplayName) {
+        combatantNameDisplay.textContent = characterDisplayName;
+    }
+    if (maxHpDisplay && maxHp !== undefined) {
+        maxHpDisplay.textContent = `HP ${maxHp}`;
     }
 
     if (hpBar && hpText) {
@@ -518,6 +580,10 @@ function updateCombatantUI(elementIdPrefix, currentHp, maxHp, currentEnergy, act
 
     if (energyDisplay && currentEnergy !== undefined) {
         energyDisplay.innerHTML = `<i class="fas fa-bolt"></i> ${currentEnergy}`;
+    }
+
+    if (classIconContainer && className) {
+        classIconContainer.innerHTML = `<i class="fas ${getClassIcon(className)}"></i>`;
     }
 
     if (statusContainer) {

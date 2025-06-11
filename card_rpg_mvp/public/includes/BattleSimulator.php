@@ -186,7 +186,11 @@ class BattleSimulator {
                 'type' => $e->type,
                 'duration' => $e->duration,
                 'is_debuff' => $e->is_debuff
-            ], array_merge($this->opponentTeam->entities[1]->buffs, $this->opponentTeam->entities[1]->debuffs))
+            ], array_merge($this->opponentTeam->entities[1]->buffs, $this->opponentTeam->entities[1]->debuffs)),
+            "opponent_class_name_1" => $this->opponentTeam->entities[0]->name,
+            "opponent_display_name_1_short" => explode(' ', $this->opponentTeam->entities[0]->display_name)[1] ?? $this->opponentTeam->entities[0]->display_name,
+            "opponent_class_name_2" => $this->opponentTeam->entities[1]->name,
+            "opponent_display_name_2_short" => explode(' ', $this->opponentTeam->entities[1]->display_name)[1] ?? $this->opponentTeam->entities[1]->display_name
         ];
     }
 
