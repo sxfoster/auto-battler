@@ -24,7 +24,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 }
 
 $input = json_decode(file_get_contents('php://input'), true);
-$playerPersonaId = $input['player_persona_id'] ?? null;
+$providedPersonaId = $input['persona_id'] ?? null;
 
 try {
     $stmt = $db->query("SELECT
@@ -84,17 +84,13 @@ try {
         sendError("Not enough champions available for AI opponent team. Need at least 2.", 500);
     }
 
-    // Determine AI personas
-    if ($playerPersonaId) {
-        $playerAiId = (int)$playerPersonaId;
+    if ($providedPersonaId) {
+        $aiPersonaId = (int)$providedPersonaId;
     } else {
-        // Fallback to first persona if none provided
-        $playerAiId = (int)$db->query("SELECT id FROM ai_personas ORDER BY id LIMIT 1")->fetchColumn();
+        $personaStmt = $db->query("SELECT id FROM ai_personas ORDER BY RAND() LIMIT 1");
+        $aiPersonaId = $personaStmt->fetchColumn();
     }
-    $opponentAiId = (int)$db->query("SELECT id FROM ai_personas ORDER BY RAND() LIMIT 1")->fetchColumn();
-
-    $playerAi = new AIPlayer($playerAiId);
-    $opponentAi = new AIPlayer($opponentAiId);
+    $aiPlayer = new AIPlayer($aiPersonaId);
 
     $aiIndex = 0;
     foreach ($aiChampsData as $cData) {
@@ -119,7 +115,7 @@ try {
 
     // --- Simulate Battle ---
     $battleSimulator = new BattleSimulator();
-    $simulationResult = $battleSimulator->simulateBattle($playerTeam, $opponentTeam, $playerAi, $opponentAi);
+    $simulationResult = $battleSimulator->simulateBattle($playerTeam, $opponentTeam, $aiPlayer);
 
     // Update player's session data after battle
     $playerTeam->updateTeamHp();

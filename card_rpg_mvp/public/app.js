@@ -391,7 +391,7 @@ async function renderBattleScene() {
         return;
     }
 
-    const battleResult = await callApi('battle_simulate.php', 'POST', { player_persona_id: selectedPersonaId });
+    const battleResult = await callApi('battle_simulate.php', 'POST', { persona_id: selectedPersonaId });
     if (!battleResult) {
         alert('Failed to simulate battle.');
         return;
