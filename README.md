@@ -31,6 +31,7 @@ The `docs/` folder contains markdown files with additional design details:
 - `gdd.md` – overall game design document
 - `class_card_gdd.md`, `armor_gdd.md`, `weapons_gdd.md` – details on cards and equipment
 - `mechanics_gdd.md`, `game_modes_gdd.md` – status effects, PvP and other systems
+- `event_schema.md` – contract for battle log events between backend and frontend
 
 These documents are intended to guide future feature development.
 
