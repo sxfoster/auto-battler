@@ -292,6 +292,20 @@ class BattleSimulator {
 
                 case 'damage_conditional':
                     $damageDealt = calculateDamage($effectDetails['damage'], $card->damage_type, $actualTarget->armor_type ?? NULL);
+                    if (isset($effectDetails['condition'])) {
+                        $conditionMet = false;
+                        switch ($effectDetails['condition']) {
+                            case 'target_stunned':
+                                foreach ($actualTarget->debuffs as $d) { if ($d->type === 'Stun') { $conditionMet = true; break; } }
+                                break;
+                            case 'evasion_active':
+                                foreach ($caster->buffs as $b) { if ($b->stat_affected === 'evasion' && $b->amount > 0) { $conditionMet = true; break; } }
+                                break;
+                        }
+                        if ($conditionMet) {
+                            $damageDealt += $effectDetails['bonus_damage'] ?? 0;
+                        }
+                    }
                     $actualTarget->takeDamage($damageDealt, $card->damage_type);
                     $this->logAction($this->battleLog[count($this->battleLog)-1]['turn'], $caster->display_name, 'Deals Conditional Damage', ['target' => $actualTarget->display_name, 'amount' => $damageDealt, 'target_hp_after' => $actualTarget->current_hp]);
                     break;
@@ -327,6 +341,39 @@ class BattleSimulator {
                     $debuffEffect = new StatusEffect($effectDetails['debuff_stat'], $effectDetails['debuff_amount'], $effectDetails['debuff_duration'], true, $effectDetails['debuff_stat']);
                     $actualTarget->addStatusEffect($debuffEffect);
                     $this->logAction($this->battleLog[count($this->battleLog)-1]['turn'], $caster->display_name, 'Applies Debuff', ['target' => $actualTarget->display_name, 'stat' => $effectDetails['debuff_stat'], 'amount' => $effectDetails['debuff_amount'], 'duration' => $effectDetails['debuff_duration']]);
+                    break;
+
+                case 'damage_reduction_buff':
+                    $buff = new StatusEffect('Defense Boost', $effectDetails['amount'], $effectDetails['duration'], false, 'defense_reduction');
+                    $actualTarget->addStatusEffect($buff);
+                    $this->logAction($this->battleLog[count($this->battleLog)-1]['turn'], $caster->display_name, 'Gains Defense', ['target' => $actualTarget->display_name, 'amount' => $effectDetails['amount'], 'duration' => $effectDetails['duration']]);
+                    break;
+
+                case 'damage_reduction_reflect':
+                    $buff = new StatusEffect('Defense Boost', $effectDetails['amount'], $effectDetails['duration'], false, 'defense_reduction');
+                    $actualTarget->addStatusEffect($buff);
+                    $this->logAction($this->battleLog[count($this->battleLog)-1]['turn'], $caster->display_name, 'Gains Defense', ['target' => $actualTarget->display_name, 'amount' => $effectDetails['amount'], 'duration' => $effectDetails['duration']]);
+                    if (isset($effectDetails['reflect_damage'])) {
+                        $reflectTarget = $opposingTeam->getRandomActiveEntity();
+                        if ($reflectTarget) {
+                            $reflectTarget->takeDamage($effectDetails['reflect_damage']);
+                            $this->logAction($this->battleLog[count($this->battleLog)-1]['turn'], $caster->display_name, 'Reflects Damage', ['target' => $reflectTarget->display_name, 'amount' => $effectDetails['reflect_damage'], 'target_hp_after' => $reflectTarget->current_hp]);
+                        }
+                    }
+                    break;
+
+                case 'damage_reduction_aoe_buff':
+                    $buff = new StatusEffect('Defense Boost', $effectDetails['amount'], $effectDetails['duration'], false, 'defense_reduction');
+                    $actualTarget->addStatusEffect($buff);
+                    $this->logAction($this->battleLog[count($this->battleLog)-1]['turn'], $caster->display_name, 'Gains Defense', ['target' => $actualTarget->display_name, 'amount' => $effectDetails['amount'], 'duration' => $effectDetails['duration']]);
+                    if (isset($effectDetails['ally_amount'])) {
+                        $ally = $actingTeam->getLowestHpActiveEntity();
+                        if ($ally) {
+                            $buff2 = new StatusEffect('Defense Boost', $effectDetails['ally_amount'], $effectDetails['duration'], false, 'defense_reduction');
+                            $ally->addStatusEffect($buff2);
+                            $this->logAction($this->battleLog[count($this->battleLog)-1]['turn'], $caster->display_name, 'Gains Defense', ['target' => $ally->display_name, 'amount' => $effectDetails['ally_amount'], 'duration' => $effectDetails['duration']]);
+                        }
+                    }
                     break;
 
                 case 'damage_reduction':
