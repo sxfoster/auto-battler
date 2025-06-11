@@ -163,6 +163,33 @@ try {
     $simulationResult['player_start_hp_1'] = $playerTeam->entities[0]->max_hp;
     $simulationResult['player_start_hp_2'] = $playerTeam->entities[1]->max_hp;
 
+    // Include final energy and active effects for UI update
+    $simulationResult['player_energy_1'] = $playerTeam->entities[0]->current_energy;
+    $simulationResult['player_energy_2'] = $playerTeam->entities[1]->current_energy;
+    $simulationResult['opponent_energy_1'] = $opponentTeam->entities[0]->current_energy;
+    $simulationResult['opponent_energy_2'] = $opponentTeam->entities[1]->current_energy;
+
+    $simulationResult['player_1_active_effects'] = array_map(fn($e) => [
+        'type' => $e->type,
+        'duration' => $e->duration,
+        'is_debuff' => $e->is_debuff
+    ], array_merge($playerTeam->entities[0]->buffs, $playerTeam->entities[0]->debuffs));
+    $simulationResult['player_2_active_effects'] = array_map(fn($e) => [
+        'type' => $e->type,
+        'duration' => $e->duration,
+        'is_debuff' => $e->is_debuff
+    ], array_merge($playerTeam->entities[1]->buffs, $playerTeam->entities[1]->debuffs));
+    $simulationResult['opponent_1_active_effects'] = array_map(fn($e) => [
+        'type' => $e->type,
+        'duration' => $e->duration,
+        'is_debuff' => $e->is_debuff
+    ], array_merge($opponentTeam->entities[0]->buffs, $opponentTeam->entities[0]->debuffs));
+    $simulationResult['opponent_2_active_effects'] = array_map(fn($e) => [
+        'type' => $e->type,
+        'duration' => $e->duration,
+        'is_debuff' => $e->is_debuff
+    ], array_merge($opponentTeam->entities[1]->buffs, $opponentTeam->entities[1]->debuffs));
+
     sendResponse($simulationResult);
 
 } catch (PDOException $e) {
