@@ -45,6 +45,9 @@ class BuffManager {
         $entity->current_speed = $entity->base_speed;
         $entity->current_evasion = 0;
         $entity->current_defense_reduction = 0;
+        $entity->current_magic_defense_reduction = 0;
+        $entity->current_block_charges = 0;
+        $entity->current_magic_block_charges = 0;
         // Add current_attack to GameEntity, initialize to base_attack
         $entity->current_attack = $entity->base_attack ?? 1; // Assuming base attack of 1 if not set
 
@@ -54,8 +57,11 @@ class BuffManager {
                 case 'attack':
                     $entity->current_attack += $effect->amount;
                     break;
-                case 'defense':
+                case 'defense_reduction':
                     $entity->current_defense_reduction += $effect->amount;
+                    break;
+                case 'magic_defense_reduction':
+                    $entity->current_magic_defense_reduction += $effect->amount;
                     break;
                 case 'evasion':
                     $entity->current_evasion += $effect->amount;
@@ -63,7 +69,12 @@ class BuffManager {
                 case 'speed':
                     $entity->current_speed += $effect->amount;
                     break;
-                // ... handle other stats
+                case 'block_incoming':
+                    $entity->current_block_charges += $effect->amount;
+                    break;
+                case 'block_magic_incoming':
+                    $entity->current_magic_block_charges += $effect->amount;
+                    break;
             }
         }
 
@@ -79,9 +90,13 @@ class BuffManager {
                 case 'speed':
                     $entity->current_speed -= $effect->amount;
                     break;
-                // ... handle other stats
             }
         }
+
+        $entity->current_attack = max(0, $entity->current_attack);
+        $entity->current_evasion = max(0, $entity->current_evasion);
+        $entity->current_defense_reduction = max(0, $entity->current_defense_reduction);
+        $entity->current_magic_defense_reduction = max(0, $entity->current_magic_defense_reduction);
     }
     
     public static function decrementDurations(GameEntity $entity) {

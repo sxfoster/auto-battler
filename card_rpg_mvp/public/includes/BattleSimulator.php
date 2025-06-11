@@ -153,7 +153,7 @@ class BattleSimulator {
 
         $targets = [];
 
-        if ($chosenTargetEntity) {
+        if ($chosenTargetEntity && $chosenTargetEntity->current_hp > 0) {
             $targets = [$chosenTargetEntity];
         } elseif (isset($effectDetails['target'])) {
             switch ($effectDetails['target']) {
@@ -185,9 +185,9 @@ class BattleSimulator {
             }
         }
 
-        $targets = array_filter($targets, fn($t) => $t instanceof GameEntity);
+        $targets = array_filter($targets, fn($t) => $t instanceof GameEntity && $t->current_hp > 0);
         if (empty($targets)) {
-            $this->logAction($this->battleLog[count($this->battleLog)-1]['turn'], $caster->name, "Action Failed", ["card_name"=>$card->name, "reason"=>"No valid targets found for card effect."]);
+            $this->logAction($this->battleLog[count($this->battleLog)-1]['turn'], $caster->name, "Action Failed", ["card_name"=>$card->name, "reason"=>"No active or valid targets for card effect."]);
             return;
         }
 
@@ -218,16 +218,18 @@ class BattleSimulator {
                     break;
 
                 case 'buff':
+                    BuffManager::applyEffect($actualTarget, $card, $effectDetails);
+                    $this->logAction($this->battleLog[count($this->battleLog)-1]['turn'], $caster->name, "Applies Buff", ["target"=>$actualTarget->name, "stat"=>$effectDetails['stat'], "amount"=>$effectDetails['amount'], "duration"=>$effectDetails['duration']]);
+                    break;
+
                 case 'debuff':
+                    BuffManager::applyEffect($actualTarget, $card, $effectDetails);
+                    $this->logAction($this->battleLog[count($this->battleLog)-1]['turn'], $caster->name, "Applies Debuff", ["target"=>$actualTarget->name, "stat"=>$effectDetails['stat'], "amount"=>$effectDetails['amount'], "duration"=>$effectDetails['duration']]);
+                    break;
+
                 case 'status_effect':
                     BuffManager::applyEffect($actualTarget, $card, $effectDetails);
-                    if ($effectDetails['type'] === 'status_effect') {
-                        $this->logAction($this->battleLog[count($this->battleLog)-1]['turn'], $caster->name, "Applies Status", ["target"=>$actualTarget->name, "effect"=>$effectDetails['effect'], "duration"=>$effectDetails['duration']]);
-                    } elseif ($effectDetails['type'] === 'buff') {
-                        $this->logAction($this->battleLog[count($this->battleLog)-1]['turn'], $caster->name, "Applies Buff", ["target"=>$actualTarget->name, "stat"=>$effectDetails['stat'], "amount"=>$effectDetails['amount'], "duration"=>$effectDetails['duration']]);
-                    } else {
-                        $this->logAction($this->battleLog[count($this->battleLog)-1]['turn'], $caster->name, "Applies Debuff", ["target"=>$actualTarget->name, "stat"=>$effectDetails['stat'], "amount"=>$effectDetails['amount'], "duration"=>$effectDetails['duration']]);
-                    }
+                    $this->logAction($this->battleLog[count($this->battleLog)-1]['turn'], $caster->name, "Applies Status", ["target"=>$actualTarget->name, "effect"=>$effectDetails['effect'], "duration"=>$effectDetails['duration']]);
                     break;
 
                 case 'damage_dot':
@@ -300,10 +302,28 @@ class BattleSimulator {
                     $this->logAction($this->battleLog[count($this->battleLog)-1]['turn'], $caster->name, "Applies Debuff", ["target"=>$actualTarget->name, "stat"=>$effectDetails['debuff_stat'], "amount"=>$effectDetails['debuff_amount'], "duration"=>$effectDetails['debuff_duration']]);
                     break;
 
+                case 'damage_reduction':
+                    $reductionEffect = new StatusEffect('Defense Boost', $effectDetails['amount'], $effectDetails['duration'], false, 'defense_reduction');
+                    $actualTarget->addStatusEffect($reductionEffect);
+                    $this->logAction($this->battleLog[count($this->battleLog)-1]['turn'], $caster->name, "Gains Defense", ["target"=>$actualTarget->name, "amount"=>$effectDetails['amount'], "duration"=>$effectDetails['duration']]);
+                    break;
+
+                case 'magic_damage_reduction':
+                    $reductionEffect = new StatusEffect('Magic Defense Boost', $effectDetails['amount'], $effectDetails['duration'], false, 'magic_defense_reduction');
+                    $actualTarget->addStatusEffect($reductionEffect);
+                    $this->logAction($this->battleLog[count($this->battleLog)-1]['turn'], $caster->name, "Gains Magic Defense", ["target"=>$actualTarget->name, "amount"=>$effectDetails['amount'], "duration"=>$effectDetails['duration']]);
+                    break;
+
                 case 'block':
                     $blockEffect = new StatusEffect('Block', $effectDetails['amount'] ?? 999, 1, false, 'block_incoming');
-                    $caster->addStatusEffect($blockEffect);
-                    $this->logAction($this->battleLog[count($this->battleLog)-1]['turn'], $caster->name, "Applies Block", ["amount"=>$effectDetails['amount'] ?? 999]);
+                    $actualTarget->addStatusEffect($blockEffect);
+                    $this->logAction($this->battleLog[count($this->battleLog)-1]['turn'], $caster->name, "Applies Block", ["target"=>$actualTarget->name, "amount"=>$effectDetails['amount'] ?? 999]);
+                    break;
+
+                case 'block_magic':
+                    $blockEffect = new StatusEffect('Block Magic', $effectDetails['amount'] ?? 999, 1, false, 'block_magic_incoming');
+                    $actualTarget->addStatusEffect($blockEffect);
+                    $this->logAction($this->battleLog[count($this->battleLog)-1]['turn'], $caster->name, "Applies Magic Block", ["target"=>$actualTarget->name, "amount"=>$effectDetails['amount'] ?? 999]);
                     break;
 
                 case 'stun':
