@@ -302,28 +302,28 @@ class BattleSimulator {
                     $this->logAction($this->battleLog[count($this->battleLog)-1]['turn'], $caster->display_name, "Applies Debuff", ["target"=>$actualTarget->display_name, "stat"=>$effectDetails['debuff_stat'], "amount"=>$effectDetails['debuff_amount'], "duration"=>$effectDetails['debuff_duration']]);
                     break;
 
-                case 'damage_reduction':
+                case 'damage_reduction': // For armor cards like Leather Padding, Studded Vest, Iron Plate
                     $reductionEffect = new StatusEffect('Defense Boost', $effectDetails['amount'], $effectDetails['duration'], false, 'defense_reduction');
                     $actualTarget->addStatusEffect($reductionEffect);
-                    $this->logAction($this->battleLog[count($this->battleLog)-1]['turn'], $caster->display_name, "Gains Defense", ["target"=>$actualTarget->display_name, "amount"=>$effectDetails['amount'], "duration"=>$effectDetails['duration']]);
+                    $this->logAction($this->battleLog[count($this->battleLog)-1]['turn'], $caster->display_name, "Gains Defense", ["target" => $actualTarget->display_name, "amount" => $effectDetails['amount'], "duration" => $effectDetails['duration']]);
                     break;
 
-                case 'magic_damage_reduction':
+                case 'magic_damage_reduction': // For Mystic Robes, Runed Cloak
                     $reductionEffect = new StatusEffect('Magic Defense Boost', $effectDetails['amount'], $effectDetails['duration'], false, 'magic_defense_reduction');
                     $actualTarget->addStatusEffect($reductionEffect);
-                    $this->logAction($this->battleLog[count($this->battleLog)-1]['turn'], $caster->display_name, "Gains Magic Defense", ["target"=>$actualTarget->display_name, "amount"=>$effectDetails['amount'], "duration"=>$effectDetails['duration']]);
+                    $this->logAction($this->battleLog[count($this->battleLog)-1]['turn'], $caster->display_name, "Gains Magic Defense", ["target" => $actualTarget->display_name, "amount" => $effectDetails['amount'], "duration" => $effectDetails['duration']]);
                     break;
 
-                case 'block':
-                    $blockEffect = new StatusEffect('Block', $effectDetails['amount'] ?? 999, 1, false, 'block_incoming');
+                case 'block': // For Righteous Shield, Parry
+                    $blockEffect = new StatusEffect('Block', $effectDetails['amount'], 1, false, 'block_incoming');
                     $actualTarget->addStatusEffect($blockEffect);
-                    $this->logAction($this->battleLog[count($this->battleLog)-1]['turn'], $caster->display_name, "Applies Block", ["target"=>$actualTarget->display_name, "amount"=>$effectDetails['amount'] ?? 999]);
+                    $this->logAction($this->battleLog[count($this->battleLog)-1]['turn'], $caster->display_name, "Applies Block", ["target" => $actualTarget->display_name, "amount" => $effectDetails['amount']]);
                     break;
 
-                case 'block_magic':
-                    $blockEffect = new StatusEffect('Block Magic', $effectDetails['amount'] ?? 999, 1, false, 'block_magic_incoming');
+                case 'block_magic': // For Arcane Ward, Magic Barrier
+                    $blockEffect = new StatusEffect('Block Magic', $effectDetails['amount'], 1, false, 'block_magic_incoming');
                     $actualTarget->addStatusEffect($blockEffect);
-                    $this->logAction($this->battleLog[count($this->battleLog)-1]['turn'], $caster->display_name, "Applies Magic Block", ["target"=>$actualTarget->display_name, "amount"=>$effectDetails['amount'] ?? 999]);
+                    $this->logAction($this->battleLog[count($this->battleLog)-1]['turn'], $caster->display_name, "Applies Magic Block", ["target" => $actualTarget->display_name, "amount" => $effectDetails['amount']]);
                     break;
 
                 case 'stun':

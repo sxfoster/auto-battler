@@ -49,66 +49,80 @@ class AIPlayer {
         });
 
         if (empty($affordableCards)) {
-            return null;
+            return null; // Cannot afford any cards
         }
 
         foreach ($cardPriorities as $priorityType) {
-            usort($affordableCards, function($a, $b) use ($priorityType) {
+            usort($affordableCards, function($a, $b) use ($priorityType, $activeEntity) {
                 $scoreA = 0; $scoreB = 0;
                 if ($priorityType === 'damage') {
                     if (strpos($a->effect_details['type'] ?? '', 'damage') !== false) $scoreA += ($a->effect_details['damage'] ?? 0);
                     if (strpos($b->effect_details['type'] ?? '', 'damage') !== false) $scoreB += ($b->effect_details['damage'] ?? 0);
                 } elseif ($priorityType === 'defense') {
-                    if (strpos($a->effect_details['type'] ?? '', 'reduction') !== false || strpos($a->effect_details['type'] ?? '', 'block') !== false) $scoreA += 1;
-                    if (strpos($b->effect_details['type'] ?? '', 'reduction') !== false || strpos($b->effect_details['type'] ?? '', 'block') !== false) $scoreB += 1;
+                    if (strpos($a->effect_details['type'] ?? '', 'reduction') !== false || strpos($a->effect_details['type'] ?? '', 'block') !== false) $scoreA+= 1;
+                    if (strpos($b->effect_details['type'] ?? '', 'reduction') !== false || strpos($b->effect_details['type'] ?? '', 'block') !== false) $scoreB+= 1;
                 } elseif ($priorityType === 'heal') {
                     if (strpos($a->effect_details['type'] ?? '', 'heal') !== false) $scoreA += ($a->effect_details['amount'] ?? 0);
                     if (strpos($b->effect_details['type'] ?? '', 'heal') !== false) $scoreB += ($b->effect_details['amount'] ?? 0);
                 }
-                return $scoreB - $scoreA;
+                return $scoreB - $scoreA; // Sort descending
             });
 
             foreach ($affordableCards as $card) {
                 $potentialTargets = [];
-                $cardTargetType = $card->effect_details['target'] ?? null;
+                $cardTargetType = $card->effect_details['target'] ?? null; // Get target type from card data
 
-                if ($cardTargetType === 'self') {
-                    $potentialTargets = [$activeEntity];
-                } elseif ($cardTargetType === 'single_ally' || $cardTargetType === 'all_allies') {
-                    $potentialTargets = $actingTeam->getActiveEntities();
-                } elseif ($cardTargetType === 'single_enemy' || $cardTargetType === 'random_enemy' || $cardTargetType === 'all_enemies') {
-                    $potentialTargets = $opposingTeam->getActiveEntities();
-                } else {
-                    if ($card->card_type === 'weapon' || ($card->card_type === 'ability' && strpos($card->effect_details['type'] ?? '', 'damage') !== false)) {
-                        $potentialTargets = $opposingTeam->getActiveEntities();
-                    } else {
+                switch ($cardTargetType) {
+                    case 'self':
                         $potentialTargets = [$activeEntity];
-                    }
+                        break;
+                    case 'single_ally':
+                    case 'all_allies':
+                        $potentialTargets = $actingTeam->getActiveEntities(); // Get all active allies
+                        break;
+                    case 'single_enemy':
+                    case 'random_enemy':
+                    case 'all_enemies':
+                        $potentialTargets = $opposingTeam->getActiveEntities(); // Get all active enemies
+                        break;
+                    default:
+                        if ($card->card_type === 'armor' || (strpos($card->effect_details['type'] ?? '', 'buff') !== false && !strpos($card->effect_details['type'] ?? '', 'damage') !== false)) {
+                            $potentialTargets = [$activeEntity];
+                        } elseif ($card->card_type === 'weapon' || strpos($card->effect_details['type'] ?? '', 'damage') !== false) {
+                            $potentialTargets = $opposingTeam->getActiveEntities();
+                        } else {
+                            $potentialTargets = [$activeEntity];
+                        }
+                        break;
                 }
-
+                
                 $potentialTargets = array_filter($potentialTargets, fn($t) => $t instanceof GameEntity && $t->current_hp > 0);
+
                 if (empty($potentialTargets)) {
-                    continue;
+                    continue; // Cannot play card if no valid targets
                 }
 
                 $chosenTargetEntity = null;
-                if ($targetPriorities === 'lowest_hp') {
-                    usort($potentialTargets, fn($a, $b) => $a->current_hp <=> $b->current_hp);
-                    $chosenTargetEntity = $potentialTargets[0];
-                } elseif ($targetPriorities === 'highest_hp') {
-                    usort($potentialTargets, fn($a, $b) => $b->current_hp <=> $a->current_hp);
-                    $chosenTargetEntity = $potentialTargets[0];
-                } else {
-                    $chosenTargetEntity = $potentialTargets[array_rand($potentialTargets)];
+                if (!empty($potentialTargets)) { // Only apply priority if there are targets left
+                    if ($targetPriorities === 'lowest_hp') {
+                        usort($potentialTargets, fn($a, $b) => $a->current_hp <=> $b->current_hp);
+                        $chosenTargetEntity = $potentialTargets[0];
+                    } elseif ($targetPriorities === 'highest_hp') {
+                        usort($potentialTargets, fn($a, $b) => $b->current_hp <=> $a->current_hp);
+                        $chosenTargetEntity = $potentialTargets[0];
+                    } else { // Default to random
+                        $chosenTargetEntity = $potentialTargets[array_rand($potentialTargets)];
+                    }
                 }
 
                 if ($chosenTargetEntity) {
+                    // We found an affordable card and a valid target for it based on priorities.
                     return ['card' => $card, 'target_entity' => $chosenTargetEntity];
                 }
             }
         }
-
-        return null;
+        
+        return null; // No suitable action found
     }
 }
 ?>
