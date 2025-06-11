@@ -53,19 +53,70 @@ class AIPlayer {
         }
 
         foreach ($cardPriorities as $priorityType) {
-            usort($affordableCards, function($a, $b) use ($priorityType, $activeEntity) {
+            usort($affordableCards, function($a, $b) use ($priorityType, $activeEntity, $opposingTeam) {
                 $scoreA = 0; $scoreB = 0;
+
                 if ($priorityType === 'damage') {
-                    if (strpos($a->effect_details['type'] ?? '', 'damage') !== false) $scoreA += ($a->effect_details['damage'] ?? 0);
-                    if (strpos($b->effect_details['type'] ?? '', 'damage') !== false) $scoreB += ($b->effect_details['damage'] ?? 0);
-                } elseif ($priorityType === 'defense') {
-                    if (strpos($a->effect_details['type'] ?? '', 'reduction') !== false || strpos($a->effect_details['type'] ?? '', 'block') !== false) $scoreA+= 1;
-                    if (strpos($b->effect_details['type'] ?? '', 'reduction') !== false || strpos($b->effect_details['type'] ?? '', 'block') !== false) $scoreB+= 1;
-                } elseif ($priorityType === 'heal') {
-                    if (strpos($a->effect_details['type'] ?? '', 'heal') !== false) $scoreA += ($a->effect_details['amount'] ?? 0);
-                    if (strpos($b->effect_details['type'] ?? '', 'heal') !== false) $scoreB += ($b->effect_details['amount'] ?? 0);
+                    if (strpos($a->effect_details['type'] ?? '', 'damage') !== false) {
+                        $damage = $a->effect_details['damage'] ?? 0;
+                        $scoreA += $damage * 100;
+                        if (isset($a->effect_details['aoe_damage'])) $scoreA += 50;
+                        $lowest = $opposingTeam->getLowestHpActiveEntity();
+                        if ($lowest) {
+                            $ratio = $lowest->current_hp / $lowest->max_hp;
+                            $scoreA += (1 - $ratio) * 50;
+                        }
+                    }
                 }
-                return $scoreB - $scoreA; // Sort descending
+                if ($priorityType === 'defense') {
+                    if (strpos($a->effect_details['type'] ?? '', 'reduction') !== false || strpos($a->effect_details['type'] ?? '', 'block') !== false || strpos($a->effect_details['type'] ?? '', 'immunity') !== false) {
+                        $scoreA += 10;
+                        if ($activeEntity->current_hp / $activeEntity->max_hp < ($this->persona['buff_use_threshold'] ?? 0.5)) $scoreA += 20;
+                        $ally = $activeEntity->team->getLowestHpActiveEntity();
+                        if ($ally && $ally->current_hp / $ally->max_hp < ($this->persona['buff_use_threshold'] ?? 0.5)) $scoreA += 15;
+                    }
+                }
+                if ($priorityType === 'heal') {
+                    if (strpos($a->effect_details['type'] ?? '', 'heal') !== false) {
+                        $heal = $a->effect_details['amount'] ?? 0;
+                        $scoreA += $heal * 10;
+                        if ($activeEntity->current_hp / $activeEntity->max_hp < ($this->persona['buff_use_threshold'] ?? 0.5)) $scoreA += 30;
+                        $ally = $activeEntity->team->getLowestHpActiveEntity();
+                        if ($ally && $ally->current_hp / $ally->max_hp < ($this->persona['buff_use_threshold'] ?? 0.5)) $scoreA += 25;
+                    }
+                }
+
+                if ($priorityType === 'damage') {
+                    if (strpos($b->effect_details['type'] ?? '', 'damage') !== false) {
+                        $damage = $b->effect_details['damage'] ?? 0;
+                        $scoreB += $damage * 100;
+                        if (isset($b->effect_details['aoe_damage'])) $scoreB += 50;
+                        $lowest = $opposingTeam->getLowestHpActiveEntity();
+                        if ($lowest) {
+                            $ratio = $lowest->current_hp / $lowest->max_hp;
+                            $scoreB += (1 - $ratio) * 50;
+                        }
+                    }
+                }
+                if ($priorityType === 'defense') {
+                    if (strpos($b->effect_details['type'] ?? '', 'reduction') !== false || strpos($b->effect_details['type'] ?? '', 'block') !== false || strpos($b->effect_details['type'] ?? '', 'immunity') !== false) {
+                        $scoreB += 10;
+                        if ($activeEntity->current_hp / $activeEntity->max_hp < ($this->persona['buff_use_threshold'] ?? 0.5)) $scoreB += 20;
+                        $ally = $activeEntity->team->getLowestHpActiveEntity();
+                        if ($ally && $ally->current_hp / $ally->max_hp < ($this->persona['buff_use_threshold'] ?? 0.5)) $scoreB += 15;
+                    }
+                }
+                if ($priorityType === 'heal') {
+                    if (strpos($b->effect_details['type'] ?? '', 'heal') !== false) {
+                        $heal = $b->effect_details['amount'] ?? 0;
+                        $scoreB += $heal * 10;
+                        if ($activeEntity->current_hp / $activeEntity->max_hp < ($this->persona['buff_use_threshold'] ?? 0.5)) $scoreB += 30;
+                        $ally = $activeEntity->team->getLowestHpActiveEntity();
+                        if ($ally && $ally->current_hp / $ally->max_hp < ($this->persona['buff_use_threshold'] ?? 0.5)) $scoreB += 25;
+                    }
+                }
+
+                return $scoreB - $scoreA;
             });
 
             foreach ($affordableCards as $card) {
