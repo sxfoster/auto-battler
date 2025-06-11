@@ -531,9 +531,11 @@ function updateCombatantUI(elementIdPrefix, currentHp, maxHp, currentEnergy, act
 
     if (currentHp <= 0) {
         if (combatantElement) combatantElement.classList.add('defeated');
+        if (combatantElement) combatantElement.classList.remove('active');
         if (defeatedText) defeatedText.style.display = 'flex';
     } else {
         if (combatantElement) combatantElement.classList.remove('defeated');
+        if (combatantElement) combatantElement.classList.add('active');
         if (defeatedText) defeatedText.style.display = 'none';
     }
 
@@ -547,6 +549,12 @@ function updateCombatantUI(elementIdPrefix, currentHp, maxHp, currentEnergy, act
     if (hpBar && hpText) {
         const hpPercent = (currentHp / maxHp) * 100;
         hpBar.style.width = `${Math.max(0, hpPercent)}%`;
+        hpBar.classList.remove('mid', 'low');
+        if (hpPercent <= 30) {
+            hpBar.classList.add('low');
+        } else if (hpPercent <= 60) {
+            hpBar.classList.add('mid');
+        }
         hpText.textContent = `HP: ${Math.max(0, currentHp)}/${maxHp}`;
     }
 
