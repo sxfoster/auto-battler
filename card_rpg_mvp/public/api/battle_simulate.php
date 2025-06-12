@@ -218,7 +218,7 @@ function loadCardsFromIds($db_conn, $cardIds) {
     $fullCards = [];
     if (!empty($cardIds)) {
         $placeholder = implode(',', array_fill(0, count($cardIds), '?'));
-        $stmt = $db_conn->prepare("SELECT id, name, card_type, rarity, energy_cost, description, damage_type, armor_type, class_affinity, effect_details, flavor_text, log_template FROM cards WHERE id IN ($placeholder)");
+        $stmt = $db_conn->prepare("SELECT id, name, card_type, rarity, energy_cost, description, damage_type, armor_type, class_affinity, effect_details, flavor_text FROM cards WHERE id IN ($placeholder)");
         $stmt->execute($cardIds);
         $cardsData = $stmt->fetchAll(PDO::FETCH_ASSOC);
         foreach ($cardsData as $c) {
@@ -230,19 +230,19 @@ function loadCardsFromIds($db_conn, $cardIds) {
 
 function loadRandomCommonCards($db_conn, $championName) {
     $cards = [];
-    $stmtA = $db_conn->prepare("SELECT id, name, card_type, rarity, energy_cost, description, damage_type, armor_type, class_affinity, effect_details, flavor_text, log_template FROM cards WHERE card_type = 'ability' AND rarity = 'Common' AND (FIND_IN_SET(:name_ab, class_affinity) > 0 OR class_affinity IS NULL) ORDER BY RAND() LIMIT 1");
+    $stmtA = $db_conn->prepare("SELECT id, name, card_type, rarity, energy_cost, description, damage_type, armor_type, class_affinity, effect_details, flavor_text FROM cards WHERE card_type = 'ability' AND rarity = 'Common' AND (FIND_IN_SET(:name_ab, class_affinity) > 0 OR class_affinity IS NULL) ORDER BY RAND() LIMIT 1");
     $stmtA->bindParam(':name_ab', $championName);
     $stmtA->execute();
     if ($card = $stmtA->fetch(PDO::FETCH_ASSOC)) {
         $cards[] = new Card(array_merge($card, ['effect_details' => json_decode($card['effect_details'], true)]));
     }
-    $stmtAr = $db_conn->prepare("SELECT id, name, card_type, rarity, energy_cost, description, damage_type, armor_type, class_affinity, effect_details, flavor_text, log_template FROM cards WHERE card_type = 'armor' AND rarity = 'Common' AND (FIND_IN_SET(:name_ar, class_affinity) > 0 OR class_affinity IS NULL) ORDER BY RAND() LIMIT 1");
+    $stmtAr = $db_conn->prepare("SELECT id, name, card_type, rarity, energy_cost, description, damage_type, armor_type, class_affinity, effect_details, flavor_text FROM cards WHERE card_type = 'armor' AND rarity = 'Common' AND (FIND_IN_SET(:name_ar, class_affinity) > 0 OR class_affinity IS NULL) ORDER BY RAND() LIMIT 1");
     $stmtAr->bindParam(':name_ar', $championName);
     $stmtAr->execute();
     if ($card = $stmtAr->fetch(PDO::FETCH_ASSOC)) {
         $cards[] = new Card(array_merge($card, ['effect_details' => json_decode($card['effect_details'], true)]));
     }
-    $stmtW = $db_conn->prepare("SELECT id, name, card_type, rarity, energy_cost, description, damage_type, armor_type, class_affinity, effect_details, flavor_text, log_template FROM cards WHERE card_type = 'weapon' AND rarity = 'Common' AND (FIND_IN_SET(:name_we, class_affinity) > 0 OR class_affinity IS NULL) ORDER BY RAND() LIMIT 1");
+    $stmtW = $db_conn->prepare("SELECT id, name, card_type, rarity, energy_cost, description, damage_type, armor_type, class_affinity, effect_details, flavor_text FROM cards WHERE card_type = 'weapon' AND rarity = 'Common' AND (FIND_IN_SET(:name_we, class_affinity) > 0 OR class_affinity IS NULL) ORDER BY RAND() LIMIT 1");
     $stmtW->bindParam(':name_we', $championName);
     $stmtW->execute();
     if ($card = $stmtW->fetch(PDO::FETCH_ASSOC)) {

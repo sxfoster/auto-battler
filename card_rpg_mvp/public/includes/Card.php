@@ -13,7 +13,6 @@ class Card {
     public $class_affinity; // Comma-separated string
     public $flavor_text;
     public $effect_details; // Decoded JSON object
-    public $log_template; // Template string for condensed battle log
 
     public function __construct($data) {
         $this->id = $data['id'];
@@ -27,7 +26,6 @@ class Card {
         $this->class_affinity = $data['class_affinity'] ?? NULL;
         $this->flavor_text = $data['flavor_text'] ?? NULL;
         $this->effect_details = $data['effect_details']; // Already decoded JSON
-        $this->log_template = $data['log_template'] ?? null;
     }
 
     // Method to check if card is usable by a specific class
@@ -39,7 +37,7 @@ class Card {
         return in_array($championName, $affinities);
     }
 
-    // Return array representation excluding log_template for safe JSON serialization
+    // Return array representation for safe JSON serialization
     public function toArray() {
         return [
             'id' => $this->id,
