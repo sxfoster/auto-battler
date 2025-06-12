@@ -60,8 +60,8 @@ let selectedPersonaId = AI_PERSONAS[0].id;
 
 // --- API Helper Functions ---
 async function callApi(endpoint, method = 'GET', data = null) {
-    // Prefix API calls with /api/ so requests hit the PHP API endpoints
-    const url = `/api/${endpoint}`;
+    // Prefix API calls with /public/ so requests hit the proper PHP scripts
+    const url = `/public/api/${endpoint}`;
     const options = {
         method: method,
         headers: {
@@ -412,7 +412,7 @@ async function renderBattleScene() {
         return;
     }
 
-    let battleResult = await callApi('battle_simulate.php', 'POST', { persona_id: selectedPersonaId });
+    const battleResult = await callApi('battle_simulate.php', 'POST', { persona_id: selectedPersonaId });
     if (!battleResult) {
         alert('Failed to simulate battle.');
         return;
