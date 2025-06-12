@@ -5,18 +5,32 @@ This repository contains a simple browser-based card RPG prototype with accompan
 ## Repository Structure
 
 - **card_rpg_mvp/** – Minimal playable prototype containing HTML, CSS, JavaScript and PHP for a basic card RPG.
+- **hero-battler-modular/** – Modernized hero draft & battle prototype using ES6 modules.
 - **docs/** – Game design documents describing classes, cards, items, mechanics and other systems.
+- **index.html** – Earlier single-file proof of concept kept for reference.
 
-## Running the Prototype
+## Running the Prototypes Locally
 
-The MVP is a static web application with a lightweight PHP API for saving/loading data. To run it locally:
+This repository currently contains two small demos. Both can be run with a simple local web server.
+
+### 1. `card_rpg_mvp` (PHP based)
 
 1. Install PHP (7.4+ recommended).
-2. From the repository root, start the built-in PHP server:
+2. Start the built-in PHP server from the repository root:
    ```bash
    php -S localhost:8000 -t card_rpg_mvp/public
    ```
-3. Open `http://localhost:8000` in your browser.
+3. Visit `http://localhost:8000` in your browser.
+
+### 2. `hero-battler-modular` (ES6 modules)
+
+This prototype is purely static but uses JavaScript modules, so the files must be served over HTTP. Any simple web server will work. One option is:
+
+```bash
+php -S localhost:8001 -t hero-battler-modular
+```
+
+Then open `http://localhost:8001` to try the modular draft & battle demo.
 
 ## Development Notes
 
