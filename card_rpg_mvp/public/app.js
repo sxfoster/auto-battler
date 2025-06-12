@@ -61,7 +61,7 @@ let selectedPersonaId = AI_PERSONAS[0].id;
 // --- API Helper Functions ---
 async function callApi(endpoint, method = 'GET', data = null) {
     // Prefix API calls with /public/ so requests hit the proper PHP scripts
-    const url = `/public/api/${endpoint}`;
+    const url = `api/${endpoint}`;
     const options = {
         method: method,
         headers: {
