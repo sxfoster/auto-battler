@@ -2,8 +2,11 @@ import * as data from './data.js';
 import * as ui from './ui.js';
 
 // --- STATE MANAGEMENT ---
-let team = { hero1: null, weapon1: null, hero2: null, weapon2: null };
-let currentDraftStage = 'HERO_1_PACK'; // HERO_1_PACK, HERO_1_DRAFT, WEAPON_1_DRAFT, HERO_2_PACK, HERO_2_DRAFT, WEAPON_2_DRAFT, DONE
+let team = {
+    hero1: { hero: null, ability: null, weapon: null, armor: null },
+    hero2: { hero: null, ability: null, weapon: null, armor: null }
+};
+let currentDraftStage = 'HERO_1_PACK';
 let openedPack = [];
 let battleState = [];
 const battleSpeeds = [
@@ -35,21 +38,32 @@ function transitionToScene(sceneName) {
 }
 
 function advanceDraft() {
-    if (currentDraftStage === 'HERO_1_DRAFT' && team.hero1) {
-        currentDraftStage = 'WEAPON_1_DRAFT';
-        resetWeaponScene();
-        transitionToScene('weapon');
-    } else if (currentDraftStage === 'WEAPON_1_DRAFT' && team.weapon1) {
-        currentDraftStage = 'HERO_2_PACK';
-        resetPackScene();
-        transitionToScene('pack');
-    } else if (currentDraftStage === 'HERO_2_DRAFT' && team.hero2) {
-        currentDraftStage = 'WEAPON_2_DRAFT';
-        resetWeaponScene();
-        transitionToScene('weapon');
-    } else if (currentDraftStage === 'WEAPON_2_DRAFT' && team.weapon2) {
-        currentDraftStage = 'DONE';
-        if (confirmationBar) confirmationBar.classList.add('visible');
+    switch (currentDraftStage) {
+        case 'HERO_1_DRAFT':
+            currentDraftStage = 'ABILITY_1_PACK';
+            break;
+        case 'ABILITY_1_DRAFT':
+            currentDraftStage = 'WEAPON_1_PACK';
+            break;
+        case 'WEAPON_1_DRAFT':
+            currentDraftStage = 'ARMOR_1_PACK';
+            break;
+        case 'ARMOR_1_DRAFT':
+            currentDraftStage = 'HERO_2_PACK';
+            break;
+        case 'HERO_2_DRAFT':
+            currentDraftStage = 'ABILITY_2_PACK';
+            break;
+        case 'ABILITY_2_DRAFT':
+            currentDraftStage = 'WEAPON_2_PACK';
+            break;
+        case 'WEAPON_2_DRAFT':
+            currentDraftStage = 'ARMOR_2_PACK';
+            break;
+        case 'ARMOR_2_DRAFT':
+            currentDraftStage = 'COMPLETE';
+            if (confirmationBar) confirmationBar.classList.add('visible');
+            return;
     }
     updateInstructions();
 }
@@ -58,7 +72,7 @@ function updateInstructions() {
     if (packSceneTitle) packSceneTitle.textContent = currentDraftStage === 'HERO_1_PACK' ? 'Open Your Hero Pack' : 'Open Pack for Second Hero';
     if (draftInstructions) draftInstructions.textContent = `Choose your ${currentDraftStage === 'HERO_1_DRAFT' ? 'first' : 'second'} hero.`;
 
-    const heroName = team.hero1 ? data.allPossibleHeroes.find(h => h.id === team.hero1).name : 'your hero';
+    const heroName = team.hero1.hero ? data.allPossibleHeroes.find(h => h.id === team.hero1.hero).name : 'your hero';
     if (weaponInstructions) weaponInstructions.textContent = `Select a weapon for ${heroName}.`;
 }
 
@@ -129,15 +143,63 @@ function renderWeaponPool() {
 }
 
 function handleHeroSelection(hero) {
-    if (currentDraftStage === 'HERO_1_DRAFT') team.hero1 = hero.id;
-    else team.hero2 = hero.id;
+    const heroKey = currentDraftStage.includes('HERO_1') ? 'hero1' : 'hero2';
+    team[heroKey].hero = hero.id;
     advanceDraft();
 }
 
 function handleWeaponSelection(weapon) {
-    if (currentDraftStage === 'WEAPON_1_DRAFT') team.weapon1 = weapon.id;
-    else team.weapon2 = weapon.id;
+    const heroKey = currentDraftStage.includes('WEAPON_1') ? 'hero1' : 'hero2';
+    team[heroKey].weapon = weapon.id;
     advanceDraft();
+}
+
+function handleAbilitySelection(ability) {
+    const heroKey = currentDraftStage.includes('ABILITY_1') ? 'hero1' : 'hero2';
+    team[heroKey].ability = ability.id;
+    advanceDraft();
+}
+
+function handleArmorSelection(armor) {
+    const heroKey = currentDraftStage.includes('ARMOR_1') ? 'hero1' : 'hero2';
+    team[heroKey].armor = armor.id;
+    advanceDraft();
+}
+
+function getDataSourceForCurrentStage() {
+    const heroNumber = currentDraftStage.includes('_1_') ? 1 : 2;
+    const stageType = currentDraftStage.split('_')[0];
+    switch(stageType) {
+        case 'HERO':
+            return data.allPossibleHeroes;
+        case 'WEAPON':
+            return data.allPossibleWeapons;
+        case 'ABILITY': {
+            const heroClass = data.allPossibleHeroes.find(h => h.id === team[`hero${heroNumber}`].hero)?.class;
+            return data.allPossibleAbilities.filter(a => a.class === heroClass);
+        }
+        case 'ARMOR':
+            return data.allPossibleArmors;
+        default:
+            return [];
+    }
+}
+
+function populateDraftScene() {
+    if (!draftPool) return;
+    draftPool.innerHTML = '';
+    const stageType = currentDraftStage.split('_')[0].toUpperCase();
+    const selectionHandlers = {
+        'HERO': handleHeroSelection,
+        'ABILITY': handleAbilitySelection,
+        'WEAPON': handleWeaponSelection,
+        'ARMOR': handleArmorSelection
+    };
+    const dataSource = getDataSourceForCurrentStage();
+    dataSource.forEach(item => {
+        const card = ui.createDetailCard(item, selectionHandlers[stageType]);
+        draftPool.appendChild(card);
+    });
 }
 
 function resetPackScene() {
@@ -375,7 +437,10 @@ export function initializeGame() {
     speedCycleButtonElement = document.getElementById('speed-cycle-button');
 
     // Reset state for fresh game (important for play again)
-    team = { hero1: null, weapon1: null, hero2: null, weapon2: null };
+    team = {
+        hero1: { hero: null, ability: null, weapon: null, armor: null },
+        hero2: { hero: null, ability: null, weapon: null, armor: null }
+    };
     currentDraftStage = 'HERO_1_PACK';
     openedPack = [];
     battleState = [];
@@ -425,10 +490,10 @@ export async function startBattle() {
     const enemyWeapon1 = data.allPossibleWeapons[Math.floor(Math.random() * data.allPossibleWeapons.length)];
     const enemyWeapon2 = data.allPossibleWeapons[Math.floor(Math.random() * data.allPossibleWeapons.length)];
 
-    const playerHero1 = data.allPossibleHeroes.find(h => h.id === team.hero1);
-    const playerWeapon1 = data.allPossibleWeapons.find(w => w.id === team.weapon1);
-    const playerHero2 = data.allPossibleHeroes.find(h => h.id === team.hero2);
-    const playerWeapon2 = data.allPossibleWeapons.find(w => w.id === team.weapon2);
+    const playerHero1 = data.allPossibleHeroes.find(h => h.id === team.hero1.hero);
+    const playerWeapon1 = data.allPossibleWeapons.find(w => w.id === team.hero1.weapon);
+    const playerHero2 = data.allPossibleHeroes.find(h => h.id === team.hero2.hero);
+    const playerWeapon2 = data.allPossibleWeapons.find(w => w.id === team.hero2.weapon);
 
     if (!playerHero1 || !playerHero2) {
         logToBattle("Error: Player heroes not selected!");
@@ -478,3 +543,5 @@ export function handleSpeedCycle() {
     const newSpeed = battleSpeeds[currentSpeedIndex];
     if (speedCycleButtonElement) speedCycleButtonElement.textContent = `Speed: ${newSpeed.label}`;
 }
+
+export { handleAbilitySelection, handleArmorSelection };

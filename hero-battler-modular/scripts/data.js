@@ -50,3 +50,15 @@ export const allPossibleWeapons = [
     { type: 'weapon', id: 102, name: 'Mage Staff', rarity: 'Uncommon', art: 'https://placehold.co/256x202/5b21b6/FFFFFF?text=Staff', damage: 1, abilities: [{ name: 'Fireball', description: 'The wielder\'s basic attack becomes Fireball.' }] },
     { type: 'weapon', id: 103, name: 'Glimmering Dagger', rarity: 'Rare', art: 'https://placehold.co/256x202/facc15/000000?text=Dagger', damage: 3, abilities: [{ name: 'Poison Tip', description: '10% chance to apply Poison on hit.' }] },
 ];
+
+export const allPossibleAbilities = [
+    { type: 'ability', id: 201, class: 'Mage', name: 'Arcane Surge', rarity: 'Common', art: 'https://placehold.co/256x202/4f46e5/FFFFFF?text=Arcane', abilities: [{ name: 'Arcane Surge', description: 'Deal 5 magic damage.' }] },
+    { type: 'ability', id: 202, class: 'Warrior', name: 'Shield Wall', rarity: 'Uncommon', art: 'https://placehold.co/256x202/334155/FFFFFF?text=Wall', abilities: [{ name: 'Shield Wall', description: 'Reduce incoming damage by 2 for one turn.' }] },
+    { type: 'ability', id: 203, class: 'Priest', name: 'Greater Heal', rarity: 'Rare', art: 'https://placehold.co/256x202/fde047/1f2937?text=Heal', abilities: [{ name: 'Greater Heal', description: 'Restore 6 HP to an ally.' }] }
+];
+
+export const allPossibleArmors = [
+    { type: 'armor', id: 301, name: 'Leather Armor', rarity: 'Common', art: 'https://placehold.co/256x202/78350f/FFFFFF?text=Leather', defense: 1, abilities: [{ name: 'Dodge', description: '10% chance to evade attacks.' }] },
+    { type: 'armor', id: 302, name: 'Chainmail', rarity: 'Uncommon', art: 'https://placehold.co/256x202/6b7280/FFFFFF?text=Chain', defense: 2, abilities: [{ name: 'Resist', description: 'Reduce physical damage by 1.' }] },
+    { type: 'armor', id: 303, name: 'Plate Armor', rarity: 'Rare', art: 'https://placehold.co/256x202/1e40af/FFFFFF?text=Plate', defense: 3, abilities: [{ name: 'Bulwark', description: 'Gain 3 temporary HP at start of battle.' }] }
+];
