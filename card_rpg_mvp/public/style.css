@@ -577,8 +577,9 @@ h2, h3, h4 {
 }
 
 @keyframes shake {
-    0%,100% { transform: translateX(0); }
+    0%,100% { transform: translateX(0); box-shadow: none; }
     25% { transform: translateX(-5px); }
+    50% { box-shadow: 0 0 10px 5px rgba(255,0,0,0.7); }
     75% { transform: translateX(5px); }
 }
 
@@ -622,3 +623,19 @@ h2, h3, h4 {
 .dim-animation { animation: dim 0.3s ease-out; }
 .fade-turn-animation { animation: fade-turn 0.2s ease-out; }
 .winner-glow-animation { animation: winner-glow 0.8s ease-out forwards; }
+
+/* Added for STATUS_EFFECT_APPLIED */
+@keyframes status-tint-animation {
+  0%, 100% { filter: brightness(1); }
+  50% { filter: brightness(1.2) saturate(1.5); } /* Example tint effect */
+}
+.status-tint-animation {
+  animation: status-tint-animation 0.5s ease-in-out;
+}
+
+/* Added for EFFECT_APPLYING to use pulse keyframes with different duration */
+.effect-applying-pulse-animation {
+  animation-name: pulse; /* Use existing pulse keyframes */
+  animation-duration: 0.3s; /* Specific duration from map */
+  animation-timing-function: ease-out;
+}
