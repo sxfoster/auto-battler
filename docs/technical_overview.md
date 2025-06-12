@@ -17,8 +17,14 @@ card_rpg_mvp/public/
 
 The `api/` directory contains simple PHP scripts used for data persistence:
 
-- `save.php` – saves a JSON payload to `data.json` on the server
-- `load.php` – returns the contents of `data.json`
+- `battle_simulate.php`
+- `cards_common_by_type.php`
+- `champions.php`
+- `player_current_setup.php`
+- `player_setup.php`
+- `test_ai_decision.php`
+- `tournament_reset.php`
+- `tournament_status.php`
 
 These scripts are intentionally minimal and can be replaced with a real backend.
 
