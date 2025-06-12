@@ -126,7 +126,7 @@ function loadCardsFromIds($db_conn, $cardIds) {
     $fullCards = [];
     if (!empty($cardIds)) {
         $placeholder = implode(',', array_fill(0, count($cardIds), '?'));
-        $stmt = $db_conn->prepare("SELECT id, name, card_type, rarity, energy_cost, description, damage_type, armor_type, class_affinity, effect_details, flavor_text, log_template FROM cards WHERE id IN ($placeholder)");
+        $stmt = $db_conn->prepare("SELECT id, name, card_type, rarity, energy_cost, description, damage_type, armor_type, class_affinity, effect_details, flavor_text FROM cards WHERE id IN ($placeholder)");
         $stmt->execute($cardIds);
         $cardsData = $stmt->fetchAll(PDO::FETCH_ASSOC);
         foreach ($cardsData as $cardData) {
