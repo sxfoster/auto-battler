@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hero Draft & Battle</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div id="pack-scene" class="scene">
+        <h1 id="pack-scene-title" class="text-5xl font-cinzel tracking-wider mb-8 text-center">Open Your Hero Pack</h1>
+        <div id="booster-pack" class="booster-pack">
+            <i class="fa-solid fa-user-group text-8xl text-yellow-200 opacity-80"></i>
+        </div>
+        <p id="pack-scene-instructions" class="text-lg text-gray-400 mt-8">Click the pack to begin.</p>
+    </div>
+
+    <div id="draft-scene" class="scene hidden">
+        <header class="text-center mb-8">
+            <h1 id="draft-scene-title" class="text-5xl font-cinzel tracking-wider">Your Heroes</h1>
+            <p id="draft-instructions" class="text-lg text-gray-400 mt-2">Choose a hero for your team.</p>
+        </header>
+        <div id="draft-pool" class="draft-pool"></div>
+    </div>
+    
+    <div id="weapon-scene" class="scene hidden">
+        <header class="text-center mb-8">
+            <h1 id="weapon-scene-title" class="text-5xl font-cinzel tracking-wider">Choose a Weapon</h1>
+            <p id="weapon-instructions" class="text-lg text-gray-400 mt-2">Select one weapon.</p>
+        </header>
+        <div id="weapon-pack" class="weapon-pack">
+            <i class="fa-solid fa-box text-8xl text-yellow-200 opacity-80"></i>
+        </div>
+        <div id="weapon-draft-pool" class="draft-pool weapon-draft-pool mt-8" style="display: none;"></div>
+    </div>
+
+    <div id="battle-scene" class="scene hidden">
+        <div id="battle-scene-background"></div>
+        <button id="speed-cycle-button">Speed: 1x</button>
+        <div class="battle-arena">
+            <div id="player-team-container" class="team-container"></div>
+            <div id="enemy-team-container" class="team-container"></div>
+        </div>
+        <div id="battle-log">The battle is about to begin...</div>
+        <div id="end-screen">
+            <h1 id="end-screen-result-text"></h1>
+            <div id="end-screen-results"></div>
+            <button id="play-again-button">Play Again</button>
+        </div>
+    </div>
+
+    <div id="confirmation-bar" class="confirmation-bar">
+        <button id="confirm-draft" class="confirm-button">Start Battle</button>
+    </div>
+
+    <template id="detail-card-template">
+        <div class="hero-card-container">
+            <div class="hero-card">
+                <div class="shimmer-effect" style="display: none;"></div>
+                <div class="hero-art"></div>
+                <h3 class="hero-name font-cinzel"></h3>
+                <div class="hero-stats"></div>
+                <ul class="hero-abilities"></ul>
+            </div>
+        </div>
+    </template>
+
+    <template id="compact-card-template">
+         <div class="compact-card">
+            <div class="compact-art"></div>
+            <div class="compact-info">
+                <div class="compact-name font-cinzel"></div>
+                <div class="hp-text"></div>
+                <div class="compact-hp-bar-container">
+                    <div class="compact-hp-bar"></div>
+                </div>
+            </div>
+            <div class="status-icon-container"></div>
+        </div>
+    </template>
+
+    <script type="module" src="js/main.js"></script>
+
+</body>
+</html>
