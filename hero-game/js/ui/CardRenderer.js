@@ -27,16 +27,19 @@ export function createDetailCard(item, selectionHandler) {
     // Use a switch statement to handle different item types
     switch(item.type) {
         case 'hero':
+            cardElement.style.backgroundColor = '#1e293b';
             statsHtml = `
                 <div class="stat-block"><span class="stat-value">${item.hp}</span><span class="stat-label">HP</span></div>
                 <div class="stat-block"><span class="stat-value">${item.attack}</span><span class="stat-label">Attack</span></div>`;
             descriptionHtml = `<p class="item-description">Class: ${item.class}</p>`;
             break;
         case 'ability':
+            cardElement.style.backgroundColor = '#1e293b';
             // Abilities might not have stats, just a description
             descriptionHtml = `<p class="item-description">${item.description}</p>`;
             break;
         case 'weapon':
+            cardElement.style.backgroundColor = '#1e293b';
             statsHtml = `<div class="stat-block"><span class="stat-value">+${item.damage}</span><span class="stat-label">Damage</span></div>`;
             // Check if abilities exist on the weapon before trying to map them
             if (item.abilities && item.abilities.length > 0) {
@@ -44,12 +47,14 @@ export function createDetailCard(item, selectionHandler) {
             }
             break;
         case 'armor':
+            cardElement.style.backgroundColor = '#1e293b';
             statsHtml = `<div class="stat-block"><span class="stat-value">+${item.hp}</span><span class="stat-label">HP</span></div>`;
             if (item.abilities && item.abilities.length > 0) {
                 descriptionHtml = `<ul class="hero-abilities">${item.abilities.map(ab => `<li>${ab.name}</li>`).join('')}</ul>`;
             }
             break;
         default:
+            cardElement.style.backgroundColor = '#263238';
             // Fallback for unknown types
             descriptionHtml = `<p class="item-description">An unknown item.</p>`;
     }
