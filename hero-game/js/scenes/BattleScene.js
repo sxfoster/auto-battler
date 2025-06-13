@@ -1,0 +1,223 @@
+import { createCompactCard, updateHealthBar } from '../ui/CardRenderer.js';
+import { sleep } from '../utils.js';
+import { battleSpeeds } from '../data.js';
+
+export class BattleScene {
+    constructor(element) {
+        this.element = element;
+        
+        // DOM Elements
+        this.playerContainer = this.element.querySelector('#player-team-container');
+        this.enemyContainer = this.element.querySelector('#enemy-team-container');
+        this.battleLog = this.element.querySelector('#battle-log');
+        this.endScreen = this.element.querySelector('#end-screen');
+        this.resultText = this.element.querySelector('#end-screen-result-text');
+        this.resultsContainer = this.element.querySelector('#end-screen-results');
+        this.playAgainButton = this.element.querySelector('#play-again-button');
+        this.speedButton = this.element.querySelector('#speed-cycle-button');
+        
+        // State
+        this.state = [];
+        this.currentAttackerIndex = 0;
+        this.currentSpeedIndex = 0;
+        this.isBattleOver = false;
+
+        this.playAgainButton.addEventListener('click', () => window.location.reload());
+        this.speedButton.addEventListener('click', () => this._cycleSpeed());
+    }
+
+    _cycleSpeed() {
+        this.currentSpeedIndex = (this.currentSpeedIndex + 1) % battleSpeeds.length;
+        const newSpeed = battleSpeeds[this.currentSpeedIndex];
+        this.speedButton.textContent = `Speed: ${newSpeed.label}`;
+    }
+    
+    _logToBattle(message) {
+        this.battleLog.textContent = message;
+        this.battleLog.style.opacity = '1';
+        setTimeout(() => {
+            if (!this.isBattleOver) {
+                 this.battleLog.style.opacity = '0';
+            }
+        }, 667 * battleSpeeds[this.currentSpeedIndex].multiplier);
+    }
+
+    async start(battleState) {
+        this.isBattleOver = false;
+        this.state = battleState;
+        this.currentAttackerIndex = 0;
+        this.playerContainer.innerHTML = '';
+        this.enemyContainer.innerHTML = '';
+        this.endScreen.classList.remove('visible', 'victory', 'defeat');
+
+        this.state.forEach(combatant => {
+            const card = createCompactCard(combatant);
+            combatant.element = card; // Store reference to the element
+            if (combatant.team === 'player') {
+                this.playerContainer.appendChild(card);
+            } else {
+                this.enemyContainer.appendChild(card);
+            }
+        });
+
+        await sleep(125 * battleSpeeds[this.currentSpeedIndex].multiplier);
+        this._runCombatTurn();
+    }
+    
+    async _runCombatTurn() {
+        if (this.isBattleOver) return;
+
+        const attacker = this.state[this.currentAttackerIndex];
+        
+        if (attacker.currentHp <= 0) {
+            this.currentAttackerIndex = (this.currentAttackerIndex + 1) % 4;
+            this._runCombatTurn();
+            return;
+        }
+
+        const stunEffect = attacker.statusEffects.find(e => e.name === 'Stun');
+        if(stunEffect) {
+            this._logToBattle(`${attacker.heroData.name} is stunned and skips their turn!`);
+            stunEffect.turnsRemaining--;
+            if(stunEffect.turnsRemaining <= 0) attacker.statusEffects = attacker.statusEffects.filter(e => e.name !== 'Stun');
+            this._updateStatusIcons(attacker);
+            await sleep(125 * battleSpeeds[this.currentSpeedIndex].multiplier);
+            this.currentAttackerIndex = (this.currentAttackerIndex + 1) % 4;
+            this._runCombatTurn();
+            return;
+        }
+        
+        const enemies = this.state.filter(c => c.team !== attacker.team && c.currentHp > 0);
+        if (enemies.length === 0) return; 
+        
+        const target = enemies.sort((a,b) => a.position - b.position)[0];
+
+        attacker.element.classList.add('is-attacking');
+        await sleep(67 * battleSpeeds[this.currentSpeedIndex].multiplier);
+
+        // This is the hardcoded AI logic that should be replaced with a data-driven system
+        this._executeAttackerAI(attacker, target, enemies);
+
+        await sleep(100 * battleSpeeds[this.currentSpeedIndex].multiplier);
+        attacker.element.classList.remove('is-attacking');
+
+        const isPlayerTeamDefeated = this.state.filter(c => c.team === 'player' && c.currentHp > 0).length === 0;
+        const isEnemyTeamDefeated = this.state.filter(c => c.team === 'enemy' && c.currentHp > 0).length === 0;
+
+        if (isPlayerTeamDefeated || isEnemyTeamDefeated) {
+            this._endBattle(!isPlayerTeamDefeated);
+            return;
+        }
+
+        this.currentAttackerIndex = (this.currentAttackerIndex + 1) % 4;
+        setTimeout(() => this._runCombatTurn(), 167 * battleSpeeds[this.currentSpeedIndex].multiplier);
+    }
+
+    _executeAttackerAI(attacker, target, enemies) {
+        // NOTE: This logic is still hardcoded for the prototype. A better system
+        // would be data-driven, reading abilities from the hero's data object.
+        let action = 'basic_attack';
+        if (attacker.heroData.name === 'Warrior' && !target.statusEffects.some(e => e.name === 'Stun')) action = 'Shield Bash';
+        if (attacker.heroData.name === 'Champion' && enemies.length > 1) action = 'Whirlwind';
+
+        switch(action) {
+            case 'Whirlwind':
+                this._logToBattle(`${attacker.heroData.name} uses Whirlwind!`);
+                for (const enemy of enemies) {
+                    this._dealDamage(attacker, enemy, 4);
+                }
+                break;
+            case 'Shield Bash':
+                this._logToBattle(`${attacker.heroData.name} uses Shield Bash!`);
+                this._dealDamage(attacker, target, 1);
+                this._applyStatus(target, 'Stun', 1);
+                break;
+            default: 
+                let damage = attacker.heroData.attack + attacker.weaponData.damage;
+                let attackName = attacker.weaponData.name;
+                if (attacker.heroData.name === 'Champion') attackName = 'Execute';
+                this._logToBattle(`${attacker.heroData.name} attacks ${target.heroData.name} with ${attackName}!`);
+                this._dealDamage(attacker, target, damage);
+                
+                // Weapon Effects
+                if (attacker.weaponData.name === 'Iron Sword' && enemies.length > 1) {
+                    const secondTarget = enemies.find(e => e.id !== target.id);
+                    if (secondTarget) {
+                        this._logToBattle(`Cleave hits ${secondTarget.heroData.name}!`);
+                        this._dealDamage(attacker, secondTarget, Math.ceil(damage * 0.5));
+                    }
+                }
+                if (attacker.weaponData.name === 'Glimmering Dagger' && Math.random() < 0.10) {
+                    this._applyStatus(target, 'Poison', Math.floor(Math.random() * 3) + 2); 
+                }
+        }
+    }
+
+    _dealDamage(attacker, target, amount) {
+        if(target.heroData.abilities.some(a => a.name === 'Fortify')) amount = Math.max(0, amount - 1);
+        
+        target.currentHp = Math.max(0, target.currentHp - amount);
+        
+        target.element.classList.add('is-taking-damage');
+        setTimeout(() => target.element.classList.remove('is-taking-damage'), 67 * battleSpeeds[this.currentSpeedIndex].multiplier);
+        
+        this._showDamagePopup(target.element, amount);
+        updateHealthBar(target, target.element);
+
+        if (target.currentHp <= 0) {
+            this._logToBattle(`${target.heroData.name} has been defeated!`);
+            target.element.classList.add('is-defeated');
+        }
+    }
+
+    _applyStatus(target, statusName, duration){
+        this._logToBattle(`${target.heroData.name} is afflicted with ${statusName}!`);
+        target.statusEffects.push({name: statusName, turnsRemaining: duration});
+        this._updateStatusIcons(target);
+    }
+    
+    _showDamagePopup(targetElement, amount) {
+        const popup = document.createElement('div');
+        popup.className = 'damage-popup';
+        popup.textContent = amount;
+        targetElement.appendChild(popup);
+        setTimeout(() => popup.remove(), 234 * battleSpeeds[this.currentSpeedIndex].multiplier);
+    }
+
+    _updateStatusIcons(combatant){
+        const container = combatant.element.querySelector('.status-icon-container');
+        container.innerHTML = '';
+        combatant.statusEffects.forEach(effect => {
+            const icon = document.createElement('div');
+            icon.className = 'status-icon';
+            icon.innerHTML = effect.name === 'Stun' ? '<i class="fa-solid fa-star"></i>' : '<i class="fa-solid fa-skull-crossbones"></i>';
+            icon.title = `${effect.name} (${effect.turnsRemaining} turns left)`;
+            container.appendChild(icon);
+        });
+    }
+
+    _endBattle(didPlayerWin) {
+        this.isBattleOver = true;
+        this._logToBattle(didPlayerWin ? "Player team is victorious!" : "Enemy team is victorious!");
+
+        this.endScreen.className = didPlayerWin ? 'victory' : 'defeat';
+        this.resultText.textContent = didPlayerWin ? 'Victory' : 'Defeat';
+
+        this.resultsContainer.innerHTML = '';
+        this.state.filter(c => c.team === 'player').forEach(c => {
+            const card = createCompactCard(c);
+            if(c.currentHp <= 0) card.classList.add('is-defeated');
+            this.resultsContainer.appendChild(card);
+        });
+
+        setTimeout(() => this.endScreen.classList.add('visible'), 167 * battleSpeeds[this.currentSpeedIndex].multiplier);
+    }
+    
+    show() {
+        this.element.classList.remove('hidden');
+    }
+
+    hide() {
+        this.element.classList.add('hidden');
+    }
+}
