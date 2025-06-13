@@ -6,6 +6,7 @@ export class RevealScene {
         this.onRevealComplete = onRevealComplete;
 
         this.revealArea = this.element.querySelector('#reveal-area');
+        this.instructions = this.element.querySelector('#reveal-instructions');
 
         this.packContents = [];
         this.revealedCardCount = 0;
@@ -15,6 +16,7 @@ export class RevealScene {
         this.packContents = choices;
         this.revealedCardCount = 0;
         this.revealArea.innerHTML = '';
+        this.instructions.textContent = 'Click a card to reveal it.';
 
         choices.slice().reverse().forEach((item, index) => {
             const cardWrapper = document.createElement('div');
@@ -60,6 +62,7 @@ export class RevealScene {
             cardWrapper.appendChild(cardFace);
 
             cardWrapper.classList.add('is-flipping');
+            this.instructions.textContent = 'Click the card again to dismiss it.';
         }
     }
 
