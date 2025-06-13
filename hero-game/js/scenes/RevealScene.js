@@ -6,6 +6,8 @@ export class RevealScene {
         this.onRevealComplete = onRevealComplete;
 
         this.revealArea = this.element.querySelector('#reveal-area');
+        // Grab the instructions element if present. Some prototype pages may not
+        // include it, so guard against a null result.
         this.instructions = this.element.querySelector('#reveal-instructions');
 
         this.packContents = [];
@@ -16,7 +18,9 @@ export class RevealScene {
         this.packContents = choices;
         this.revealedCardCount = 0;
         this.revealArea.innerHTML = '';
-        this.instructions.textContent = 'Click a card to reveal it.';
+        if (this.instructions) {
+            this.instructions.textContent = 'Click a card to reveal it.';
+        }
 
         choices.slice().reverse().forEach((item, index) => {
             const cardWrapper = document.createElement('div');
@@ -46,7 +50,9 @@ export class RevealScene {
             cardWrapper.classList.add('is-dismissed');
             this.revealedCardCount++;
             if (this.revealedCardCount >= this.packContents.length) {
-                this.instructions.textContent = 'All cards revealed!';
+                if (this.instructions) {
+                    this.instructions.textContent = 'All cards revealed!';
+                }
                 setTimeout(() => {
                     this.onRevealComplete(this.packContents);
                 }, 800);
@@ -62,7 +68,9 @@ export class RevealScene {
             cardWrapper.appendChild(cardFace);
 
             cardWrapper.classList.add('is-flipping');
-            this.instructions.textContent = 'Click the card again to dismiss it.';
+            if (this.instructions) {
+                this.instructions.textContent = 'Click the card again to dismiss it.';
+            }
         }
     }
 
