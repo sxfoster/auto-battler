@@ -1,9 +1,10 @@
 import { createDetailCard } from '../ui/CardRenderer.js';
 
 export class WeaponScene {
-    constructor(element, onWeaponSelected) {
+    constructor(element, onWeaponSelected, onPackClicked) {
         this.element = element;
         this.onWeaponSelected = onWeaponSelected;
+        this.onPackClicked = onPackClicked;
         
         this.instructionsElement = this.element.querySelector('#weapon-instructions');
         this.packElement = this.element.querySelector('#weapon-pack');
@@ -20,8 +21,7 @@ export class WeaponScene {
         this.packElement.classList.add('opening');
 
         this.packElement.addEventListener('animationend', () => {
-            this.packElement.style.display = 'none';
-            this.draftPoolElement.style.display = 'grid';
+            if (this.onPackClicked) this.onPackClicked();
         }, { once: true });
     }
 
@@ -33,6 +33,10 @@ export class WeaponScene {
             const cardElement = createDetailCard(weapon, () => this.onWeaponSelected(weapon));
             this.draftPoolElement.appendChild(cardElement);
         });
+    }
+
+    updateInstructions(text) {
+        this.instructionsElement.textContent = text;
     }
 
     reset() {
