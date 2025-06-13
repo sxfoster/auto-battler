@@ -2,50 +2,53 @@
 // In a real application, this would likely be fetched from a server API.
 
 export const allPossibleHeroes = [
-    // Warrior Class
-    { type: 'hero', id: 1, name: 'Recruit', class: 'Warrior', rarity: 'Common', art: 'https://placehold.co/150x126/6b7280/FFFFFF?text=Recruit', hp: 18, attack: 3, abilities: [] },
-    { type: 'hero', id: 2, name: 'Squire', class: 'Warrior', rarity: 'Uncommon', art: 'https://placehold.co/150x126/78716c/FFFFFF?text=Squire', hp: 22, attack: 5, abilities: [] },
-    { type: 'hero', id: 3, name: 'Warrior', class: 'Warrior', rarity: 'Rare', art: 'https://placehold.co/150x126/57534e/FFFFFF?text=Warrior', hp: 25, attack: 7, abilities: [] },
-    { type: 'hero', id: 4, name: 'Champion', class: 'Warrior', rarity: 'Ultra Rare', art: 'https://placehold.co/150x126/1c1917/FFFFFF?text=Champ', hp: 30, attack: 10, abilities: [] },
+    // 1. Stalwart Defender
+    { type: 'hero', id: 101, name: 'Recruit', class: 'Stalwart Defender', rarity: 'Common', art: '...', hp: 22, attack: 4, speed: 5, abilities: [] },
+    { type: 'hero', id: 102, name: 'Soldier', class: 'Stalwart Defender', rarity: 'Uncommon', art: '...', hp: 30, attack: 6, speed: 5, abilities: [] },
+    { type: 'hero', id: 103, name: 'Vanguard', class: 'Stalwart Defender', rarity: 'Rare', art: '...', hp: 42, attack: 8, speed: 5, abilities: [] },
+    { type: 'hero', id: 104, name: 'Warbringer', class: 'Stalwart Defender', rarity: 'Epic', art: '...', hp: 55, attack: 11, speed: 5, abilities: [] },
 
-    // Mage Class
-    { type: 'hero', id: 5, name: 'Apprentice', class: 'Mage', rarity: 'Common', art: 'https://placehold.co/150x126/93c5fd/1e3a8a?text=Apprentice', hp: 15, attack: 2, abilities: [] },
-    { type: 'hero', id: 6, name: 'Mage', class: 'Mage', rarity: 'Rare', art: 'https://placehold.co/150x126/60a5fa/1e3a8a?text=Mage', hp: 20, attack: 4, abilities: [] },
+    // 2. Holy Warrior
+    { type: 'hero', id: 201, name: 'Squire', class: 'Holy Warrior', rarity: 'Common', art: '...', hp: 20, attack: 5, speed: 5, abilities: [] },
+    { type: 'hero', id: 202, name: 'Crusader', class: 'Holy Warrior', rarity: 'Uncommon', art: '...', hp: 28, attack: 7, speed: 5, abilities: [] },
+    { type: 'hero', id: 203, name: 'Paladin', class: 'Holy Warrior', rarity: 'Rare', art: '...', hp: 38, attack: 9, speed: 5, abilities: [] },
+    { type: 'hero', id: 204, name: 'Divine Aegis', class: 'Holy Warrior', rarity: 'Epic', art: '...', hp: 50, attack: 12, speed: 5, abilities: [] },
 
-    // Rogue Class
-    { type: 'hero', id: 7, name: 'Thief', class: 'Rogue', rarity: 'Common', art: 'https://placehold.co/150x126/a78bfa/4c1d95?text=Thief', hp: 16, attack: 4, abilities: [] },
-    { type: 'hero', id: 8, name: 'Assassin', class: 'Rogue', rarity: 'Rare', art: 'https://placehold.co/150x126/8b5cf6/4c1d95?text=Assassin', hp: 21, attack: 8, abilities: [] },
+    // 3. Raging Fighter
+    { type: 'hero', id: 301, name: 'Brawler', class: 'Raging Fighter', rarity: 'Common', art: '...', hp: 18, attack: 7, speed: 6, abilities: [] },
+    { type: 'hero', id: 302, name: 'Marauder', class: 'Raging Fighter', rarity: 'Uncommon', art: '...', hp: 25, attack: 10, speed: 6, abilities: [] },
+    { type: 'hero', id: 303, name: 'Berserker', class: 'Raging Fighter', rarity: 'Rare', art: '...', hp: 33, attack: 14, speed: 6, abilities: [] },
+    { type: 'hero', id: 304, name: 'Juggernaut', class: 'Raging Fighter', rarity: 'Epic', art: '...', hp: 42, attack: 18, speed: 6, abilities: [] },
 
-    // Priest Class
-    { type: 'hero', id: 9, name: 'Acolyte', class: 'Priest', rarity: 'Common', art: 'https://placehold.co/150x126/fef08a/b45309?text=Acolyte', hp: 17, attack: 2, abilities: [] },
-    { type: 'hero', id: 10, name: 'Priest', class: 'Priest', rarity: 'Uncommon', art: 'https://placehold.co/150x126/fde047/b45309?text=Priest', hp: 21, attack: 3, abilities: [] },
+    // 4. Raw Power Mage
+    { type: 'hero', id: 401, name: 'Adept', class: 'Raw Power Mage', rarity: 'Common', art: '...', hp: 12, attack: 2, speed: 4, abilities: [] },
+    { type: 'hero', id: 402, name: 'Sorcerer', class: 'Raw Power Mage', rarity: 'Uncommon', art: '...', hp: 16, attack: 3, speed: 4, abilities: [] },
+    { type: 'hero', id: 403, name: 'Elementalist', class: 'Raw Power Mage', rarity: 'Rare', art: '...', hp: 21, attack: 4, speed: 4, abilities: [] },
+    { type: 'hero', id: 404, name: 'Chaos Conduit', class: 'Raw Power Mage', rarity: 'Epic', art: '...', hp: 27, attack: 5, speed: 4, abilities: [] },
 
-    // Ranger Class
-    { type: 'hero', id: 11, name: 'Hunter', class: 'Ranger', rarity: 'Common', art: 'https://placehold.co/150x126/86efac/15803d?text=Hunter', hp: 17, attack: 4, abilities: [] },
-    { type: 'hero', id: 12, name: 'Ranger', class: 'Ranger', rarity: 'Uncommon', art: 'https://placehold.co/150x126/4ade80/15803d?text=Ranger', hp: 22, attack: 6, abilities: [] },
+    // 5. Divine Healer
+    { type: 'hero', id: 501, name: 'Acolyte', class: 'Divine Healer', rarity: 'Common', art: '...', hp: 15, attack: 3, speed: 5, abilities: [] },
+    { type: 'hero', id: 502, name: 'Priest', class: 'Divine Healer', rarity: 'Uncommon', art: '...', hp: 20, attack: 4, speed: 5, abilities: [] },
+    { type: 'hero', id: 503, name: 'High Priest', class: 'Divine Healer', rarity: 'Rare', art: '...', hp: 26, attack: 5, speed: 5, abilities: [] },
+    { type: 'hero', id: 504, name: 'Hierophant', class: 'Divine Healer', rarity: 'Epic', art: '...', hp: 33, attack: 6, speed: 5, abilities: [] },
 
-    // Paladin Class
-    { type: 'hero', id: 13, name: 'Vindicator', class: 'Paladin', rarity: 'Rare', art: 'https://placehold.co/150x126/fef9c3/a16207?text=Vindicator', hp: 28, attack: 5, abilities: [] },
-    { type: 'hero', id: 14, name: 'Paladin', class: 'Paladin', rarity: 'Ultra Rare', art: 'https://placehold.co/150x126/fefce8/a16207?text=Paladin', hp: 32, attack: 8, abilities: [] },
+    // 6. Nature Shaper
+    { type: 'hero', id: 601, name: 'Naturalist', class: 'Nature Shaper', rarity: 'Common', art: '...', hp: 17, attack: 4, speed: 5, abilities: [] },
+    { type: 'hero', id: 602, name: 'Shapeshifter', class: 'Nature Shaper', rarity: 'Uncommon', art: '...', hp: 24, attack: 6, speed: 5, abilities: [] },
+    { type: 'hero', id: 603, name: 'Archdruid', class: 'Nature Shaper', rarity: 'Rare', art: '...', hp: 32, attack: 8, speed: 5, abilities: [] },
+    { type: 'hero', id: 604, name: 'Avatar of the Wild', class: 'Nature Shaper', rarity: 'Epic', art: '...', hp: 40, attack: 10, speed: 5, abilities: [] },
 
-    // Barbarian Class
-    { type: 'hero', id: 15, name: 'Brute', class: 'Barbarian', rarity: 'Common', art: 'https://placehold.co/150x126/fca5a5/991b1b?text=Brute', hp: 20, attack: 4, abilities: [] },
-    { type: 'hero', id: 16, name: 'Barbarian', class: 'Barbarian', rarity: 'Uncommon', art: 'https://placehold.co/150x126/f87171/991b1b?text=Barbarian', hp: 26, attack: 6, abilities: [] },
+    // 7. Inspiring Artist
+    { type: 'hero', id: 701, name: 'Minstrel', class: 'Inspiring Artist', rarity: 'Common', art: '...', hp: 14, attack: 2, speed: 6, abilities: [] },
+    { type: 'hero', id: 702, name: 'Skald', class: 'Inspiring Artist', rarity: 'Uncommon', art: '...', hp: 19, attack: 3, speed: 6, abilities: [] },
+    { type: 'hero', id: 703, name: 'Maestro', class: 'Inspiring Artist', rarity: 'Rare', art: '...', hp: 25, attack: 4, speed: 6, abilities: [] },
+    { type: 'hero', id: 704, name: 'Muse Incarnate', class: 'Inspiring Artist', rarity: 'Epic', art: '...', hp: 32, attack: 5, speed: 6, abilities: [] },
 
-    // Monk Class
-    { type: 'hero', id: 17, name: 'Initiate', class: 'Monk', rarity: 'Common', art: 'https://placehold.co/150x126/fdba74/c2410c?text=Initiate', hp: 16, attack: 4, abilities: [] },
-    { type: 'hero', id: 18, name: 'Monk', class: 'Monk', rarity: 'Rare', art: 'https://placehold.co/150x126/fb923c/c2410c?text=Monk', hp: 24, attack: 5, abilities: [] },
-
-    // Druid Class
-    { type: 'hero', id: 19, name: 'Shapeshifter', class: 'Druid', rarity: 'Uncommon', art: 'https://placehold.co/150x126/a3e635/3f6212?text=Shapeshifter', hp: 23, attack: 5, abilities: [] },
-    { type: 'hero', id: 20, name: 'Archdruid', class: 'Druid', rarity: 'Ultra Rare', art: 'https://placehold.co/150x126/84cc16/3f6212?text=Archdruid', hp: 28, attack: 7, abilities: [] },
-
-    // Warlock Class
-    { type: 'hero', id: 21, name: 'Cultist', class: 'Warlock', rarity: 'Common', art: 'https://placehold.co/150x126/c084fc/581c87?text=Cultist', hp: 16, attack: 3, abilities: [] },
-    { type: 'hero', id: 22, name: 'Warlock', class: 'Warlock', rarity: 'Rare', art: 'https://placehold.co/150x126/a855f7/581c87?text=Warlock', hp: 22, attack: 6, abilities: [] },
-
-    // Bard Class
-    { type: 'hero', id: 23, name: 'Minstrel', class: 'Bard', rarity: 'Uncommon', art: 'https://placehold.co/150x126/f9a8d4/9d2667?text=Minstrel', hp: 20, attack: 2, abilities: [] },
+    // 8. Wilderness Expert
+    { type: 'hero', id: 801, name: 'Tracker', class: 'Wilderness Expert', rarity: 'Common', art: '...', hp: 13, attack: 6, speed: 7, abilities: [] },
+    { type: 'hero', id: 802, name: 'Beast Tamer', class: 'Wilderness Expert', rarity: 'Uncommon', art: '...', hp: 18, attack: 9, speed: 7, abilities: [] },
+    { type: 'hero', id: 803, name: 'Beast Master', class: 'Wilderness Expert', rarity: 'Rare', art: '...', hp: 24, attack: 12, speed: 7, abilities: [] },
+    { type: 'hero', id: 804, name: 'Wild Lord', class: 'Wilderness Expert', rarity: 'Epic', art: '...', hp: 30, attack: 15, speed: 7, abilities: [] },
 ];
 
 export const allPossibleWeapons = [

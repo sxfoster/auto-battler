@@ -35,7 +35,7 @@ export class RevealScene {
 
             const rarity = (item.rarity || 'common').toLowerCase();
             if (rarity === 'rare') cardWrapper.classList.add('pre-reveal-rare');
-            else if (rarity === 'ultra-rare') cardWrapper.classList.add('pre-reveal-ultra-rare');
+            else if (rarity === 'epic') cardWrapper.classList.add('pre-reveal-epic');
 
             cardWrapper.addEventListener('click', this.handleCardClick.bind(this));
             this.revealArea.appendChild(cardWrapper);
