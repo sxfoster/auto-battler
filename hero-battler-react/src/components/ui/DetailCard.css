@@ -1,0 +1,11 @@
+.detail-card {
+  border: 2px solid #ccc;
+  padding: 8px;
+  margin: 4px;
+  cursor: pointer;
+  background: linear-gradient(#222, #444);
+  color: white;
+}
+.nameplate {
+  font-weight: bold;
+}

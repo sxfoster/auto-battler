@@ -1,0 +1,13 @@
+body {
+  font-family: 'Roboto', sans-serif;
+  background-color: #222;
+  color: white;
+}
+.app-container {
+  padding: 20px;
+}
+.draft-scene, .pack-scene, .battle-scene {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}

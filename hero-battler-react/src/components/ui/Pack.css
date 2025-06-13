@@ -1,0 +1,9 @@
+.pack {
+  padding: 12px;
+  margin: 8px;
+  border: 2px dashed #888;
+  cursor: pointer;
+  text-align: center;
+  color: white;
+  background-color: #555;
+}
