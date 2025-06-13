@@ -20,15 +20,13 @@ export function createDetailCard(item, selectionHandler) {
     clone.querySelector('.hero-art').style.backgroundImage = `url('${item.art}')`;
     clone.querySelector('.hero-name').textContent = item.name;
 
-    let statsHtml = '';
     if (item.type === 'hero') {
-        statsHtml = `
-            <div class="stat-block"><span class="stat-value">${item.hp}</span><span class="stat-label">HP</span></div>
-            <div class="stat-block"><span class="stat-value">${item.attack}</span><span class="stat-label">Attack</span></div>`;
+        clone.querySelector('.hp-stat .stat-value').textContent = item.hp;
+        clone.querySelector('.attack-stat .stat-value').textContent = item.attack;
     } else {
-        statsHtml = `<div class="stat-block"><span class="stat-value">+${item.damage}</span><span class="stat-label">Damage</span></div>`;
+        const statsContainer = clone.querySelector('.hero-stats');
+        statsContainer.innerHTML = `<div class="stat-block"><span class="stat-value">+${item.damage}</span><span class="stat-label">Damage</span></div>`;
     }
-    clone.querySelector('.hero-stats').innerHTML = statsHtml;
 
     const abilitiesHtml = item.abilities.map(ab => 
         `<li>${ab.name}<div class="tooltip">${ab.description}</div></li>`
