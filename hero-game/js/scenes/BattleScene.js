@@ -1,6 +1,7 @@
 import { createCompactCard, updateHealthBar } from '../ui/CardRenderer.js';
 import { sleep } from '../utils.js';
 import { battleSpeeds } from '../data.js';
+import { processEffect } from '../systems/EffectProcessor.js';
 
 export class BattleScene {
     constructor(element) {
@@ -88,15 +89,16 @@ export class BattleScene {
         }
         
         const enemies = this.state.filter(c => c.team !== attacker.team && c.currentHp > 0);
-        if (enemies.length === 0) return; 
-        
+        const allies = this.state.filter(c => c.team === attacker.team && c.currentHp > 0);
+        if (enemies.length === 0) return;
+
         const target = enemies.sort((a,b) => a.position - b.position)[0];
 
         attacker.element.classList.add('is-attacking');
         await sleep(67 * battleSpeeds[this.currentSpeedIndex].multiplier);
 
         // This is the hardcoded AI logic that should be replaced with a data-driven system
-        this._executeAttackerAI(attacker, target, enemies);
+        this._executeAttackerAI(attacker, target, enemies, allies);
 
         await sleep(100 * battleSpeeds[this.currentSpeedIndex].multiplier);
         attacker.element.classList.remove('is-attacking');
@@ -113,43 +115,55 @@ export class BattleScene {
         setTimeout(() => this._runCombatTurn(), 167 * battleSpeeds[this.currentSpeedIndex].multiplier);
     }
 
-    _executeAttackerAI(attacker, target, enemies) {
-        // NOTE: This logic is still hardcoded for the prototype. A better system
-        // would be data-driven, reading abilities from the hero's data object.
-        let action = 'basic_attack';
-        if (attacker.heroData.name === 'Warrior' && !target.statusEffects.some(e => e.name === 'Stun')) action = 'Shield Bash';
-        if (attacker.heroData.name === 'Champion' && enemies.length > 1) action = 'Whirlwind';
+    _executeAttackerAI(attacker, defaultTarget, enemies, allies) {
+        const ability = attacker.heroData.abilities[0];
+        let abilityToUse = ability && ability.effects ? ability : {
+            name: 'Basic Attack',
+            target: 'ENEMY_SINGLE',
+            effects: [{ type: 'DEAL_DAMAGE', amount: attacker.heroData.attack + attacker.weaponData.damage }]
+        };
 
-        switch(action) {
-            case 'Whirlwind':
-                this._logToBattle(`${attacker.heroData.name} uses Whirlwind!`);
-                for (const enemy of enemies) {
-                    this._dealDamage(attacker, enemy, 4);
+        this._logToBattle(`${attacker.heroData.name} uses ${abilityToUse.name}!`);
+
+        const baseTargets = this._selectTargets(abilityToUse.target, attacker, defaultTarget, enemies, allies);
+        for (const baseTarget of baseTargets) {
+            for (const effect of abilityToUse.effects) {
+                const effTargets = effect.target ? this._selectTargets(effect.target, attacker, baseTarget, enemies, allies) : [baseTarget];
+                for (const t of effTargets) {
+                    processEffect(effect, attacker, t, this);
                 }
-                break;
-            case 'Shield Bash':
-                this._logToBattle(`${attacker.heroData.name} uses Shield Bash!`);
-                this._dealDamage(attacker, target, 1);
-                this._applyStatus(target, 'Stun', 1);
-                break;
-            default: 
-                let damage = attacker.heroData.attack + attacker.weaponData.damage;
-                let attackName = attacker.weaponData.name;
-                if (attacker.heroData.name === 'Champion') attackName = 'Execute';
-                this._logToBattle(`${attacker.heroData.name} attacks ${target.heroData.name} with ${attackName}!`);
-                this._dealDamage(attacker, target, damage);
-                
-                // Weapon Effects
-                if (attacker.weaponData.name === 'Iron Sword' && enemies.length > 1) {
-                    const secondTarget = enemies.find(e => e.id !== target.id);
-                    if (secondTarget) {
-                        this._logToBattle(`Cleave hits ${secondTarget.heroData.name}!`);
-                        this._dealDamage(attacker, secondTarget, Math.ceil(damage * 0.5));
-                    }
-                }
-                if (attacker.weaponData.name === 'Glimmering Dagger' && Math.random() < 0.10) {
-                    this._applyStatus(target, 'Poison', Math.floor(Math.random() * 3) + 2); 
-                }
+            }
+        }
+
+        if (attacker.weaponData.name === 'Iron Sword' && enemies.length > 1) {
+            const secondTarget = enemies.find(e => e.id !== defaultTarget.id);
+            if (secondTarget) {
+                this._logToBattle(`Cleave hits ${secondTarget.heroData.name}!`);
+                this._dealDamage(attacker, secondTarget, Math.ceil((attacker.heroData.attack + attacker.weaponData.damage) * 0.5));
+            }
+        }
+        if (attacker.weaponData.name === 'Glimmering Dagger' && Math.random() < 0.10) {
+            this._applyStatus(defaultTarget, 'Poison', Math.floor(Math.random() * 3) + 2);
+        }
+    }
+
+    _selectTargets(type, attacker, defaultTarget, enemies, allies) {
+        switch(type) {
+            case 'ENEMY_SINGLE':
+                return [defaultTarget];
+            case 'ALL_ENEMIES':
+                return enemies;
+            case 'ALLY_SINGLE':
+                return [attacker];
+            case 'ALL_ALLIES':
+                return allies;
+            case 'SELF':
+                return [attacker];
+            case 'ENEMY_ADDITIONAL':
+                const other = enemies.find(e => e.id !== defaultTarget.id);
+                return other ? [other] : [];
+            default:
+                return [defaultTarget];
         }
     }
 
@@ -168,6 +182,12 @@ export class BattleScene {
             this._logToBattle(`${target.heroData.name} has been defeated!`);
             target.element.classList.add('is-defeated');
         }
+    }
+
+    _heal(target, amount) {
+        target.currentHp = Math.min(target.maxHp, target.currentHp + amount);
+        this._logToBattle(`${target.heroData.name} heals ${amount} HP!`);
+        updateHealthBar(target, target.element);
     }
 
     _applyStatus(target, statusName, duration){
