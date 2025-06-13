@@ -5,6 +5,7 @@ import { allPossibleHeroes, allPossibleWeapons } from './data.js';
 import { PackScene } from './scenes/PackScene.js';
 import { DraftScene } from './scenes/DraftScene.js';
 import { WeaponScene } from './scenes/WeaponScene.js';
+import { RevealScene } from './scenes/RevealScene.js';
 import { BattleScene } from './scenes/BattleScene.js';
 
 // --- STATE MANAGEMENT ---
@@ -21,6 +22,7 @@ const gameState = {
 const sceneElements = {
     pack: document.getElementById('pack-scene'),
     draft: document.getElementById('draft-scene'),
+    reveal: document.getElementById('reveal-scene'),
     weapon: document.getElementById('weapon-scene'),
     battle: document.getElementById('battle-scene'),
 };
@@ -29,35 +31,28 @@ const confirmDraftButton = document.getElementById('confirm-draft');
 
 // --- SCENE INSTANTIATION ---
 // Create instances of each scene, passing their root element and necessary callbacks.
-const packScene = new PackScene(sceneElements.pack, () => {
-    // This callback is triggered when the pack animation finishes
-    const newStage = gameState.draft.stage === 'HERO_1_PACK' ? 'HERO_1_DRAFT' : 'HERO_2_DRAFT';
-    gameState.draft.stage = newStage;
-    
-    const heroPack = generateHeroPack();
-    draftScene.render(heroPack, gameState.draft.stage);
+const packScene = new PackScene(sceneElements.pack, () => openPack());
+
+const revealScene = new RevealScene(sceneElements.reveal, (revealedCards) => {
+    gameState.draft.stage = gameState.draft.stage.replace('PACK', 'DRAFT');
+
+    draftScene.render(revealedCards, gameState.draft.stage);
     transitionToScene('draft');
 });
-
-const draftScene = new DraftScene(sceneElements.draft, (selectedHero) => {
-    // This callback is triggered when a hero card is clicked
-    if (gameState.draft.stage === 'HERO_1_DRAFT') {
-        gameState.draft.playerTeam.hero1 = selectedHero.id;
-    } else {
-        gameState.draft.playerTeam.hero2 = selectedHero.id;
+const draftScene = new DraftScene(sceneElements.draft, (selectedItem) => {
+    const stage = gameState.draft.stage;
+    if (stage === 'HERO_1_DRAFT') {
+        gameState.draft.playerTeam.hero1 = selectedItem.id;
+    } else if (stage === 'HERO_2_DRAFT') {
+        gameState.draft.playerTeam.hero2 = selectedItem.id;
+    } else if (stage === 'WEAPON_1_DRAFT') {
+        gameState.draft.playerTeam.weapon1 = selectedItem.id;
+    } else if (stage === 'WEAPON_2_DRAFT') {
+        gameState.draft.playerTeam.weapon2 = selectedItem.id;
     }
     advanceDraft();
 });
-
-const weaponScene = new WeaponScene(sceneElements.weapon, (selectedWeapon) => {
-    // This callback is triggered when a weapon card is clicked
-    if (gameState.draft.stage === 'WEAPON_1_DRAFT') {
-        gameState.draft.playerTeam.weapon1 = selectedWeapon.id;
-    } else {
-        gameState.draft.playerTeam.weapon2 = selectedWeapon.id;
-    }
-    advanceDraft();
-});
+const weaponScene = new WeaponScene(sceneElements.weapon, null, () => openPack());
 
 const battleScene = new BattleScene(sceneElements.battle);
 
@@ -69,15 +64,31 @@ function transitionToScene(sceneName) {
     sceneElements[sceneName].classList.remove('hidden');
 }
 
+function openPack() {
+    const stageType = gameState.draft.stage.split('_')[0].toUpperCase();
+    let choices = [];
+    switch(stageType) {
+        case 'HERO':
+            choices = generateHeroPack();
+            break;
+        case 'WEAPON':
+            choices = generateWeaponChoices();
+            break;
+    }
+
+    transitionToScene('reveal');
+    revealScene.startReveal(choices);
+}
+
 function advanceDraft() {
     const stage = gameState.draft.stage;
     const team = gameState.draft.playerTeam;
 
     if (stage === 'HERO_1_DRAFT' && team.hero1) {
-        gameState.draft.stage = 'WEAPON_1_DRAFT';
+        gameState.draft.stage = 'WEAPON_1_PACK';
         weaponScene.reset();
         const heroName = allPossibleHeroes.find(h => h.id === team.hero1).name;
-        weaponScene.render(generateWeaponChoices(), heroName);
+        weaponScene.updateInstructions(`Choose a weapon pack for ${heroName}`);
         transitionToScene('weapon');
     } else if (stage === 'WEAPON_1_DRAFT' && team.weapon1) {
         gameState.draft.stage = 'HERO_2_PACK';
@@ -85,10 +96,10 @@ function advanceDraft() {
         packScene.render(gameState.draft.stage);
         transitionToScene('pack');
     } else if (stage === 'HERO_2_DRAFT' && team.hero2) {
-        gameState.draft.stage = 'WEAPON_2_DRAFT';
+        gameState.draft.stage = 'WEAPON_2_PACK';
         weaponScene.reset();
         const heroName = allPossibleHeroes.find(h => h.id === team.hero2).name;
-        weaponScene.render(generateWeaponChoices(), heroName);
+        weaponScene.updateInstructions(`Choose a weapon pack for ${heroName}`);
         transitionToScene('weapon');
     } else if (stage === 'WEAPON_2_DRAFT' && team.weapon2) {
         gameState.draft.stage = 'DONE';

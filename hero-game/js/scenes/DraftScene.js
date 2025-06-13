@@ -1,9 +1,9 @@
 import { createDetailCard } from '../ui/CardRenderer.js';
 
 export class DraftScene {
-    constructor(element, onHeroSelected) {
+    constructor(element, onItemSelected) {
         this.element = element;
-        this.onHeroSelected = onHeroSelected;
+        this.onItemSelected = onItemSelected;
 
         this.instructionsElement = this.element.querySelector('#draft-instructions');
         this.poolElement = this.element.querySelector('#draft-pool');
@@ -11,10 +11,18 @@ export class DraftScene {
 
     render(packData, draftStage) {
         this.poolElement.innerHTML = '';
-        this.instructionsElement.textContent = `Choose your ${draftStage === 'HERO_1_DRAFT' ? 'first' : 'second'} hero.`;
+        let instruction = '';
+        if (draftStage.startsWith('HERO')) {
+            instruction = `Choose your ${draftStage === 'HERO_1_DRAFT' ? 'first' : 'second'} hero.`;
+        } else if (draftStage.startsWith('WEAPON')) {
+            instruction = 'Select a weapon.';
+        } else {
+            instruction = 'Select a card.';
+        }
+        this.instructionsElement.textContent = instruction;
 
-        packData.forEach(hero => {
-            const cardElement = createDetailCard(hero, () => this.onHeroSelected(hero));
+        packData.forEach(item => {
+            const cardElement = createDetailCard(item, () => this.onItemSelected(item));
             this.poolElement.appendChild(cardElement);
         });
     }

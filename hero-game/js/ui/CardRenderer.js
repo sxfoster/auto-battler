@@ -10,7 +10,7 @@ const compactCardTemplate = document.getElementById('compact-card-template');
 export function createDetailCard(item, selectionHandler) {
     const clone = detailCardTemplate.content.cloneNode(true);
     const cardElement = clone.querySelector('.hero-card');
-    const rarityClass = item.rarity.toLowerCase().replace(' ', '-');
+    const rarityClass = (item.rarity || 'common').toLowerCase().replace(' ', '-');
     cardElement.classList.add(rarityClass);
 
     if (item.rarity === 'Ultra Rare') {
@@ -20,21 +20,36 @@ export function createDetailCard(item, selectionHandler) {
     clone.querySelector('.hero-art').style.backgroundImage = `url('${item.art}')`;
     clone.querySelector('.hero-name').textContent = item.name;
 
-    if (item.type === 'hero') {
-        clone.querySelector('.hp-stat .stat-value').textContent = item.hp;
-        clone.querySelector('.attack-stat .stat-value').textContent = item.attack;
-    } else {
-        const statsContainer = clone.querySelector('.hero-stats');
-        statsContainer.innerHTML = `<div class="stat-block"><span class="stat-value">+${item.damage}</span><span class="stat-label">Damage</span></div>`;
+    let statsHtml = '', descriptionHtml = '';
+
+    switch(item.type) {
+        case 'hero':
+            statsHtml = `<div class="stat-block"><span class="stat-value">${item.hp}</span><span class="stat-label">HP</span></div>` +
+                        `<div class="stat-block"><span class="stat-value">${item.attack}</span><span class="stat-label">Attack</span></div>`;
+            descriptionHtml = `<p class="item-description">Class: ${item.class}</p>`;
+            break;
+        case 'ability':
+            descriptionHtml = `<p class="item-description">${item.description}</p>`;
+            break;
+        case 'weapon':
+            statsHtml = `<div class="stat-block"><span class="stat-value">+${item.damage}</span><span class="stat-label">Damage</span></div>`;
+            descriptionHtml = `<ul class="hero-abilities">${item.abilities.map(ab => `<li>${ab.name}</li>`).join('')}</ul>`;
+            break;
+        case 'armor':
+            statsHtml = `<div class="stat-block"><span class="stat-value">+${item.hp}</span><span class="stat-label">HP</span></div>`;
+            descriptionHtml = `<ul class="hero-abilities">${item.abilities.map(ab => `<li>${ab.name}</li>`).join('')}</ul>`;
+            break;
     }
 
-    const abilitiesHtml = item.abilities.map(ab => 
-        `<li>${ab.name}<div class="tooltip">${ab.description}</div></li>`
-    ).join('');
-    clone.querySelector('.hero-abilities').innerHTML = abilitiesHtml;
+    clone.querySelector('.hero-stats').innerHTML = statsHtml;
+    const abilitiesEl = clone.querySelector('.hero-abilities');
+    abilitiesEl.innerHTML = descriptionHtml;
 
-    cardElement.addEventListener('click', () => selectionHandler(item));
-    return clone;
+    if (selectionHandler) {
+        cardElement.addEventListener('click', () => selectionHandler(item));
+    }
+
+    return clone.querySelector('.hero-card-container');
 }
 
 /**

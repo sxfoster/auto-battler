@@ -161,3 +161,28 @@ body {
 #play-again-button { margin-top: 2rem; background-color: #fde047; color: #111827; padding: 1rem 3rem; border: none; border-radius: 0.5rem; font-size: 1.5rem; font-weight: 600; cursor: pointer; transition: transform 0.2s; }
 #play-again-button:hover { transform: scale(1.1); }
 #end-screen-results { display: flex; gap: 1rem; margin-top: 2rem; }
+
+/* ==========================================================================
+   Pack Opening & Reveal Scene Styles
+   ========================================================================== */
+
+/* --- Pack Styles from Prototype --- */
+.pack.opening { animation: shake-and-glow-short 0.5s ease-in-out forwards; }
+@keyframes shake-and-glow-short {
+    0%, 100% { transform: scale(1) rotate(0deg); }
+    20%, 60% { transform: scale(1.05) rotate(2deg); }
+    40%, 80% { transform: scale(1.05) rotate(-2deg); }
+    50% { box-shadow: 0 0 60px rgba(253, 224, 71, 0.8); }
+}
+
+.pack-tear-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; background: rgba(0,0,0,0.5); display: none; }
+
+/* --- Reveal Scene & Animations from Prototype --- */
+#reveal-area { display: flex; justify-content: center; align-items: center; position: relative; }
+.revealed-card { width: 320px; height: 450px; position: absolute; cursor: pointer; transition: transform 0.4s; transform-style: preserve-3d; }
+.revealed-card.is-flipping { transform: rotateY(180deg); }
+.revealed-card.is-dismissed { opacity: 0; transform: translateY(200px); pointer-events: none; }
+.revealed-card.pre-reveal-rare { animation: pulse-glow-rare 1s infinite alternate; }
+.revealed-card.pre-reveal-ultra-rare { animation: pulse-glow-ultra 1s infinite alternate; }
+@keyframes pulse-glow-rare { from { box-shadow: 0 0 10px #f59e0b; } to { box-shadow: 0 0 20px #f59e0b; } }
+@keyframes pulse-glow-ultra { from { box-shadow: 0 0 10px #a78bfa; } to { box-shadow: 0 0 25px #a78bfa; } }
