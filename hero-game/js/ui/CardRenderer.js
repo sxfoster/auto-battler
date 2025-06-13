@@ -13,7 +13,7 @@ export function createDetailCard(item, selectionHandler) {
     const rarityClass = (item.rarity || 'common').toLowerCase().replace(' ', '-');
     cardElement.classList.add(rarityClass);
 
-    if (item.rarity === 'Ultra Rare') {
+    if (item.rarity === 'Epic') { // Changed 'Ultra Rare' to 'Epic'
         clone.querySelector('.shimmer-effect').style.display = 'block';
     }
 

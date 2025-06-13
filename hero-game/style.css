@@ -86,7 +86,7 @@ body {
 .hero-card.common { border-color: #9ca3af; }
 .hero-card.uncommon { border-color: #22c55e; }
 .hero-card.rare { border-color: #f59e0b; }
-.hero-card.ultra-rare { border-color: #a78bfa; }
+.hero-card.epic { border-color: #a78bfa; }
 .shimmer-effect { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(110deg, rgba(255, 255, 255, 0) 40%, rgba(255, 255, 255, 0.25) 50%, rgba(255, 255, 255, 0) 60%); background-size: 200% 100%; animation: shimmer 4s infinite linear; z-index: 2; pointer-events: none; }
 @keyframes shimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
 .hero-art { position: absolute; top: 11%; left: 10%; width: 80%; height: 45%; background-size: cover; background-position: top center; border-radius: 0.75rem; border: 2px solid #71717a; box-shadow: 0 0 10px rgba(0,0,0,0.8) inset; }
@@ -118,7 +118,7 @@ body {
 .compact-card.common { border: 2px solid #9ca3af; }
 .compact-card.uncommon { border: 2px solid #22c55e; }
 .compact-card.rare { border: 2px solid #a88532; }
-.compact-card.ultra-rare { border: 2px solid #a78bfa; }
+.compact-card.epic { border: 2px solid #a78bfa; }
 .compact-art { height: 60%; width: 100%; background-size: cover; background-position: center; border-top-left-radius: 0.3rem; border-top-right-radius: 0.3rem; }
 .compact-info { flex-grow: 1; padding: 0.5rem; display: flex; flex-direction: column; justify-content: space-between; }
 .compact-name { font-size: 1rem; font-weight: 700; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -183,9 +183,9 @@ body {
 .revealed-card.is-flipping { transform: rotateY(180deg); }
 .revealed-card.is-dismissed { opacity: 0; transform: translateY(200px); pointer-events: none; }
 .revealed-card.pre-reveal-rare { animation: pulse-glow-rare 1s infinite alternate; }
-.revealed-card.pre-reveal-ultra-rare { animation: pulse-glow-ultra 1s infinite alternate; }
+.revealed-card.pre-reveal-epic { animation: pulse-glow-epic 1s infinite alternate; }
 @keyframes pulse-glow-rare { from { box-shadow: 0 0 10px #f59e0b; } to { box-shadow: 0 0 20px #f59e0b; } }
-@keyframes pulse-glow-ultra { from { box-shadow: 0 0 10px #a78bfa; } to { box-shadow: 0 0 25px #a78bfa; } }
+@keyframes pulse-glow-epic { from { box-shadow: 0 0 10px #a78bfa; } to { box-shadow: 0 0 25px #a78bfa; } }
 
 /* Card back appearance for unrevealed cards */
 .revealed-card.card-back-unrevealed {
@@ -198,7 +198,7 @@ body {
     box-shadow: 0 0 15px rgba(245, 158, 11, 0.5), inset 0 0 5px rgba(253, 224, 71, 0.3);
 }
 
-.revealed-card.pre-reveal-ultra-rare.card-back-unrevealed {
+.revealed-card.pre-reveal-epic.card-back-unrevealed {
     box-shadow: 0 0 20px rgba(167, 139, 250, 0.6), inset 0 0 8px rgba(190, 24, 93, 0.4);
 }
 

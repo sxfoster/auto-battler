@@ -120,7 +120,7 @@ function generateHeroPack() {
     const rarities = [];
     for (let i = 0; i < 4; i++) {
         const roll = Math.random();
-        if (roll < 0.05) rarities.push('Ultra Rare');
+        if (roll < 0.05) rarities.push('Epic'); // Changed 'Ultra Rare' to 'Epic'
         else if (roll < 0.20) rarities.push('Rare');
         else if (roll < 0.50) rarities.push('Uncommon');
         else rarities.push('Common');
