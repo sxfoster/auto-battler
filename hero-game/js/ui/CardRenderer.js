@@ -17,38 +17,51 @@ export function createDetailCard(item, selectionHandler) {
         clone.querySelector('.shimmer-effect').style.display = 'block';
     }
 
+    // Set universal properties
     clone.querySelector('.hero-art').style.backgroundImage = `url('${item.art}')`;
     clone.querySelector('.hero-name').textContent = item.name;
 
-    let statsHtml = '', descriptionHtml = '';
+    let statsHtml = '';
+    let descriptionHtml = '';
 
+    // Use a switch statement to handle different item types
     switch(item.type) {
         case 'hero':
-            statsHtml = `<div class="stat-block"><span class="stat-value">${item.hp}</span><span class="stat-label">HP</span></div>` +
-                        `<div class="stat-block"><span class="stat-value">${item.attack}</span><span class="stat-label">Attack</span></div>`;
+            statsHtml = `
+                <div class="stat-block"><span class="stat-value">${item.hp}</span><span class="stat-label">HP</span></div>
+                <div class="stat-block"><span class="stat-value">${item.attack}</span><span class="stat-label">Attack</span></div>`;
             descriptionHtml = `<p class="item-description">Class: ${item.class}</p>`;
             break;
         case 'ability':
+            // Abilities might not have stats, just a description
             descriptionHtml = `<p class="item-description">${item.description}</p>`;
             break;
         case 'weapon':
             statsHtml = `<div class="stat-block"><span class="stat-value">+${item.damage}</span><span class="stat-label">Damage</span></div>`;
-            descriptionHtml = `<ul class="hero-abilities">${item.abilities.map(ab => `<li>${ab.name}</li>`).join('')}</ul>`;
+            // Check if abilities exist on the weapon before trying to map them
+            if (item.abilities && item.abilities.length > 0) {
+                descriptionHtml = `<ul class="hero-abilities">${item.abilities.map(ab => `<li>${ab.name}</li>`).join('')}</ul>`;
+            }
             break;
         case 'armor':
             statsHtml = `<div class="stat-block"><span class="stat-value">+${item.hp}</span><span class="stat-label">HP</span></div>`;
-            descriptionHtml = `<ul class="hero-abilities">${item.abilities.map(ab => `<li>${ab.name}</li>`).join('')}</ul>`;
+            if (item.abilities && item.abilities.length > 0) {
+                descriptionHtml = `<ul class="hero-abilities">${item.abilities.map(ab => `<li>${ab.name}</li>`).join('')}</ul>`;
+            }
             break;
+        default:
+            // Fallback for unknown types
+            descriptionHtml = `<p class="item-description">An unknown item.</p>`;
     }
 
     clone.querySelector('.hero-stats').innerHTML = statsHtml;
-    const abilitiesEl = clone.querySelector('.hero-abilities');
-    abilitiesEl.innerHTML = descriptionHtml;
+    clone.querySelector('.hero-abilities').innerHTML = descriptionHtml;
 
     if (selectionHandler) {
         cardElement.addEventListener('click', () => selectionHandler(item));
     }
 
+    // The prototype returned the container, which is good practice
     return clone.querySelector('.hero-card-container');
 }
 
