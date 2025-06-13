@@ -1,0 +1,163 @@
+/* --- Base Styles --- */
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: #111827;
+    color: white;
+    overflow-x: hidden;
+}
+.font-cinzel { font-family: 'Cinzel', serif; }
+
+/* --- Scene Containers --- */
+.scene {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    transition: opacity 0.7s ease-out, transform 0.7s ease-out;
+}
+.scene.hidden {
+    opacity: 0;
+    transform: scale(0.95);
+    pointer-events: none;
+    position: absolute;
+    width: 100%;
+    left: 0;
+    top: 0;
+}
+
+/* --- Booster Pack Scene --- */
+.booster-pack, .weapon-pack {
+    border-radius: 1rem;
+    border: 3px solid #fde047;
+    cursor: pointer;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    position: relative;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.booster-pack {
+    width: 280px;
+    height: 400px;
+    background: linear-gradient(45deg, #4c1d95, #be185d);
+    box-shadow: 0 0 30px rgba(253, 224, 71, 0.4), inset 0 0 20px rgba(0,0,0,0.5);
+}
+ .weapon-pack {
+    width: 350px;
+    height: 280px;
+    background: linear-gradient(135deg, #422d1a, #854d0e);
+    box-shadow: 0 0 30px rgba(133, 77, 14, 0.6), inset 0 0 20px rgba(0,0,0,0.5);
+}
+
+.booster-pack:hover, .weapon-pack:hover {
+    transform: scale(1.05) translateY(-10px);
+}
+
+/* Pack opening animations */
+.opening {
+    animation: shake-and-glow 1.5s ease-in-out, fade-out 0.5s ease-in 1.5s forwards;
+}
+@keyframes shake-and-glow {
+    0%, 100% { transform: scale(1.0) rotate(0deg); }
+    10%, 30%, 50%, 70%, 90% { transform: scale(1.1) rotate(-2deg); }
+    20%, 40%, 60%, 80% { transform: scale(1.1) rotate(2deg); }
+    50% { box-shadow: 0 0 80px rgba(253, 224, 71, 0.9); }
+}
+@keyframes fade-out {
+    to { transform: scale(1.5); opacity: 0; }
+}
+
+/* --- Draft Scene --- */
+.draft-pool { display: grid; grid-template-columns: repeat(1, 1fr); gap: 2rem; width: 100%; max-width: 1400px; justify-items: center; }
+@media (min-width: 768px) { .draft-pool { grid-template-columns: repeat(2, 1fr); } }
+@media (min-width: 1380px) { .draft-pool { grid-template-columns: repeat(4, 1fr); } }
+.weapon-draft-pool { grid-template-columns: repeat(1, 1fr); }
+@media (min-width: 1024px) { .weapon-draft-pool { grid-template-columns: repeat(3, 1fr); } }
+
+/* --- Detail Card Styles --- */
+.hero-card-container { width: 320px; height: 450px; position: relative; perspective: 1500px; }
+.hero-card { box-shadow: 0 10px 25px rgba(0,0,0,0.5); transform-style: preserve-3d; cursor: pointer; border: 4px solid transparent; transition: all 0.3s; width: 100%; height: 100%; position: absolute; border-radius: 1.25rem; background-size: cover; background-position: center; overflow: hidden; }
+.hero-card:hover { transform: translateY(-10px) scale(1.05); }
+.hero-card.selected { border-color: #f59e0b; box-shadow: 0 0 25px #f59e0b, 0 10px 30px rgba(0,0,0,0.7); transform: translateY(-5px) scale(1.02); }
+.hero-card.disabled { opacity: 0.5; pointer-events: none; }
+.hero-card.common { border-color: #9ca3af; }
+.hero-card.uncommon { border-color: #22c55e; }
+.hero-card.rare { border-color: #f59e0b; }
+.hero-card.ultra-rare { border-color: #a78bfa; }
+.shimmer-effect { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(110deg, rgba(255, 255, 255, 0) 40%, rgba(255, 255, 255, 0.25) 50%, rgba(255, 255, 255, 0) 60%); background-size: 200% 100%; animation: shimmer 4s infinite linear; z-index: 2; pointer-events: none; }
+@keyframes shimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+.hero-art { position: absolute; top: 11%; left: 10%; width: 80%; height: 45%; background-size: cover; background-position: top center; border-radius: 0.75rem; border: 2px solid #71717a; box-shadow: 0 0 10px rgba(0,0,0,0.8) inset; }
+.hero-name { position: absolute; top: 5%; width: 100%; text-align: center; font-size: 1.5rem; font-weight: 700; text-shadow: 2px 2px 4px #000; }
+.hero-stats { position: absolute; bottom: 30%; width: 100%; display: flex; justify-content: space-around; padding: 0 1rem; }
+.stat-block { text-align: center; }
+.stat-value { font-size: 1.25rem; font-weight: 600; }
+.stat-label { font-size: 0.75rem; text-transform: uppercase; opacity: 0.8; }
+.hero-abilities { position: absolute; bottom: 5%; width: 100%; padding: 0 1.5rem; list-style: none; font-size: 0.875rem; }
+.hero-abilities li { position: relative; margin-bottom: 0.25rem; padding: 0.25rem; border-radius: 0.25rem; }
+.tooltip { visibility: hidden; opacity: 0; position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%); background-color: #1f2937; color: white; padding: 0.5rem 0.75rem; border-radius: 0.5rem; border: 1px solid #4b5563; font-size: 0.8rem; width: max-content; max-width: 220px; z-index: 100; transition: opacity 0.3s; pointer-events: none; margin-bottom: 8px; }
+.hero-abilities li:hover .tooltip { visibility: visible; opacity: 1; }
+
+/* --- Confirmation Bar --- */
+.confirmation-bar { position: fixed; bottom: -100px; left: 0; width: 100%; background-color: rgba(0,0,0,0.7); backdrop-filter: blur(5px); padding: 1rem; display: flex; justify-content: center; align-items: center; transition: bottom 0.5s ease-in-out; z-index: 100; }
+.confirmation-bar.visible { bottom: 0; }
+.confirm-button { background-color: #f59e0b; color: #111827; padding: 0.75rem 2rem; border-radius: 0.5rem; font-size: 1.125rem; font-weight: 600; cursor: pointer; transition: background-color 0.2s; }
+.confirm-button:hover { background-color: #fbbf24; }
+
+/* --- Battle Scene Styles --- */
+#battle-scene-background {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    background-image: url('https://placehold.co/1920x1080/292524/78716c?text=Rocky+Cave');
+    background-size: cover; background-position: center; z-index: -1; filter: blur(4px) brightness(0.7);
+}
+.battle-arena { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; width: 100%; max-width: 1200px; padding: 2rem; align-items: center; }
+.team-container { display: flex; flex-direction: column; align-items: center; gap: 2rem; }
+.compact-card { width: 150px; height: 210px; border-radius: 0.5rem; background-color: #2d3748; position: relative; overflow: visible; display: flex; flex-direction: column; box-shadow: 0 4px 12px rgba(0,0,0,0.5); transition: transform 0.3s ease; }
+.compact-card.common { border: 2px solid #9ca3af; }
+.compact-card.uncommon { border: 2px solid #22c55e; }
+.compact-card.rare { border: 2px solid #a88532; }
+.compact-card.ultra-rare { border: 2px solid #a78bfa; }
+.compact-art { height: 60%; width: 100%; background-size: cover; background-position: center; border-top-left-radius: 0.3rem; border-top-right-radius: 0.3rem; }
+.compact-info { flex-grow: 1; padding: 0.5rem; display: flex; flex-direction: column; justify-content: space-between; }
+.compact-name { font-size: 1rem; font-weight: 700; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.hp-text { font-size: 0.75rem; text-align: center; opacity: 0.8; margin-bottom: 0.25rem; }
+.compact-hp-bar-container { width: 100%; height: 8px; background-color: #1f2937; border-radius: 4px; overflow: hidden; }
+.compact-hp-bar { height: 100%; width: 100%; background-color: #48bb78; border-radius: 4px; transition: width 0.5s ease; }
+.compact-card.is-attacking { transform: scale(1.1) translateY(-10px); z-index: 50; }
+.compact-card.is-taking-damage { animation: take-damage 0.07s ease; }
+@keyframes take-damage { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
+.compact-card.is-defeated { opacity: 0.4; filter: grayscale(100%); transform: translateY(20px) scale(0.9); }
+.damage-popup { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 2rem; font-weight: 700; color: #ef4444; text-shadow: 1px 1px 2px black; animation: popup-and-fade 0.25s ease-out forwards; pointer-events: none; z-index: 100; }
+@keyframes popup-and-fade { 0% { transform: translate(-50%, -50%) scale(0.5); opacity: 1; } 100% { transform: translate(-50%, -150%) scale(1.2); opacity: 0; } }
+.status-icon-container { position: absolute; top: -10px; right: -10px; display: flex; gap: 0.25rem; }
+.status-icon { width: 24px; height: 24px; background-color: rgba(0,0,0,0.7); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; border: 1px solid white; }
+#battle-log { position: absolute; bottom: 1rem; left: 50%; transform: translateX(-50%); width: 90%; max-width: 600px; background-color: rgba(0,0,0,0.5); backdrop-filter: blur(4px); padding: 0.75rem; border-radius: 0.5rem; text-align: center; font-size: 1.1rem; transition: opacity 0.5s; }
+
+#speed-cycle-button {
+    position: absolute;
+    top: 1rem;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #4b5563;
+    border: 1px solid #6b7280;
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    z-index: 150;
+    transition: background-color 0.2s;
+}
+#speed-cycle-button:hover {
+    background-color: #6b7280;
+}
+
+#end-screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.7); backdrop-filter: blur(8px); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 200; opacity: 0; transition: opacity 1s ease; pointer-events: none; }
+#end-screen.visible { opacity: 1; pointer-events: all; }
+#end-screen-result-text { font-size: 6rem; font-weight: 700; text-transform: uppercase; }
+#end-screen.victory #end-screen-result-text { color: #fde047; text-shadow: 0 0 20px #f59e0b; }
+#end-screen.defeat #end-screen-result-text { color: #ef4444; text-shadow: 0 0 20px #b91c1c; }
+#play-again-button { margin-top: 2rem; background-color: #fde047; color: #111827; padding: 1rem 3rem; border: none; border-radius: 0.5rem; font-size: 1.5rem; font-weight: 600; cursor: pointer; transition: transform 0.2s; }
+#play-again-button:hover { transform: scale(1.1); }
+#end-screen-results { display: flex; gap: 1rem; margin-top: 2rem; }
