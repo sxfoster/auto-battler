@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Character Draft</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #111827; /* gray-900 */
+            color: #f3f4f6; /* gray-100 */
+            overflow: hidden;
+        }
+        .font-cinzel {
+            font-family: 'Cinzel', serif;
+        }
+
+        /* --- NEW: Booster Pack Screen --- */
+        #booster-pack-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            transition: opacity 0.5s ease-out;
+        }
+        .booster-pack {
+            width: 250px;
+            height: 350px;
+            background: linear-gradient(45deg, #4c1d95, #be185d);
+            border-radius: 1rem;
+            border: 3px solid #fde047; /* yellow-300 */
+            box-shadow: 0 0 30px rgba(253, 224, 71, 0.4), inset 0 0 20px rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .booster-pack:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 45px rgba(253, 224, 71, 0.6), inset 0 0 20px rgba(0,0,0,0.3);
+        }
+        #booster-pack-screen.is-opening {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        /* --- Draft UI Container --- */
+        .draft-container {
+            max-width: 1200px;
+            margin: auto;
+            padding: 2rem;
+            opacity: 0;
+            transition: opacity 0.5s ease-in 0.5s;
+        }
+        .draft-container.visible {
+            opacity: 1;
+        }
+
+        .team-slots {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 2rem;
+            background-color: rgba(0,0,0,0.2);
+            padding: 1.5rem;
+            border-radius: 1rem;
+            border: 1px solid #374151; /* gray-700 */
+        }
+        .team-slot {
+            background-color: #1f2937; /* gray-800 */
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 250px;
+            border: 2px dashed #4b5563; /* gray-600 */
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .team-slot.filled {
+            border-style: solid;
+            border-color: #f59e0b; /* amber-500 */
+            background-color: #374151; /* gray-700 */
+        }
+        .draft-pool {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr); /* Always 4 cards */
+            gap: 1.5rem;
+            justify-items: center;
+            min-height: 180px; /* Give it some space */
+        }
+        
+        /* --- COMPACT CARD STYLES --- */
+        .compact-card {
+            width: 100px;
+            height: 140px;
+            border-radius: 0.5rem;
+            background-color: #2d3748;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+            opacity: 0;
+            transform: scale(0.8);
+            animation: reveal-card 0.5s forwards;
+        }
+        @keyframes reveal-card {
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+        
+        .compact-card:hover {
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+        }
+
+        .compact-card.common { border: 2px solid #9ca3af; }
+        .compact-card.uncommon { border: 2px solid #22c55e; }
+        .compact-card.rare { border: 2px solid #a88532; }
+        .compact-card.ultra-rare { border: 2px solid #a78bfa; }
+        
+        .compact-art-circle {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            margin: 0.5rem auto;
+            background-color: #111827;
+            background-size: cover;
+            background-position: center;
+            border: 2px solid #4b5563;
+        }
+
+        .compact-info {
+            padding: 0.25rem;
+            text-align: center;
+            margin-top: -0.5rem;
+        }
+        .compact-name {
+            font-size: 0.875rem;
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .compact-rarity {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            opacity: 0.7;
+        }
+        .shimmer-effect {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(110deg, rgba(255, 255, 255, 0) 40%, rgba(255, 255, 255, 0.25) 50%, rgba(255, 255, 255, 0) 60%);
+            background-size: 200% 100%;
+            animation: shimmer 4s infinite linear;
+            z-index: 2;
+            pointer-events: none;
+        }
+        @keyframes shimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+
+        .confirm-button {
+            background-color: #f59e0b;
+            color: #111827;
+            padding: 0.75rem 2rem;
+            border: none;
+            border-radius: 0.5rem;
+            font-size: 1.125rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            opacity: 0.5;
+            pointer-events: none;
+        }
+        .confirm-button.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .confirm-button:hover.active {
+            background-color: #d97706;
+        }
+    </style>
+</head>
+<body>
+    
+    <!-- New Booster Pack Screen -->
+    <div id="booster-pack-screen">
+        <h1 class="text-5xl font-cinzel tracking-wider mb-8">Open Your Pack</h1>
+        <div id="booster-pack" class="booster-pack">
+            <i class="fa-solid fa-wand-sparkles text-8xl text-yellow-200 opacity-80"></i>
+        </div>
+        <p class="text-lg text-gray-400 mt-8">Click the pack to reveal your heroes.</p>
+    </div>
+
+    <!-- Existing Draft UI (initially hidden) -->
+    <div id="draft-container" class="draft-container">
+        <header class="text-center mb-8">
+            <h1 class="text-5xl font-cinzel tracking-wider">Assemble Your Team</h1>
+            <p class="text-lg text-gray-400 mt-2">Choose two heroes from your pack.</p>
+        </header>
+
+        <section class="mb-10">
+            <h2 class="text-2xl font-cinzel mb-4">Your Team</h2>
+            <div class="team-slots">
+                <div id="slot-1" class="team-slot">
+                    <i class="fa-solid fa-plus text-4xl text-gray-500"></i>
+                    <p class="mt-2 text-gray-500">Select Hero 1</p>
+                </div>
+                <div id="slot-2" class="team-slot">
+                     <i class="fa-solid fa-plus text-4xl text-gray-500"></i>
+                     <p class="mt-2 text-gray-500">Select Hero 2</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="mb-10">
+            <h2 class="text-2xl font-cinzel mb-4">Your Heroes</h2>
+            <div id="draft-pool" class="draft-pool">
+                <!-- Hero cards will be dynamically inserted here -->
+            </div>
+        </section>
+
+        <footer class="text-center">
+            <button id="confirm-draft" class="confirm-button">Confirm Draft</button>
+        </footer>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const allPossibleHeroes = [
+                { id: 1, name: 'Recruit', rarity: 'Common', art: 'https://placehold.co/80x80/7f1d1d/ffffff?text=W' },
+                { id: 2, name: 'Squire', rarity: 'Uncommon', art: 'https://placehold.co/80x80/166534/ffffff?text=W' },
+                { id: 3, name: 'Warrior', rarity: 'Rare', art: 'https://placehold.co/80x80/000000/ffffff?text=W' },
+                { id: 4, name: 'Champion', rarity: 'Ultra Rare', art: 'https://placehold.co/80x80/111827/ffffff?text=W' },
+                { id: 5, name: 'Acolyte', rarity: 'Common', art: 'https://placehold.co/80x80/f7fafc/1a202c?text=C' },
+                { id: 6, name: 'Priest', rarity: 'Uncommon', art: 'https://placehold.co/80x80/bfdbfe/1e3a8a?text=C' },
+                { id: 7, name: 'Cleric', rarity: 'Rare', art: 'https://placehold.co/80x80/fefce8/a16207?text=C' },
+                { id: 8, name: 'High Priest', rarity: 'Ultra Rare', art: 'https://placehold.co/80x80/ecfdf5/065f46?text=C' },
+                { id: 9, name: 'Thug', rarity: 'Common', art: 'https://placehold.co/80x80/3730a3/ffffff?text=R' },
+                { id: 10, name: 'Bandit', rarity: 'Uncommon', art: 'https://placehold.co/80x80/5b21b6/ffffff?text=R' },
+                { id: 11, name: 'Rogue', rarity: 'Rare', art: 'https://placehold.co/80x80/1e1b4b/ffffff?text=R' },
+                { id: 12, name: 'Assassin', rarity: 'Ultra Rare', art: 'https://placehold.co/80x80/000000/ffffff?text=R' },
+            ];
+            
+            let heroDraftPool = []; // This will hold the 4 heroes from the pack
+            let selectedHeroes = [null, null];
+
+            const boosterPackScreen = document.getElementById('booster-pack-screen');
+            const boosterPack = document.getElementById('booster-pack');
+            const draftContainer = document.getElementById('draft-container');
+            const draftPoolContainer = document.getElementById('draft-pool');
+            const teamSlots = [document.getElementById('slot-1'), document.getElementById('slot-2')];
+            const confirmButton = document.getElementById('confirm-draft');
+
+            function openBoosterPack() {
+                // 1. Generate the random hero pool
+                const shuffled = [...allPossibleHeroes].sort(() => 0.5 - Math.random());
+                heroDraftPool = shuffled.slice(0, 4);
+
+                // 2. Animate out the pack screen
+                boosterPackScreen.classList.add('is-opening');
+
+                // 3. Render the draft pool (it's hidden but needs to be ready)
+                renderDraftPool();
+                
+                // 4. After animation, show the draft screen
+                setTimeout(() => {
+                    draftContainer.classList.add('visible');
+                }, 500);
+            }
+
+            boosterPack.addEventListener('click', openBoosterPack);
+
+            function renderDraftPool() {
+                draftPoolContainer.innerHTML = '';
+                heroDraftPool.forEach((hero, index) => {
+                    const isSelected = selectedHeroes.some(h => h && h.id === hero.id);
+                    const card = document.createElement('div');
+                    
+                    const rarityClass = hero.rarity.toLowerCase().replace(' ', '-');
+                    card.className = `compact-card ${rarityClass}`;
+                    card.dataset.heroId = hero.id;
+                    card.style.animationDelay = `${index * 100}ms`;
+
+                    if(isSelected) {
+                        card.style.opacity = '0.4';
+                        card.style.cursor = 'not-allowed';
+                        card.style.pointerEvents = 'none';
+                    }
+
+                    let shimmerHtml = '';
+                    if (hero.rarity === 'Ultra Rare') {
+                        shimmerHtml = '<div class="shimmer-effect"></div>';
+                    }
+
+                    card.innerHTML = `
+                        ${shimmerHtml}
+                        <div class="compact-art-circle" style="background-image: url('${hero.art}')"></div>
+                        <div class="compact-info">
+                            <div class="compact-name font-cinzel">${hero.name}</div>
+                            <div class="compact-rarity">${hero.rarity}</div>
+                        </div>
+                    `;
+
+                    card.addEventListener('click', () => selectHero(hero));
+                    draftPoolContainer.appendChild(card);
+                });
+            }
+
+            function selectHero(hero) {
+                const emptySlotIndex = selectedHeroes.findIndex(h => h === null);
+                if (emptySlotIndex !== -1) {
+                    selectedHeroes[emptySlotIndex] = hero;
+                    renderTeamSlots();
+                    renderDraftPool();
+                    checkConfirmation();
+                }
+            }
+            
+            function unselectHero(slotIndex) {
+                 selectedHeroes[slotIndex] = null;
+                 renderTeamSlots();
+                 renderDraftPool();
+                 checkConfirmation();
+            }
+
+            function renderTeamSlots() {
+                teamSlots.forEach((slot, index) => {
+                    const hero = selectedHeroes[index];
+                    if (hero) {
+                        slot.classList.add('filled');
+                        const rarityClass = hero.rarity.toLowerCase().replace(' ', '-');
+                        slot.innerHTML = `
+                            <div class="compact-art-circle" style="background-image: url('${hero.art}'); width: 100px; height: 100px; border-width: 3px; border-color: #${rarityClass === 'common' ? '9ca3af' : rarityClass === 'uncommon' ? '22c55e' : rarityClass === 'rare' ? 'a88532' : 'a78bfa'};"></div>
+                            <h3 class="text-2xl mt-4 font-bold font-cinzel">${hero.name}</h3>
+                            <p class="text-lg text-gray-400">${hero.rarity}</p>
+                        `;
+                    } else {
+                        slot.classList.remove('filled');
+                        slot.innerHTML = `
+                            <i class="fa-solid fa-plus text-4xl text-gray-500"></i>
+                            <p class="mt-2 text-gray-500">Select Hero ${index + 1}</p>
+                        `;
+                    }
+                });
+            }
+            
+            function checkConfirmation() {
+                const allSlotsFilled = selectedHeroes.every(h => h !== null);
+                if(allSlotsFilled) {
+                    confirmButton.classList.add('active');
+                } else {
+                    confirmButton.classList.remove('active');
+                }
+            }
+
+            // Initial setup for the team slots (so they're clickable)
+            teamSlots.forEach((slot, index) => {
+                slot.addEventListener('click', () => {
+                    if (selectedHeroes[index] !== null) {
+                        unselectHero(index);
+                    }
+                });
+            });
+
+        });
+    </script>
+
+</body>
+</html>
