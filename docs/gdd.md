@@ -2,23 +2,23 @@
 
 ## 1. Game Overview
 - **Title:** [TBD]
-- **Genre:** Card-based RPG
+- **Genre:** Session-based PvP 'Pack Draft' Auto-Battler
 - **Platform:** Digital card game
 - **Target Audience:** Strategy and RPG fans, ages 12+
-- **Core Concept:** Players choose a class and use ability cards to battle monsters, gaining new item and ability cards as they progress. The game focuses on managing a party of heroes through turn-based combat and survival mechanics within a dungeon ecosystem.
+- **Core Concept:** Build a squad by drafting Hero, Weapon, and Ability cards each turn and battle opponents in automated, turn-based combat.
+
+## Prototype Design Pillars
+1. **GENRE:** A session-based, PvP "Pack Draft" Auto-Battler.
+2. **CORE LOOP:** Each turn, players draft one card each from a Hero Pack, a Weapon Pack, and an Ability Pack. There is no gold or shop.
+3. **COMBAT:** Automatic and turn-based, using a Speed stat for turn order. Heroes perform a free "Auto-Attack" by default and spend saved **Energy** to use powerful equipped Abilities.
+4. **HEROES:** Class-based "chassis" with innate keywords, specific card slots, and unchangeable AI Personas (e.g., "Squire - Aggressive").
+5. **PROGRESSION:** All cards have four Tiers of rarity. Higher Tiers are unlocked in draft packs as the Player Level increases automatically each turn. The four tiers of each Hero Class tell a narrative story.
 
 ## 2. Gameplay Mechanics
-- **Turn-Based Combat:** Players engage in strategic battles using ability cards against AI-controlled or player-controlled monsters.
-- **Class System:** Players choose from multiple classes, each with unique ability cards.
-- **Deck Building:** Players can customize their decks by collecting and equipping new ability and item cards.
-- **Resource Management:** Players must manage energy to play cards effectively. Additionally, players must manage party fatigue, hunger, and thirst during dungeon exploration.
-- **Progression System:** Players gain experience, unlock new cards, and improve their decks as they progress.
-- **Drafting Phase:** The player progression for drafting follows a sequential flow:
-    *   **Stage 1:** Player opens a Hero Pack and drafts one hero.
-    *   **Stage 2:** Player is presented with a Weapon Pack and drafts one weapon for that hero.
-    *   **Stage 3:** Player opens a second, new Hero Pack and drafts their second hero.
-    *   **Stage 4:** Player is presented with a second, new Weapon Pack and drafts one weapon for the second hero.
-    *   **Stage 5:** Confirmation screen.
+- **Turn-Based Auto Combat:** Heroes act automatically in order of **Speed**. Each hero performs a free Auto-Attack when it is their turn and spends saved **Energy** to use equipped Abilities.
+- **Pack Draft Loop:** Instead of a gold-based shop, players draft one card from a Hero Pack, a Weapon Pack, and an Ability Pack every turn.
+- **Hero Chassis:** Classes determine innate keywords, card slots, and an unchangeable AI Persona that guides combat behavior.
+- **Progression System:** Player Level increases automatically each turn, unlocking higher Tier cards in the draft packs.
 
 ## 3. Game Components
 - **Ability Cards:** Unique to each class, used for attacks, defense, and special effects.
