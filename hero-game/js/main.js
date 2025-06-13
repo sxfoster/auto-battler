@@ -5,6 +5,7 @@ import { allPossibleHeroes, allPossibleWeapons } from './data.js';
 import { PackScene } from './scenes/PackScene.js';
 import { DraftScene } from './scenes/DraftScene.js';
 import { WeaponScene } from './scenes/WeaponScene.js';
+// RevealScene handles displaying cards from a pack
 import { RevealScene } from './scenes/RevealScene.js';
 import { BattleScene } from './scenes/BattleScene.js';
 
@@ -21,8 +22,9 @@ const gameState = {
 // --- DOM ELEMENTS ---
 const sceneElements = {
     pack: document.getElementById('pack-scene'),
-    draft: document.getElementById('draft-scene'),
+    // element used for the card reveal flow
     reveal: document.getElementById('reveal-scene'),
+    draft: document.getElementById('draft-scene'),
     weapon: document.getElementById('weapon-scene'),
     battle: document.getElementById('battle-scene'),
 };
@@ -34,9 +36,14 @@ const confirmDraftButton = document.getElementById('confirm-draft');
 const packScene = new PackScene(sceneElements.pack, () => openPack());
 
 const revealScene = new RevealScene(sceneElements.reveal, (revealedCards) => {
+    // --- onRevealComplete ---
+    // 1. advance the draft stage from PACK to DRAFT
     gameState.draft.stage = gameState.draft.stage.replace('PACK', 'DRAFT');
 
+    // 2. render the draft scene using the revealed cards
     draftScene.render(revealedCards, gameState.draft.stage);
+
+    // 3. show the draft scene
     transitionToScene('draft');
 });
 const draftScene = new DraftScene(sceneElements.draft, (selectedItem) => {
