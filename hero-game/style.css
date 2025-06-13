@@ -186,3 +186,24 @@ body {
 .revealed-card.pre-reveal-ultra-rare { animation: pulse-glow-ultra 1s infinite alternate; }
 @keyframes pulse-glow-rare { from { box-shadow: 0 0 10px #f59e0b; } to { box-shadow: 0 0 20px #f59e0b; } }
 @keyframes pulse-glow-ultra { from { box-shadow: 0 0 10px #a78bfa; } to { box-shadow: 0 0 25px #a78bfa; } }
+
+/* Card back appearance for unrevealed cards */
+.revealed-card.card-back-unrevealed {
+    background-color: #374151;
+    border: 4px solid #9ca3af;
+}
+
+/* Maintain glow for rare cards while showing the back */
+.revealed-card.pre-reveal-rare.card-back-unrevealed {
+    box-shadow: 0 0 15px rgba(245, 158, 11, 0.5), inset 0 0 5px rgba(253, 224, 71, 0.3);
+}
+
+.revealed-card.pre-reveal-ultra-rare.card-back-unrevealed {
+    box-shadow: 0 0 20px rgba(167, 139, 250, 0.6), inset 0 0 8px rgba(190, 24, 93, 0.4);
+}
+
+/* Remove card back styles when the card is flipping */
+.revealed-card.is-flipping.card-back-unrevealed {
+    background-color: transparent;
+    border-color: transparent;
+}

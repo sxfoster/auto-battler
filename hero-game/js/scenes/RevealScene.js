@@ -20,7 +20,8 @@ export class RevealScene {
 
         choices.slice().reverse().forEach((item, index) => {
             const cardWrapper = document.createElement('div');
-            cardWrapper.className = 'revealed-card';
+            // Initially display the card as the back side with glow effects
+            cardWrapper.className = 'revealed-card card-back-unrevealed';
             cardWrapper.dataset.cardIndex = choices.length - 1 - index;
 
             const rotation = (index - 1) * 5;
