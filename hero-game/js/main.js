@@ -90,31 +90,29 @@ function openPack() {
     const stage = gameState.draft.stage;
     const stageType = stage.split('_')[0].toUpperCase();
     let choices = [];
+    let dataSource = [];
     switch(stageType) {
         case 'HERO':
             choices = generateHeroPack();
-            break;
-        case 'WEAPON':
-            choices = generateWeaponChoices();
-            break;
-        case 'ARMOR':
-            choices = generateArmorChoices();
             break;
         case 'ABILITY':
             const heroSlot = stage.includes('_1_') ? 'hero1' : 'hero2';
             const heroId = gameState.draft.playerTeam[heroSlot];
             const heroClass = allPossibleHeroes.find(h => h.id === heroId).class;
-            let dataSource = allPossibleAbilities.filter(a => a.class === heroClass);
 
-            const offense = dataSource.filter(a => a.category === 'Offense' && a.rarity === 'Common');
-            const defense = dataSource.filter(a => a.category === 'Defense' && a.rarity === 'Common');
-            const support = dataSource.filter(a => a.category === 'Support' && a.rarity === 'Common');
+            dataSource = allPossibleAbilities.filter(a => a.class === heroClass);
 
-            choices = [
-                offense[Math.floor(Math.random() * offense.length)],
-                defense[Math.floor(Math.random() * defense.length)],
-                support[Math.floor(Math.random() * support.length)],
-            ];
+            const shuffledAbilities = [...dataSource].sort(() => 0.5 - Math.random());
+            choices = shuffledAbilities.slice(0, 3);
+
+            transitionToScene('reveal');
+            revealScene.startReveal(choices);
+            return;
+        case 'WEAPON':
+            choices = generateWeaponChoices();
+            break;
+        case 'ARMOR':
+            choices = generateArmorChoices();
             break;
     }
 
