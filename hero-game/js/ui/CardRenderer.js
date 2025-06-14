@@ -60,10 +60,24 @@ export function createDetailCard(item, selectionHandler) {
             break;
         case 'armor':
             cardElement.style.backgroundColor = '#1e293b';
-            statsHtml = `<div class="stat-block"><span class="stat-value">+${item.hp}</span><span class="stat-label">HP</span></div>`;
-            if (item.abilities && item.abilities.length > 0) {
-                descriptionHtml = `<ul class="hero-abilities">${item.abilities.map(ab => `<li>${ab.name}</li>`).join('')}</ul>`;
+
+            // Dynamically create stat blocks from the statBonuses object
+            if (item.statBonuses) {
+                statsHtml = Object.entries(item.statBonuses).map(([stat, value]) => {
+                    const sign = value > 0 ? '+' : '';
+                    return `<div class="stat-block"><span class="stat-value">${sign}${value}</span><span class="stat-label">${stat}</span></div>`;
+                }).join('');
             }
+
+            // Display the armor type and passive ability if present
+            descriptionHtml = `
+                <div class="item-ability">
+                    <span class="armor-type-label">${item.armorType} Armor</span>
+                    ${item.ability ? `
+                        <span class="ability-name">${item.ability.name}</span>
+                        <p class="ability-description">${item.ability.description}</p>
+                    ` : ''}
+                </div>`;
             break;
         default:
             cardElement.style.backgroundColor = '#263238';

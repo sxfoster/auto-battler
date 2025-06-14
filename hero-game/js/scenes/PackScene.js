@@ -22,7 +22,13 @@ export class PackScene {
     }
     
     render(draftStage) {
-        this.titleElement.textContent = draftStage === 'HERO_1_PACK' ? 'Open Your Hero Pack' : 'Open Pack for Second Hero';
+        if (draftStage.startsWith('HERO')) {
+            this.titleElement.textContent = draftStage === 'HERO_1_PACK' ? 'Open Your Hero Pack' : 'Open Pack for Second Hero';
+        } else if (draftStage.startsWith('ARMOR')) {
+            this.titleElement.textContent = draftStage === 'ARMOR_1_PACK' ? 'Open Your Armor Pack' : 'Open Pack for Second Armor';
+        } else {
+            this.titleElement.textContent = 'Open Pack';
+        }
     }
 
     reset() {
