@@ -1,5 +1,5 @@
 // Import data and utilities
-import { allPossibleHeroes, allPossibleWeapons } from './data.js';
+import { allPossibleHeroes, allPossibleWeapons, allPossibleArmors } from './data.js';
 
 // Import UI and Scene classes
 import { PackScene } from './scenes/PackScene.js';
@@ -15,7 +15,7 @@ const gameState = {
     currentScene: 'pack', // 'pack', 'draft', 'weapon', 'battle'
     draft: {
         stage: 'HERO_1_PACK', // HERO_1_PACK, HERO_1_DRAFT, WEAPON_1_DRAFT, HERO_2_PACK, etc.
-        playerTeam: { hero1: null, weapon1: null, hero2: null, weapon2: null },
+        playerTeam: { hero1: null, weapon1: null, armor1: null, hero2: null, weapon2: null, armor2: null },
     }
 };
 
@@ -56,6 +56,10 @@ const draftScene = new DraftScene(sceneElements.draft, (selectedItem) => {
         gameState.draft.playerTeam.weapon1 = selectedItem.id;
     } else if (stage === 'WEAPON_2_DRAFT') {
         gameState.draft.playerTeam.weapon2 = selectedItem.id;
+    } else if (stage === 'ARMOR_1_DRAFT') {
+        gameState.draft.playerTeam.armor1 = selectedItem.id;
+    } else if (stage === 'ARMOR_2_DRAFT') {
+        gameState.draft.playerTeam.armor2 = selectedItem.id;
     }
     advanceDraft();
 });
@@ -81,6 +85,9 @@ function openPack() {
         case 'WEAPON':
             choices = generateWeaponChoices();
             break;
+        case 'ARMOR':
+            choices = generateArmorChoices();
+            break;
     }
 
     transitionToScene('reveal');
@@ -98,6 +105,11 @@ function advanceDraft() {
         weaponScene.updateInstructions(`Choose a weapon pack for ${heroName}`);
         transitionToScene('weapon');
     } else if (stage === 'WEAPON_1_DRAFT' && team.weapon1) {
+        gameState.draft.stage = 'ARMOR_1_PACK';
+        packScene.reset();
+        packScene.render(gameState.draft.stage);
+        transitionToScene('pack');
+    } else if (stage === 'ARMOR_1_DRAFT' && team.armor1) {
         gameState.draft.stage = 'HERO_2_PACK';
         packScene.reset();
         packScene.render(gameState.draft.stage);
@@ -109,6 +121,11 @@ function advanceDraft() {
         weaponScene.updateInstructions(`Choose a weapon pack for ${heroName}`);
         transitionToScene('weapon');
     } else if (stage === 'WEAPON_2_DRAFT' && team.weapon2) {
+        gameState.draft.stage = 'ARMOR_2_PACK';
+        packScene.reset();
+        packScene.render(gameState.draft.stage);
+        transitionToScene('pack');
+    } else if (stage === 'ARMOR_2_DRAFT' && team.armor2) {
         gameState.draft.stage = 'DONE';
         confirmationBar.classList.add('visible');
     }
@@ -145,6 +162,11 @@ function generateHeroPack() {
 
 function generateWeaponChoices() {
     const shuffled = [...allPossibleWeapons].sort(() => 0.5 - Math.random());
+    return shuffled.slice(0, 3);
+}
+
+function generateArmorChoices() {
+    const shuffled = [...allPossibleArmors].sort(() => 0.5 - Math.random());
     return shuffled.slice(0, 3);
 }
 

@@ -16,6 +16,8 @@ export class DraftScene {
             instruction = `Choose your ${draftStage === 'HERO_1_DRAFT' ? 'first' : 'second'} hero.`;
         } else if (draftStage.startsWith('WEAPON')) {
             instruction = 'Select a weapon.';
+        } else if (draftStage.startsWith('ARMOR')) {
+            instruction = 'Select an armor.';
         } else {
             instruction = 'Select a card.';
         }

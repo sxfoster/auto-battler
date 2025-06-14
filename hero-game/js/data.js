@@ -102,6 +102,33 @@ export const allPossibleWeapons = [
 ];
 // NOTE: Placeholder art links ('...') and IDs have been assigned.
 
+export const allPossibleArmors = [
+    // 1. Light Armor (Evasion & Speed)
+    { id: 2101, type: 'armor', name: 'Leather Padding', rarity: 'Common', armorType: 'Light', art: '...', statBonuses: { Block: 1 }, ability: null },
+    { id: 2102, type: 'armor', name: 'Agile Reflexes', rarity: 'Uncommon', armorType: 'Light', art: '...', statBonuses: { Evasion: 2 }, ability: null },
+    { id: 2103, type: 'armor', name: 'Shadow Garb', rarity: 'Rare', armorType: 'Light', art: '...', statBonuses: { Evasion: 2, SPD: 1 }, ability: null },
+    { id: 2104, type: 'armor', name: 'Phantom Cloak', rarity: 'Epic', armorType: 'Light', art: '...', statBonuses: { Evasion: 3 }, ability: { name: 'Untouchable', description: 'Once per combat, the first time this hero is attacked, they ignore it.' } },
+
+    // 2. Medium Armor (Balanced Defense & Utility)
+    { id: 2201, type: 'armor', name: 'Studded Vest', rarity: 'Common', armorType: 'Medium', art: '...', statBonuses: { Block: 1, Evasion: 1 }, ability: null },
+    { id: 2202, type: 'armor', name: 'Chainmail Guard', rarity: 'Uncommon', armorType: 'Medium', art: '...', statBonuses: { Block: 2 }, ability: null },
+    { id: 2203, type: 'armor', name: 'Vanguard Mail', rarity: 'Rare', armorType: 'Medium', art: '...', statBonuses: { Block: 2 }, ability: { name: 'Thorns', description: 'When hit by a melee attack, reflect 1 damage back to the attacker.' } },
+    { id: 2204, type: 'armor', name: 'Captain’s Bulwark', rarity: 'Epic', armorType: 'Medium', art: '...', statBonuses: { Block: 2 }, ability: { name: 'Inspiring Presence', description: 'Adjacent allies gain +1 Block.' } },
+
+    // 3. Heavy Armor (Pure Damage Soak)
+    { id: 2301, type: 'armor', name: 'Iron Plate', rarity: 'Common', armorType: 'Heavy', art: '...', statBonuses: { Block: 2 }, ability: null },
+    { id: 2302, type: 'armor', name: 'Reinforced Plating', rarity: 'Uncommon', armorType: 'Heavy', art: '...', statBonuses: { Block: 3, SPD: -1 }, ability: null },
+    { id: 2303, type: 'armor', name: 'Juggernaut Armor', rarity: 'Rare', armorType: 'Heavy', art: '...', statBonuses: { Block: 3 }, ability: { name: 'Unstoppable', description: 'This hero is immune to Stun effects.' } },
+    { id: 2304, type: 'armor', name: 'Aegis of the Colossus', rarity: 'Epic', armorType: 'Heavy', art: '...', statBonuses: { Block: 1 }, ability: { name: 'Aegis Protection', description: 'Once per combat, completely nullify the damage from one attack.' } },
+
+    // 4. Magic Armor (Magical Defense)
+    { id: 2401, type: 'armor', name: 'Mystic Robes', rarity: 'Common', armorType: 'Magic', art: '...', statBonuses: { MagicResist: 2 }, ability: null },
+    { id: 2402, type: 'armor', name: 'Arcane Shielding', rarity: 'Uncommon', armorType: 'Magic', art: '...', statBonuses: {}, ability: { name: 'Spell Ward', description: 'Once per combat, block the effects of the next enemy ability.' } },
+    { id: 2403, type: 'armor', name: 'Runed Cloak', rarity: 'Rare', armorType: 'Magic', art: '...', statBonuses: { MagicResist: 3, SPD: 1 }, ability: null },
+    { id: 2404, type: 'armor', name: 'Ward of Eternity', rarity: 'Epic', armorType: 'Magic', art: '...', statBonuses: { MagicResist: 2 }, ability: { name: 'Magic Immunity', description: 'This hero is immune to all magic damage.' } },
+];
+// NOTE: Placeholder art links ('...') and new IDs have been assigned. 'Block' reduces physical damage, 'MagicResist' reduces magic damage.
+
 export const battleSpeeds = [
     { label: '1x', multiplier: 2 },
     { label: '2x', multiplier: 1 },
