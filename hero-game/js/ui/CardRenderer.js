@@ -40,10 +40,22 @@ export function createDetailCard(item, selectionHandler) {
             break;
         case 'weapon':
             cardElement.style.backgroundColor = '#1e293b';
-            statsHtml = `<div class="stat-block"><span class="stat-value">+${item.damage}</span><span class="stat-label">Damage</span></div>`;
-            // Check if abilities exist on the weapon before trying to map them
-            if (item.abilities && item.abilities.length > 0) {
-                descriptionHtml = `<ul class="hero-abilities">${item.abilities.map(ab => `<li>${ab.name}</li>`).join('')}</ul>`;
+
+            // Dynamically create stat blocks from the statBonuses object
+            if (item.statBonuses) {
+                statsHtml = Object.entries(item.statBonuses).map(([stat, value]) => {
+                    const sign = value > 0 ? '+' : '';
+                    return `<div class="stat-block"><span class="stat-value">${sign}${value}</span><span class="stat-label">${stat}</span></div>`;
+                }).join('');
+            }
+
+            // Display the ability name and description if it exists
+            if (item.ability) {
+                descriptionHtml = `
+            <div class="item-ability">
+                <span class="ability-name">${item.ability.name}</span>
+                <p class="ability-description">${item.ability.description}</p>
+            </div>`;
             }
             break;
         case 'armor':

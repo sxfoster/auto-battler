@@ -52,16 +52,55 @@ export const allPossibleHeroes = [
 ];
 
 export const allPossibleWeapons = [
-    { type: 'weapon', id: 101, name: 'Iron Sword', rarity: 'Common', art: 'https://placehold.co/256x202/6b7280/FFFFFF?text=Sword', damage: 2, abilities: [
-        { name: 'Cleave', description: 'Deals 50% damage to the second target.', target: 'ENEMY_ADDITIONAL', effects: [{ type: 'DEAL_DAMAGE_PERCENT', percent: 50 }] }
-    ] },
-    { type: 'weapon', id: 102, name: 'Mage Staff', rarity: 'Uncommon', art: 'https://placehold.co/256x202/5b21b6/FFFFFF?text=Staff', damage: 1, abilities: [
-        { name: 'Fireball', description: 'The wielder\'s basic attack becomes Fireball.' }
-    ] },
-    { type: 'weapon', id: 103, name: 'Glimmering Dagger', rarity: 'Rare', art: 'https://placehold.co/256x202/facc15/000000?text=Dagger', damage: 3, abilities: [
-        { name: 'Poison Tip', description: '10% chance to apply Poison on hit.', target: 'ENEMY_SINGLE', effects: [{ type: 'APPLY_STATUS_CHANCE', status: 'Poison', duration: 3, chance: 0.1 }] }
-    ] },
+    // 1. Sword Family
+    { id: 1101, type: 'weapon', name: 'Worn Sword', rarity: 'Common', art: '...', statBonuses: { ATK: 3 }, ability: null },
+    { id: 1102, type: 'weapon', name: 'Iron Sword', rarity: 'Uncommon', art: '...', statBonuses: { ATK: 5 }, ability: { name: 'Cleave', description: 'Your auto-attacks deal 1 damage to an enemy adjacent to the target.' } },
+    { id: 1103, type: 'weapon', name: 'Steel Longsword', rarity: 'Rare', art: '...', statBonuses: { ATK: 7, HP: 3 }, ability: { name: 'Improved Cleave', description: 'Your auto-attacks deal 2 damage to an enemy adjacent to the target.' } },
+    { id: 1104, type: 'weapon', name: 'Dragonfang Blade', rarity: 'Epic', art: '...', statBonuses: { ATK: 10, SPD: 5 }, ability: { name: 'Blade Dance', description: 'When this hero kills an enemy, immediately perform an extra auto-attack.' } },
+
+    // 2. Axe Family
+    { id: 1201, type: 'weapon', name: 'Rusty Axe', rarity: 'Common', art: '...', statBonuses: { ATK: 4 }, ability: null },
+    { id: 1202, type: 'weapon', name: 'Battle Axe', rarity: 'Uncommon', art: '...', statBonuses: { ATK: 7, SPD: -2 }, ability: { name: 'Overwhelm', description: 'Your auto-attacks ignore 1 point of Block.' } },
+    { id: 1203, type: 'weapon', name: 'Great Axe', rarity: 'Rare', art: '...', statBonuses: { ATK: 10, SPD: -3 }, ability: { name: 'Executioner', description: 'Your auto-attacks deal +2 damage to enemies below 50% HP.' } },
+    { id: 1204, type: 'weapon', name: 'World Splitter', rarity: 'Epic', art: '...', statBonuses: { ATK: 15, SPD: -4 }, ability: { name: 'Reckless Smash', description: 'Your first auto-attack each combat deals double damage, but you take 5 damage.' } },
+
+    // 3. Dagger Family
+    { id: 1301, type: 'weapon', name: 'Poniard', rarity: 'Common', art: '...', statBonuses: { ATK: 1, SPD: 2 }, ability: null },
+    { id: 1302, type: 'weapon', name: 'Glimmering Dagger', rarity: 'Uncommon', art: '...', statBonuses: { ATK: 2, SPD: 4 }, ability: { name: 'Poison Tip', description: '25% chance on hit to apply Poison 1 for 2 turns.' } },
+    { id: 1303, type: 'weapon', name: "Assassin's Blade", rarity: 'Rare', art: '...', statBonuses: { ATK: 4, SPD: 6 }, ability: { name: 'Improved Poison Tip', description: '50% chance on hit to apply Poison 2 for 2 turns.' } },
+    { id: 1304, type: 'weapon', name: 'Kingsbane', rarity: 'Epic', art: '...', statBonuses: { ATK: 6, SPD: 8 }, ability: { name: 'Shadowfang', description: 'Your auto-attacks deal +3 damage to enemies suffering from Poison or Bleed.' } },
+
+    // 4. Mace Family
+    { id: 1401, type: 'weapon', name: 'Club', rarity: 'Common', art: '...', statBonuses: { ATK: 2, HP: 2 }, ability: null },
+    { id: 1402, type: 'weapon', name: 'Iron Mace', rarity: 'Uncommon', art: '...', statBonuses: { ATK: 4, HP: 3 }, ability: { name: 'Dazing Blow', description: '20% chance on hit to reduce enemy SPD by half for their next turn.' } },
+    { id: 1403, type: 'weapon', name: 'War Hammer', rarity: 'Rare', art: '...', statBonuses: { ATK: 6, HP: 5 }, ability: { name: 'Armor Shatter', description: "Your auto-attacks permanently reduce the target's Block by 1." } },
+    { id: 1404, type: 'weapon', name: 'Skullcrusher', rarity: 'Epic', art: '...', statBonuses: { ATK: 9, HP: 7 }, ability: { name: 'Earthquake Slam', description: 'Your first auto-attack each combat has a 50% chance to Stun the target.' } },
+
+    // 5. Spear Family
+    { id: 1501, type: 'weapon', name: 'Pointed Stick', rarity: 'Common', art: '...', statBonuses: { ATK: 2, SPD: 1 }, ability: null },
+    { id: 1502, type: 'weapon', name: 'Short Spear', rarity: 'Uncommon', art: '...', statBonuses: { ATK: 4, SPD: 2 }, ability: { name: 'Disrupting Thrust', description: 'On hit, the target has their SPD reduced by 1 for their next turn.' } },
+    { id: 1503, type: 'weapon', name: 'Pike', rarity: 'Rare', art: '...', statBonuses: { ATK: 6, SPD: 3 }, ability: { name: 'First Strike', description: 'If this hero has higher SPD than their target, their first auto-attack deals +3 damage.' } },
+    { id: 1504, type: 'weapon', name: 'Phalanx Breaker', rarity: 'Epic', art: '...', statBonuses: { ATK: 8, SPD: 4 }, ability: { name: 'Set for Charge', description: 'At the start of combat, the first enemy that attacks this hero is Stunned.' } },
+
+    // 6. Bow Family
+    { id: 1601, type: 'weapon', name: 'Hunting Bow', rarity: 'Common', art: '...', statBonuses: { ATK: 3 }, ability: null },
+    { id: 1602, type: 'weapon', name: 'Longbow', rarity: 'Uncommon', art: '...', statBonuses: { ATK: 5 }, ability: { name: 'Hawk Eye', description: 'This hero gains +10% accuracy.' } },
+    { id: 1603, type: 'weapon', name: 'Elven Bow', rarity: 'Rare', art: '...', statBonuses: { ATK: 7, SPD: 3 }, ability: { name: 'Crippling Arrow', description: 'On hit, if the target is the last enemy in their row, their ATK is reduced by 2 for their next turn.' } },
+    { id: 1604, type: 'weapon', name: 'Sky-Render Bow', rarity: 'Epic', art: '...', statBonuses: { ATK: 10, SPD: 5 }, ability: { name: 'True Shot', description: "This hero's auto-attacks cannot be Evaded." } },
+
+    // 7. Staff Family
+    { id: 1701, type: 'weapon', name: 'Gnarled Staff', rarity: 'Common', art: '...', statBonuses: { HP: 3, SPD: 2 }, ability: null },
+    { id: 1702, type: 'weapon', name: 'Mage Staff', rarity: 'Uncommon', art: '...', statBonuses: { HP: 5, SPD: 3 }, ability: { name: 'Mana Tap', description: 'When this hero uses an Ability, they heal for 2 HP.' } },
+    { id: 1703, type: 'weapon', name: "Archmage's Staff", rarity: 'Rare', art: '...', statBonuses: { HP: 8, SPD: 4 }, ability: { name: 'Spell Power', description: "All damage dealt by this hero's equipped Ability cards is increased by 2." } },
+    { id: 1704, type: 'weapon', name: 'Staff of Ruin', rarity: 'Epic', art: '...', statBonuses: { HP: 12, SPD: 5 }, ability: { name: 'Ether Pulse', description: 'At the start of combat, gain 1 extra Energy.' } },
+
+    // 8. Shield Family
+    { id: 1801, type: 'weapon', name: 'Buckler', rarity: 'Common', art: '...', statBonuses: { HP: 5 }, ability: null },
+    { id: 1802, type: 'weapon', name: 'Kite Shield', rarity: 'Uncommon', art: '...', statBonuses: { HP: 8 }, ability: { name: 'Shield Wall', description: 'When combat starts, this hero gains Block 1.' } },
+    { id: 1803, type: 'weapon', name: 'Tower Shield', rarity: 'Rare', art: '...', statBonuses: { HP: 12 }, ability: { name: 'Improved Shield Wall', description: 'When combat starts, this hero gains Block 2.' } },
+    { id: 1804, type: 'weapon', name: 'Aegis of Command', rarity: 'Epic', art: '...', statBonuses: { HP: 15 }, ability: { name: 'Guardian', description: 'When this hero is hit, one adjacent ally gains Block 1 for the next attack against them.' } }
 ];
+// NOTE: Placeholder art links ('...') and IDs have been assigned.
 
 export const battleSpeeds = [
     { label: '1x', multiplier: 2 },
