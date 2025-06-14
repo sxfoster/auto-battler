@@ -12,11 +12,23 @@
 <body>
 
     <div id="pack-scene" class="scene">
-        <h1 id="pack-scene-title" class="text-5xl font-cinzel tracking-wider mb-8 text-center">Open Your Hero Pack</h1>
-        <div id="booster-pack" class="booster-pack">
-            <i class="fa-solid fa-user-group text-8xl text-yellow-200 opacity-80"></i>
+        <h1 id="pack-scene-title" class="text-5xl font-cinzel tracking-wider mb-8 text-center">Open Your Pack</h1>
+
+        <!-- Container for all the pack types -->
+        <div id="pack-display-area" class="relative">
+            <!-- Hero Pack -->
+            <div id="hero-pack" class="pack hidden"></div>
+
+            <!-- Ability Pack -->
+            <div id="ability-pack" class="pack hidden"></div>
+
+            <!-- Weapon Pack -->
+            <div id="weapon-pack" class="pack hidden"></div>
+
+            <!-- Armor Pack -->
+            <div id="armor-pack" class="pack hidden"></div>
         </div>
-        <div id="pack-tear-overlay" class="pack-tear-overlay hidden"></div>
+
         <p id="pack-scene-instructions" class="text-lg text-gray-400 mt-8">Click the pack to begin.</p>
     </div>
 
@@ -38,7 +50,7 @@
             <h1 id="weapon-scene-title" class="text-5xl font-cinzel tracking-wider">Choose a Weapon</h1>
             <p id="weapon-instructions" class="text-lg text-gray-400 mt-2">Select one weapon.</p>
         </header>
-        <div id="weapon-pack" class="weapon-pack">
+        <div id="weapon-pack-draft" class="weapon-pack">
             <i class="fa-solid fa-box text-8xl text-yellow-200 opacity-80"></i>
         </div>
         <div id="weapon-draft-pool" class="draft-pool weapon-draft-pool mt-8" style="display: none;"></div>

@@ -4,19 +4,27 @@ export class PackScene {
         this.onPackOpened = onPackOpened;
 
         this.titleElement = this.element.querySelector('#pack-scene-title');
-        this.packElement = this.element.querySelector('#booster-pack');
-        
-        this.packElement.addEventListener('click', () => this._handlePackOpen());
+        this.packElements = {
+            hero: this.element.querySelector('#hero-pack'),
+            ability: this.element.querySelector('#ability-pack'),
+            weapon: this.element.querySelector('#weapon-pack'),
+            armor: this.element.querySelector('#armor-pack')
+        };
+
+        Object.values(this.packElements).forEach(el => {
+            el.addEventListener('click', () => this._handlePackOpen(el));
+        });
     }
 
-    _handlePackOpen() {
+    _handlePackOpen(packElement) {
         if (this.isOpening) return;
         this.isOpening = true;
 
-        this.packElement.style.pointerEvents = 'none';
-        this.packElement.classList.add('opening');
+        this.currentPackElement = packElement;
+        packElement.style.pointerEvents = 'none';
+        packElement.classList.add('opening');
 
-        this.packElement.addEventListener('animationend', () => {
+        packElement.addEventListener('animationend', () => {
             this.onPackOpened();
         }, { once: true });
     }
@@ -28,6 +36,8 @@ export class PackScene {
             this.titleElement.textContent = draftStage === 'ARMOR_1_PACK' ? 'Open Your Armor Pack' : 'Open Pack for Second Armor';
         } else if (draftStage.startsWith('ABILITY')) {
             this.titleElement.textContent = 'Open Ability Pack';
+        } else if (draftStage.startsWith('WEAPON')) {
+            this.titleElement.textContent = draftStage === 'WEAPON_1_PACK' ? 'Open Your Weapon Pack' : 'Open Pack for Second Weapon';
         } else {
             this.titleElement.textContent = 'Open Pack';
         }
@@ -35,8 +45,10 @@ export class PackScene {
 
     reset() {
         this.isOpening = false;
-        this.packElement.classList.remove('opening');
-        this.packElement.style.pointerEvents = 'auto';
+        Object.values(this.packElements).forEach(el => {
+            el.classList.remove('opening');
+            el.style.pointerEvents = 'auto';
+        });
     }
     
     show() {
