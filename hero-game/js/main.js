@@ -1,5 +1,5 @@
 // Import data and utilities
-import { allPossibleHeroes, allPossibleWeapons, allPossibleArmors } from './data.js';
+import { allPossibleHeroes, allPossibleWeapons, allPossibleArmors, allPossibleAbilities } from './data.js';
 
 // Import UI and Scene classes
 import { PackScene } from './scenes/PackScene.js';
@@ -15,7 +15,7 @@ const gameState = {
     currentScene: 'pack', // 'pack', 'draft', 'weapon', 'battle'
     draft: {
         stage: 'HERO_1_PACK', // HERO_1_PACK, HERO_1_DRAFT, WEAPON_1_DRAFT, HERO_2_PACK, etc.
-        playerTeam: { hero1: null, weapon1: null, armor1: null, hero2: null, weapon2: null, armor2: null },
+        playerTeam: { hero1: null, ability1: null, weapon1: null, armor1: null, hero2: null, ability2: null, weapon2: null, armor2: null },
     }
 };
 
@@ -46,6 +46,15 @@ const revealScene = new RevealScene(sceneElements.reveal, (revealedCards) => {
     // 3. show the draft scene
     transitionToScene('draft');
 });
+function onAbilitySelected(ability) {
+    const stage = gameState.draft.stage;
+    if (stage === 'ABILITY_1_DRAFT') {
+        gameState.draft.playerTeam.ability1 = ability.id;
+    } else if (stage === 'ABILITY_2_DRAFT') {
+        gameState.draft.playerTeam.ability2 = ability.id;
+    }
+}
+
 const draftScene = new DraftScene(sceneElements.draft, (selectedItem) => {
     const stage = gameState.draft.stage;
     if (stage === 'HERO_1_DRAFT') {
@@ -60,6 +69,8 @@ const draftScene = new DraftScene(sceneElements.draft, (selectedItem) => {
         gameState.draft.playerTeam.armor1 = selectedItem.id;
     } else if (stage === 'ARMOR_2_DRAFT') {
         gameState.draft.playerTeam.armor2 = selectedItem.id;
+    } else if (stage === 'ABILITY_1_DRAFT' || stage === 'ABILITY_2_DRAFT') {
+        onAbilitySelected(selectedItem);
     }
     advanceDraft();
 });
@@ -76,7 +87,8 @@ function transitionToScene(sceneName) {
 }
 
 function openPack() {
-    const stageType = gameState.draft.stage.split('_')[0].toUpperCase();
+    const stage = gameState.draft.stage;
+    const stageType = stage.split('_')[0].toUpperCase();
     let choices = [];
     switch(stageType) {
         case 'HERO':
@@ -87,6 +99,22 @@ function openPack() {
             break;
         case 'ARMOR':
             choices = generateArmorChoices();
+            break;
+        case 'ABILITY':
+            const heroSlot = stage.includes('_1_') ? 'hero1' : 'hero2';
+            const heroId = gameState.draft.playerTeam[heroSlot];
+            const heroClass = allPossibleHeroes.find(h => h.id === heroId).class;
+            let dataSource = allPossibleAbilities.filter(a => a.class === heroClass);
+
+            const offense = dataSource.filter(a => a.category === 'Offense' && a.rarity === 'Common');
+            const defense = dataSource.filter(a => a.category === 'Defense' && a.rarity === 'Common');
+            const support = dataSource.filter(a => a.category === 'Support' && a.rarity === 'Common');
+
+            choices = [
+                offense[Math.floor(Math.random() * offense.length)],
+                defense[Math.floor(Math.random() * defense.length)],
+                support[Math.floor(Math.random() * support.length)],
+            ];
             break;
     }
 
@@ -99,6 +127,11 @@ function advanceDraft() {
     const team = gameState.draft.playerTeam;
 
     if (stage === 'HERO_1_DRAFT' && team.hero1) {
+        gameState.draft.stage = 'ABILITY_1_PACK';
+        packScene.reset();
+        packScene.render(gameState.draft.stage);
+        transitionToScene('pack');
+    } else if (stage === 'ABILITY_1_DRAFT' && team.ability1) {
         gameState.draft.stage = 'WEAPON_1_PACK';
         weaponScene.reset();
         const heroName = allPossibleHeroes.find(h => h.id === team.hero1).name;
@@ -115,6 +148,11 @@ function advanceDraft() {
         packScene.render(gameState.draft.stage);
         transitionToScene('pack');
     } else if (stage === 'HERO_2_DRAFT' && team.hero2) {
+        gameState.draft.stage = 'ABILITY_2_PACK';
+        packScene.reset();
+        packScene.render(gameState.draft.stage);
+        transitionToScene('pack');
+    } else if (stage === 'ABILITY_2_DRAFT' && team.ability2) {
         gameState.draft.stage = 'WEAPON_2_PACK';
         weaponScene.reset();
         const heroName = allPossibleHeroes.find(h => h.id === team.hero2).name;

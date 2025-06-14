@@ -26,6 +26,8 @@ export class PackScene {
             this.titleElement.textContent = draftStage === 'HERO_1_PACK' ? 'Open Your Hero Pack' : 'Open Pack for Second Hero';
         } else if (draftStage.startsWith('ARMOR')) {
             this.titleElement.textContent = draftStage === 'ARMOR_1_PACK' ? 'Open Your Armor Pack' : 'Open Pack for Second Armor';
+        } else if (draftStage.startsWith('ABILITY')) {
+            this.titleElement.textContent = 'Open Ability Pack';
         } else {
             this.titleElement.textContent = 'Open Pack';
         }

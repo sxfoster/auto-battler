@@ -35,8 +35,17 @@ export function createDetailCard(item, selectionHandler) {
             break;
         case 'ability':
             cardElement.style.backgroundColor = '#1e293b';
-            // Abilities might not have stats, just a description
-            descriptionHtml = `<p class="item-description">${item.description}</p>`;
+            // Display the Energy Cost and Category as the primary "stats"
+            statsHtml = `
+        <div class="stat-block"><span class="stat-value">${item.energyCost}</span><span class="stat-label">ENERGY</span></div>
+        <div class="stat-block"><span class="stat-value">${item.category.toUpperCase()}</span><span class="stat-label">TYPE</span></div>
+    `;
+
+            // Display the ability's effect description
+            descriptionHtml = `
+        <div class="item-ability">
+            <p class="ability-description">${item.effect}</p>
+        </div>`;
             break;
         case 'weapon':
             cardElement.style.backgroundColor = '#1e293b';

@@ -102,6 +102,65 @@ export const allPossibleWeapons = [
 ];
 // NOTE: Placeholder art links ('...') and IDs have been assigned.
 
+export const allPossibleAbilities = [
+    // === Stalwart Defender (Warrior) ===
+    // Common
+    { id: 3111, type: 'ability', name: 'Power Strike', class: 'Stalwart Defender', rarity: 'Common', art: '...', effect: 'Deal 2 damage to one enemy.', energyCost: 1, category: 'Offense' },
+    { id: 3112, type: 'ability', name: 'Fortify', class: 'Stalwart Defender', rarity: 'Common', art: '...', effect: 'Reduce all incoming damage by 1 for 2 turns.', energyCost: 1, category: 'Defense' },
+    { id: 3113, type: 'ability', name: 'Shield Bash', class: 'Stalwart Defender', rarity: 'Common', art: '...', effect: 'Deal 1 damage and stun the enemy for 1 turn.', energyCost: 1, category: 'Support' },
+    // Uncommon
+    { id: 3121, type: 'ability', name: 'Crippling Blow', class: 'Stalwart Defender', rarity: 'Uncommon', art: '...', effect: 'Deal 3 damage and reduce the enemy’s attack by 1 next turn.', energyCost: 2, category: 'Offense' },
+    { id: 3122, type: 'ability', name: 'Parry & Riposte', class: 'Stalwart Defender', rarity: 'Uncommon', art: '...', effect: 'Block next attack; if successful, counterattack for 2 damage.', energyCost: 2, category: 'Defense' },
+    { id: 3123, type: 'ability', name: 'Battle Roar', class: 'Stalwart Defender', rarity: 'Uncommon', art: '...', effect: 'Gain +2 attack on your next attack.', energyCost: 2, category: 'Support' },
+    // Rare
+    { id: 3131, type: 'ability', name: 'Whirlwind Slash', class: 'Stalwart Defender', rarity: 'Rare', art: '...', effect: 'Deal 2 damage to all enemies.', energyCost: 3, category: 'Offense' },
+    { id: 3132, type: 'ability', name: 'Blood Frenzy', class: 'Stalwart Defender', rarity: 'Rare', art: '...', effect: 'If under 50% HP, gain +2 attacks this turn.', energyCost: 3, category: 'Defense' },
+    { id: 3133, type: 'ability', name: 'Relentless Pursuit', class: 'Stalwart Defender', rarity: 'Rare', art: '...', effect: 'Deal 3 damage and take an extra action if this kills the target.', energyCost: 3, category: 'Support' },
+    // Epic
+    { id: 3141, type: 'ability', name: 'Juggernaut Charge', class: 'Stalwart Defender', rarity: 'Epic', art: '...', effect: 'Deal 5 damage to one enemy and stun for 1 turn.', energyCost: 4, category: 'Offense' },
+    { id: 3142, type: 'ability', name: 'Champion’s Wrath', class: 'Stalwart Defender', rarity: 'Epic', art: '...', effect: 'Deal 4 damage to all enemies. If you KO at least 1 enemy, gain another full turn immediately.', energyCost: 4, category: 'Defense' },
+    { id: 3143, type: 'ability', name: 'Last Stand', class: 'Stalwart Defender', rarity: 'Epic', art: '...', effect: 'If under 25% HP, all attacks this turn deal double damage.', energyCost: 4, category: 'Support' },
+
+    // === Holy Warrior (Paladin) ===
+    // Common
+    { id: 3211, type: 'ability', name: 'Divine Strike', class: 'Holy Warrior', rarity: 'Common', art: '...', effect: 'Deal 2 damage and heal yourself for 2 HP.', energyCost: 1, category: 'Offense' },
+    { id: 3212, type: 'ability', name: 'Righteous Shield', class: 'Holy Warrior', rarity: 'Common', art: '...', effect: 'Block the next attack completely.', energyCost: 1, category: 'Defense' },
+    { id: 3213, type: 'ability', name: 'Holy Light', class: 'Holy Warrior', rarity: 'Common', art: '...', effect: 'Heal an ally for 4 HP.', energyCost: 1, category: 'Support' },
+    // Uncommon
+    { id: 3221, type: 'ability', name: 'Judgment', class: 'Holy Warrior', rarity: 'Uncommon', art: '...', effect: 'Deal 3 damage and reduce the enemy’s defense by 1 for 2 turns.', energyCost: 2, category: 'Offense' },
+    { id: 3222, type: 'ability', name: 'Aegis Aura', class: 'Holy Warrior', rarity: 'Uncommon', art: '...', effect: 'All allies reduce incoming damage by 1 for 2 turns.', energyCost: 2, category: 'Defense' },
+    { id: 3223, type: 'ability', name: 'Blessing of Valor', class: 'Holy Warrior', rarity: 'Uncommon', art: '...', effect: 'All allies gain +1 attack and +1 defense for 2 turns.', energyCost: 2, category: 'Support' },
+    // Rare
+    { id: 3231, type: 'ability', name: 'Radiant Smite', class: 'Holy Warrior', rarity: 'Rare', art: '...', effect: 'Deal 4 holy damage and stun the enemy if they are undead/dark-aligned.', energyCost: 3, category: 'Offense' },
+    { id: 3232, type: 'ability', name: 'Sacred Vow', class: 'Holy Warrior', rarity: 'Rare', art: '...', effect: 'You take half damage and cannot be debuffed for 2 turns.', energyCost: 3, category: 'Defense' },
+    { id: 3233, type: 'ability', name: 'Lay on Hands', class: 'Holy Warrior', rarity: 'Rare', art: '...', effect: 'Fully heal one ally to max HP.', energyCost: 3, category: 'Support' },
+    // Epic
+    { id: 3241, type: 'ability', name: 'Light’s Wrath', class: 'Holy Warrior', rarity: 'Epic', art: '...', effect: 'Deal 5 holy damage to all enemies and heal all allies for 5 HP.', energyCost: 4, category: 'Offense' },
+    { id: 3242, type: 'ability', name: 'Divine Intervention', class: 'Holy Warrior', rarity: 'Epic', art: '...', effect: 'Prevent all allies from taking damage this turn (total immunity).', energyCost: 4, category: 'Defense' },
+    { id: 3243, type: 'ability', name: 'Resurrection', class: 'Holy Warrior', rarity: 'Epic', art: '...', effect: 'Revive a fallen ally at 75% HP.', energyCost: 4, category: 'Support' },
+
+    // === Raging Fighter (Barbarian) ===
+    // Common
+    { id: 3311, type: 'ability', name: 'Reckless Charge', class: 'Raging Fighter', rarity: 'Common', art: '...', effect: 'Deal 2 damage to all enemies, but you take 1 self-damage.', energyCost: 1, category: 'Offense' },
+    { id: 3312, type: 'ability', name: 'Raging Strike', class: 'Raging Fighter', rarity: 'Common', art: '...', effect: 'Deal 3 damage, but reduce your defense by 1 until next turn.', energyCost: 1, category: 'Defense' },
+    { id: 3313, type: 'ability', name: 'Battle Roar', class: 'Raging Fighter', rarity: 'Common', art: '...', effect: 'Gain +2 attack for 2 turns.', energyCost: 1, category: 'Support' },
+    // Uncommon
+    { id: 3321, type: 'ability', name: 'Savage Cleave', class: 'Raging Fighter', rarity: 'Uncommon', art: '...', effect: 'Deal 4 damage to one enemy. If you kill them, gain +1 attack on your next action.', energyCost: 2, category: 'Offense' },
+    { id: 3322, type: 'ability', name: 'Frenzied Defense', class: 'Raging Fighter', rarity: 'Uncommon', art: '...', effect: 'Take -2 damage reduction this turn and deal 2 damage back when attacked.', energyCost: 2, category: 'Defense' },
+    { id: 3323, type: 'ability', name: 'Unbreakable Will', class: 'Raging Fighter', rarity: 'Uncommon', art: '...', effect: 'Prevent defeat if your HP would drop to 0 this turn (survive with 1 HP).', energyCost: 2, category: 'Support' },
+    // Rare
+    { id: 3331, type: 'ability', name: 'Bloodbath', class: 'Raging Fighter', rarity: 'Rare', art: '...', effect: 'Deal 3 damage to all enemies. For each enemy hit, gain +1 attack next turn.', energyCost: 3, category: 'Offense' },
+    { id: 3332, type: 'ability', name: 'Warlord’s Challenge', class: 'Raging Fighter', rarity: 'Rare', art: '...', effect: 'Force all enemies to target you next turn and gain +2 defense.', energyCost: 3, category: 'Defense' },
+    { id: 3333, type: 'ability', name: 'Last Stand', class: 'Raging Fighter', rarity: 'Rare', art: '...', effect: 'If under 50% HP, all attacks this turn deal double damage.', energyCost: 3, category: 'Support' },
+    // Epic
+    { id: 3341, type: 'ability', name: 'Titan Breaker', class: 'Raging Fighter', rarity: 'Epic', art: '...', effect: 'Deal 7 damage to a single enemy and ignore all their defenses/armor.', energyCost: 4, category: 'Offense' },
+    { id: 3342, type: 'ability', name: 'Berserker’s Rage', class: 'Raging Fighter', rarity: 'Epic', art: '...', effect: 'For 2 turns, all attacks deal +2 damage and you cannot be stunned or debuffed.', energyCost: 4, category: 'Defense' },
+    { id: 3343, type: 'ability', name: 'Unending Rage', class: 'Raging Fighter', rarity: 'Epic', art: '...', effect: 'Your abilities cost 1 less energy for the rest of combat.', energyCost: 4, category: 'Support' },
+
+    // ...Continue for all other classes...
+];
+// NOTE: Placeholder art links ('...') and new IDs have been assigned.
+
 export const allPossibleArmors = [
     // 1. Light Armor (Evasion & Speed)
     { id: 2101, type: 'armor', name: 'Leather Padding', rarity: 'Common', armorType: 'Light', art: '...', statBonuses: { Block: 1 }, ability: null },
