@@ -27,6 +27,65 @@ body {
     top: 0;
 }
 
+/* Generic booster pack style */
+.pack {
+    width: 280px;
+    height: 400px;
+    cursor: pointer;
+    border-radius: 1.25rem;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    position: absolute;
+    top: 0;
+    left: 0;
+    overflow: hidden;
+}
+
+.pack:hover {
+    transform: scale(1.05) translateY(-10px);
+}
+
+/* --- HERO PACK --- */
+#hero-pack {
+    background-image: url('https://github.com/sxfoster/auto-battler/blob/main/img/character_booster.jpg?raw=true');
+    background-size: cover;
+    background-position: center;
+    border: 2px solid rgba(217, 182, 126, 0.5);
+    box-shadow: 0 15px 35px rgba(0,0,0,0.5), inset 0 0 20px rgba(217, 182, 126, 0.2);
+}
+
+/* --- ABILITY PACK --- */
+#ability-pack {
+    width: 320px;
+    height: 400px;
+    background-image: url('https://images.unsplash.com/photo-1544947950-fa07a98d237f?q=80&w=1887&auto=format&fit=crop');
+    background-size: cover;
+    background-position: center;
+    border: 2px solid rgba(132, 188, 217, 0.5);
+    box-shadow: 0 15px 35px rgba(0,0,0,0.5), inset 0 0 20px rgba(132, 188, 217, 0.2);
+}
+
+/* --- WEAPON PACK --- */
+#weapon-pack {
+    width: 350px;
+    height: 350px;
+    background-image: url('https://images.unsplash.com/photo-1599411452403-151b8d2645c8?q=80&w=1770&auto=format&fit=crop');
+    background-size: cover;
+    background-position: center;
+    border: 2px solid rgba(200, 150, 150, 0.5);
+    box-shadow: 0 15px 35px rgba(0,0,0,0.5), inset 0 0 20px rgba(200, 150, 150, 0.2);
+}
+
+/* --- ARMOR PACK --- */
+#armor-pack {
+    width: 320px;
+    height: 380px;
+    background-image: url('https://images.unsplash.com/photo-1593839686923-16782259a851?q=80&w=1887&auto=format&fit=crop');
+    background-size: cover;
+    background-position: center;
+    border: 2px solid rgba(190, 190, 190, 0.5);
+    box-shadow: 0 15px 35px rgba(0,0,0,0.5), inset 0 0 20px rgba(190, 190, 190, 0.2);
+}
+
 /* --- Booster Pack Scene --- */
 .booster-pack, .weapon-pack {
     border-radius: 1rem;

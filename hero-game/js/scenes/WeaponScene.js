@@ -7,7 +7,7 @@ export class WeaponScene {
         this.onPackClicked = onPackClicked;
         
         this.instructionsElement = this.element.querySelector('#weapon-instructions');
-        this.packElement = this.element.querySelector('#weapon-pack');
+        this.packElement = this.element.querySelector('#weapon-pack-draft');
         this.draftPoolElement = this.element.querySelector('#weapon-draft-pool');
         
         this.packElement.addEventListener('click', () => this._handlePackOpen());
