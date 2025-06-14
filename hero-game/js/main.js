@@ -122,15 +122,21 @@ function openPack() {
             const heroId = gameState.draft.playerTeam[heroSlot];
             const heroClass = allPossibleHeroes.find(h => h.id === heroId).class;
             let dataSource = allPossibleAbilities.filter(a => a.class === heroClass);
+            if (dataSource.length === 0) {
+                dataSource = allPossibleAbilities; // Fallback when class has no abilities defined
+            }
 
-            const offense = dataSource.filter(a => a.category === 'Offense' && a.rarity === 'Common');
-            const defense = dataSource.filter(a => a.category === 'Defense' && a.rarity === 'Common');
-            const support = dataSource.filter(a => a.category === 'Support' && a.rarity === 'Common');
+            const commonByCategory = (category) => {
+                const pool = dataSource.filter(a => a.category === category && a.rarity === 'Common');
+                const fallback = allPossibleAbilities.filter(a => a.category === category && a.rarity === 'Common');
+                const source = pool.length ? pool : fallback;
+                return source[Math.floor(Math.random() * source.length)];
+            };
 
             choices = [
-                offense[Math.floor(Math.random() * offense.length)],
-                defense[Math.floor(Math.random() * defense.length)],
-                support[Math.floor(Math.random() * support.length)],
+                commonByCategory('Offense'),
+                commonByCategory('Defense'),
+                commonByCategory('Support'),
             ];
             break;
     }
