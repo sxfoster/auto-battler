@@ -18,6 +18,8 @@ export class DraftScene {
             instruction = 'Select a weapon.';
         } else if (draftStage.startsWith('ARMOR')) {
             instruction = 'Select an armor.';
+        } else if (draftStage.startsWith('ABILITY')) {
+            instruction = 'Select an ability.';
         } else {
             instruction = 'Select a card.';
         }
