@@ -1,37 +1,48 @@
 import { createDetailCard } from '../ui/CardRenderer.js';
-import { allPossibleHeroes, allPossibleAbilities, allPossibleWeapons, allPossibleArmors } from '../data.js';
+import { allPossibleHeroes, allPossibleWeapons, allPossibleArmors } from '../data.js';
 
 export class RecapScene {
     constructor(element, onContinue) {
         this.element = element;
         this.onContinue = onContinue;
 
-        // Get references to all the slots
         this.heroSlot = this.element.querySelector('#recap-hero-slot');
-        this.abilitySlot = this.element.querySelector('#recap-ability-slot');
-        this.weaponSlot = this.element.querySelector('#recap-weapon-slot');
-        this.armorSlot = this.element.querySelector('#recap-armor-slot');
 
         this.element.querySelector('#recap-continue-button').addEventListener('click', () => this.onContinue());
     }
 
     render(championData) {
-        // Clear any previous cards
-        this.heroSlot.innerHTML = '<h3 class="text-2xl font-cinzel mb-2">Hero</h3>';
-        this.abilitySlot.innerHTML = '';
-        this.weaponSlot.innerHTML = '';
-        this.armorSlot.innerHTML = '';
+        // Clear any previous content
+        this.heroSlot.innerHTML = '';
 
-        // Find the full data object for each selected item using its ID
+        // Find the full data objects for the hero, weapon, and armor
         const hero = allPossibleHeroes.find(h => h.id === championData.hero);
-        const ability = allPossibleAbilities.find(a => a.id === championData.ability);
         const weapon = allPossibleWeapons.find(w => w.id === championData.weapon);
         const armor = allPossibleArmors.find(a => a.id === championData.armor);
 
-        // Create and append the cards to their slots
-        if (hero) this.heroSlot.appendChild(createDetailCard(hero));
-        if (ability) this.abilitySlot.appendChild(createDetailCard(ability));
-        if (weapon) this.weaponSlot.appendChild(createDetailCard(weapon));
-        if (armor) this.armorSlot.appendChild(createDetailCard(armor));
+        // Create the main hero card container
+        const heroCardContainer = createDetailCard(hero);
+        if (!heroCardContainer) return;
+
+        // Create the weapon socket if a weapon is equipped
+        if (weapon) {
+            const weaponSocket = document.createElement('div');
+            weaponSocket.className = 'gear-socket recap-weapon-socket';
+            const weaponCard = createDetailCard(weapon);
+            weaponSocket.appendChild(weaponCard);
+            heroCardContainer.appendChild(weaponSocket);
+        }
+
+        // Create the armor socket if armor is equipped
+        if (armor) {
+            const armorSocket = document.createElement('div');
+            armorSocket.className = 'gear-socket recap-armor-socket';
+            const armorCard = createDetailCard(armor);
+            armorSocket.appendChild(armorCard);
+            heroCardContainer.appendChild(armorSocket);
+        }
+
+        // Append the fully assembled hero card with its gear to the scene
+        this.heroSlot.appendChild(heroCardContainer);
     }
 }

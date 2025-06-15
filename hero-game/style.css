@@ -310,7 +310,44 @@ body {
 }
 
 /* Recap Scene Styles */
-#recap-items-slot .hero-card-container {
-    transform: scale(0.75);
-    margin-top: -50px; /* Adjust spacing for smaller scale */
+.gear-socket {
+    position: absolute;
+    width: 80px;
+    height: 110px;
+    z-index: 10;
+    transition: transform 0.3s ease;
+}
+
+.gear-socket:hover {
+    transform: scale(1.1);
+    z-index: 20;
+}
+
+/* Position the weapon on the right, slightly rotated */
+.recap-weapon-socket {
+    top: 20%;
+    right: -40px;
+    transform: rotate(10deg);
+}
+.recap-weapon-socket:hover {
+    transform: rotate(5deg) scale(1.1);
+}
+
+/* Position the armor on the left, slightly rotated */
+.recap-armor-socket {
+    top: 45%;
+    left: -40px;
+    transform: rotate(-10deg);
+}
+.recap-armor-socket:hover {
+    transform: rotate(-5deg) scale(1.1);
+}
+
+/* Style for the gear card itself inside the socket */
+.gear-socket .hero-card {
+    border-width: 2px;
+}
+.gear-socket .hero-art {
+    height: 95%;
+    top: 2.5%;
 }

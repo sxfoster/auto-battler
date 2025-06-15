@@ -52,29 +52,9 @@
             <p class="text-lg text-gray-400 mt-2">Your first champion is ready for battle.</p>
         </header>
 
-        <!-- Main display area for the cards -->
-        <div id="recap-display-area" class="flex flex-col lg:flex-row items-center gap-8">
-            <!-- Slot for the main Hero Card -->
-            <div id="recap-hero-slot" class="flex flex-col items-center">
-                <h3 class="text-2xl font-cinzel mb-2">Hero</h3>
-                <!-- Hero card will be inserted here by JS -->
-            </div>
-
-            <!-- Slots for the equipped items -->
-            <div id="recap-items-slot" class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-1 gap-6">
-                <div class="flex flex-col items-center">
-                    <h4 class="text-xl font-cinzel mb-2">Ability</h4>
-                    <div id="recap-ability-slot"></div>
-                </div>
-                <div class="flex flex-col items-center">
-                    <h4 class="text-xl font-cinzel mb-2">Weapon</h4>
-                    <div id="recap-weapon-slot"></div>
-                </div>
-                <div class="flex flex-col items-center">
-                    <h4 class="text-xl font-cinzel mb-2">Armor</h4>
-                    <div id="recap-armor-slot"></div>
-                </div>
-            </div>
+        <!-- Main display area for the hero card with socketed gear -->
+        <div id="recap-hero-slot" class="relative">
+            <!-- The full hero card and its gear will be inserted here by JS -->
         </div>
 
         <button id="recap-continue-button" class="confirm-button mt-12">Draft Next Champion</button>
