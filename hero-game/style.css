@@ -308,3 +308,9 @@ body {
     font-size: 0.8rem;
     opacity: 0.8;
 }
+
+/* Recap Scene Styles */
+#recap-items-slot .hero-card-container {
+    transform: scale(0.75);
+    margin-top: -50px; /* Adjust spacing for smaller scale */
+}
