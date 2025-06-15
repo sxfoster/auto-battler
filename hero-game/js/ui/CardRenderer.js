@@ -31,7 +31,16 @@ export function createDetailCard(item, selectionHandler) {
             statsHtml = `
                 <div class="stat-block"><span class="stat-value">${item.hp}</span><span class="stat-label">HP</span></div>
                 <div class="stat-block"><span class="stat-value">${item.attack}</span><span class="stat-label">Attack</span></div>`;
-            descriptionHtml = `<p class="item-description">Class: ${item.class}</p>`;
+
+            if (item.abilities && item.abilities.length > 0) {
+                descriptionHtml = item.abilities.map(ab => `
+                    <li class="ability-item">${ab.name}
+                        <div class="tooltip">${ab.effect}</div>
+                    </li>
+                `).join('');
+            } else {
+                descriptionHtml = `<p class="item-description">Class: ${item.class}</p>`;
+            }
             break;
         case 'ability':
             cardElement.style.backgroundColor = '#1e293b';

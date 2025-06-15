@@ -1,5 +1,5 @@
 import { createDetailCard } from '../ui/CardRenderer.js';
-import { allPossibleHeroes, allPossibleWeapons, allPossibleArmors } from '../data.js';
+import { allPossibleHeroes, allPossibleAbilities, allPossibleWeapons, allPossibleArmors } from '../data.js';
 
 export class RecapScene {
     constructor(element, onContinue) {
@@ -12,37 +12,57 @@ export class RecapScene {
     }
 
     render(championData) {
-        // Clear any previous content
         this.heroSlot.innerHTML = '';
 
-        // Find the full data objects for the hero, weapon, and armor
-        const hero = allPossibleHeroes.find(h => h.id === championData.hero);
+        // Find the full data objects for all equipped items
+        const heroData = { ...allPossibleHeroes.find(h => h.id === championData.hero) };
+        const ability = allPossibleAbilities.find(a => a.id === championData.ability);
         const weapon = allPossibleWeapons.find(w => w.id === championData.weapon);
         const armor = allPossibleArmors.find(a => a.id === championData.armor);
 
-        // Create the main hero card container
-        const heroCardContainer = createDetailCard(hero);
+        // --- NEW LOGIC: Dynamically add the selected ability to the hero's data ---
+        if (ability) {
+            heroData.abilities = [ability];
+        }
+
+        const heroCardContainer = createDetailCard(heroData);
         if (!heroCardContainer) return;
 
-        // Create the weapon socket if a weapon is equipped
+        // --- NEW LOGIC: Create and append sockets ---
         if (weapon) {
-            const weaponSocket = document.createElement('div');
-            weaponSocket.className = 'gear-socket recap-weapon-socket';
-            const weaponCard = createDetailCard(weapon);
-            weaponSocket.appendChild(weaponCard);
+            const weaponSocket = this.createGearSocket(weapon, 'recap-weapon-socket');
             heroCardContainer.appendChild(weaponSocket);
         }
 
-        // Create the armor socket if armor is equipped
         if (armor) {
-            const armorSocket = document.createElement('div');
-            armorSocket.className = 'gear-socket recap-armor-socket';
-            const armorCard = createDetailCard(armor);
-            armorSocket.appendChild(armorCard);
+            const armorSocket = this.createGearSocket(armor, 'recap-armor-socket');
             heroCardContainer.appendChild(armorSocket);
         }
 
-        // Append the fully assembled hero card with its gear to the scene
         this.heroSlot.appendChild(heroCardContainer);
+    }
+
+    // Helper function to create a socket with its card and tooltip
+    createGearSocket(itemData, socketClass) {
+        const socket = document.createElement('div');
+        socket.className = `gear-socket ${socketClass}`;
+
+        const miniCardContainer = document.createElement('div');
+        miniCardContainer.className = 'hero-card-container';
+        const miniCard = document.createElement('div');
+        miniCard.className = `hero-card ${(itemData.rarity || 'common').toLowerCase().replace(' ', '-')}`;
+        miniCard.innerHTML = `
+            <div class="hero-art" style="background-image: url('${itemData.art}')"></div>
+            <h3 class="hero-name font-cinzel">${itemData.name}</h3>
+        `;
+        miniCardContainer.appendChild(miniCard);
+        socket.appendChild(miniCardContainer);
+
+        const tooltip = document.createElement('div');
+        tooltip.className = 'tooltip';
+        tooltip.innerHTML = `<strong>${itemData.name}</strong><br>${itemData.ability ? itemData.ability.description : 'Passive Bonuses'}`;
+        socket.appendChild(tooltip);
+
+        return socket;
     }
 }
