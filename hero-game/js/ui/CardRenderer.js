@@ -131,6 +131,7 @@ export function createCompactCard(combatant) {
     cardElement.querySelector('.compact-name').textContent = combatant.heroData.name;
     
     updateHealthBar(combatant, cardElement);
+    updateEnergyDisplay(combatant, cardElement);
 
     return cardElement;
 }
@@ -148,4 +149,11 @@ export function updateHealthBar(combatant, cardElement) {
     bar.style.width = `${percentage}%`;
     bar.style.backgroundColor = percentage > 50 ? '#48bb78' : percentage > 20 ? '#f59e0b' : '#ef4444';
     hpText.textContent = `${combatant.currentHp} / ${combatant.maxHp}`;
+}
+
+export function updateEnergyDisplay(combatant, cardElement) {
+    const energyValue = cardElement.querySelector('.compact-energy-value');
+    if (energyValue) {
+        energyValue.textContent = combatant.currentEnergy;
+    }
 }

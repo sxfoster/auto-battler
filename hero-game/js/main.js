@@ -251,7 +251,7 @@ function generateArmorChoices() {
 
 // --- BATTLE SETUP ---
 
-function createCombatant(heroData, weaponData, armorData, team, position) {
+function createCombatant(heroData, weaponData, armorData, abilityData, team, position) {
     // Start with base hero stats
     const finalStats = {
         hp: heroData.hp,
@@ -281,10 +281,12 @@ function createCombatant(heroData, weaponData, armorData, team, position) {
         heroData: heroData,
         weaponData: weaponData,
         armorData: armorData,
+        abilityData: abilityData,
         team: team,
         position: position,
         currentHp: finalStats.hp,
         maxHp: finalStats.hp,
+        currentEnergy: 0,
         ...finalStats,
         statusEffects: [],
         element: null, // To be assigned in BattleScene
@@ -314,12 +316,14 @@ function startNextBattle() {
     const playerHero1 = allPossibleHeroes.find(h => h.id === playerTeam.hero1);
     const playerWeapon1 = allPossibleWeapons.find(w => w.id === playerTeam.weapon1);
     const playerArmor1 = allPossibleArmors.find(a => a.id === playerTeam.armor1);
-    const playerCombatant1 = createCombatant(playerHero1, playerWeapon1, playerArmor1, 'player', 0);
+    const playerAbility1 = allPossibleAbilities.find(a => a.id === playerTeam.ability1);
+    const playerCombatant1 = createCombatant(playerHero1, playerWeapon1, playerArmor1, playerAbility1, 'player', 0);
 
     const playerHero2 = allPossibleHeroes.find(h => h.id === playerTeam.hero2);
     const playerWeapon2 = allPossibleWeapons.find(w => w.id === playerTeam.weapon2);
     const playerArmor2 = allPossibleArmors.find(a => a.id === playerTeam.armor2);
-    const playerCombatant2 = createCombatant(playerHero2, playerWeapon2, playerArmor2, 'player', 1);
+    const playerAbility2 = allPossibleAbilities.find(a => a.id === playerTeam.ability2);
+    const playerCombatant2 = createCombatant(playerHero2, playerWeapon2, playerArmor2, playerAbility2, 'player', 1);
 
     const enemyPool = allPossibleHeroes.filter(h => h.rarity === enemyRarity);
     const enemyWeaponPool = allPossibleWeapons.filter(w => w.rarity === enemyRarity);
@@ -328,12 +332,12 @@ function startNextBattle() {
     const enemyHero1 = enemyPool[Math.floor(Math.random() * enemyPool.length)];
     const enemyWeapon1 = enemyWeaponPool[Math.floor(Math.random() * enemyWeaponPool.length)];
     const enemyArmor1 = enemyArmorPool[Math.floor(Math.random() * enemyArmorPool.length)];
-    const enemyCombatant1 = createCombatant(enemyHero1, enemyWeapon1, enemyArmor1, 'enemy', 0);
+    const enemyCombatant1 = createCombatant(enemyHero1, enemyWeapon1, enemyArmor1, null, 'enemy', 0);
 
     const enemyHero2 = enemyPool.filter(h => h.id !== enemyHero1.id)[Math.floor(Math.random() * (enemyPool.length - 1))];
     const enemyWeapon2 = enemyWeaponPool.filter(w => w.id !== enemyWeapon1.id)[Math.floor(Math.random() * (enemyWeaponPool.length - 1))];
     const enemyArmor2 = enemyArmorPool.filter(a => a.id !== enemyArmor1.id)[Math.floor(Math.random() * (enemyArmorPool.length - 1))];
-    const enemyCombatant2 = createCombatant(enemyHero2, enemyWeapon2, enemyArmor2, 'enemy', 1);
+    const enemyCombatant2 = createCombatant(enemyHero2, enemyWeapon2, enemyArmor2, null, 'enemy', 1);
 
     const battleState = [playerCombatant1, playerCombatant2, enemyCombatant1, enemyCombatant2];
 
