@@ -325,19 +325,30 @@ function startNextBattle() {
     const playerAbility2 = allPossibleAbilities.find(a => a.id === playerTeam.ability2);
     const playerCombatant2 = createCombatant(playerHero2, playerWeapon2, playerArmor2, playerAbility2, 'player', 1);
 
-    const enemyPool = allPossibleHeroes.filter(h => h.rarity === enemyRarity);
-    const enemyWeaponPool = allPossibleWeapons.filter(w => w.rarity === enemyRarity);
-    const enemyArmorPool = allPossibleArmors.filter(a => a.rarity === enemyRarity);
+    // --- Create Enemy Combatants with Scaled Difficulty & Dynamic Gear ---
+    const enemyHeroPool1 = allPossibleHeroes.filter(h => h.rarity === enemyRarity);
+    const enemyHero1 = enemyHeroPool1[Math.floor(Math.random() * enemyHeroPool1.length)];
 
-    const enemyHero1 = enemyPool[Math.floor(Math.random() * enemyPool.length)];
-    const enemyWeapon1 = enemyWeaponPool[Math.floor(Math.random() * enemyWeaponPool.length)];
-    const enemyArmor1 = enemyArmorPool[Math.floor(Math.random() * enemyArmorPool.length)];
-    const enemyCombatant1 = createCombatant(enemyHero1, enemyWeapon1, enemyArmor1, null, 'enemy', 0);
+    const enemyWeapon1 = allPossibleWeapons[Math.floor(Math.random() * allPossibleWeapons.length)];
+    const enemyArmor1 = allPossibleArmors[Math.floor(Math.random() * allPossibleArmors.length)];
 
-    const enemyHero2 = enemyPool.filter(h => h.id !== enemyHero1.id)[Math.floor(Math.random() * (enemyPool.length - 1))];
-    const enemyWeapon2 = enemyWeaponPool.filter(w => w.id !== enemyWeapon1.id)[Math.floor(Math.random() * (enemyWeaponPool.length - 1))];
-    const enemyArmor2 = enemyArmorPool.filter(a => a.id !== enemyArmor1.id)[Math.floor(Math.random() * (enemyArmorPool.length - 1))];
-    const enemyCombatant2 = createCombatant(enemyHero2, enemyWeapon2, enemyArmor2, null, 'enemy', 1);
+    const enemyAbilityPool1 = allPossibleAbilities.filter(a => a.class === enemyHero1.class);
+    const enemyAbility1 = enemyAbilityPool1.length > 0 ? enemyAbilityPool1[Math.floor(Math.random() * enemyAbilityPool1.length)] : null;
+
+    const enemyCombatant1 = createCombatant(enemyHero1, enemyWeapon1, enemyArmor1, enemyAbility1, 'enemy', 0);
+
+    const enemyHeroPool2 = allPossibleHeroes.filter(h => h.id !== enemyHero1.id && h.rarity === enemyRarity);
+    const enemyHero2 = enemyHeroPool2[Math.floor(Math.random() * enemyHeroPool2.length)];
+
+    const enemyWeapon2 = allPossibleWeapons[Math.floor(Math.random() * allPossibleWeapons.length)];
+    const enemyArmor2 = allPossibleArmors[Math.floor(Math.random() * allPossibleArmors.length)];
+
+    const enemyAbilityPool2 = allPossibleAbilities.filter(a => a.class === enemyHero2.class);
+    const enemyAbility2 = enemyAbilityPool2.length > 0 ? enemyAbilityPool2[Math.floor(Math.random() * enemyAbilityPool2.length)] : null;
+
+    const enemyCombatant2 = createCombatant(enemyHero2, enemyWeapon2, enemyArmor2, enemyAbility2, 'enemy', 1);
+
+    console.log('EnemyCombatant1', enemyCombatant1);
 
     const battleState = [playerCombatant1, playerCombatant2, enemyCombatant1, enemyCombatant2];
 
