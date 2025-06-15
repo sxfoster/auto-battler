@@ -63,7 +63,8 @@ export class BattleScene {
             }
         });
 
-        await sleep(1000);
+        // Use a base pause of 1 second, adjusted by the speed multiplier
+        await sleep(1000 * battleSpeeds[this.currentSpeedIndex].multiplier);
         this.runCombatRound();
     }
     runCombatRound() {
@@ -84,7 +85,8 @@ export class BattleScene {
 
         // If the queue is empty, the round is over. Start a new one.
         if (this.turnQueue.length === 0) {
-            await sleep(1000);
+            // Use a base pause of 1 second, adjusted by the speed multiplier
+            await sleep(1000 * battleSpeeds[this.currentSpeedIndex].multiplier);
             this.runCombatRound();
             return;
         }
@@ -110,7 +112,8 @@ export class BattleScene {
 
         // --- 4. Perform Action (Basic Attack) ---
         this._logToBattle(`${attacker.heroData.name} attacks ${target.heroData.name}!`);
-        await sleep(500);
+        // Use a base pause of 0.5 seconds, adjusted by the speed multiplier
+        await sleep(500 * battleSpeeds[this.currentSpeedIndex].multiplier);
 
         // --- 5. Calculate Damage ---
         const damage = Math.max(1, attacker.attack - (target.block || 0));
@@ -126,7 +129,8 @@ export class BattleScene {
         }
 
         // --- 7. Continue to Next Turn ---
-        await sleep(800);
+        // Use a base pause of 0.8 seconds, adjusted by the speed multiplier
+        await sleep(800 * battleSpeeds[this.currentSpeedIndex].multiplier);
         this.executeNextTurn();
     }
 
