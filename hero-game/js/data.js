@@ -105,59 +105,147 @@ export const allPossibleWeapons = [
 export const allPossibleAbilities = [
     // === Stalwart Defender (Warrior) ===
     // Common
-    { id: 3111, type: 'ability', name: 'Power Strike', class: 'Stalwart Defender', rarity: 'Common', art: '...', effect: 'Deal 2 damage to one enemy.', energyCost: 1, category: 'Offense' },
-    { id: 3112, type: 'ability', name: 'Fortify', class: 'Stalwart Defender', rarity: 'Common', art: '...', effect: 'Reduce all incoming damage by 1 for 2 turns.', energyCost: 1, category: 'Defense' },
-    { id: 3113, type: 'ability', name: 'Shield Bash', class: 'Stalwart Defender', rarity: 'Common', art: '...', effect: 'Deal 1 damage and stun the enemy for 1 turn.', energyCost: 1, category: 'Support' },
+    { id: 3111, type: 'ability', name: 'Power Strike', class: 'Stalwart Defender', rarity: 'Common', art: 'https://placehold.co/150x126/ef4444/FFFFFF?text=Ability', effect: 'Deal 2 damage to one enemy.', energyCost: 1, category: 'Offense' },
+    { id: 3112, type: 'ability', name: 'Fortify', class: 'Stalwart Defender', rarity: 'Common', art: 'https://placehold.co/150x126/ef4444/FFFFFF?text=Ability', effect: 'Reduce all incoming damage by 1 for 2 turns.', energyCost: 1, category: 'Defense' },
+    { id: 3113, type: 'ability', name: 'Shield Bash', class: 'Stalwart Defender', rarity: 'Common', art: 'https://placehold.co/150x126/ef4444/FFFFFF?text=Ability', effect: 'Deal 1 damage and stun the enemy for 1 turn.', energyCost: 1, category: 'Support' },
     // Uncommon
-    { id: 3121, type: 'ability', name: 'Crippling Blow', class: 'Stalwart Defender', rarity: 'Uncommon', art: '...', effect: 'Deal 3 damage and reduce the enemy’s attack by 1 next turn.', energyCost: 2, category: 'Offense' },
-    { id: 3122, type: 'ability', name: 'Parry & Riposte', class: 'Stalwart Defender', rarity: 'Uncommon', art: '...', effect: 'Block next attack; if successful, counterattack for 2 damage.', energyCost: 2, category: 'Defense' },
-    { id: 3123, type: 'ability', name: 'Battle Roar', class: 'Stalwart Defender', rarity: 'Uncommon', art: '...', effect: 'Gain +2 attack on your next attack.', energyCost: 2, category: 'Support' },
+    { id: 3121, type: 'ability', name: 'Crippling Blow', class: 'Stalwart Defender', rarity: 'Uncommon', art: 'https://placehold.co/150x126/ef4444/FFFFFF?text=Ability', effect: 'Deal 3 damage and reduce the enemy’s attack by 1 next turn.', energyCost: 2, category: 'Offense' },
+    { id: 3122, type: 'ability', name: 'Parry & Riposte', class: 'Stalwart Defender', rarity: 'Uncommon', art: 'https://placehold.co/150x126/ef4444/FFFFFF?text=Ability', effect: 'Block next attack; if successful, counterattack for 2 damage.', energyCost: 2, category: 'Defense' },
+    { id: 3123, type: 'ability', name: 'Battle Roar', class: 'Stalwart Defender', rarity: 'Uncommon', art: 'https://placehold.co/150x126/ef4444/FFFFFF?text=Ability', effect: 'Gain +2 attack on your next attack.', energyCost: 2, category: 'Support' },
     // Rare
-    { id: 3131, type: 'ability', name: 'Whirlwind Slash', class: 'Stalwart Defender', rarity: 'Rare', art: '...', effect: 'Deal 2 damage to all enemies.', energyCost: 3, category: 'Offense' },
-    { id: 3132, type: 'ability', name: 'Blood Frenzy', class: 'Stalwart Defender', rarity: 'Rare', art: '...', effect: 'If under 50% HP, gain +2 attacks this turn.', energyCost: 3, category: 'Defense' },
-    { id: 3133, type: 'ability', name: 'Relentless Pursuit', class: 'Stalwart Defender', rarity: 'Rare', art: '...', effect: 'Deal 3 damage and take an extra action if this kills the target.', energyCost: 3, category: 'Support' },
+    { id: 3131, type: 'ability', name: 'Whirlwind Slash', class: 'Stalwart Defender', rarity: 'Rare', art: 'https://placehold.co/150x126/ef4444/FFFFFF?text=Ability', effect: 'Deal 2 damage to all enemies.', energyCost: 3, category: 'Offense' },
+    { id: 3132, type: 'ability', name: 'Blood Frenzy', class: 'Stalwart Defender', rarity: 'Rare', art: 'https://placehold.co/150x126/ef4444/FFFFFF?text=Ability', effect: 'If under 50% HP, gain +2 attacks this turn.', energyCost: 3, category: 'Defense' },
+    { id: 3133, type: 'ability', name: 'Relentless Pursuit', class: 'Stalwart Defender', rarity: 'Rare', art: 'https://placehold.co/150x126/ef4444/FFFFFF?text=Ability', effect: 'Deal 3 damage and take an extra action if this kills the target.', energyCost: 3, category: 'Support' },
     // Epic
-    { id: 3141, type: 'ability', name: 'Juggernaut Charge', class: 'Stalwart Defender', rarity: 'Epic', art: '...', effect: 'Deal 5 damage to one enemy and stun for 1 turn.', energyCost: 4, category: 'Offense' },
-    { id: 3142, type: 'ability', name: 'Champion’s Wrath', class: 'Stalwart Defender', rarity: 'Epic', art: '...', effect: 'Deal 4 damage to all enemies. If you KO at least 1 enemy, gain another full turn immediately.', energyCost: 4, category: 'Defense' },
-    { id: 3143, type: 'ability', name: 'Last Stand', class: 'Stalwart Defender', rarity: 'Epic', art: '...', effect: 'If under 25% HP, all attacks this turn deal double damage.', energyCost: 4, category: 'Support' },
+    { id: 3141, type: 'ability', name: 'Juggernaut Charge', class: 'Stalwart Defender', rarity: 'Epic', art: 'https://placehold.co/150x126/ef4444/FFFFFF?text=Ability', effect: 'Deal 5 damage to one enemy and stun for 1 turn.', energyCost: 4, category: 'Offense' },
+    { id: 3142, type: 'ability', name: 'Champion’s Wrath', class: 'Stalwart Defender', rarity: 'Epic', art: 'https://placehold.co/150x126/ef4444/FFFFFF?text=Ability', effect: 'Deal 4 damage to all enemies. If you KO at least 1 enemy, gain another full turn immediately.', energyCost: 4, category: 'Defense' },
+    { id: 3143, type: 'ability', name: 'Last Stand', class: 'Stalwart Defender', rarity: 'Epic', art: 'https://placehold.co/150x126/ef4444/FFFFFF?text=Ability', effect: 'If under 25% HP, all attacks this turn deal double damage.', energyCost: 4, category: 'Support' },
 
     // === Holy Warrior (Paladin) ===
     // Common
-    { id: 3211, type: 'ability', name: 'Divine Strike', class: 'Holy Warrior', rarity: 'Common', art: '...', effect: 'Deal 2 damage and heal yourself for 2 HP.', energyCost: 1, category: 'Offense' },
-    { id: 3212, type: 'ability', name: 'Righteous Shield', class: 'Holy Warrior', rarity: 'Common', art: '...', effect: 'Block the next attack completely.', energyCost: 1, category: 'Defense' },
-    { id: 3213, type: 'ability', name: 'Holy Light', class: 'Holy Warrior', rarity: 'Common', art: '...', effect: 'Heal an ally for 4 HP.', energyCost: 1, category: 'Support' },
+    { id: 3211, type: 'ability', name: 'Divine Strike', class: 'Holy Warrior', rarity: 'Common', art: 'https://placehold.co/150x126/ef4444/FFFFFF?text=Ability', effect: 'Deal 2 damage and heal yourself for 2 HP.', energyCost: 1, category: 'Offense' },
+    { id: 3212, type: 'ability', name: 'Righteous Shield', class: 'Holy Warrior', rarity: 'Common', art: 'https://placehold.co/150x126/ef4444/FFFFFF?text=Ability', effect: 'Block the next attack completely.', energyCost: 1, category: 'Defense' },
+    { id: 3213, type: 'ability', name: 'Holy Light', class: 'Holy Warrior', rarity: 'Common', art: 'https://placehold.co/150x126/ef4444/FFFFFF?text=Ability', effect: 'Heal an ally for 4 HP.', energyCost: 1, category: 'Support' },
     // Uncommon
-    { id: 3221, type: 'ability', name: 'Judgment', class: 'Holy Warrior', rarity: 'Uncommon', art: '...', effect: 'Deal 3 damage and reduce the enemy’s defense by 1 for 2 turns.', energyCost: 2, category: 'Offense' },
-    { id: 3222, type: 'ability', name: 'Aegis Aura', class: 'Holy Warrior', rarity: 'Uncommon', art: '...', effect: 'All allies reduce incoming damage by 1 for 2 turns.', energyCost: 2, category: 'Defense' },
-    { id: 3223, type: 'ability', name: 'Blessing of Valor', class: 'Holy Warrior', rarity: 'Uncommon', art: '...', effect: 'All allies gain +1 attack and +1 defense for 2 turns.', energyCost: 2, category: 'Support' },
+    { id: 3221, type: 'ability', name: 'Judgment', class: 'Holy Warrior', rarity: 'Uncommon', art: 'https://placehold.co/150x126/ef4444/FFFFFF?text=Ability', effect: 'Deal 3 damage and reduce the enemy’s defense by 1 for 2 turns.', energyCost: 2, category: 'Offense' },
+    { id: 3222, type: 'ability', name: 'Aegis Aura', class: 'Holy Warrior', rarity: 'Uncommon', art: 'https://placehold.co/150x126/ef4444/FFFFFF?text=Ability', effect: 'All allies reduce incoming damage by 1 for 2 turns.', energyCost: 2, category: 'Defense' },
+    { id: 3223, type: 'ability', name: 'Blessing of Valor', class: 'Holy Warrior', rarity: 'Uncommon', art: 'https://placehold.co/150x126/ef4444/FFFFFF?text=Ability', effect: 'All allies gain +1 attack and +1 defense for 2 turns.', energyCost: 2, category: 'Support' },
     // Rare
-    { id: 3231, type: 'ability', name: 'Radiant Smite', class: 'Holy Warrior', rarity: 'Rare', art: '...', effect: 'Deal 4 holy damage and stun the enemy if they are undead/dark-aligned.', energyCost: 3, category: 'Offense' },
-    { id: 3232, type: 'ability', name: 'Sacred Vow', class: 'Holy Warrior', rarity: 'Rare', art: '...', effect: 'You take half damage and cannot be debuffed for 2 turns.', energyCost: 3, category: 'Defense' },
-    { id: 3233, type: 'ability', name: 'Lay on Hands', class: 'Holy Warrior', rarity: 'Rare', art: '...', effect: 'Fully heal one ally to max HP.', energyCost: 3, category: 'Support' },
+    { id: 3231, type: 'ability', name: 'Radiant Smite', class: 'Holy Warrior', rarity: 'Rare', art: 'https://placehold.co/150x126/ef4444/FFFFFF?text=Ability', effect: 'Deal 4 holy damage and stun the enemy if they are undead/dark-aligned.', energyCost: 3, category: 'Offense' },
+    { id: 3232, type: 'ability', name: 'Sacred Vow', class: 'Holy Warrior', rarity: 'Rare', art: 'https://placehold.co/150x126/ef4444/FFFFFF?text=Ability', effect: 'You take half damage and cannot be debuffed for 2 turns.', energyCost: 3, category: 'Defense' },
+    { id: 3233, type: 'ability', name: 'Lay on Hands', class: 'Holy Warrior', rarity: 'Rare', art: 'https://placehold.co/150x126/ef4444/FFFFFF?text=Ability', effect: 'Fully heal one ally to max HP.', energyCost: 3, category: 'Support' },
     // Epic
-    { id: 3241, type: 'ability', name: 'Light’s Wrath', class: 'Holy Warrior', rarity: 'Epic', art: '...', effect: 'Deal 5 holy damage to all enemies and heal all allies for 5 HP.', energyCost: 4, category: 'Offense' },
-    { id: 3242, type: 'ability', name: 'Divine Intervention', class: 'Holy Warrior', rarity: 'Epic', art: '...', effect: 'Prevent all allies from taking damage this turn (total immunity).', energyCost: 4, category: 'Defense' },
-    { id: 3243, type: 'ability', name: 'Resurrection', class: 'Holy Warrior', rarity: 'Epic', art: '...', effect: 'Revive a fallen ally at 75% HP.', energyCost: 4, category: 'Support' },
+    { id: 3241, type: 'ability', name: 'Light’s Wrath', class: 'Holy Warrior', rarity: 'Epic', art: 'https://placehold.co/150x126/ef4444/FFFFFF?text=Ability', effect: 'Deal 5 holy damage to all enemies and heal all allies for 5 HP.', energyCost: 4, category: 'Offense' },
+    { id: 3242, type: 'ability', name: 'Divine Intervention', class: 'Holy Warrior', rarity: 'Epic', art: 'https://placehold.co/150x126/ef4444/FFFFFF?text=Ability', effect: 'Prevent all allies from taking damage this turn (total immunity).', energyCost: 4, category: 'Defense' },
+    { id: 3243, type: 'ability', name: 'Resurrection', class: 'Holy Warrior', rarity: 'Epic', art: 'https://placehold.co/150x126/ef4444/FFFFFF?text=Ability', effect: 'Revive a fallen ally at 75% HP.', energyCost: 4, category: 'Support' },
 
     // === Raging Fighter (Barbarian) ===
     // Common
-    { id: 3311, type: 'ability', name: 'Reckless Charge', class: 'Raging Fighter', rarity: 'Common', art: '...', effect: 'Deal 2 damage to all enemies, but you take 1 self-damage.', energyCost: 1, category: 'Offense' },
-    { id: 3312, type: 'ability', name: 'Raging Strike', class: 'Raging Fighter', rarity: 'Common', art: '...', effect: 'Deal 3 damage, but reduce your defense by 1 until next turn.', energyCost: 1, category: 'Defense' },
-    { id: 3313, type: 'ability', name: 'Battle Roar', class: 'Raging Fighter', rarity: 'Common', art: '...', effect: 'Gain +2 attack for 2 turns.', energyCost: 1, category: 'Support' },
+    { id: 3311, type: 'ability', name: 'Reckless Charge', class: 'Raging Fighter', rarity: 'Common', art: 'https://placehold.co/150x126/ef4444/FFFFFF?text=Ability', effect: 'Deal 2 damage to all enemies, but you take 1 self-damage.', energyCost: 1, category: 'Offense' },
+    { id: 3312, type: 'ability', name: 'Raging Strike', class: 'Raging Fighter', rarity: 'Common', art: 'https://placehold.co/150x126/ef4444/FFFFFF?text=Ability', effect: 'Deal 3 damage, but reduce your defense by 1 until next turn.', energyCost: 1, category: 'Defense' },
+    { id: 3313, type: 'ability', name: 'Battle Roar', class: 'Raging Fighter', rarity: 'Common', art: 'https://placehold.co/150x126/ef4444/FFFFFF?text=Ability', effect: 'Gain +2 attack for 2 turns.', energyCost: 1, category: 'Support' },
     // Uncommon
-    { id: 3321, type: 'ability', name: 'Savage Cleave', class: 'Raging Fighter', rarity: 'Uncommon', art: '...', effect: 'Deal 4 damage to one enemy. If you kill them, gain +1 attack on your next action.', energyCost: 2, category: 'Offense' },
-    { id: 3322, type: 'ability', name: 'Frenzied Defense', class: 'Raging Fighter', rarity: 'Uncommon', art: '...', effect: 'Take -2 damage reduction this turn and deal 2 damage back when attacked.', energyCost: 2, category: 'Defense' },
-    { id: 3323, type: 'ability', name: 'Unbreakable Will', class: 'Raging Fighter', rarity: 'Uncommon', art: '...', effect: 'Prevent defeat if your HP would drop to 0 this turn (survive with 1 HP).', energyCost: 2, category: 'Support' },
+    { id: 3321, type: 'ability', name: 'Savage Cleave', class: 'Raging Fighter', rarity: 'Uncommon', art: 'https://placehold.co/150x126/ef4444/FFFFFF?text=Ability', effect: 'Deal 4 damage to one enemy. If you kill them, gain +1 attack on your next action.', energyCost: 2, category: 'Offense' },
+    { id: 3322, type: 'ability', name: 'Frenzied Defense', class: 'Raging Fighter', rarity: 'Uncommon', art: 'https://placehold.co/150x126/ef4444/FFFFFF?text=Ability', effect: 'Take -2 damage reduction this turn and deal 2 damage back when attacked.', energyCost: 2, category: 'Defense' },
+    { id: 3323, type: 'ability', name: 'Unbreakable Will', class: 'Raging Fighter', rarity: 'Uncommon', art: 'https://placehold.co/150x126/ef4444/FFFFFF?text=Ability', effect: 'Prevent defeat if your HP would drop to 0 this turn (survive with 1 HP).', energyCost: 2, category: 'Support' },
     // Rare
-    { id: 3331, type: 'ability', name: 'Bloodbath', class: 'Raging Fighter', rarity: 'Rare', art: '...', effect: 'Deal 3 damage to all enemies. For each enemy hit, gain +1 attack next turn.', energyCost: 3, category: 'Offense' },
-    { id: 3332, type: 'ability', name: 'Warlord’s Challenge', class: 'Raging Fighter', rarity: 'Rare', art: '...', effect: 'Force all enemies to target you next turn and gain +2 defense.', energyCost: 3, category: 'Defense' },
-    { id: 3333, type: 'ability', name: 'Last Stand', class: 'Raging Fighter', rarity: 'Rare', art: '...', effect: 'If under 50% HP, all attacks this turn deal double damage.', energyCost: 3, category: 'Support' },
+    { id: 3331, type: 'ability', name: 'Bloodbath', class: 'Raging Fighter', rarity: 'Rare', art: 'https://placehold.co/150x126/ef4444/FFFFFF?text=Ability', effect: 'Deal 3 damage to all enemies. For each enemy hit, gain +1 attack next turn.', energyCost: 3, category: 'Offense' },
+    { id: 3332, type: 'ability', name: 'Warlord’s Challenge', class: 'Raging Fighter', rarity: 'Rare', art: 'https://placehold.co/150x126/ef4444/FFFFFF?text=Ability', effect: 'Force all enemies to target you next turn and gain +2 defense.', energyCost: 3, category: 'Defense' },
+    { id: 3333, type: 'ability', name: 'Last Stand', class: 'Raging Fighter', rarity: 'Rare', art: 'https://placehold.co/150x126/ef4444/FFFFFF?text=Ability', effect: 'If under 50% HP, all attacks this turn deal double damage.', energyCost: 3, category: 'Support' },
     // Epic
-    { id: 3341, type: 'ability', name: 'Titan Breaker', class: 'Raging Fighter', rarity: 'Epic', art: '...', effect: 'Deal 7 damage to a single enemy and ignore all their defenses/armor.', energyCost: 4, category: 'Offense' },
-    { id: 3342, type: 'ability', name: 'Berserker’s Rage', class: 'Raging Fighter', rarity: 'Epic', art: '...', effect: 'For 2 turns, all attacks deal +2 damage and you cannot be stunned or debuffed.', energyCost: 4, category: 'Defense' },
-    { id: 3343, type: 'ability', name: 'Unending Rage', class: 'Raging Fighter', rarity: 'Epic', art: '...', effect: 'Your abilities cost 1 less energy for the rest of combat.', energyCost: 4, category: 'Support' },
+    { id: 3341, type: 'ability', name: 'Titan Breaker', class: 'Raging Fighter', rarity: 'Epic', art: 'https://placehold.co/150x126/ef4444/FFFFFF?text=Ability', effect: 'Deal 7 damage to a single enemy and ignore all their defenses/armor.', energyCost: 4, category: 'Offense' },
+    { id: 3342, type: 'ability', name: 'Berserker’s Rage', class: 'Raging Fighter', rarity: 'Epic', art: 'https://placehold.co/150x126/ef4444/FFFFFF?text=Ability', effect: 'For 2 turns, all attacks deal +2 damage and you cannot be stunned or debuffed.', energyCost: 4, category: 'Defense' },
+    { id: 3343, type: 'ability', name: 'Unending Rage', class: 'Raging Fighter', rarity: 'Epic', art: 'https://placehold.co/150x126/ef4444/FFFFFF?text=Ability', effect: 'Your abilities cost 1 less energy for the rest of combat.', energyCost: 4, category: 'Support' },
 
-    // ...Continue for all other classes...
+    // === Raw Power Mage (Sorcerer) ===
+    // Common
+    { id: 3411, type: 'ability', name: 'Chaos Bolt', class: 'Raw Power Mage', rarity: 'Common', art: 'https://placehold.co/150x126/ef4444/FFFFFF?text=Ability', effect: 'Deal 3 damage of a random element.', energyCost: 1, category: 'Offense' },
+    { id: 3412, type: 'ability', name: 'Mana Surge', class: 'Raw Power Mage', rarity: 'Common', art: 'https://placehold.co/150x126/ef4444/FFFFFF?text=Ability', effect: 'Restore 2 energy and gain +1 attack for spells this turn.', energyCost: 1, category: 'Support' },
+    { id: 3413, type: 'ability', name: 'Elemental Spark', class: 'Raw Power Mage', rarity: 'Common', art: 'https://placehold.co/150x126/ef4444/FFFFFF?text=Ability', effect: 'Deal 2 damage and apply a random debuff.', energyCost: 1, category: 'Defense' },
+    // Uncommon
+    { id: 3421, type: 'ability', name: 'Arcane Explosion', class: 'Raw Power Mage', rarity: 'Uncommon', art: 'https://placehold.co/150x126/ef4444/FFFFFF?text=Ability', effect: 'Deal 2 damage to all enemies.', energyCost: 2, category: 'Offense' },
+    { id: 3422, type: 'ability', name: 'Elemental Infusion', class: 'Raw Power Mage', rarity: 'Uncommon', art: 'https://placehold.co/150x126/ef4444/FFFFFF?text=Ability', effect: 'All spells deal +1 damage for 2 turns.', energyCost: 2, category: 'Support' },
+    { id: 3423, type: 'ability', name: 'Chain Lightning', class: 'Raw Power Mage', rarity: 'Uncommon', art: 'https://placehold.co/150x126/ef4444/FFFFFF?text=Ability', effect: 'Deal 3 lightning damage to one enemy and 2 to another.', energyCost: 2, category: 'Offense' },
+    // Rare
+    { id: 3431, type: 'ability', name: 'Firestorm', class: 'Raw Power Mage', rarity: 'Rare', art: 'https://placehold.co/150x126/ef4444/FFFFFF?text=Ability', effect: 'Deal 3 fire damage to all enemies and apply Burn.', energyCost: 3, category: 'Offense' },
+    { id: 3432, type: 'ability', name: 'Elemental Rift', class: 'Raw Power Mage', rarity: 'Rare', art: 'https://placehold.co/150x126/ef4444/FFFFFF?text=Ability', effect: 'Deal 4 damage of a random element and root the enemy.', energyCost: 3, category: 'Offense' },
+    { id: 3433, type: 'ability', name: 'Spell Mirror', class: 'Raw Power Mage', rarity: 'Rare', art: 'https://placehold.co/150x126/ef4444/FFFFFF?text=Ability', effect: 'Reflect the next magical attack back at the caster.', energyCost: 3, category: 'Defense' },
+    // Epic
+    { id: 3441, type: 'ability', name: 'Annihilation Sphere', class: 'Raw Power Mage', rarity: 'Epic', art: 'https://placehold.co/150x126/ef4444/FFFFFF?text=Ability', effect: 'Deal 5 damage to all enemies and apply random status effects.', energyCost: 4, category: 'Offense' },
+    { id: 3442, type: 'ability', name: 'Chaos Mastery', class: 'Raw Power Mage', rarity: 'Epic', art: 'https://placehold.co/150x126/ef4444/FFFFFF?text=Ability', effect: 'For 3 turns, spells deal +2 damage and cannot be resisted.', energyCost: 4, category: 'Support' },
+    { id: 3443, type: 'ability', name: 'Elemental Fury', class: 'Raw Power Mage', rarity: 'Epic', art: 'https://placehold.co/150x126/ef4444/FFFFFF?text=Ability', effect: 'Deal 6 damage of a random element to one enemy.', energyCost: 4, category: 'Offense' },
+
+    // === Divine Healer (Cleric) ===
+    // Common
+    { id: 3511, type: 'ability', name: 'Divine Light', class: 'Divine Healer', rarity: 'Common', art: 'https://placehold.co/150x126/ef4444/FFFFFF?text=Ability', effect: 'Heal an ally for 4 HP.', energyCost: 1, category: 'Support' },
+    { id: 3512, type: 'ability', name: 'Smite Evil', class: 'Divine Healer', rarity: 'Common', art: 'https://placehold.co/150x126/ef4444/FFFFFF?text=Ability', effect: 'Deal 2 damage, or 4 to undead enemies.', energyCost: 1, category: 'Offense' },
+    { id: 3513, type: 'ability', name: 'Holy Barrier', class: 'Divine Healer', rarity: 'Common', art: 'https://placehold.co/150x126/ef4444/FFFFFF?text=Ability', effect: 'Reduce all damage taken by allies by 1 this turn.', energyCost: 1, category: 'Defense' },
+    // Uncommon
+    { id: 3521, type: 'ability', name: 'Bless', class: 'Divine Healer', rarity: 'Uncommon', art: 'https://placehold.co/150x126/ef4444/FFFFFF?text=Ability', effect: 'All allies gain +1 attack and +1 evasion for 2 turns.', energyCost: 2, category: 'Support' },
+    { id: 3522, type: 'ability', name: 'Purify', class: 'Divine Healer', rarity: 'Uncommon', art: 'https://placehold.co/150x126/ef4444/FFFFFF?text=Ability', effect: 'Remove all negative effects from an ally and heal 3 HP.', energyCost: 2, category: 'Defense' },
+    { id: 3523, type: 'ability', name: 'Sacred Shield', class: 'Divine Healer', rarity: 'Uncommon', art: 'https://placehold.co/150x126/ef4444/FFFFFF?text=Ability', effect: 'One ally becomes immune to damage this turn.', energyCost: 2, category: 'Defense' },
+    // Rare
+    { id: 3531, type: 'ability', name: 'Judgment', class: 'Divine Healer', rarity: 'Rare', art: 'https://placehold.co/150x126/ef4444/FFFFFF?text=Ability', effect: 'Deal 3 damage and reduce enemy defense by 1 for 2 turns.', energyCost: 3, category: 'Offense' },
+    { id: 3532, type: 'ability', name: 'Radiant Wave', class: 'Divine Healer', rarity: 'Rare', art: 'https://placehold.co/150x126/ef4444/FFFFFF?text=Ability', effect: 'Heal all allies for 3 HP and remove one debuff each.', energyCost: 3, category: 'Support' },
+    { id: 3533, type: 'ability', name: 'Divine Retribution', class: 'Divine Healer', rarity: 'Rare', art: 'https://placehold.co/150x126/ef4444/FFFFFF?text=Ability', effect: 'Deal 3 damage to all enemies and heal allies for 2 HP.', energyCost: 3, category: 'Offense' },
+    // Epic
+    { id: 3541, type: 'ability', name: 'Lay on Hands', class: 'Divine Healer', rarity: 'Epic', art: 'https://placehold.co/150x126/ef4444/FFFFFF?text=Ability', effect: 'Fully restore one ally’s HP.', energyCost: 4, category: 'Support' },
+    { id: 3542, type: 'ability', name: 'Resurrect', class: 'Divine Healer', rarity: 'Epic', art: 'https://placehold.co/150x126/ef4444/FFFFFF?text=Ability', effect: 'Revive a fallen ally at 50% HP and remove all debuffs.', energyCost: 4, category: 'Support' },
+    { id: 3543, type: 'ability', name: 'Heaven’s Fury', class: 'Divine Healer', rarity: 'Epic', art: 'https://placehold.co/150x126/ef4444/FFFFFF?text=Ability', effect: 'Deal 5 holy damage to undead enemies.', energyCost: 4, category: 'Offense' },
+
+    // === Nature Shaper (Druid) ===
+    // Common
+    { id: 3611, type: 'ability', name: 'Nature’s Wrath', class: 'Nature Shaper', rarity: 'Common', art: 'https://placehold.co/150x126/ef4444/FFFFFF?text=Ability', effect: 'Deal 1 damage and apply Poison 1 for 2 turns.', energyCost: 1, category: 'Offense' },
+    { id: 3612, type: 'ability', name: 'Regrowth', class: 'Nature Shaper', rarity: 'Common', art: 'https://placehold.co/150x126/ef4444/FFFFFF?text=Ability', effect: 'Heal an ally for 2 HP per turn over 3 turns.', energyCost: 1, category: 'Support' },
+    { id: 3613, type: 'ability', name: 'Entangle', class: 'Nature Shaper', rarity: 'Common', art: 'https://placehold.co/150x126/ef4444/FFFFFF?text=Ability', effect: 'Root an enemy; they cannot act next turn.', energyCost: 1, category: 'Defense' },
+    // Uncommon
+    { id: 3621, type: 'ability', name: 'Wild Growth', class: 'Nature Shaper', rarity: 'Uncommon', art: 'https://placehold.co/150x126/ef4444/FFFFFF?text=Ability', effect: 'Heal all allies for 2 HP and give +1 defense for 1 turn.', energyCost: 2, category: 'Support' },
+    { id: 3622, type: 'ability', name: 'Shapeshift – Bear Form', class: 'Nature Shaper', rarity: 'Uncommon', art: 'https://placehold.co/150x126/ef4444/FFFFFF?text=Ability', effect: 'Gain +2 attack and +2 defense for 2 turns, then revert.', energyCost: 2, category: 'Defense' },
+    { id: 3623, type: 'ability', name: 'Venom Thorns', class: 'Nature Shaper', rarity: 'Uncommon', art: 'https://placehold.co/150x126/ef4444/FFFFFF?text=Ability', effect: 'Deal 2 damage and if enemy attacks next turn they take 2 poison damage.', energyCost: 2, category: 'Offense' },
+    // Rare
+    { id: 3631, type: 'ability', name: 'Shapeshift – Wolf Form', class: 'Nature Shaper', rarity: 'Rare', art: 'https://placehold.co/150x126/ef4444/FFFFFF?text=Ability', effect: 'Gain +2 speed and +1 attack for 3 turns, then revert.', energyCost: 3, category: 'Offense' },
+    { id: 3632, type: 'ability', name: 'Poison Storm', class: 'Nature Shaper', rarity: 'Rare', art: 'https://placehold.co/150x126/ef4444/FFFFFF?text=Ability', effect: 'Deal 1 damage to all enemies and poison them for 2 turns.', energyCost: 3, category: 'Offense' },
+    { id: 3633, type: 'ability', name: 'Barkskin', class: 'Nature Shaper', rarity: 'Rare', art: 'https://placehold.co/150x126/ef4444/FFFFFF?text=Ability', effect: 'All allies reduce damage by 2 for 1 turn.', energyCost: 3, category: 'Defense' },
+    // Epic
+    { id: 3641, type: 'ability', name: 'Avatar of the Wild', class: 'Nature Shaper', rarity: 'Epic', art: 'https://placehold.co/150x126/ef4444/FFFFFF?text=Ability', effect: 'Shapeshift into Avatar form for 3 turns; attacks poison enemies.', energyCost: 4, category: 'Offense' },
+    { id: 3642, type: 'ability', name: 'Nature’s Renewal', class: 'Nature Shaper', rarity: 'Epic', art: 'https://placehold.co/150x126/ef4444/FFFFFF?text=Ability', effect: 'Heal all allies for 6 HP and remove all debuffs.', energyCost: 4, category: 'Support' },
+    { id: 3643, type: 'ability', name: 'Elemental Harmony', class: 'Nature Shaper', rarity: 'Epic', art: 'https://placehold.co/150x126/ef4444/FFFFFF?text=Ability', effect: 'Allies gain Poison immunity and +1 attack for 2 turns.', energyCost: 4, category: 'Support' },
+
+    // === Inspiring Artist (Bard) ===
+    // Common
+    { id: 3711, type: 'ability', name: 'Inspiring Tune', class: 'Inspiring Artist', rarity: 'Common', art: 'https://placehold.co/150x126/ef4444/FFFFFF?text=Ability', effect: 'All allies gain +1 attack for 2 turns.', energyCost: 1, category: 'Support' },
+    { id: 3712, type: 'ability', name: 'Dissonant Chord', class: 'Inspiring Artist', rarity: 'Common', art: 'https://placehold.co/150x126/ef4444/FFFFFF?text=Ability', effect: 'Deal 1 damage and reduce enemy attack by 1 next turn.', energyCost: 1, category: 'Offense' },
+    { id: 3713, type: 'ability', name: 'Quick Tempo', class: 'Inspiring Artist', rarity: 'Common', art: 'https://placehold.co/150x126/ef4444/FFFFFF?text=Ability', effect: 'Choose an ally: they may immediately take 1 extra action.', energyCost: 1, category: 'Defense' },
+    // Uncommon
+    { id: 3721, type: 'ability', name: 'Song of Restoration', class: 'Inspiring Artist', rarity: 'Uncommon', art: 'https://placehold.co/150x126/ef4444/FFFFFF?text=Ability', effect: 'Heal an ally for 3 HP per turn over 2 turns.', energyCost: 2, category: 'Support' },
+    { id: 3722, type: 'ability', name: 'Encore', class: 'Inspiring Artist', rarity: 'Uncommon', art: 'https://placehold.co/150x126/ef4444/FFFFFF?text=Ability', effect: 'Replay your last Bard ability.', energyCost: 2, category: 'Support' },
+    { id: 3723, type: 'ability', name: 'Harmony', class: 'Inspiring Artist', rarity: 'Uncommon', art: 'https://placehold.co/150x126/ef4444/FFFFFF?text=Ability', effect: 'Buff all allies: +1 attack and +1 evasion for 1 turn.', energyCost: 2, category: 'Defense' },
+    // Rare
+    { id: 3731, type: 'ability', name: 'Ballad of Courage', class: 'Inspiring Artist', rarity: 'Rare', art: 'https://placehold.co/150x126/ef4444/FFFFFF?text=Ability', effect: 'All allies gain +2 attack and +2 speed for 2 turns.', energyCost: 3, category: 'Support' },
+    { id: 3732, type: 'ability', name: 'Discordant Blast', class: 'Inspiring Artist', rarity: 'Rare', art: 'https://placehold.co/150x126/ef4444/FFFFFF?text=Ability', effect: 'Deal 2 damage to all enemies and reduce their attack by 1.', energyCost: 3, category: 'Offense' },
+    { id: 3733, type: 'ability', name: 'Rhythm Shift', class: 'Inspiring Artist', rarity: 'Rare', art: 'https://placehold.co/150x126/ef4444/FFFFFF?text=Ability', effect: 'Swap turn order so an ally goes first.', energyCost: 3, category: 'Defense' },
+    // Epic
+    { id: 3741, type: 'ability', name: 'Crescendo', class: 'Inspiring Artist', rarity: 'Epic', art: 'https://placehold.co/150x126/ef4444/FFFFFF?text=Ability', effect: 'All allies gain +3 attack and take an immediate action.', energyCost: 4, category: 'Support' },
+    { id: 3742, type: 'ability', name: 'Song of Rebirth', class: 'Inspiring Artist', rarity: 'Epic', art: 'https://placehold.co/150x126/ef4444/FFFFFF?text=Ability', effect: 'Revive all fallen allies at 50% HP.', energyCost: 4, category: 'Support' },
+    { id: 3743, type: 'ability', name: 'Finale', class: 'Inspiring Artist', rarity: 'Epic', art: 'https://placehold.co/150x126/ef4444/FFFFFF?text=Ability', effect: 'Deal 4 damage to all enemies.', energyCost: 4, category: 'Offense' },
+
+    // === Wilderness Expert (Ranger) ===
+    // Common
+    { id: 3811, type: 'ability', name: 'Precision Shot', class: 'Wilderness Expert', rarity: 'Common', art: 'https://placehold.co/150x126/ef4444/FFFFFF?text=Ability', effect: 'Deal 3 damage to a single enemy.', energyCost: 1, category: 'Offense' },
+    { id: 3812, type: 'ability', name: 'Camouflage', class: 'Wilderness Expert', rarity: 'Common', art: 'https://placehold.co/150x126/ef4444/FFFFFF?text=Ability', effect: 'Gain +2 evasion for 1 turn and +1 speed next turn.', energyCost: 1, category: 'Defense' },
+    { id: 3813, type: 'ability', name: 'Animal Companion – Wolf', class: 'Wilderness Expert', rarity: 'Common', art: 'https://placehold.co/150x126/ef4444/FFFFFF?text=Ability', effect: 'Summon a Wolf that deals 2 damage and lasts 1 turn.', energyCost: 1, category: 'Support' },
+    // Uncommon
+    { id: 3821, type: 'ability', name: 'Multi-Shot', class: 'Wilderness Expert', rarity: 'Uncommon', art: 'https://placehold.co/150x126/ef4444/FFFFFF?text=Ability', effect: 'Deal 2 damage to up to 3 enemies.', energyCost: 2, category: 'Offense' },
+    { id: 3822, type: 'ability', name: 'Hawk Eye', class: 'Wilderness Expert', rarity: 'Uncommon', art: 'https://placehold.co/150x126/ef4444/FFFFFF?text=Ability', effect: 'Gain +1 attack and +1 crit chance for 2 turns.', energyCost: 2, category: 'Support' },
+    { id: 3823, type: 'ability', name: 'Animal Companion – Bear', class: 'Wilderness Expert', rarity: 'Uncommon', art: 'https://placehold.co/150x126/ef4444/FFFFFF?text=Ability', effect: 'Summon a Bear that deals 3 damage and taunts enemies.', energyCost: 2, category: 'Defense' },
+    // Rare
+    { id: 3831, type: 'ability', name: 'Rain of Arrows', class: 'Wilderness Expert', rarity: 'Rare', art: 'https://placehold.co/150x126/ef4444/FFFFFF?text=Ability', effect: 'Deal 3 damage to all enemies.', energyCost: 3, category: 'Offense' },
+    { id: 3832, type: 'ability', name: 'Trap Mastery', class: 'Wilderness Expert', rarity: 'Rare', art: 'https://placehold.co/150x126/ef4444/FFFFFF?text=Ability', effect: 'Set a trap: next enemy to attack you takes 4 damage and is rooted.', energyCost: 3, category: 'Defense' },
+    { id: 3833, type: 'ability', name: 'Animal Companion – Falcon', class: 'Wilderness Expert', rarity: 'Rare', art: 'https://placehold.co/150x126/ef4444/FFFFFF?text=Ability', effect: 'Summon a Falcon that grants +1 attack and reveals hidden enemies for 2 turns.', energyCost: 3, category: 'Support' },
+    // Epic
+    { id: 3841, type: 'ability', name: 'Alpha\'s Call', class: 'Wilderness Expert', rarity: 'Epic', art: 'https://placehold.co/150x126/ef4444/FFFFFF?text=Ability', effect: 'Summon all three animal companions simultaneously.', energyCost: 4, category: 'Support' },
+    { id: 3842, type: 'ability', name: 'True Shot', class: 'Wilderness Expert', rarity: 'Epic', art: 'https://placehold.co/150x126/ef4444/FFFFFF?text=Ability', effect: 'Deal 7 damage to one enemy, ignoring evasion and armor.', energyCost: 4, category: 'Offense' },
+    { id: 3843, type: 'ability', name: 'Ranger\'s Focus', class: 'Wilderness Expert', rarity: 'Epic', art: 'https://placehold.co/150x126/ef4444/FFFFFF?text=Ability', effect: 'Gain +2 attack and +2 speed for 2 turns.', energyCost: 4, category: 'Defense' },
 ];
 // NOTE: Placeholder art links ('...') and new IDs have been assigned.
 
