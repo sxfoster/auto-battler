@@ -52,9 +52,13 @@
             <p class="text-lg text-gray-400 mt-2">Your first champion is ready for battle.</p>
         </header>
 
-        <!-- Main display area for the hero card with its attached gear -->
-        <div id="recap-hero-slot" class="relative">
-            <!-- The fully assembled hero card will be injected here by JavaScript -->
+        <!-- This is the main display area -->
+        <div id="recap-display-area" class="relative">
+            <!-- Sockets will be attached here -->
+            <div id="recap-socket-container"></div>
+
+            <!-- The swappable cards will live inside this container -->
+            <div id="recap-card-viewer"></div>
         </div>
 
         <button id="recap-continue-button" class="confirm-button mt-12">Draft Next Champion</button>
