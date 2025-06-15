@@ -246,38 +246,77 @@ function generateArmorChoices() {
 
 // --- BATTLE SETUP ---
 
+function createCombatant(heroData, weaponData, armorData, team, position) {
+    // Start with base hero stats
+    const finalStats = {
+        hp: heroData.hp,
+        attack: heroData.attack,
+        speed: heroData.speed,
+        block: 0, // Base block
+        evasion: 0, // Base evasion
+        magicResist: 0, // Base magic resist
+    };
+
+    // Add weapon stat bonuses
+    if (weaponData && weaponData.statBonuses) {
+        for (const [stat, value] of Object.entries(weaponData.statBonuses)) {
+            finalStats[stat.toLowerCase()] = (finalStats[stat.toLowerCase()] || 0) + value;
+        }
+    }
+
+    // Add armor stat bonuses
+    if (armorData && armorData.statBonuses) {
+        for (const [stat, value] of Object.entries(armorData.statBonuses)) {
+            finalStats[stat.toLowerCase()] = (finalStats[stat.toLowerCase()] || 0) + value;
+        }
+    }
+
+    return {
+        id: `${team}-hero-${position}`,
+        heroData: heroData,
+        weaponData: weaponData,
+        armorData: armorData,
+        team: team,
+        position: position,
+        currentHp: finalStats.hp,
+        maxHp: finalStats.hp,
+        ...finalStats,
+        statusEffects: [],
+        element: null, // To be assigned in BattleScene
+    };
+}
+
 function startBattle() {
     confirmationBar.classList.remove('visible');
+
+    const playerTeam = gameState.draft.playerTeam;
+
+    // --- Create Player Combatants ---
+    const playerHero1 = allPossibleHeroes.find(h => h.id === playerTeam.hero1);
+    const playerWeapon1 = allPossibleWeapons.find(w => w.id === playerTeam.weapon1);
+    const playerArmor1 = allPossibleArmors.find(a => a.id === playerTeam.armor1);
+    const playerCombatant1 = createCombatant(playerHero1, playerWeapon1, playerArmor1, 'player', 0);
+
+    const playerHero2 = allPossibleHeroes.find(h => h.id === playerTeam.hero2);
+    const playerWeapon2 = allPossibleWeapons.find(w => w.id === playerTeam.weapon2);
+    const playerArmor2 = allPossibleArmors.find(a => a.id === playerTeam.armor2);
+    const playerCombatant2 = createCombatant(playerHero2, playerWeapon2, playerArmor2, 'player', 1);
+
+    // --- Create Enemy Combatants (Randomly) ---
+    const enemyHero1 = allPossibleHeroes.find(h => h.rarity === 'Common');
+    const enemyWeapon1 = allPossibleWeapons.find(w => w.rarity === 'Common');
+    const enemyArmor1 = allPossibleArmors.find(a => a.rarity === 'Common');
+    const enemyCombatant1 = createCombatant(enemyHero1, enemyWeapon1, enemyArmor1, 'enemy', 0);
+
+    const enemyHero2 = allPossibleHeroes.find(h => h.id !== enemyHero1.id && h.rarity === 'Common');
+    const enemyWeapon2 = allPossibleWeapons.find(w => w.id !== enemyWeapon1.id && w.rarity === 'Common');
+    const enemyArmor2 = allPossibleArmors.find(a => a.id !== enemyArmor1.id && a.rarity === 'Common');
+    const enemyCombatant2 = createCombatant(enemyHero2, enemyWeapon2, enemyArmor2, 'enemy', 1);
+
+    // --- Prepare Battle State ---
+    const battleState = [playerCombatant1, playerCombatant2, enemyCombatant1, enemyCombatant2];
+
     transitionToScene('battle');
-
-    const team = gameState.draft.playerTeam;
-
-    // Create Player Combatants
-    const playerHero1 = allPossibleHeroes.find(h => h.id === team.hero1);
-    const playerWeapon1 = allPossibleWeapons.find(w => w.id === team.weapon1);
-    const playerHero2 = allPossibleHeroes.find(h => h.id === team.hero2);
-    const playerWeapon2 = allPossibleWeapons.find(w => w.id === team.weapon2);
-    
-    // Create Enemy Combatants
-    const enemyHero1 = allPossibleHeroes[Math.floor(Math.random() * allPossibleHeroes.length)];
-    const enemyHero2 = allPossibleHeroes.filter(h => h.id !== enemyHero1.id)[Math.floor(Math.random() * (allPossibleHeroes.length - 1))];
-    const enemyWeapon1 = allPossibleWeapons[Math.floor(Math.random() * allPossibleWeapons.length)];
-    const enemyWeapon2 = allPossibleWeapons[Math.floor(Math.random() * allPossibleWeapons.length)];
-
-    const battleState = [
-        { heroData: playerHero1, weaponData: playerWeapon1, team: 'player', position: 0 },
-        { heroData: enemyHero1, weaponData: enemyWeapon1, team: 'enemy', position: 0 },
-        { heroData: playerHero2, weaponData: playerWeapon2, team: 'player', position: 1 },
-        { heroData: enemyHero2, weaponData: enemyWeapon2, team: 'enemy', position: 1 },
-    ].map((s, i) => ({
-        ...s,
-        id: `combatant-${i}`,
-        currentHp: s.heroData.hp,
-        maxHp: s.heroData.hp,
-        statusEffects: [],
-        element: null, // This will be populated by the battle scene
-    }));
-
     battleScene.start(battleState);
 }
 

@@ -1,7 +1,6 @@
 import { createCompactCard, updateHealthBar } from '../ui/CardRenderer.js';
 import { sleep } from '../utils.js';
 import { battleSpeeds } from '../data.js';
-import { processEffect } from '../systems/EffectProcessor.js';
 
 export class BattleScene {
     constructor(element) {
@@ -43,17 +42,20 @@ export class BattleScene {
         }, 667 * battleSpeeds[this.currentSpeedIndex].multiplier);
     }
 
-    async start(battleState) {
+    async start(initialState) {
         this.isBattleOver = false;
-        this.state = battleState;
-        this.currentAttackerIndex = 0;
+        this.state = initialState;
+        this.turnQueue = [];
+
+        // --- UI Setup ---
         this.playerContainer.innerHTML = '';
         this.enemyContainer.innerHTML = '';
         this.endScreen.classList.remove('visible', 'victory', 'defeat');
+        this._logToBattle('The battle begins!');
 
         this.state.forEach(combatant => {
             const card = createCompactCard(combatant);
-            combatant.element = card; // Store reference to the element
+            combatant.element = card;
             if (combatant.team === 'player') {
                 this.playerContainer.appendChild(card);
             } else {
@@ -61,48 +63,60 @@ export class BattleScene {
             }
         });
 
-        await sleep(125 * battleSpeeds[this.currentSpeedIndex].multiplier);
-        this._runCombatTurn();
+        await sleep(1000);
+        this.runCombatRound();
     }
-    
-    async _runCombatTurn() {
+    runCombatRound() {
         if (this.isBattleOver) return;
 
-        const attacker = this.state[this.currentAttackerIndex];
-        
-        if (attacker.currentHp <= 0) {
-            this.currentAttackerIndex = (this.currentAttackerIndex + 1) % 4;
-            this._runCombatTurn();
+        // --- 1. Determine Turn Order (Initiative) ---
+        this.turnQueue = [...this.state.filter(c => c.currentHp > 0)]
+            .sort((a, b) => b.speed - a.speed);
+
+        this._logToBattle('New round! Turn order: ' + this.turnQueue.map(c => c.heroData.name).join(', '));
+
+        // --- 2. Start Executing Turns ---
+        this.executeNextTurn();
+    }
+
+    async executeNextTurn() {
+        if (this.isBattleOver) return;
+
+        // If the queue is empty, the round is over. Start a new one.
+        if (this.turnQueue.length === 0) {
+            await sleep(1000);
+            this.runCombatRound();
             return;
         }
 
-        const stunEffect = attacker.statusEffects.find(e => e.name === 'Stun');
-        if(stunEffect) {
-            this._logToBattle(`${attacker.heroData.name} is stunned and skips their turn!`);
-            stunEffect.turnsRemaining--;
-            if(stunEffect.turnsRemaining <= 0) attacker.statusEffects = attacker.statusEffects.filter(e => e.name !== 'Stun');
-            this._updateStatusIcons(attacker);
-            await sleep(125 * battleSpeeds[this.currentSpeedIndex].multiplier);
-            this.currentAttackerIndex = (this.currentAttackerIndex + 1) % 4;
-            this._runCombatTurn();
-            return;
-        }
-        
-        const enemies = this.state.filter(c => c.team !== attacker.team && c.currentHp > 0);
-        const allies = this.state.filter(c => c.team === attacker.team && c.currentHp > 0);
-        if (enemies.length === 0) return;
+        // Get the next combatant from the front of the queue
+        const attacker = this.turnQueue.shift();
 
-        const target = enemies.sort((a,b) => a.position - b.position)[0];
-
+        // Remove existing visual highlights
+        this.state.forEach(c => c.element.classList.remove('is-attacking'));
+        // Highlight the current attacker
         attacker.element.classList.add('is-attacking');
-        await sleep(67 * battleSpeeds[this.currentSpeedIndex].multiplier);
 
-        // This is the hardcoded AI logic that should be replaced with a data-driven system
-        this._executeAttackerAI(attacker, target, enemies, allies);
+        // Check for stun, etc. (future feature)
 
-        await sleep(100 * battleSpeeds[this.currentSpeedIndex].multiplier);
-        attacker.element.classList.remove('is-attacking');
+        // --- 3. Choose a Target ---
+        const potentialTargets = this.state.filter(c => c.team !== attacker.team && c.currentHp > 0);
+        if (potentialTargets.length === 0) {
+            // This should trigger battle end, but as a fallback, do nothing.
+            this.executeNextTurn();
+            return;
+        }
+        const target = potentialTargets[0]; // Simplest AI: always attack the front-most enemy
 
+        // --- 4. Perform Action (Basic Attack) ---
+        this._logToBattle(`${attacker.heroData.name} attacks ${target.heroData.name}!`);
+        await sleep(500);
+
+        // --- 5. Calculate Damage ---
+        const damage = Math.max(1, attacker.attack - (target.block || 0));
+        this._dealDamage(attacker, target, damage);
+
+        // --- 6. Check for Battle End ---
         const isPlayerTeamDefeated = this.state.filter(c => c.team === 'player' && c.currentHp > 0).length === 0;
         const isEnemyTeamDefeated = this.state.filter(c => c.team === 'enemy' && c.currentHp > 0).length === 0;
 
@@ -111,61 +125,11 @@ export class BattleScene {
             return;
         }
 
-        this.currentAttackerIndex = (this.currentAttackerIndex + 1) % 4;
-        setTimeout(() => this._runCombatTurn(), 167 * battleSpeeds[this.currentSpeedIndex].multiplier);
+        // --- 7. Continue to Next Turn ---
+        await sleep(800);
+        this.executeNextTurn();
     }
 
-    _executeAttackerAI(attacker, defaultTarget, enemies, allies) {
-        const ability = attacker.heroData.abilities[0];
-        let abilityToUse = ability && ability.effects ? ability : {
-            name: 'Basic Attack',
-            target: 'ENEMY_SINGLE',
-            effects: [{ type: 'DEAL_DAMAGE', amount: attacker.heroData.attack + attacker.weaponData.damage }]
-        };
-
-        this._logToBattle(`${attacker.heroData.name} uses ${abilityToUse.name}!`);
-
-        const baseTargets = this._selectTargets(abilityToUse.target, attacker, defaultTarget, enemies, allies);
-        for (const baseTarget of baseTargets) {
-            for (const effect of abilityToUse.effects) {
-                const effTargets = effect.target ? this._selectTargets(effect.target, attacker, baseTarget, enemies, allies) : [baseTarget];
-                for (const t of effTargets) {
-                    processEffect(effect, attacker, t, this);
-                }
-            }
-        }
-
-        if (attacker.weaponData.name === 'Iron Sword' && enemies.length > 1) {
-            const secondTarget = enemies.find(e => e.id !== defaultTarget.id);
-            if (secondTarget) {
-                this._logToBattle(`Cleave hits ${secondTarget.heroData.name}!`);
-                this._dealDamage(attacker, secondTarget, Math.ceil((attacker.heroData.attack + attacker.weaponData.damage) * 0.5));
-            }
-        }
-        if (attacker.weaponData.name === 'Glimmering Dagger' && Math.random() < 0.10) {
-            this._applyStatus(defaultTarget, 'Poison', Math.floor(Math.random() * 3) + 2);
-        }
-    }
-
-    _selectTargets(type, attacker, defaultTarget, enemies, allies) {
-        switch(type) {
-            case 'ENEMY_SINGLE':
-                return [defaultTarget];
-            case 'ALL_ENEMIES':
-                return enemies;
-            case 'ALLY_SINGLE':
-                return [attacker];
-            case 'ALL_ALLIES':
-                return allies;
-            case 'SELF':
-                return [attacker];
-            case 'ENEMY_ADDITIONAL':
-                const other = enemies.find(e => e.id !== defaultTarget.id);
-                return other ? [other] : [];
-            default:
-                return [defaultTarget];
-        }
-    }
 
     _dealDamage(attacker, target, amount) {
         if(target.heroData.abilities.some(a => a.name === 'Fortify')) amount = Math.max(0, amount - 1);
