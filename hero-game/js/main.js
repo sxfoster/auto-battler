@@ -107,40 +107,33 @@ function openPack() {
     const stage = gameState.draft.stage;
     const stageType = stage.split('_')[0].toUpperCase();
     let choices = [];
+    let dataSource = [];
+
     switch(stageType) {
         case 'HERO':
-            choices = generateHeroPack();
+            dataSource = allPossibleHeroes;
             break;
-        case 'WEAPON':
-            choices = generateWeaponChoices();
-            break;
-        case 'ARMOR':
-            choices = generateArmorChoices();
-            break;
-        case 'ABILITY':
+        case 'ABILITY': {
             const heroSlot = stage.includes('_1_') ? 'hero1' : 'hero2';
             const heroId = gameState.draft.playerTeam[heroSlot];
             const heroClass = allPossibleHeroes.find(h => h.id === heroId).class;
-            let dataSource = allPossibleAbilities.filter(a => a.class === heroClass);
-            if (dataSource.length === 0) {
-                dataSource = allPossibleAbilities; // Fallback when class has no abilities defined
-            }
-
-            const commonByCategory = (category) => {
-                const pool = dataSource.filter(a => a.category === category && a.rarity === 'Common');
-                const fallback = allPossibleAbilities.filter(a => a.category === category && a.rarity === 'Common');
-                const source = pool.length ? pool : fallback;
-                return source[Math.floor(Math.random() * source.length)];
-            };
-
-            choices = [
-                commonByCategory('Offense'),
-                commonByCategory('Defense'),
-                commonByCategory('Support'),
-            ];
+            dataSource = allPossibleAbilities.filter(a => a.class === heroClass);
+            const shuffledAbilities = [...dataSource].sort(() => 0.5 - Math.random());
+            choices = shuffledAbilities.slice(0, 3);
+            transitionToScene('reveal');
+            revealScene.startReveal(choices);
+            return;
+        }
+        case 'WEAPON':
+            dataSource = allPossibleWeapons;
+            break;
+        case 'ARMOR':
+            dataSource = allPossibleArmors;
             break;
     }
 
+    const shuffled = [...dataSource].sort(() => 0.5 - Math.random());
+    choices = shuffled.slice(0, 3);
     transitionToScene('reveal');
     revealScene.startReveal(choices);
 }
