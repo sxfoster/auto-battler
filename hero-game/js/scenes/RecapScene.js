@@ -6,62 +6,78 @@ export class RecapScene {
         this.element = element;
         this.onContinue = onContinue;
 
-        this.heroSlot = this.element.querySelector('#recap-hero-slot');
+        this.displayArea = this.element.querySelector('#recap-display-area');
+        this.cardViewer = this.element.querySelector('#recap-card-viewer');
+        this.socketContainer = this.element.querySelector('#recap-socket-container');
 
         this.element.querySelector('#recap-continue-button').addEventListener('click', () => this.onContinue());
     }
 
     render(championData) {
-        this.heroSlot.innerHTML = ''; // Clear previous content
+        // Clear previous content
+        this.cardViewer.innerHTML = '';
+        this.socketContainer.innerHTML = '';
 
-        // Find the full data objects for all equipped items
-        const heroData = { ...allPossibleHeroes.find(h => h.id === championData.hero) }; // Create a mutable copy
+        // --- 1. Find all data objects ---
+        const heroData = { ...allPossibleHeroes.find(h => h.id === championData.hero) };
         const ability = allPossibleAbilities.find(a => a.id === championData.ability);
         const weapon = allPossibleWeapons.find(w => w.id === championData.weapon);
         const armor = allPossibleArmors.find(a => a.id === championData.armor);
 
-        // --- Dynamically add the selected ability to the hero's data ---
         if (ability) {
-            heroData.abilities = [ability]; 
+            heroData.abilities = [ability];
         }
 
-        // Create the main hero card using the updated heroData
-        const heroCardContainer = createDetailCard(heroData);
-        if (!heroCardContainer) return;
+        // --- 2. Create all three detail cards ---
+        const heroCard = createDetailCard(heroData);
+        heroCard.classList.add('recap-card');
 
-        // --- Create and append sockets with new modal popups ---
+        const weaponCard = weapon ? createDetailCard(weapon) : null;
+        if (weaponCard) {
+            weaponCard.classList.add('recap-card', 'hidden');
+        }
+
+        const armorCard = armor ? createDetailCard(armor) : null;
+        if (armorCard) {
+            armorCard.classList.add('recap-card', 'hidden');
+        }
+
+        // --- 3. Append cards to the viewer ---
+        this.cardViewer.appendChild(heroCard);
+        if (weaponCard) this.cardViewer.appendChild(weaponCard);
+        if (armorCard) this.cardViewer.appendChild(armorCard);
+
+        // --- 4. Create sockets and attach event listeners ---
         if (weapon) {
             const weaponSocket = this.createGearSocket(weapon, 'recap-weapon-socket');
-            heroCardContainer.appendChild(weaponSocket);
+            weaponSocket.addEventListener('mouseover', () => this.showCard(weaponCard));
+            weaponSocket.addEventListener('mouseout', () => this.showCard(heroCard));
+            this.socketContainer.appendChild(weaponSocket);
         }
 
         if (armor) {
             const armorSocket = this.createGearSocket(armor, 'recap-armor-socket');
-            heroCardContainer.appendChild(armorSocket);
+            armorSocket.addEventListener('mouseover', () => this.showCard(armorCard));
+            armorSocket.addEventListener('mouseout', () => this.showCard(heroCard));
+            this.socketContainer.appendChild(armorSocket);
         }
-
-        this.heroSlot.appendChild(heroCardContainer);
     }
 
-    // Helper function to create a socket with its card and modal popup
+    // Helper to create the socket icon
     createGearSocket(itemData, socketClass) {
         const socket = document.createElement('div');
         socket.className = `gear-socket ${socketClass}`;
-        // Set the artwork directly on the socket's background
         socket.style.backgroundImage = `url('${itemData.art}')`;
-
-        // Create the modal container that will hold the full card
-        const modalPopup = document.createElement('div');
-        modalPopup.className = 'socket-modal-popup';
-
-        // Create the full, detailed card for the item
-        const detailCard = createDetailCard(itemData);
-        if (detailCard) {
-            modalPopup.appendChild(detailCard);
-        }
-
-        socket.appendChild(modalPopup);
-
         return socket;
+    }
+
+    // Helper to manage which card is visible
+    showCard(cardToShow) {
+        this.cardViewer.querySelectorAll('.recap-card').forEach(card => {
+            card.classList.add('hidden');
+        });
+        if (cardToShow) {
+            cardToShow.classList.remove('hidden');
+        }
     }
 }
