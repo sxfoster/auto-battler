@@ -363,3 +363,70 @@ body {
 .gear-socket .item-ability {
     display: none;
 }
+
+/* Main container for the socketed gear card */
+#recap-hero-slot .hero-card-container {
+    position: relative; 
+}
+
+/* Styling for the socket itself */
+.gear-socket {
+    position: absolute;
+    width: 80px;
+    height: 110px;
+    z-index: 10;
+    transition: transform 0.3s ease;
+    border-radius: 0.75rem;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    box-shadow: inset 0 0 10px rgba(0,0,0,0.7);
+    background-size: cover;
+    background-position: center;
+    cursor: pointer;
+}
+
+.gear-socket:hover {
+    transform: scale(1.1);
+    z-index: 20;
+}
+
+/* Position the weapon socket on the right side */
+.recap-weapon-socket {
+    top: 20%;
+    right: -40px;
+    transform: rotate(10deg);
+}
+.recap-weapon-socket:hover {
+    transform: rotate(5deg) scale(1.1);
+}
+
+/* Position the armor socket on the left side */
+.recap-armor-socket {
+    top: 45%;
+    left: -40px;
+    transform: rotate(-10deg);
+}
+.recap-armor-socket:hover {
+    transform: rotate(-5deg) scale(1.1);
+}
+
+/* Styling for the new modal popup (replaces simple tooltip) */
+.gear-socket .socket-modal-popup {
+    visibility: hidden;
+    opacity: 0;
+    position: absolute;
+    bottom: 50%;
+    left: 110%; /* Position it to the right of the socket */
+    z-index: 100;
+    transition: opacity 0.3s, visibility 0.3s;
+    pointer-events: none;
+}
+
+.recap-armor-socket .socket-modal-popup {
+    left: auto;
+    right: 110%; /* Position armor modal to the left */
+}
+
+.gear-socket:hover .socket-modal-popup {
+    visibility: visible;
+    opacity: 1;
+}

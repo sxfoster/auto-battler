@@ -12,23 +12,24 @@ export class RecapScene {
     }
 
     render(championData) {
-        this.heroSlot.innerHTML = '';
+        this.heroSlot.innerHTML = ''; // Clear previous content
 
         // Find the full data objects for all equipped items
-        const heroData = { ...allPossibleHeroes.find(h => h.id === championData.hero) };
+        const heroData = { ...allPossibleHeroes.find(h => h.id === championData.hero) }; // Create a mutable copy
         const ability = allPossibleAbilities.find(a => a.id === championData.ability);
         const weapon = allPossibleWeapons.find(w => w.id === championData.weapon);
         const armor = allPossibleArmors.find(a => a.id === championData.armor);
 
-        // --- NEW LOGIC: Dynamically add the selected ability to the hero's data ---
+        // --- Dynamically add the selected ability to the hero's data ---
         if (ability) {
-            heroData.abilities = [ability];
+            heroData.abilities = [ability]; 
         }
 
+        // Create the main hero card using the updated heroData
         const heroCardContainer = createDetailCard(heroData);
         if (!heroCardContainer) return;
 
-        // --- NEW LOGIC: Create and append sockets ---
+        // --- Create and append sockets with new modal popups ---
         if (weapon) {
             const weaponSocket = this.createGearSocket(weapon, 'recap-weapon-socket');
             heroCardContainer.appendChild(weaponSocket);
@@ -42,26 +43,24 @@ export class RecapScene {
         this.heroSlot.appendChild(heroCardContainer);
     }
 
-    // Helper function to create a socket with its card and tooltip
+    // Helper function to create a socket with its card and modal popup
     createGearSocket(itemData, socketClass) {
         const socket = document.createElement('div');
         socket.className = `gear-socket ${socketClass}`;
+        // Set the artwork directly on the socket's background
+        socket.style.backgroundImage = `url('${itemData.art}')`;
 
-        const miniCardContainer = document.createElement('div');
-        miniCardContainer.className = 'hero-card-container';
-        const miniCard = document.createElement('div');
-        miniCard.className = `hero-card ${(itemData.rarity || 'common').toLowerCase().replace(' ', '-')}`;
-        miniCard.innerHTML = `
-            <div class="hero-art" style="background-image: url('${itemData.art}')"></div>
-            <h3 class="hero-name font-cinzel">${itemData.name}</h3>
-        `;
-        miniCardContainer.appendChild(miniCard);
-        socket.appendChild(miniCardContainer);
+        // Create the modal container that will hold the full card
+        const modalPopup = document.createElement('div');
+        modalPopup.className = 'socket-modal-popup';
 
-        const tooltip = document.createElement('div');
-        tooltip.className = 'tooltip';
-        tooltip.innerHTML = `<strong>${itemData.name}</strong><br>${itemData.ability ? itemData.ability.description : 'Passive Bonuses'}`;
-        socket.appendChild(tooltip);
+        // Create the full, detailed card for the item
+        const detailCard = createDetailCard(itemData);
+        if (detailCard) {
+            modalPopup.appendChild(detailCard);
+        }
+
+        socket.appendChild(modalPopup);
 
         return socket;
     }
