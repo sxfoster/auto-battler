@@ -1,4 +1,4 @@
-import { createCompactCard, updateHealthBar } from '../ui/CardRenderer.js';
+import { createCompactCard, updateHealthBar, updateEnergyDisplay } from '../ui/CardRenderer.js';
 import { sleep } from '../utils.js';
 import { battleSpeeds } from '../data.js';
 
@@ -83,41 +83,55 @@ export class BattleScene {
     async executeNextTurn() {
         if (this.isBattleOver) return;
 
-        // If the queue is empty, the round is over. Start a new one.
         if (this.turnQueue.length === 0) {
-            // Use a base pause of 1 second, adjusted by the speed multiplier
             await sleep(1000 * battleSpeeds[this.currentSpeedIndex].multiplier);
             this.runCombatRound();
             return;
         }
 
-        // Get the next combatant from the front of the queue
         const attacker = this.turnQueue.shift();
 
-        // Remove existing visual highlights
         this.state.forEach(c => c.element.classList.remove('is-attacking'));
-        // Highlight the current attacker
         attacker.element.classList.add('is-attacking');
 
-        // Check for stun, etc. (future feature)
+        // --- 1. GAIN ENERGY ---
+        attacker.currentEnergy += 1;
+        updateEnergyDisplay(attacker, attacker.element);
+        this._logToBattle(`${attacker.heroData.name} gains 1 energy!`);
+        await sleep(500 * battleSpeeds[this.currentSpeedIndex].multiplier);
 
-        // --- 3. Choose a Target ---
         const potentialTargets = this.state.filter(c => c.team !== attacker.team && c.currentHp > 0);
         if (potentialTargets.length === 0) {
-            // This should trigger battle end, but as a fallback, do nothing.
             this.executeNextTurn();
             return;
         }
-        const target = potentialTargets[0]; // Simplest AI: always attack the front-most enemy
+        const target = potentialTargets[0];
 
-        // --- 4. Perform Action (Basic Attack) ---
-        this._logToBattle(`${attacker.heroData.name} attacks ${target.heroData.name}!`);
-        // Use a base pause of 0.5 seconds, adjusted by the speed multiplier
-        await sleep(500 * battleSpeeds[this.currentSpeedIndex].multiplier);
+        const ability = attacker.abilityData;
+        if (ability && attacker.currentEnergy >= ability.energyCost) {
+            attacker.currentEnergy -= ability.energyCost;
+            updateEnergyDisplay(attacker, attacker.element);
 
-        // --- 5. Calculate Damage ---
-        const damage = Math.max(1, attacker.attack - (target.block || 0));
-        this._dealDamage(attacker, target, damage);
+            this._logToBattle(`${attacker.heroData.name} uses ${ability.name}!`);
+            await sleep(500 * battleSpeeds[this.currentSpeedIndex].multiplier);
+
+            if (ability.effect && ability.effect.includes('damage')) {
+                const match = ability.effect.match(/\d+/);
+                const damageAmount = match ? parseInt(match[0]) : attacker.attack;
+                this._dealDamage(attacker, target, damageAmount);
+            }
+
+            // --- Auto-attack after ability ---
+            this._logToBattle(`${attacker.heroData.name} also performs a basic attack!`);
+            await sleep(500 * battleSpeeds[this.currentSpeedIndex].multiplier);
+            const autoAttackDamage = Math.max(1, attacker.attack - (target.block || 0));
+            this._dealDamage(attacker, target, autoAttackDamage);
+        } else {
+            this._logToBattle(`${attacker.heroData.name} attacks ${target.heroData.name}!`);
+            await sleep(500 * battleSpeeds[this.currentSpeedIndex].multiplier);
+            const damage = Math.max(1, attacker.attack - (target.block || 0));
+            this._dealDamage(attacker, target, damage);
+        }
 
         // --- 6. Check for Battle End ---
         const isPlayerTeamDefeated = this.state.filter(c => c.team === 'player' && c.currentHp > 0).length === 0;
