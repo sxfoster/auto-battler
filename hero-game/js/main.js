@@ -5,6 +5,7 @@ import { allPossibleHeroes, allPossibleWeapons, allPossibleArmors, allPossibleAb
 import { PackScene } from './scenes/PackScene.js';
 import { DraftScene } from './scenes/DraftScene.js';
 import { WeaponScene } from './scenes/WeaponScene.js';
+import { RecapScene } from './scenes/RecapScene.js';
 // RevealScene handles displaying cards from a pack
 import { RevealScene } from './scenes/RevealScene.js';
 import { BattleScene } from './scenes/BattleScene.js';
@@ -27,6 +28,7 @@ const sceneElements = {
     draft: document.getElementById('draft-scene'),
     weapon: document.getElementById('weapon-scene'),
     battle: document.getElementById('battle-scene'),
+    recap: document.getElementById('recap-scene'),
 };
 
 const packElements = {
@@ -82,6 +84,9 @@ const draftScene = new DraftScene(sceneElements.draft, (selectedItem) => {
     advanceDraft();
 });
 const weaponScene = new WeaponScene(sceneElements.weapon, null, () => openPack());
+const recapScene = new RecapScene(sceneElements.recap, () => {
+    advanceDraft();
+});
 
 const battleScene = new BattleScene(sceneElements.battle);
 
@@ -161,6 +166,15 @@ function advanceDraft() {
         configurePackScene(gameState.draft.stage);
         transitionToScene('pack');
     } else if (stage === 'ARMOR_1_DRAFT' && team.armor1) {
+        gameState.draft.stage = 'RECAP_1_DRAFT';
+        recapScene.render({
+            hero: team.hero1,
+            ability: team.ability1,
+            weapon: team.weapon1,
+            armor: team.armor1
+        });
+        transitionToScene('recap');
+    } else if (stage === 'RECAP_1_DRAFT') {
         gameState.draft.stage = 'HERO_2_PACK';
         packScene.reset();
         packScene.render(gameState.draft.stage);
