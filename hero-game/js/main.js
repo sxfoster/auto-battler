@@ -9,6 +9,7 @@ import { RecapScene } from './scenes/RecapScene.js';
 // RevealScene handles displaying cards from a pack
 import { RevealScene } from './scenes/RevealScene.js';
 import { BattleScene } from './scenes/BattleScene.js';
+import { initBackgroundAnimation } from './background-animation.js';
 
 // --- STATE MANAGEMENT ---
 // Centralized game state
@@ -286,6 +287,7 @@ confirmDraftButton.addEventListener('click', startBattle);
 
 // --- INITIALIZE ---
 // Set up the initial scene on page load
+initBackgroundAnimation();
 packScene.render(gameState.draft.stage);
 configurePackScene(gameState.draft.stage);
 transitionToScene('pack');
