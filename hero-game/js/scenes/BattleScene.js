@@ -3,8 +3,9 @@ import { sleep } from '../utils.js';
 import { battleSpeeds } from '../data.js';
 
 export class BattleScene {
-    constructor(element) {
+    constructor(element, onBattleComplete) {
         this.element = element;
+        this.onBattleComplete = onBattleComplete;
         
         // DOM Elements
         this.playerContainer = this.element.querySelector('#player-team-container');
@@ -22,7 +23,6 @@ export class BattleScene {
         this.currentSpeedIndex = 0;
         this.isBattleOver = false;
 
-        this.playAgainButton.addEventListener('click', () => window.location.reload());
         this.speedButton.addEventListener('click', () => this._cycleSpeed());
     }
 
@@ -185,7 +185,8 @@ export class BattleScene {
         this._logToBattle(didPlayerWin ? "Player team is victorious!" : "Enemy team is victorious!");
 
         this.endScreen.className = didPlayerWin ? 'victory' : 'defeat';
-        this.resultText.textContent = didPlayerWin ? 'Victory' : 'Defeat';
+        this.resultText.textContent = didPlayerWin ? 'Victory!' : 'Defeat!';
+        this.playAgainButton.textContent = 'Continue';
 
         this.resultsContainer.innerHTML = '';
         this.state.filter(c => c.team === 'player').forEach(c => {
@@ -193,6 +194,15 @@ export class BattleScene {
             if(c.currentHp <= 0) card.classList.add('is-defeated');
             this.resultsContainer.appendChild(card);
         });
+
+        const continueButton = this.element.querySelector('#play-again-button');
+        const newContinueButton = continueButton.cloneNode(true);
+        continueButton.parentNode.replaceChild(newContinueButton, continueButton);
+
+        newContinueButton.addEventListener('click', () => {
+            this.endScreen.classList.remove('visible');
+            this.onBattleComplete(didPlayerWin);
+        }, { once: true });
 
         setTimeout(() => this.endScreen.classList.add('visible'), 167 * battleSpeeds[this.currentSpeedIndex].multiplier);
     }

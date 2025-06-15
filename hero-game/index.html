@@ -81,6 +81,10 @@
     <div id="battle-scene" class="scene hidden">
         <div id="battle-scene-background"></div>
         <button id="speed-cycle-button">Speed: 1x</button>
+        <div id="tournament-tracker" class="absolute top-4 right-4 bg-gray-900 bg-opacity-70 p-4 rounded-lg border border-gray-600 text-lg font-cinzel hidden">
+            <p>Wins: <span id="tournament-wins">0</span></p>
+            <p>Losses: <span id="tournament-losses">0</span></p>
+        </div>
         <div class="battle-arena">
             <div id="player-team-container" class="team-container"></div>
             <div id="enemy-team-container" class="team-container"></div>
@@ -91,6 +95,13 @@
             <div id="end-screen-results"></div>
             <button id="play-again-button">Play Again</button>
         </div>
+    </div>
+
+    <div id="tournament-end-screen" class="scene hidden flex-col items-center justify-center bg-gray-900 bg-opacity-90">
+        <h1 id="tournament-end-title" class="text-6xl font-cinzel">Tournament Complete</h1>
+        <p class="text-2xl mt-4">Final Record:</p>
+        <p id="tournament-final-record" class="text-4xl font-cinzel mt-2"></p>
+        <button id="tournament-play-again-button" class="confirm-button mt-12">Play Again</button>
     </div>
 
     <div id="confirmation-bar" class="confirmation-bar">
