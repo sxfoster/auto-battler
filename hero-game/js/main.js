@@ -18,6 +18,11 @@ const gameState = {
     draft: {
         stage: 'HERO_1_PACK', // HERO_1_PACK, HERO_1_DRAFT, WEAPON_1_DRAFT, HERO_2_PACK, etc.
         playerTeam: { hero1: null, ability1: null, weapon1: null, armor1: null, hero2: null, ability2: null, weapon2: null, armor2: null },
+    },
+    tournament: {
+        wins: 0,
+        losses: 0,
+        isComplete: false
     }
 };
 
@@ -89,7 +94,7 @@ const recapScene = new RecapScene(sceneElements.recap, () => {
     advanceDraft();
 });
 
-const battleScene = new BattleScene(sceneElements.battle);
+const battleScene = new BattleScene(sceneElements.battle, handleBattleComplete);
 
 // --- FLOW CONTROL ---
 
@@ -286,8 +291,22 @@ function createCombatant(heroData, weaponData, armorData, team, position) {
     };
 }
 
-function startBattle() {
+function startNextBattle() {
     confirmationBar.classList.remove('visible');
+
+    const tracker = document.getElementById('tournament-tracker');
+    tracker.classList.remove('hidden');
+    document.getElementById('tournament-wins').textContent = gameState.tournament.wins;
+    document.getElementById('tournament-losses').textContent = gameState.tournament.losses;
+
+    let enemyRarity = 'Common';
+    if (gameState.tournament.wins >= 5) {
+        enemyRarity = 'Epic';
+    } else if (gameState.tournament.wins >= 2) {
+        enemyRarity = 'Rare';
+    } else if (gameState.tournament.wins >= 1) {
+        enemyRarity = 'Uncommon';
+    }
 
     const playerTeam = gameState.draft.playerTeam;
 
@@ -302,27 +321,64 @@ function startBattle() {
     const playerArmor2 = allPossibleArmors.find(a => a.id === playerTeam.armor2);
     const playerCombatant2 = createCombatant(playerHero2, playerWeapon2, playerArmor2, 'player', 1);
 
-    // --- Create Enemy Combatants (Randomly) ---
-    const enemyHero1 = allPossibleHeroes.find(h => h.rarity === 'Common');
-    const enemyWeapon1 = allPossibleWeapons.find(w => w.rarity === 'Common');
-    const enemyArmor1 = allPossibleArmors.find(a => a.rarity === 'Common');
+    const enemyPool = allPossibleHeroes.filter(h => h.rarity === enemyRarity);
+    const enemyWeaponPool = allPossibleWeapons.filter(w => w.rarity === enemyRarity);
+    const enemyArmorPool = allPossibleArmors.filter(a => a.rarity === enemyRarity);
+
+    const enemyHero1 = enemyPool[Math.floor(Math.random() * enemyPool.length)];
+    const enemyWeapon1 = enemyWeaponPool[Math.floor(Math.random() * enemyWeaponPool.length)];
+    const enemyArmor1 = enemyArmorPool[Math.floor(Math.random() * enemyArmorPool.length)];
     const enemyCombatant1 = createCombatant(enemyHero1, enemyWeapon1, enemyArmor1, 'enemy', 0);
 
-    const enemyHero2 = allPossibleHeroes.find(h => h.id !== enemyHero1.id && h.rarity === 'Common');
-    const enemyWeapon2 = allPossibleWeapons.find(w => w.id !== enemyWeapon1.id && w.rarity === 'Common');
-    const enemyArmor2 = allPossibleArmors.find(a => a.id !== enemyArmor1.id && a.rarity === 'Common');
+    const enemyHero2 = enemyPool.filter(h => h.id !== enemyHero1.id)[Math.floor(Math.random() * (enemyPool.length - 1))];
+    const enemyWeapon2 = enemyWeaponPool.filter(w => w.id !== enemyWeapon1.id)[Math.floor(Math.random() * (enemyWeaponPool.length - 1))];
+    const enemyArmor2 = enemyArmorPool.filter(a => a.id !== enemyArmor1.id)[Math.floor(Math.random() * (enemyArmorPool.length - 1))];
     const enemyCombatant2 = createCombatant(enemyHero2, enemyWeapon2, enemyArmor2, 'enemy', 1);
 
-    // --- Prepare Battle State ---
     const battleState = [playerCombatant1, playerCombatant2, enemyCombatant1, enemyCombatant2];
 
     transitionToScene('battle');
     battleScene.start(battleState);
 }
 
+function handleBattleComplete(didPlayerWin) {
+    if (didPlayerWin) {
+        gameState.tournament.wins++;
+    } else {
+        gameState.tournament.losses++;
+    }
+
+    if (gameState.tournament.wins >= 10 || gameState.tournament.losses >= 2) {
+        endTournament();
+    } else {
+        startNextBattle();
+    }
+}
+
+function endTournament() {
+    gameState.tournament.isComplete = true;
+    document.getElementById('tournament-tracker').classList.add('hidden');
+
+    const endScreen = document.getElementById('tournament-end-screen');
+    const endTitle = document.getElementById('tournament-end-title');
+    const finalRecord = document.getElementById('tournament-final-record');
+
+    finalRecord.textContent = `${gameState.tournament.wins} Wins - ${gameState.tournament.losses} Losses`;
+    if (gameState.tournament.wins >= 10) {
+        endTitle.textContent = 'Tournament Victor!';
+    } else {
+        endTitle.textContent = 'Your Run Has Ended';
+    }
+
+    endScreen.classList.remove('hidden');
+    document.getElementById('tournament-play-again-button').addEventListener('click', () => {
+        window.location.reload();
+    });
+}
+
 
 // --- EVENT LISTENERS ---
-confirmDraftButton.addEventListener('click', startBattle);
+confirmDraftButton.addEventListener('click', startNextBattle);
 
 // --- INITIALIZE ---
 // Set up the initial scene on page load
