@@ -184,6 +184,13 @@ export class BattleScene {
             this._triggerArenaEffect('ability-zoom');
             this._logToBattle(`${attacker.heroData.name} uses ${ability.name}!`);
 
+            if (ability.target === 'ALLIES') {
+                this._triggerTeamBanner(attacker.team, ability.name, 'buff');
+            } else if (ability.target === 'ENEMIES') {
+                const enemyTeam = attacker.team === 'player' ? 'enemy' : 'player';
+                this._triggerTeamBanner(enemyTeam, ability.name, 'debuff');
+            }
+
             if (ability.env_effect) {
                 this._triggerEnvironmentalEffect(ability.env_effect);
             }
@@ -457,6 +464,20 @@ export class BattleScene {
                 }
             }, delay);
         });
+    }
+
+    _triggerTeamBanner(team, text, type = 'buff') {
+        const bannerId = `${team}-team-banner`;
+        const banner = document.getElementById(bannerId);
+        if (!banner) return;
+
+        banner.textContent = text;
+        banner.className = `team-banner ${type}`;
+        banner.classList.add('is-visible');
+
+        setTimeout(() => {
+            banner.classList.remove('is-visible');
+        }, 2000);
     }
 
     _updateCombo(attackerTeam) {
