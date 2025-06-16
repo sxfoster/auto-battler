@@ -195,16 +195,42 @@ export class BattleScene {
 
             if (ability.effect && ability.effect.includes('damage')) {
                 const match = ability.effect.match(/\d+/);
-                const damageAmount = match ? parseInt(match[0]) : attacker.attack;
+                const baseDamage = match ? parseInt(match[0]) : attacker.attack;
+
+                let finalDamage = baseDamage;
+                let isSynergy = false;
+
+                if (ability.synergy) {
+                    const hasCondition = target.statusEffects.some(e => e.name === ability.synergy.condition);
+                    if (hasCondition) {
+                        isSynergy = true;
+                        finalDamage *= ability.synergy.bonus_multiplier;
+
+                        const iconToFlash = Array.from(target.element.querySelectorAll('.status-icon'))
+                            .find(icon => icon.title.includes(ability.synergy.condition));
+                        if (iconToFlash) {
+                            iconToFlash.classList.add('synergy-flash');
+                            setTimeout(() => iconToFlash.classList.remove('synergy-flash'), 600);
+                        }
+                    }
+                }
+
+                let isCritical = Math.random() < 0.1;
+                if (isCritical) {
+                    finalDamage = Math.floor(finalDamage * 1.5);
+                }
+
                 await this._fireProjectile(attacker.element, target.element);
-                this._dealDamage(attacker, target, damageAmount);
+                this._dealDamage(attacker, target, finalDamage, isCritical, isSynergy);
             }
 
             // --- Auto-attack after ability ---
             this._logToBattle(`${attacker.heroData.name} also performs a basic attack!`);
             await this._fireProjectile(attacker.element, target.element);
-            const autoAttackDamage = Math.max(1, attacker.attack - (target.block || 0));
-            this._dealDamage(attacker, target, autoAttackDamage);
+            const autoAttackBase = Math.max(1, attacker.attack - (target.block || 0));
+            let autoCrit = Math.random() < 0.1;
+            const autoDamage = autoCrit ? Math.floor(autoAttackBase * 1.5) : autoAttackBase;
+            this._dealDamage(attacker, target, autoDamage, autoCrit);
         } else {
             this._logToBattle(`${attacker.heroData.name} attacks ${target.heroData.name}!`);
 
@@ -233,8 +259,10 @@ export class BattleScene {
             }
 
             // Deal damage AFTER the animation completes
-            const damage = Math.max(1, attacker.attack - (target.block || 0));
-            this._dealDamage(attacker, target, damage);
+            const baseDamage = Math.max(1, attacker.attack - (target.block || 0));
+            const crit = Math.random() < 0.1;
+            const dmg = crit ? Math.floor(baseDamage * 1.5) : baseDamage;
+            this._dealDamage(attacker, target, dmg, crit);
         }
 
         attacker.element.classList.remove('is-lunging');
@@ -244,7 +272,7 @@ export class BattleScene {
         const isEnemyTeamDefeated = this.state.filter(c => c.team === 'enemy' && c.currentHp > 0).length === 0;
 
         if (isPlayerTeamDefeated || isEnemyTeamDefeated) {
-            this._endBattle(!isPlayerTeamDefeated);
+            await this._endBattle(!isPlayerTeamDefeated);
             return;
         }
 
@@ -255,13 +283,12 @@ export class BattleScene {
     }
 
 
-    _dealDamage(attacker, target, baseDamage) {
+    _dealDamage(attacker, target, damage, isCritical = false, isSynergy = false) {
         if (target.heroData.abilities.some(a => a.name === 'Fortify')) {
-            baseDamage = Math.max(0, baseDamage - 1);
+            damage = Math.max(0, damage - 1);
         }
 
-        const isCritical = Math.random() < 0.1;
-        const finalDamage = isCritical ? Math.floor(baseDamage * 1.5) : baseDamage;
+        const finalDamage = damage;
 
         const isOverkill = (target.currentHp - finalDamage) < -5;
 
@@ -275,7 +302,7 @@ export class BattleScene {
             const flash = document.getElementById('screen-flash');
             if (flash) flash.classList.add('flash');
             setTimeout(() => flash.classList.remove('flash'), 400);
-        } else if (isCritical) {
+        } else if (isCritical || isSynergy) {
             this._showCombatText(target.element, `-${finalDamage}!`, 'critical');
         } else {
             this._showCombatText(target.element, `-${finalDamage}`, 'damage');
@@ -509,9 +536,20 @@ export class BattleScene {
         }
     }
 
-    _endBattle(didPlayerWin) {
+    async _endBattle(didPlayerWin) {
         this.isBattleOver = true;
+        const winningTeam = didPlayerWin ? 'player' : 'enemy';
         this._logToBattle(didPlayerWin ? "Player team is victorious!" : "Enemy team is victorious!");
+
+        this.state.forEach(combatant => {
+            if (combatant.team === winningTeam && combatant.currentHp > 0) {
+                combatant.element.classList.add('is-victorious');
+            } else {
+                combatant.element.classList.add('is-vanquished');
+            }
+        });
+
+        await sleep(2500);
 
         this.endScreen.className = didPlayerWin ? 'victory' : 'defeat';
         this.resultText.textContent = didPlayerWin ? 'Victory!' : 'Defeat!';
