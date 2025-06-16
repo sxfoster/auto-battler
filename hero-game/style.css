@@ -39,6 +39,11 @@ body {
     opacity: 1;
 }
 
+/* --- 2. Speed Lines Background Effect --- */
+#background-canvas.speed-lines-active {
+    /* We will control the speed lines via JavaScript */
+}
+
 .font-cinzel { font-family: 'Cinzel', serif; }
 
 /* --- Scene Containers --- */
@@ -726,6 +731,34 @@ body {
 }
 .ability-announcer.show {
     animation: announce-and-fade 1.5s ease-out forwards;
+}
+
+/* --- 1. Combo Counter Styles --- */
+.combo-counter {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    font-family: 'Cinzel', serif;
+    font-size: 3rem;
+    font-weight: 900;
+    color: #fff;
+    text-shadow: 0 0 5px #000, 0 0 10px #f59e0b, 0 0 15px #f59e0b;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.3s ease-out, transform 0.3s ease-out;
+}
+.combo-counter.player-side { left: 20%; }
+.combo-counter.enemy-side { right: 20%; }
+
+/* Animation for when the counter appears and updates */
+@keyframes combo-pop-in {
+    0% { transform: translateY(-50%) scale(0.5); }
+    70% { transform: translateY(-50%) scale(1.2); }
+    100% { transform: translateY(-50%) scale(1); }
+}
+.combo-counter.active {
+    opacity: 1;
+    animation: combo-pop-in 0.3s ease-out;
 }
 @keyframes announce-and-fade {
     0% { transform: translateX(-50%) scale(0.5); opacity: 0; }
