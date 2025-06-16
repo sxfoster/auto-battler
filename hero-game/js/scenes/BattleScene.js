@@ -100,6 +100,7 @@ export class BattleScene {
         attacker.currentEnergy += 1;
         updateEnergyDisplay(attacker, attacker.element);
         this._logToBattle(`${attacker.heroData.name} gains 1 energy!`);
+        this._showCombatText(attacker.element, '+1', 'energy');
         await sleep(500 * battleSpeeds[this.currentSpeedIndex].multiplier);
 
         const potentialTargets = this.state.filter(c => c.team !== attacker.team && c.currentHp > 0);
@@ -169,7 +170,7 @@ export class BattleScene {
         target.element.classList.add('is-taking-damage');
         setTimeout(() => target.element.classList.remove('is-taking-damage'), 400 * battleSpeeds[this.currentSpeedIndex].multiplier);
         
-        this._showDamagePopup(target.element, amount);
+        this._showCombatText(target.element, `-${amount}`, 'damage');
         updateHealthBar(target, target.element);
 
         if (target.currentHp <= 0) {
@@ -191,12 +192,12 @@ export class BattleScene {
         this._updateStatusIcons(target);
     }
     
-    _showDamagePopup(targetElement, amount) {
+    _showCombatText(targetElement, text, type) {
         const popup = document.createElement('div');
-        popup.className = 'damage-popup';
-        popup.textContent = amount;
+        popup.className = `combat-text-popup ${type}`;
+        popup.textContent = text;
         targetElement.appendChild(popup);
-        setTimeout(() => popup.remove(), 234 * battleSpeeds[this.currentSpeedIndex].multiplier);
+        setTimeout(() => popup.remove(), 1200 * battleSpeeds[this.currentSpeedIndex].multiplier);
     }
 
     _updateStatusIcons(combatant){
