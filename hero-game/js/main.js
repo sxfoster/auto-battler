@@ -219,6 +219,8 @@ function advanceDraft() {
         gameState.draft.stage = 'DONE';
         confirmationBar.classList.add('visible');
     }
+
+    updateRandomHeroButtonState();
 }
 
 // --- DATA GENERATION ---
@@ -303,6 +305,59 @@ function generateRandomTeamAndStartBattle() {
     confirmationBar.classList.remove('visible');
 
     startNextBattle();
+}
+
+// Generate a single random hero and advance the draft appropriately
+function generateSingleRandomHero() {
+    const team = gameState.draft.playerTeam;
+    let slot = null;
+    if (!team.hero1) slot = 1;
+    else if (!team.hero2) slot = 2;
+    if (!slot) return; // team full
+
+    const champion = generateRandomChampion();
+
+    if (slot === 1) {
+        team.hero1 = champion.hero;
+        team.ability1 = champion.ability;
+        team.weapon1 = champion.weapon;
+        team.armor1 = champion.armor;
+
+        gameState.draft.stage = 'RECAP_1_DRAFT';
+        recapScene.render({
+            hero: team.hero1,
+            ability: team.ability1,
+            weapon: team.weapon1,
+            armor: team.armor1
+        });
+        recapScene.setContinueButtonLabel('Draft Next Champion');
+        transitionToScene('recap');
+    } else {
+        team.hero2 = champion.hero;
+        team.ability2 = champion.ability;
+        team.weapon2 = champion.weapon;
+        team.armor2 = champion.armor;
+
+        gameState.draft.stage = 'RECAP_2_DRAFT';
+        recapScene.render({
+            hero: team.hero2,
+            ability: team.ability2,
+            weapon: team.weapon2,
+            armor: team.armor2
+        });
+        recapScene.setContinueButtonLabel('Start Battle');
+        transitionToScene('recap');
+    }
+
+    updateRandomHeroButtonState();
+}
+
+function updateRandomHeroButtonState() {
+    const button = document.getElementById('random-hero-button');
+    if (!button) return;
+    const team = gameState.draft.playerTeam;
+    const disabled = team.hero1 && team.hero2;
+    button.disabled = disabled;
 }
 
 // --- BATTLE SETUP ---
@@ -450,9 +505,9 @@ function endTournament() {
 
 // --- EVENT LISTENERS ---
 confirmDraftButton.addEventListener('click', startNextBattle);
-const randomTeamButton = document.getElementById('random-team-button');
-if (randomTeamButton) {
-    randomTeamButton.addEventListener('click', generateRandomTeamAndStartBattle);
+const randomHeroButton = document.getElementById('random-hero-button');
+if (randomHeroButton) {
+    randomHeroButton.addEventListener('click', generateSingleRandomHero);
 }
 
 // --- INITIALIZE ---
@@ -461,3 +516,4 @@ initBackgroundAnimation();
 packScene.render(gameState.draft.stage);
 configurePackScene(gameState.draft.stage);
 transitionToScene('pack');
+updateRandomHeroButtonState();
