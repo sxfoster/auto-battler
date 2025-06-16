@@ -208,16 +208,32 @@ export class BattleScene {
         } else {
             this._logToBattle(`${attacker.heroData.name} attacks ${target.heroData.name}!`);
 
-            const damage = Math.max(1, attacker.attack - (target.block || 0));
-            const isFinalBlow = target.currentHp <= damage && this.state.filter(c => c.team === target.team && c.currentHp > 0).length === 1;
+            const isMeleeClash = (attacker.position === 0 && target.position === 0);
 
-            if (isFinalBlow) {
-                this._triggerCameraEffect(attacker.team === 'player' ? 'camera-pan-right slow-motion' : 'camera-pan-left slow-motion', 2000);
+            if (isMeleeClash) {
+                // --- Melee Clash Logic ---
+                attacker.element.classList.add('is-clashing-player');
+                target.element.classList.add('is-clashing-enemy');
+
+                await sleep(400);
+                this._createVFX(this.element.querySelector('.battle-arena'), 'physical-hit');
+                await sleep(400);
+
+                attacker.element.classList.remove('is-clashing-player');
+                target.element.classList.remove('is-clashing-enemy');
+
             } else {
-                this._triggerCameraEffect(attacker.team === 'player' ? 'camera-pan-right' : 'camera-pan-left', 1000);
+                // --- Ranged Attack Logic (Existing Projectile) ---
+                if (attacker.team === 'player') {
+                    this._triggerCameraEffect('camera-pan-right', 1000);
+                } else {
+                    this._triggerCameraEffect('camera-pan-left', 1000);
+                }
+                await this._fireProjectile(attacker.element, target.element);
             }
 
-            await this._fireProjectile(attacker.element, target.element, isFinalBlow);
+            // Deal damage AFTER the animation completes
+            const damage = Math.max(1, attacker.attack - (target.block || 0));
             this._dealDamage(attacker, target, damage);
         }
 
@@ -266,9 +282,21 @@ export class BattleScene {
         }
 
         this._createVFX(target.element, 'physical-hit');
+
+        // --- NEW: Critical Health Check ---
+        const healthPercentage = target.currentHp / target.maxHp;
+        if (healthPercentage > 0 && healthPercentage <= 0.25) {
+            target.element.classList.add('is-critical-health');
+        } else {
+            // Also be sure to remove it if they are healed above the threshold
+            target.element.classList.remove('is-critical-health');
+        }
+
         updateHealthBar(target, target.element);
 
         if (target.currentHp <= 0) {
+            // Remove the critical health state if the hero is defeated
+            target.element.classList.remove('is-critical-health');
             this._logToBattle(`${target.heroData.name} has been defeated!`);
             target.element.classList.add('is-defeated');
             this._triggerArenaEffect('critical-shake');
