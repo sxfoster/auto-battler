@@ -85,6 +85,8 @@ export class BattleScene {
     async executeNextTurn() {
         if (this.isBattleOver) return;
 
+        this.state.forEach(c => c.element.classList.remove('is-active-turn'));
+
         if (this.turnQueue.length === 0) {
             await sleep(1000 * battleSpeeds[this.currentSpeedIndex].multiplier);
             this.runCombatRound();
@@ -92,6 +94,8 @@ export class BattleScene {
         }
 
         const attacker = this.turnQueue.shift();
+
+        attacker.element.classList.add('is-active-turn');
 
         this.state.forEach(c => c.element.classList.remove('is-attacking', 'is-lunging'));
         attacker.element.classList.add('is-attacking', 'is-lunging');
@@ -169,8 +173,9 @@ export class BattleScene {
         
         target.element.classList.add('is-taking-damage');
         setTimeout(() => target.element.classList.remove('is-taking-damage'), 400 * battleSpeeds[this.currentSpeedIndex].multiplier);
-        
+
         this._showCombatText(target.element, `-${amount}`, 'damage');
+        this._createVFX(target.element, 'physical-hit');
         updateHealthBar(target, target.element);
 
         if (target.currentHp <= 0) {
@@ -267,6 +272,13 @@ export class BattleScene {
         spark.style.top = `${rect.top + rect.height/2}px`;
         this.element.appendChild(spark);
         setTimeout(() => spark.remove(), 300);
+    }
+
+    _createVFX(targetElement, effectType) {
+        const vfx = document.createElement('div');
+        vfx.className = `vfx-container ${effectType}`;
+        targetElement.appendChild(vfx);
+        setTimeout(() => vfx.remove(), 1200);
     }
 
     _endBattle(didPlayerWin) {
