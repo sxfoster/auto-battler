@@ -166,6 +166,10 @@ export class BattleScene {
         }
 
         const attacker = this.turnQueue.shift();
+        if (attacker.currentHp <= 0) {
+            this.executeNextTurn();
+            return;
+        }
 
         this._updateCombo(attacker.team);
 
@@ -179,10 +183,18 @@ export class BattleScene {
         this._logToBattle(`${attacker.heroData.name} gains 1 energy!`, 'heal');
 
         await this._triggerEnergyChargeUp(attacker.element);
+        if (attacker.currentHp <= 0) {
+            this.executeNextTurn();
+            return;
+        }
         this._showCombatText(attacker.element, '+1', 'energy');
         updateEnergyDisplay(attacker, attacker.element);
         this._updateChargedStatus(attacker);
         await sleep(600);
+        if (attacker.currentHp <= 0) {
+            this.executeNextTurn();
+            return;
+        }
 
         const potentialTargets = this.state.filter(c => c.team !== attacker.team && c.currentHp > 0);
         if (potentialTargets.length === 0) {
@@ -220,6 +232,10 @@ export class BattleScene {
                 this._triggerCameraEffect('camera-zoom', 1200);
             }
             await sleep(500 * battleSpeeds[this.currentSpeedIndex].multiplier);
+            if (attacker.currentHp <= 0) {
+                this.executeNextTurn();
+                return;
+            }
 
             if (ability.effect && ability.effect.includes('damage')) {
                 const match = ability.effect.match(/\d+/);
@@ -249,16 +265,32 @@ export class BattleScene {
                 }
 
                 await this._fireProjectile(attacker.element, target.element);
+                if (attacker.currentHp <= 0) {
+                    this.executeNextTurn();
+                    return;
+                }
                 this._dealDamage(attacker, target, finalDamage, isCritical, isSynergy);
+                if (attacker.currentHp <= 0) {
+                    this.executeNextTurn();
+                    return;
+                }
             }
 
             // --- Auto-attack after ability ---
             this._logToBattle(`${attacker.heroData.name} also performs a basic attack!`);
             await this._fireProjectile(attacker.element, target.element);
+            if (attacker.currentHp <= 0) {
+                this.executeNextTurn();
+                return;
+            }
             const autoAttackBase = Math.max(1, attacker.attack - (target.block || 0));
             let autoCrit = Math.random() < 0.1;
             const autoDamage = autoCrit ? Math.floor(autoAttackBase * 1.5) : autoAttackBase;
             this._dealDamage(attacker, target, autoDamage, autoCrit);
+            if (attacker.currentHp <= 0) {
+                this.executeNextTurn();
+                return;
+            }
         } else {
             this._logToBattle(`${attacker.heroData.name} attacks ${target.heroData.name}!`);
 
@@ -270,8 +302,16 @@ export class BattleScene {
                 target.element.classList.add('is-clashing-enemy');
 
                 await sleep(400);
+                if (attacker.currentHp <= 0) {
+                    this.executeNextTurn();
+                    return;
+                }
                 this._createVFX(this.element.querySelector('.battle-arena'), 'physical-hit');
                 await sleep(400);
+                if (attacker.currentHp <= 0) {
+                    this.executeNextTurn();
+                    return;
+                }
 
                 attacker.element.classList.remove('is-clashing-player');
                 target.element.classList.remove('is-clashing-enemy');
@@ -284,6 +324,10 @@ export class BattleScene {
                     this._triggerCameraEffect('camera-pan-left', 1000);
                 }
                 await this._fireProjectile(attacker.element, target.element);
+                if (attacker.currentHp <= 0) {
+                    this.executeNextTurn();
+                    return;
+                }
             }
 
             // Deal damage AFTER the animation completes
@@ -291,6 +335,10 @@ export class BattleScene {
             const crit = Math.random() < 0.1;
             const dmg = crit ? Math.floor(baseDamage * 1.5) : baseDamage;
             this._dealDamage(attacker, target, dmg, crit);
+            if (attacker.currentHp <= 0) {
+                this.executeNextTurn();
+                return;
+            }
         }
 
         attacker.element.classList.remove('is-lunging');
