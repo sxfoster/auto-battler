@@ -55,6 +55,11 @@ export class BattleScene {
         this.endScreen.classList.remove('visible', 'victory', 'defeat');
         this._logToBattle('The battle begins!');
 
+        // --- 1. Initially hide the teams to prepare for slide-in ---
+        this.playerContainer.style.opacity = 0;
+        this.enemyContainer.style.opacity = 0;
+
+        // Populate the cards (they will be invisible initially)
         this.state.forEach(combatant => {
             const card = createCompactCard(combatant);
             combatant.element = card;
@@ -65,20 +70,32 @@ export class BattleScene {
             }
         });
 
-        // --- 1. Apply slide-in animations ---
-        this.playerContainer.style.animation = `slide-in-from-left 0.8s ease-out forwards`;
-        this.enemyContainer.style.animation = `slide-in-from-right 0.8s ease-out forwards`;
+        // --- 2. Trigger the Slide-In Animations ---
+        await sleep(100);
+        this.playerContainer.classList.add('slide-in-left');
+        this.enemyContainer.classList.add('slide-in-right');
 
-        // --- 2. Trigger clash effect after slide-in ---
+        // --- 3. Wait for the slide-in to complete ---
+        await sleep(800);
+
+        // --- 4. Trigger the Clash and Shake ---
+        const clashVFX = document.getElementById('battle-clash-vfx');
+        const arena = this.element.querySelector('.battle-arena');
+
+        clashVFX.classList.add('clash');
+        arena.classList.add('shake');
+
+        // --- 5. Clean up the animation classes ---
         setTimeout(() => {
-            const clashEffect = document.createElement('div');
-            clashEffect.className = 'vfx-clash';
-            this.element.querySelector('.battle-arena').appendChild(clashEffect);
-            setTimeout(() => clashEffect.remove(), 500);
-        }, 800);
+            this.playerContainer.classList.remove('slide-in-left');
+            this.enemyContainer.classList.remove('slide-in-right');
+            clashVFX.classList.remove('clash');
+            arena.classList.remove('shake');
+            this.playerContainer.style.opacity = '';
+            this.enemyContainer.style.opacity = '';
+        }, 1000);
 
-        // --- 3. Start the first round after intro completes ---
-        await sleep(1500 * battleSpeeds[this.currentSpeedIndex].multiplier);
+        // --- 6. Start the First Round after the intro completes ---
         this.runCombatRound();
     }
     runCombatRound() {

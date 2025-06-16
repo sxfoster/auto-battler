@@ -660,15 +660,6 @@ body {
     100% { transform: scale(0.8); opacity: 0; }
 }
 
-@keyframes slide-in-from-left {
-    from { transform: translateX(-100%); opacity: 0; }
-    to { transform: translateX(0); opacity: 1; }
-}
-
-@keyframes slide-in-from-right {
-    from { transform: translateX(100%); opacity: 0; }
-    to { transform: translateX(0); opacity: 1; }
-}
 
 .vfx-clash {
     position: absolute;
@@ -686,4 +677,61 @@ body {
 @keyframes vfx-clash-fade-out {
     from { transform: translate(-50%, -50%) scale(0.5); opacity: 1; }
     to { transform: translate(-50%, -50%) scale(1.5); opacity: 0; }
+}
+
+/* --- 1. Team Container Slide-In Animations --- */
+@keyframes slide-in-from-left {
+    from { transform: translateX(-100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+@keyframes slide-in-from-right {
+    from { transform: translateX(100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+
+/* Classes to trigger the animations */
+.slide-in-left {
+    animation: slide-in-from-left 0.8s ease-out forwards;
+}
+.slide-in-right {
+    animation: slide-in-from-right 0.8s ease-out forwards;
+}
+
+/* --- 2. Screen Shake Animation --- */
+@keyframes subtle-screen-shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-3px); }
+    50% { transform: translateX(3px); }
+    75% { transform: translateX(-3px); }
+}
+
+/* Class to trigger the screen shake on the main arena */
+.battle-arena.shake {
+    animation: subtle-screen-shake 0.3s ease-in-out;
+}
+
+/* --- 3. Central Clash VFX --- */
+#battle-clash-vfx {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 300px;
+    height: 300px;
+    transform: translate(-50%, -50%) scale(0);
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255,255,255,0.7) 0%, rgba(253,224,71,0.3) 50%, rgba(253,224,71,0) 70%);
+    opacity: 0;
+    pointer-events: none;
+    z-index: 150;
+}
+
+@keyframes clash-effect {
+    0% { transform: translate(-50%, -50%) scale(0); opacity: 1; }
+    70% { transform: translate(-50%, -50%) scale(1.2); opacity: 0.5; }
+    100% { transform: translate(-50%, -50%) scale(1.5); opacity: 0; }
+}
+
+/* Class to trigger the clash animation */
+#battle-clash-vfx.clash {
+    animation: clash-effect 0.5s ease-out;
 }
