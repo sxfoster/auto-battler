@@ -151,6 +151,10 @@ export class BattleScene {
             this._announceAbility(ability.name);
             this._triggerArenaEffect('ability-zoom');
             this._logToBattle(`${attacker.heroData.name} uses ${ability.name}!`);
+
+            if (ability.rarity === 'Epic' || ability.rarity === 'Rare') {
+                this._triggerCameraEffect('camera-zoom', 1200);
+            }
             await sleep(500 * battleSpeeds[this.currentSpeedIndex].multiplier);
 
             if (ability.effect && ability.effect.includes('damage')) {
@@ -170,6 +174,13 @@ export class BattleScene {
             this._dealDamage(attacker, target, autoAttackDamage);
         } else {
             this._logToBattle(`${attacker.heroData.name} attacks ${target.heroData.name}!`);
+
+            if (attacker.team === 'player') {
+                this._triggerCameraEffect('camera-pan-right', 1000);
+            } else {
+                this._triggerCameraEffect('camera-pan-left', 1000);
+            }
+
             await sleep(500 * battleSpeeds[this.currentSpeedIndex].multiplier);
             this._fireProjectile(attacker.element, target.element);
             await sleep(500 * battleSpeeds[this.currentSpeedIndex].multiplier);
@@ -270,6 +281,17 @@ export class BattleScene {
         this.arena.classList.add(cls);
         const duration = cls === 'ability-zoom' ? 1000 : 300;
         setTimeout(() => this.arena.classList.remove(cls), duration);
+    }
+
+    _triggerCameraEffect(effectClass, duration = 1000) {
+        const arena = this.element.querySelector('.battle-arena');
+        if (!arena) return;
+
+        arena.classList.add(effectClass);
+
+        setTimeout(() => {
+            arena.classList.remove(effectClass);
+        }, duration);
     }
 
     _fireProjectile(startElement, endElement){
