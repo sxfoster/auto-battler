@@ -659,3 +659,31 @@ body {
     80% { transform: scale(1.1); opacity: 1; }
     100% { transform: scale(0.8); opacity: 0; }
 }
+
+@keyframes slide-in-from-left {
+    from { transform: translateX(-100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes slide-in-from-right {
+    from { transform: translateX(100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+
+.vfx-clash {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 300px;
+    height: 300px;
+    background: radial-gradient(circle, rgba(253,224,71,0.6) 0%, rgba(253,224,71,0) 70%);
+    border-radius: 50%;
+    animation: vfx-clash-fade-out 0.5s ease-out forwards;
+    z-index: 100;
+}
+
+@keyframes vfx-clash-fade-out {
+    from { transform: translate(-50%, -50%) scale(0.5); opacity: 1; }
+    to { transform: translate(-50%, -50%) scale(1.5); opacity: 0; }
+}

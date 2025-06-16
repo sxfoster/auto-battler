@@ -65,8 +65,20 @@ export class BattleScene {
             }
         });
 
-        // Use a base pause of 1 second, adjusted by the speed multiplier
-        await sleep(1000 * battleSpeeds[this.currentSpeedIndex].multiplier);
+        // --- 1. Apply slide-in animations ---
+        this.playerContainer.style.animation = `slide-in-from-left 0.8s ease-out forwards`;
+        this.enemyContainer.style.animation = `slide-in-from-right 0.8s ease-out forwards`;
+
+        // --- 2. Trigger clash effect after slide-in ---
+        setTimeout(() => {
+            const clashEffect = document.createElement('div');
+            clashEffect.className = 'vfx-clash';
+            this.element.querySelector('.battle-arena').appendChild(clashEffect);
+            setTimeout(() => clashEffect.remove(), 500);
+        }, 800);
+
+        // --- 3. Start the first round after intro completes ---
+        await sleep(1500 * battleSpeeds[this.currentSpeedIndex].multiplier);
         this.runCombatRound();
     }
     runCombatRound() {
