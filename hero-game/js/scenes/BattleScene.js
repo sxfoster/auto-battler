@@ -184,6 +184,10 @@ export class BattleScene {
             this._triggerArenaEffect('ability-zoom');
             this._logToBattle(`${attacker.heroData.name} uses ${ability.name}!`);
 
+            if (ability.env_effect) {
+                this._triggerEnvironmentalEffect(ability.env_effect);
+            }
+
             if (ability.name === 'Holy Barrier') {
                 this._triggerBackgroundEffect('holy-mode', 1500);
             }
@@ -406,6 +410,26 @@ export class BattleScene {
         setTimeout(() => {
             background.classList.remove(effectClass);
         }, duration);
+    }
+
+    _triggerEnvironmentalEffect(effectType) {
+        const particles = document.querySelectorAll('#environmental-vfx-container .env-particle');
+        if (!particles.length) return;
+
+        particles.forEach((particle, index) => {
+            particle.className = 'env-particle';
+            particle.style.top = `${Math.random() * 100}%`;
+
+            const delay = index * 100;
+            const duration = 800 + Math.random() * 400;
+
+            setTimeout(() => {
+                if (effectType === 'wind') {
+                    particle.style.animationDuration = `${duration}ms`;
+                    particle.classList.add('wind-gust');
+                }
+            }, delay);
+        });
     }
 
     _updateCombo(attackerTeam) {
