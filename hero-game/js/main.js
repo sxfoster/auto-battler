@@ -179,6 +179,7 @@ function advanceDraft() {
             weapon: team.weapon1,
             armor: team.armor1
         });
+        recapScene.setContinueButtonLabel('Draft Next Champion');
         transitionToScene('recap');
     } else if (stage === 'RECAP_1_DRAFT') {
         gameState.draft.stage = 'HERO_2_PACK';
@@ -205,6 +206,16 @@ function advanceDraft() {
         configurePackScene(gameState.draft.stage);
         transitionToScene('pack');
     } else if (stage === 'ARMOR_2_DRAFT' && team.armor2) {
+        gameState.draft.stage = 'RECAP_2_DRAFT';
+        recapScene.render({
+            hero: team.hero2,
+            ability: team.ability2,
+            weapon: team.weapon2,
+            armor: team.armor2
+        });
+        recapScene.setContinueButtonLabel('Start Battle');
+        transitionToScene('recap');
+    } else if (stage === 'RECAP_2_DRAFT') {
         gameState.draft.stage = 'DONE';
         confirmationBar.classList.add('visible');
     }
