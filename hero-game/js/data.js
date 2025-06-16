@@ -201,7 +201,8 @@ export const allPossibleAbilities = [
     // Uncommon
     { id: 3621, type: 'ability', name: 'Wild Growth', class: 'Nature Shaper', rarity: 'Uncommon', art: 'https://placehold.co/150x126/ef4444/FFFFFF?text=Ability', effect: 'Heal all allies for 2 HP and give +1 defense for 1 turn.', energyCost: 2, category: 'Support' },
     { id: 3622, type: 'ability', name: 'Shapeshift – Bear Form', class: 'Nature Shaper', rarity: 'Uncommon', art: 'https://placehold.co/150x126/ef4444/FFFFFF?text=Ability', effect: 'Gain +2 attack and +2 defense for 2 turns, then revert.', energyCost: 2, category: 'Defense' },
-    { id: 3623, type: 'ability', name: 'Venom Thorns', class: 'Nature Shaper', rarity: 'Uncommon', art: 'https://placehold.co/150x126/ef4444/FFFFFF?text=Ability', effect: 'Deal 2 damage and if enemy attacks next turn they take 2 poison damage.', energyCost: 2, category: 'Offense' },
+    { id: 3623, type: 'ability', name: 'Venom Thorns', class: 'Nature Shaper', rarity: 'Uncommon', art: 'https://placehold.co/150x126/ef4444/FFFFFF?text=Ability', effect: 'Deal 2 damage. Deals double damage to Poisoned targets. If enemy attacks next turn they take 2 poison damage.', energyCost: 2, category: 'Offense',
+      synergy: { condition: 'Poison', bonus_multiplier: 2 } },
     // Rare
     { id: 3631, type: 'ability', name: 'Shapeshift – Wolf Form', class: 'Nature Shaper', rarity: 'Rare', art: 'https://placehold.co/150x126/ef4444/FFFFFF?text=Ability', effect: 'Gain +2 speed and +1 attack for 3 turns, then revert.', energyCost: 3, category: 'Offense' },
     { id: 3632, type: 'ability', name: 'Poison Storm', class: 'Nature Shaper', rarity: 'Rare', art: 'https://placehold.co/150x126/ef4444/FFFFFF?text=Ability', effect: 'Deal 1 damage to all enemies and poison them for 2 turns.', energyCost: 3, category: 'Offense' },
