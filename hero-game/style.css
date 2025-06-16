@@ -1274,6 +1274,7 @@ button:disabled {
     box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
     transition: transform 0.05s linear;
     transform-style: preserve-3d;
+    cursor: pointer;
 }
 
 .image-area {
@@ -1300,7 +1301,6 @@ button:disabled {
 }
 
 #top-crimp {
-    cursor: pointer;
     z-index: 10;
 }
 
