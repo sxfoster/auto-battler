@@ -277,10 +277,10 @@ export const allPossibleArmors = [
 // NOTE: Placeholder art links ('...') and new IDs have been assigned. 'Block' reduces physical damage, 'MagicResist' reduces magic damage.
 
 export const battleSpeeds = [
-    { label: '0.5x', multiplier: 2 },
-    { label: '1x', multiplier: 1 },
-    { label: '2x', multiplier: 0.5 },
-    { label: '3x', multiplier: 0.33 },
-    { label: '4x', multiplier: 0.25 },
-    { label: '5x', multiplier: 0.2 }
+    { label: '0.5x', multiplier: 0.5 },
+    { label: '1x', multiplier: 0.33 },
+    { label: '2x', multiplier: 0.25 },
+    { label: '3x', multiplier: 0.2 },
+    { label: '4x', multiplier: 0.1 },
+    { label: '5x', multiplier: 0.05 }
 ];
