@@ -153,6 +153,10 @@ export class BattleScene {
             this._triggerArenaEffect('ability-zoom');
             this._logToBattle(`${attacker.heroData.name} uses ${ability.name}!`);
 
+            if (ability.name === 'Holy Barrier') {
+                this._triggerBackgroundEffect('holy-mode', 1500);
+            }
+
             if (ability.rarity === 'Epic' || ability.rarity === 'Rare') {
                 this._triggerCameraEffect('camera-zoom', 1200);
             }
@@ -173,14 +177,16 @@ export class BattleScene {
         } else {
             this._logToBattle(`${attacker.heroData.name} attacks ${target.heroData.name}!`);
 
-            if (attacker.team === 'player') {
-                this._triggerCameraEffect('camera-pan-right', 1000);
+            const damage = Math.max(1, attacker.attack - (target.block || 0));
+            const isFinalBlow = target.currentHp <= damage && this.state.filter(c => c.team === target.team && c.currentHp > 0).length === 1;
+
+            if (isFinalBlow) {
+                this._triggerCameraEffect(attacker.team === 'player' ? 'camera-pan-right slow-motion' : 'camera-pan-left slow-motion', 2000);
             } else {
-                this._triggerCameraEffect('camera-pan-left', 1000);
+                this._triggerCameraEffect(attacker.team === 'player' ? 'camera-pan-right' : 'camera-pan-left', 1000);
             }
 
-            await this._fireProjectile(attacker.element, target.element);
-            const damage = Math.max(1, attacker.attack - (target.block || 0));
+            await this._fireProjectile(attacker.element, target.element, isFinalBlow);
             this._dealDamage(attacker, target, damage);
         }
 
@@ -319,7 +325,17 @@ export class BattleScene {
         }, duration);
     }
 
-    async _fireProjectile(startElement, endElement) {
+    _triggerBackgroundEffect(effectClass, duration = 1000) {
+        const background = document.getElementById('background-canvas');
+        if (!background) return;
+
+        background.classList.add(effectClass);
+        setTimeout(() => {
+            background.classList.remove(effectClass);
+        }, duration);
+    }
+
+    async _fireProjectile(startElement, endElement, isFinalBlow = false) {
         // --- Stage 1: Muzzle Flash on Attacker ---
         this._createVFX(startElement, 'muzzle-flash');
         await sleep(100);
@@ -327,6 +343,11 @@ export class BattleScene {
         // --- Stage 2: Projectile Travel ---
         const projectile = document.createElement('div');
         projectile.className = 'battle-projectile';
+
+        // **NEW: Apply slow-motion class if it's the final blow**
+        if (isFinalBlow) {
+            projectile.classList.add('slow-motion');
+        }
         this.element.appendChild(projectile);
 
         const startRect = startElement.getBoundingClientRect();
@@ -346,7 +367,8 @@ export class BattleScene {
         projectile.style.transform = `translate(${deltaX}px, ${deltaY}px)`;
 
         // --- Stage 3: Impact ---
-        await sleep(400);
+        const travelTime = isFinalBlow ? 1500 : 400;
+        await sleep(travelTime);
 
         this._createVFX(endElement, 'physical-hit');
         projectile.remove();
