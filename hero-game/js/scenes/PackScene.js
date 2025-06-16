@@ -3,54 +3,87 @@ export class PackScene {
         this.element = element;
         this.onPackOpened = onPackOpened;
 
+        // Keep title and instruction references
         this.titleElement = this.element.querySelector('#pack-scene-title');
-        this.packElements = {
-            hero: this.element.querySelector('#hero-pack'),
-            ability: this.element.querySelector('#ability-pack'),
-            weapon: this.element.querySelector('#weapon-pack'),
-            armor: this.element.querySelector('#armor-pack')
-        };
+        this.instructionsElement = this.element.querySelector('#pack-scene-instructions');
 
-        Object.values(this.packElements).forEach(el => {
-            el.addEventListener('click', () => this._handlePackOpen(el));
-        });
+        // References to new booster pack elements
+        this.packageEl = this.element.querySelector('#package');
+        this.topCrimp = this.element.querySelector('#top-crimp');
+        this.imageArea = this.element.querySelector('#image-area');
+
+        // Bind interactions
+        if (this.topCrimp) {
+            this.topCrimp.addEventListener('click', () => this._handleTearOff());
+        }
+        if (this.packageEl) {
+            this.packageEl.addEventListener('mousemove', (e) => this._handleMouseMove(e));
+            this.packageEl.addEventListener('mouseleave', () => this._handleMouseLeave());
+        }
     }
 
-    _handlePackOpen(packElement) {
+    // Handle tear-off animation and notify when done
+    _handleTearOff() {
         if (this.isOpening) return;
         this.isOpening = true;
 
-        this.currentPackElement = packElement;
-        packElement.style.pointerEvents = 'none';
-        packElement.classList.add('opening');
+        this.topCrimp.classList.add('torn-off');
+        this.topCrimp.style.pointerEvents = 'none';
+        this.instructionsElement.textContent = 'Revealing cards...';
 
-        packElement.addEventListener('animationend', () => {
-            this.onPackOpened();
+        this.topCrimp.addEventListener('animationend', () => {
+            this.packageEl.classList.add('is-open');
+            setTimeout(() => {
+                this.onPackOpened();
+            }, 300);
         }, { once: true });
     }
-    
+
+    // Tilt the pack and update glare
+    _handleMouseMove(e) {
+        if (!this.packageEl) return;
+        const rect = this.packageEl.getBoundingClientRect();
+        const x = e.clientX - rect.left - rect.width / 2;
+        const y = e.clientY - rect.top - rect.height / 2;
+        const maxTilt = 10;
+        const rotateY = (x / (rect.width / 2)) * maxTilt;
+        const rotateX = (y / (rect.height / 2)) * -maxTilt;
+
+        this.packageEl.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+
+        this.imageArea.style.setProperty('--glare-x', `${(e.clientX - rect.left) * 100 / rect.width}%`);
+        this.imageArea.style.setProperty('--glare-y', `${(e.clientY - rect.top) * 100 / rect.height}%`);
+        this.imageArea.style.setProperty('--glare-opacity', '1');
+    }
+
+    // Reset tilt and glare
+    _handleMouseLeave() {
+        if (!this.packageEl) return;
+        this.packageEl.style.transform = 'rotateX(0deg) rotateY(0deg)';
+        this.imageArea.style.setProperty('--glare-opacity', '0');
+    }
+
     render(draftStage) {
-        if (draftStage.startsWith('HERO')) {
-            this.titleElement.textContent = draftStage === 'HERO_1_PACK' ? 'Open Your Hero Pack' : 'Open Pack for Second Hero';
-        } else if (draftStage.startsWith('ARMOR')) {
-            this.titleElement.textContent = draftStage === 'ARMOR_1_PACK' ? 'Open Your Armor Pack' : 'Open Pack for Second Armor';
-        } else if (draftStage.startsWith('ABILITY')) {
-            this.titleElement.textContent = 'Open Ability Pack';
-        } else if (draftStage.startsWith('WEAPON')) {
-            this.titleElement.textContent = draftStage === 'WEAPON_1_PACK' ? 'Open Your Weapon Pack' : 'Open Pack for Second Weapon';
-        } else {
-            this.titleElement.textContent = 'Open Pack';
+        this.isOpening = false;
+        if (draftStage.includes('HERO_1')) {
+            this.titleElement.textContent = 'Forge Your First Champion';
+        } else if (draftStage.includes('HERO_2')) {
+            this.titleElement.textContent = 'Forge Your Second Champion';
         }
+        this.instructionsElement.textContent = 'Click the top of the pack to tear it open.';
     }
 
     reset() {
         this.isOpening = false;
-        Object.values(this.packElements).forEach(el => {
-            el.classList.remove('opening');
-            el.style.pointerEvents = 'auto';
-        });
+        if (this.topCrimp) {
+            this.topCrimp.classList.remove('torn-off');
+            this.topCrimp.style.pointerEvents = 'auto';
+        }
+        if (this.packageEl) {
+            this.packageEl.classList.remove('is-open');
+        }
     }
-    
+
     show() {
         this.element.classList.remove('hidden');
     }
@@ -59,3 +92,4 @@ export class PackScene {
         this.element.classList.add('hidden');
     }
 }
+
