@@ -35,12 +35,21 @@ function draw() {
 }
 
 function update() {
-    stars.forEach(star => {
-        star.x += star.vx;
-        star.y += star.vy;
+    const isSpeedActive = canvas.classList.contains('speed-lines-active');
 
+    stars.forEach(star => {
+        if (isSpeedActive) {
+            // Speed Lines Effect: Stars streak horizontally
+            star.x -= star.radius * 5;
+        } else {
+            // Normal Effect: Stars drift slowly
+            star.x += star.vx;
+            star.y += star.vy;
+        }
+
+        // Wrap stars around the screen
         if (star.x < 0) star.x = canvas.width;
-        if (star.x > canvas.width) star.x = 0;
+        if (star.x > canvas.width && !isSpeedActive) star.x = 0; // Prevent wrapping when streaking
         if (star.y < 0) star.y = canvas.height;
         if (star.y > canvas.height) star.y = 0;
     });

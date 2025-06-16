@@ -18,6 +18,11 @@ export class BattleScene {
         this.speedButton = this.element.querySelector('#speed-cycle-button');
         this.arena = this.element.querySelector('.battle-arena');
         this.abilityAnnouncer = this.element.querySelector('#ability-announcer');
+
+        this.comboCount = 0;
+        this.lastAttackingTeam = null;
+        this.playerComboCounter = document.getElementById('player-combo-counter');
+        this.enemyComboCounter = document.getElementById('enemy-combo-counter');
         
         // State
         this.state = [];
@@ -48,6 +53,10 @@ export class BattleScene {
         this.isBattleOver = false;
         this.state = initialState;
         this.turnQueue = [];
+        this.comboCount = 0;
+        this.lastAttackingTeam = null;
+        this.playerComboCounter.classList.remove('active');
+        this.enemyComboCounter.classList.remove('active');
 
         // --- UI Setup ---
         this.playerContainer.innerHTML = '';
@@ -140,6 +149,8 @@ export class BattleScene {
         }
 
         const attacker = this.turnQueue.shift();
+
+        this._updateCombo(attacker.team);
 
         attacker.element.classList.add('is-active-turn');
 
@@ -367,6 +378,28 @@ export class BattleScene {
         setTimeout(() => {
             background.classList.remove(effectClass);
         }, duration);
+    }
+
+    _updateCombo(attackerTeam) {
+        if (this.lastAttackingTeam === attackerTeam) {
+            this.comboCount++;
+        } else {
+            this.comboCount = 1;
+            this.playerComboCounter.classList.remove('active');
+            this.enemyComboCounter.classList.remove('active');
+        }
+
+        this.lastAttackingTeam = attackerTeam;
+        const backgroundCanvas = document.getElementById('background-canvas');
+
+        if (this.comboCount > 1) {
+            const counter = attackerTeam === 'player' ? this.playerComboCounter : this.enemyComboCounter;
+            counter.textContent = `COMBO x${this.comboCount}`;
+            counter.classList.add('active');
+            if (backgroundCanvas) backgroundCanvas.classList.add('speed-lines-active');
+        } else {
+            if (backgroundCanvas) backgroundCanvas.classList.remove('speed-lines-active');
+        }
     }
 
     async _fireProjectile(startElement, endElement, isFinalBlow = false) {
