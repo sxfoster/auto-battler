@@ -10,7 +10,14 @@ export class RecapScene {
         this.cardViewer = this.element.querySelector('#recap-card-viewer');
         this.socketContainer = this.element.querySelector('#recap-socket-container');
 
-        this.element.querySelector('#recap-continue-button').addEventListener('click', () => this.onContinue());
+        this.continueButton = this.element.querySelector('#recap-continue-button');
+        this.continueButton.addEventListener('click', () => this.onContinue());
+    }
+
+    setContinueButtonLabel(text) {
+        if (this.continueButton) {
+            this.continueButton.textContent = text;
+        }
     }
 
     render(championData) {
