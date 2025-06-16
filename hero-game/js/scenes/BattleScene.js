@@ -134,6 +134,7 @@ export class BattleScene {
         updateEnergyDisplay(attacker, attacker.element);
         this._logToBattle(`${attacker.heroData.name} gains 1 energy!`);
         this._showCombatText(attacker.element, '+1', 'energy');
+        await this._triggerEnergyChargeUp(attacker.element);
         await sleep(500 * battleSpeeds[this.currentSpeedIndex].multiplier);
 
         const potentialTargets = this.state.filter(c => c.team !== attacker.team && c.currentHp > 0);
@@ -259,7 +260,16 @@ export class BattleScene {
 
     _updateStatusIcons(combatant){
         const container = combatant.element.querySelector('.status-icon-container');
-        container.innerHTML = '';
+        const cardElement = combatant.element;
+        container.innerHTML = ''; // Clear old icons
+
+        // First, remove all potential aura classes to reset the state
+        cardElement.classList.remove('has-aura', 'aura-poison', 'aura-buff');
+
+        if (combatant.statusEffects.length > 0) {
+            cardElement.classList.add('has-aura');
+        }
+
         combatant.statusEffects.forEach(effect => {
             const icon = document.createElement('div');
             icon.className = 'status-icon';
@@ -269,9 +279,12 @@ export class BattleScene {
                     break;
                 case 'Poison':
                     icon.innerHTML = '<i class="fas fa-skull-crossbones"></i>';
+                    cardElement.classList.add('aura-poison');
                     break;
                 case 'Attack Up':
+                case 'Fortify':
                     icon.innerHTML = '<i class="fas fa-arrow-up"></i>';
+                    cardElement.classList.add('aura-buff');
                     break;
                 default:
                     icon.innerHTML = '<i class="fas fa-circle"></i>';
@@ -354,6 +367,31 @@ export class BattleScene {
         vfx.className = `vfx-container ${effectType}`;
         targetElement.appendChild(vfx);
         setTimeout(() => vfx.remove(), 1200);
+    }
+
+    async _triggerEnergyChargeUp(targetElement) {
+        const targetRect = targetElement.getBoundingClientRect();
+        const endX = targetRect.left + targetRect.width - 15; // Target the energy icon area
+        const endY = targetRect.top + targetRect.height - 15;
+
+        for (let i = 0; i < 3; i++) {
+            const particle = document.createElement('div');
+            particle.className = 'energy-particle';
+            this.element.appendChild(particle);
+
+            // Start from a random off-screen position
+            const startX = Math.random() * window.innerWidth;
+            const startY = -50;
+            particle.style.transform = `translate(${startX}px, ${startY}px)`;
+
+            // Animate to the target
+            await sleep(50 + (i * 50)); // Stagger the particle launch
+            particle.style.transform = `translate(${endX}px, ${endY}px) scale(0.5)`;
+            particle.style.opacity = '0';
+
+            // Clean up the DOM
+            setTimeout(() => particle.remove(), 600);
+        }
     }
 
     _endBattle(didPlayerWin) {
