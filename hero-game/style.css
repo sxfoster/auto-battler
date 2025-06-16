@@ -324,7 +324,10 @@ body {
 }
 .combat-text-popup.damage { color: #ef4444; }
 .combat-text-popup.heal { color: #22c55e; }
-.combat-text-popup.energy { color: #fde047; }
+.combat-text-popup.energy {
+    color: #60a5fa;
+    text-shadow: 1px 1px 3px #1e3a8a;
+}
 .combat-text-popup.block { color: #60a5fa; }
 .combat-text-popup.critical {
     color: #f97316;
@@ -386,6 +389,16 @@ body {
 }
 .compact-card.aura-buff::after {
     animation: buff-aura-pulse 2.5s ease-in-out infinite;
+}
+
+@keyframes charged-aura-crackle {
+    0% { box-shadow: 0 0 10px 2px #3b82f6, 0 0 5px #fff inset; }
+    50% { box-shadow: 0 0 16px 4px #60a5fa, 0 0 8px #fff inset; }
+    100% { box-shadow: 0 0 10px 2px #3b82f6, 0 0 5px #fff inset; }
+}
+
+.compact-card.is-charged::after {
+    animation: charged-aura-crackle 1.5s ease-in-out infinite;
 }
 #battle-log { position: absolute; bottom: 1rem; left: 50%; transform: translateX(-50%); width: 90%; max-width: 600px; background-color: rgba(0,0,0,0.5); backdrop-filter: blur(4px); padding: 0.75rem; border-radius: 0.5rem; text-align: center; font-size: 1.1rem; transition: opacity 0.5s; }
 
@@ -671,9 +684,9 @@ body {
     position: fixed;
     width: 10px;
     height: 10px;
-    background-color: #fde047;
+    background-color: #3b82f6;
     border-radius: 50%;
-    box-shadow: 0 0 10px 4px rgba(253, 224, 71, 0.7);
+    box-shadow: 0 0 10px 4px rgba(59, 130, 246, 0.7);
     z-index: 98;
     pointer-events: none;
     transition: transform 0.6s cubic-bezier(0.5, 0, 1, 1), opacity 0.6s ease;
