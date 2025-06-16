@@ -222,9 +222,15 @@ button:disabled {
 
 /* --- Battle Scene Styles --- */
 #battle-scene-background {
-    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-    background-image: url('https://placehold.co/1920x1080/292524/78716c?text=Rocky+Cave');
-    background-size: cover; background-position: center; z-index: -1; filter: blur(4px) brightness(0.7);
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-size: cover;
+    background-position: center;
+    z-index: -1;
+    filter: blur(4px) brightness(0.7);
 }
 
 #environmental-vfx-container {
