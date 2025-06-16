@@ -59,9 +59,10 @@ export class BattleScene {
         this.playerContainer.style.opacity = 0;
         this.enemyContainer.style.opacity = 0;
 
-        // Populate the cards (they will be invisible initially)
+        // Populate the cards but keep them invisible
         this.state.forEach(combatant => {
             const card = createCompactCard(combatant);
+            card.classList.add('is-entering');
             combatant.element = card;
             if (combatant.team === 'player') {
                 this.playerContainer.appendChild(card);
@@ -85,7 +86,21 @@ export class BattleScene {
         clashVFX.classList.add('clash');
         arena.classList.add('shake');
 
-        // --- 5. Clean up the animation classes ---
+        // --- 5. Sequential card landing ---
+        const playerTeam = this.state.filter(c => c.team === 'player');
+        const enemyTeam = this.state.filter(c => c.team === 'enemy');
+
+        for (let i = 0; i < Math.max(playerTeam.length, enemyTeam.length); i++) {
+            if (playerTeam[i]) {
+                playerTeam[i].element.classList.add('is-landing');
+            }
+            if (enemyTeam[i]) {
+                enemyTeam[i].element.classList.add('is-landing');
+            }
+            await sleep(150);
+        }
+
+        // --- 6. Clean up the animation classes ---
         setTimeout(() => {
             this.playerContainer.classList.remove('slide-in-left');
             this.enemyContainer.classList.remove('slide-in-right');
@@ -93,9 +108,11 @@ export class BattleScene {
             arena.classList.remove('shake');
             this.playerContainer.style.opacity = '';
             this.enemyContainer.style.opacity = '';
+            this.state.forEach(c => c.element.classList.remove('is-entering', 'is-landing'));
         }, 1000);
 
-        // --- 6. Start the First Round after the intro completes ---
+        // --- 7. Start the First Round after a final pause ---
+        await sleep(500);
         this.runCombatRound();
     }
     runCombatRound() {
