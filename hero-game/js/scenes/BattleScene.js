@@ -160,16 +160,13 @@ export class BattleScene {
             if (ability.effect && ability.effect.includes('damage')) {
                 const match = ability.effect.match(/\d+/);
                 const damageAmount = match ? parseInt(match[0]) : attacker.attack;
-                this._fireProjectile(attacker.element, target.element);
-                await sleep(500 * battleSpeeds[this.currentSpeedIndex].multiplier);
+                await this._fireProjectile(attacker.element, target.element);
                 this._dealDamage(attacker, target, damageAmount);
             }
 
             // --- Auto-attack after ability ---
             this._logToBattle(`${attacker.heroData.name} also performs a basic attack!`);
-            await sleep(500 * battleSpeeds[this.currentSpeedIndex].multiplier);
-            this._fireProjectile(attacker.element, target.element);
-            await sleep(500 * battleSpeeds[this.currentSpeedIndex].multiplier);
+            await this._fireProjectile(attacker.element, target.element);
             const autoAttackDamage = Math.max(1, attacker.attack - (target.block || 0));
             this._dealDamage(attacker, target, autoAttackDamage);
         } else {
@@ -181,9 +178,7 @@ export class BattleScene {
                 this._triggerCameraEffect('camera-pan-left', 1000);
             }
 
-            await sleep(500 * battleSpeeds[this.currentSpeedIndex].multiplier);
-            this._fireProjectile(attacker.element, target.element);
-            await sleep(500 * battleSpeeds[this.currentSpeedIndex].multiplier);
+            await this._fireProjectile(attacker.element, target.element);
             const damage = Math.max(1, attacker.attack - (target.block || 0));
             this._dealDamage(attacker, target, damage);
         }
@@ -294,7 +289,12 @@ export class BattleScene {
         }, duration);
     }
 
-    _fireProjectile(startElement, endElement){
+    async _fireProjectile(startElement, endElement) {
+        // --- Stage 1: Muzzle Flash on Attacker ---
+        this._createVFX(startElement, 'muzzle-flash');
+        await sleep(100);
+
+        // --- Stage 2: Projectile Travel ---
         const projectile = document.createElement('div');
         projectile.className = 'battle-projectile';
         this.element.appendChild(projectile);
@@ -302,17 +302,24 @@ export class BattleScene {
         const startRect = startElement.getBoundingClientRect();
         const endRect = endElement.getBoundingClientRect();
 
-        projectile.style.left = `${startRect.left + startRect.width / 2}px`;
-        projectile.style.top = `${startRect.top + startRect.height / 2}px`;
+        const startX = startRect.left + startRect.width / 2;
+        const startY = startRect.top + startRect.height / 2;
+        projectile.style.left = `${startX}px`;
+        projectile.style.top = `${startY}px`;
 
-        setTimeout(() => {
-            projectile.style.transform = `translate(${endRect.left - startRect.left}px, ${endRect.top - startRect.top}px)`;
-        }, 10);
+        const endX = endRect.left + endRect.width / 2;
+        const endY = endRect.top + endRect.height / 2;
+        const deltaX = endX - startX;
+        const deltaY = endY - startY;
 
-        setTimeout(() => {
-            projectile.remove();
-            this._createHitSpark(endElement);
-        }, 500);
+        await sleep(10);
+        projectile.style.transform = `translate(${deltaX}px, ${deltaY}px)`;
+
+        // --- Stage 3: Impact ---
+        await sleep(400);
+
+        this._createVFX(endElement, 'physical-hit');
+        projectile.remove();
     }
 
     _createHitSpark(targetElement){
