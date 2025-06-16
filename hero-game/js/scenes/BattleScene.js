@@ -190,7 +190,7 @@ export class BattleScene {
         this._showCombatText(attacker.element, '+1', 'energy');
         updateEnergyDisplay(attacker, attacker.element);
         this._updateChargedStatus(attacker);
-        await sleep(600);
+        await sleep(600 * battleSpeeds[this.currentSpeedIndex].multiplier);
         if (attacker.currentHp <= 0) {
             this.executeNextTurn();
             return;
@@ -301,13 +301,13 @@ export class BattleScene {
                 attacker.element.classList.add('is-clashing-player');
                 target.element.classList.add('is-clashing-enemy');
 
-                await sleep(400);
+                await sleep(400 * battleSpeeds[this.currentSpeedIndex].multiplier);
                 if (attacker.currentHp <= 0) {
                     this.executeNextTurn();
                     return;
                 }
                 this._createVFX(this.element.querySelector('.battle-arena'), 'physical-hit');
-                await sleep(400);
+                await sleep(400 * battleSpeeds[this.currentSpeedIndex].multiplier);
                 if (attacker.currentHp <= 0) {
                     this.executeNextTurn();
                     return;
@@ -578,7 +578,7 @@ export class BattleScene {
     async _fireProjectile(startElement, endElement, isFinalBlow = false) {
         // --- Stage 1: Muzzle Flash on Attacker ---
         this._createVFX(startElement, 'muzzle-flash');
-        await sleep(100);
+        await sleep(100 * battleSpeeds[this.currentSpeedIndex].multiplier);
 
         // --- Stage 2: Projectile Travel ---
         const projectile = document.createElement('div');
@@ -607,8 +607,8 @@ export class BattleScene {
         projectile.style.transform = `translate(${deltaX}px, ${deltaY}px)`;
 
         // --- Stage 3: Impact ---
-        const travelTime = isFinalBlow ? 1500 : 400;
-        await sleep(travelTime);
+        let travelTime = isFinalBlow ? 1500 : 400;
+        await sleep(travelTime * battleSpeeds[this.currentSpeedIndex].multiplier);
 
         this._createVFX(endElement, 'physical-hit');
         projectile.remove();
@@ -667,7 +667,7 @@ export class BattleScene {
             }
         });
 
-        await sleep(2500);
+        await sleep(2500 * battleSpeeds[this.currentSpeedIndex].multiplier);
 
         this.endScreen.className = didPlayerWin ? 'victory' : 'defeat';
         this.resultText.textContent = didPlayerWin ? 'Victory!' : 'Defeat!';
