@@ -148,11 +148,13 @@ export class BattleScene {
 
         // --- 1. GAIN ENERGY ---
         attacker.currentEnergy += 1;
-        updateEnergyDisplay(attacker, attacker.element);
         this._logToBattle(`${attacker.heroData.name} gains 1 energy!`);
-        this._showCombatText(attacker.element, '+1', 'energy');
+
         await this._triggerEnergyChargeUp(attacker.element);
-        await sleep(500 * battleSpeeds[this.currentSpeedIndex].multiplier);
+        this._showCombatText(attacker.element, '+1', 'energy');
+        updateEnergyDisplay(attacker, attacker.element);
+        this._updateChargedStatus(attacker);
+        await sleep(600);
 
         const potentialTargets = this.state.filter(c => c.team !== attacker.team && c.currentHp > 0);
         if (potentialTargets.length === 0) {
@@ -165,6 +167,7 @@ export class BattleScene {
         if (ability && attacker.currentEnergy >= ability.energyCost) {
             attacker.currentEnergy -= ability.energyCost;
             updateEnergyDisplay(attacker, attacker.element);
+            this._updateChargedStatus(attacker);
 
             this._announceAbility(ability.name);
             this._triggerArenaEffect('ability-zoom');
@@ -317,6 +320,20 @@ export class BattleScene {
         });
     }
 
+    _updateChargedStatus(combatant) {
+        const cardElement = combatant.element;
+        const ability = combatant.abilityData;
+
+        if (ability && combatant.currentEnergy >= ability.energyCost) {
+            cardElement.classList.add('is-charged', 'has-aura');
+        } else {
+            cardElement.classList.remove('is-charged');
+            if (!cardElement.classList.contains('aura-poison') && !cardElement.classList.contains('aura-buff')) {
+                cardElement.classList.remove('has-aura');
+            }
+        }
+    }
+
     _announceAbility(name){
         if(!this.abilityAnnouncer) return;
         this.abilityAnnouncer.textContent = name;
@@ -410,25 +427,23 @@ export class BattleScene {
 
     async _triggerEnergyChargeUp(targetElement) {
         const targetRect = targetElement.getBoundingClientRect();
-        const endX = targetRect.left + targetRect.width - 15; // Target the energy icon area
-        const endY = targetRect.top + targetRect.height - 15;
+        const endX = targetRect.left + targetRect.width - 20;
+        const endY = targetRect.top + targetRect.height - 20;
 
         for (let i = 0; i < 3; i++) {
             const particle = document.createElement('div');
             particle.className = 'energy-particle';
             this.element.appendChild(particle);
 
-            // Start from a random off-screen position
-            const startX = Math.random() * window.innerWidth;
+            const startX = (window.innerWidth / 2) + (Math.random() * 200 - 100);
             const startY = -50;
             particle.style.transform = `translate(${startX}px, ${startY}px)`;
 
-            // Animate to the target
-            await sleep(50 + (i * 50)); // Stagger the particle launch
+            await sleep(50 + (i * 60));
+
             particle.style.transform = `translate(${endX}px, ${endY}px) scale(0.5)`;
             particle.style.opacity = '0';
 
-            // Clean up the DOM
             setTimeout(() => particle.remove(), 600);
         }
     }
