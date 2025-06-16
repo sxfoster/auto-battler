@@ -602,6 +602,13 @@ button:disabled {
 .log-entry.damage { color: #f87171; }
 .log-entry.heal { color: #4ade80; }
 .log-entry.ability { color: #fde047; font-weight: 600; background-color: rgba(253, 224, 71, 0.1); }
+.log-entry.ability-cast { color: #fde047; font-weight: 600; background-color: rgba(253, 224, 71, 0.1); }
+.log-entry.ability-result { margin-left: 1rem; position: relative; }
+.log-entry.ability-result::before {
+    content: '↳';
+    position: absolute;
+    left: -0.8rem;
+}
 .log-entry.status { color: #c084fc; }
 .log-entry.round { color: #fff; font-weight: 700; background-color: rgba(255, 255, 255, 0.1); text-align: center; }
 .log-entry.victory { color: #fde047; font-weight: bold; text-transform: uppercase; }

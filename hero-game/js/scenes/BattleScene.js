@@ -211,7 +211,7 @@ export class BattleScene {
 
             this._announceAbility(ability.name);
             this._triggerArenaEffect('ability-zoom');
-            this._logToBattle(`${attacker.heroData.name} uses ${ability.name}!`, 'ability');
+            this._logToBattle(`${attacker.heroData.name} unleashes ${ability.name}!`, 'ability-cast');
 
             if (ability.target === 'ALLIES') {
                 this._triggerTeamBanner(attacker.team, ability.name, 'buff');
@@ -269,7 +269,7 @@ export class BattleScene {
                     this.executeNextTurn();
                     return;
                 }
-                this._dealDamage(attacker, target, finalDamage, isCritical, isSynergy);
+                this._dealDamage(attacker, target, finalDamage, isCritical, isSynergy, ability);
                 if (attacker.currentHp <= 0) {
                     this.executeNextTurn();
                     return;
@@ -359,7 +359,7 @@ export class BattleScene {
     }
 
 
-    _dealDamage(attacker, target, damage, isCritical = false, isSynergy = false) {
+    _dealDamage(attacker, target, damage, isCritical = false, isSynergy = false, sourceAbility = null) {
         if (target.heroData.abilities.some(a => a.name === 'Fortify')) {
             damage = Math.max(0, damage - 1);
         }
@@ -371,7 +371,8 @@ export class BattleScene {
         let logMessage = `${attacker.heroData.name} hits ${target.heroData.name} for ${finalDamage} damage.`;
         if(isCritical) logMessage += ' CRITICAL HIT!';
         if(isOverkill) logMessage += ' OVERKILL!';
-        this._logToBattle(logMessage, 'damage');
+        const type = sourceAbility ? 'ability-result damage' : 'damage';
+        this._logToBattle(logMessage, type);
 
         target.currentHp = Math.max(0, target.currentHp - finalDamage);
 
@@ -411,14 +412,16 @@ export class BattleScene {
         }
     }
 
-    _heal(target, amount) {
+    _heal(target, amount, sourceAbility = null) {
         target.currentHp = Math.min(target.maxHp, target.currentHp + amount);
-        this._logToBattle(`${target.heroData.name} heals ${amount} HP!`, 'heal');
+        const type = sourceAbility ? 'ability-result heal' : 'heal';
+        this._logToBattle(`${target.heroData.name} heals ${amount} HP!`, type);
         updateHealthBar(target, target.element);
     }
 
-    _applyStatus(target, statusName, duration){
-        this._logToBattle(`${target.heroData.name} is afflicted with ${statusName}!`, 'status');
+    _applyStatus(target, statusName, duration, sourceAbility = null){
+        const type = sourceAbility ? 'ability-result status' : 'status';
+        this._logToBattle(`${target.heroData.name} is afflicted with ${statusName}!`, type);
         target.statusEffects.push({name: statusName, turnsRemaining: duration});
         this._updateStatusIcons(target);
     }
