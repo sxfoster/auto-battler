@@ -12,6 +12,7 @@ import CraftingPage from "./components/CraftingPage.tsx";
 import Shop from "./routes/Shop.jsx";
 import DeckManager from "./components/DeckManager.jsx";
 import BattleScene from "./components/BattleScene.tsx";
+import PackOpener from "./components/PackOpener.jsx";
 
 export default function App() {
   const location = useLocation();
@@ -29,6 +30,7 @@ export default function App() {
       <Route path="/battle" element={<BattleScene />} />
       <Route path="/event" element={<Event />} />
       <Route path="/decks" element={<DeckManager />} />
+      <Route path="/open-pack" element={<PackOpener />} />
     </Routes>
   );
 }

@@ -53,6 +53,12 @@ function MainMenu() {
         >
           Inventory
         </button>
+        <button
+          className={styles.button}
+          onClick={() => navigate('/open-pack')}
+        >
+          Open Pack
+        </button>
       </nav>
     </main>
   )
