@@ -249,6 +249,51 @@ function generateArmorChoices() {
     return shuffled.slice(0, 3);
 }
 
+// Generate a fully equipped random champion
+function generateRandomChampion() {
+    const randomHero = allPossibleHeroes[Math.floor(Math.random() * allPossibleHeroes.length)];
+    const abilityPool = allPossibleAbilities.filter(a => a.class === randomHero.class);
+    const randomAbility = abilityPool.length > 0 ? abilityPool[Math.floor(Math.random() * abilityPool.length)] : null;
+    const randomWeapon = allPossibleWeapons[Math.floor(Math.random() * allPossibleWeapons.length)];
+    const randomArmor = allPossibleArmors[Math.floor(Math.random() * allPossibleArmors.length)];
+
+    return {
+        hero: randomHero.id,
+        ability: randomAbility ? randomAbility.id : null,
+        weapon: randomWeapon.id,
+        armor: randomArmor.id
+    };
+}
+
+// Handle the Random Team flow and immediately start the tournament
+function generateRandomTeamAndStartBattle() {
+    console.log("Generating random team...");
+
+    const champion1 = generateRandomChampion();
+    let champion2 = generateRandomChampion();
+    while (champion2.hero === champion1.hero) {
+        champion2 = generateRandomChampion();
+    }
+
+    gameState.draft.playerTeam.hero1 = champion1.hero;
+    gameState.draft.playerTeam.ability1 = champion1.ability;
+    gameState.draft.playerTeam.weapon1 = champion1.weapon;
+    gameState.draft.playerTeam.armor1 = champion1.armor;
+
+    gameState.draft.playerTeam.hero2 = champion2.hero;
+    gameState.draft.playerTeam.ability2 = champion2.ability;
+    gameState.draft.playerTeam.weapon2 = champion2.weapon;
+    gameState.draft.playerTeam.armor2 = champion2.armor;
+
+    gameState.draft.stage = 'COMPLETE';
+
+    console.log("Random team generated:", gameState.draft.playerTeam);
+
+    confirmationBar.classList.remove('visible');
+
+    startNextBattle();
+}
+
 // --- BATTLE SETUP ---
 
 function createCombatant(heroData, weaponData, armorData, abilityData, team, position) {
@@ -394,6 +439,10 @@ function endTournament() {
 
 // --- EVENT LISTENERS ---
 confirmDraftButton.addEventListener('click', startNextBattle);
+const randomTeamButton = document.getElementById('random-team-button');
+if (randomTeamButton) {
+    randomTeamButton.addEventListener('click', generateRandomTeamAndStartBattle);
+}
 
 // --- INITIALIZE ---
 // Set up the initial scene on page load
