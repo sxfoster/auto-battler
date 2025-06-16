@@ -201,15 +201,32 @@ export class BattleScene {
     }
 
 
-    _dealDamage(attacker, target, amount) {
-        if(target.heroData.abilities.some(a => a.name === 'Fortify')) amount = Math.max(0, amount - 1);
-        
-        target.currentHp = Math.max(0, target.currentHp - amount);
-        
+    _dealDamage(attacker, target, baseDamage) {
+        if (target.heroData.abilities.some(a => a.name === 'Fortify')) {
+            baseDamage = Math.max(0, baseDamage - 1);
+        }
+
+        const isCritical = Math.random() < 0.1;
+        const finalDamage = isCritical ? Math.floor(baseDamage * 1.5) : baseDamage;
+
+        const isOverkill = (target.currentHp - finalDamage) < -5;
+
+        target.currentHp = Math.max(0, target.currentHp - finalDamage);
+
         target.element.classList.add('is-taking-damage');
         setTimeout(() => target.element.classList.remove('is-taking-damage'), 400 * battleSpeeds[this.currentSpeedIndex].multiplier);
 
-        this._showCombatText(target.element, `-${amount}`, 'damage');
+        if (isOverkill) {
+            this._showCombatText(target.element, `-${finalDamage}!!`, 'overkill');
+            const flash = document.getElementById('screen-flash');
+            if (flash) flash.classList.add('flash');
+            setTimeout(() => flash.classList.remove('flash'), 400);
+        } else if (isCritical) {
+            this._showCombatText(target.element, `-${finalDamage}!`, 'critical');
+        } else {
+            this._showCombatText(target.element, `-${finalDamage}`, 'damage');
+        }
+
         this._createVFX(target.element, 'physical-hit');
         updateHealthBar(target, target.element);
 

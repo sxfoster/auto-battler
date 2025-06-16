@@ -142,12 +142,21 @@ export function createCompactCard(combatant) {
  * @param {HTMLElement} cardElement - The card element to update.
  */
 export function updateHealthBar(combatant, cardElement) {
-    const bar = cardElement.querySelector('.compact-hp-bar');
+    const hpBar = cardElement.querySelector('.compact-hp-bar');
+    const damageBar = cardElement.querySelector('.compact-hp-bar-damage');
     const hpText = cardElement.querySelector('.hp-text');
-    const percentage = (combatant.currentHp / combatant.maxHp) * 100;
-    
-    bar.style.width = `${percentage}%`;
-    bar.style.backgroundColor = percentage > 50 ? '#48bb78' : percentage > 20 ? '#f59e0b' : '#ef4444';
+
+    const newHpPercentage = (combatant.currentHp / combatant.maxHp) * 100;
+
+    damageBar.style.width = `${newHpPercentage}%`;
+
+    hpBar.style.backgroundColor = '#ffffff';
+
+    setTimeout(() => {
+        hpBar.style.backgroundColor = newHpPercentage > 50 ? '#48bb78' : newHpPercentage > 20 ? '#f59e0b' : '#ef4444';
+        hpBar.style.width = `${newHpPercentage}%`;
+    }, 100);
+
     hpText.textContent = `${combatant.currentHp} / ${combatant.maxHp}`;
 }
 
