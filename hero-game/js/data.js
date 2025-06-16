@@ -113,7 +113,7 @@ export const allPossibleAbilities = [
     { id: 3122, type: 'ability', name: 'Parry & Riposte', class: 'Stalwart Defender', rarity: 'Uncommon', art: 'https://placehold.co/150x126/ef4444/FFFFFF?text=Ability', effect: 'Block next attack; if successful, counterattack for 2 damage.', energyCost: 2, category: 'Defense' },
     { id: 3123, type: 'ability', name: 'Battle Roar', class: 'Stalwart Defender', rarity: 'Uncommon', art: 'https://placehold.co/150x126/ef4444/FFFFFF?text=Ability', effect: 'Gain +2 attack on your next attack.', energyCost: 2, category: 'Support' },
     // Rare
-    { id: 3131, type: 'ability', name: 'Whirlwind Slash', class: 'Stalwart Defender', rarity: 'Rare', art: 'https://placehold.co/150x126/ef4444/FFFFFF?text=Ability', effect: 'Deal 2 damage to all enemies.', energyCost: 3, category: 'Offense' },
+    { id: 3131, type: 'ability', name: 'Whirlwind Slash', class: 'Stalwart Defender', rarity: 'Rare', art: 'https://placehold.co/150x126/ef4444/FFFFFF?text=Ability', effect: 'Deal 2 damage to all enemies.', energyCost: 3, category: 'Offense', env_effect: 'wind' },
     { id: 3132, type: 'ability', name: 'Blood Frenzy', class: 'Stalwart Defender', rarity: 'Rare', art: 'https://placehold.co/150x126/ef4444/FFFFFF?text=Ability', effect: 'If under 50% HP, gain +2 attacks this turn.', energyCost: 3, category: 'Defense' },
     { id: 3133, type: 'ability', name: 'Relentless Pursuit', class: 'Stalwart Defender', rarity: 'Rare', art: 'https://placehold.co/150x126/ef4444/FFFFFF?text=Ability', effect: 'Deal 3 damage and take an extra action if this kills the target.', energyCost: 3, category: 'Support' },
     // Epic
@@ -145,7 +145,7 @@ export const allPossibleAbilities = [
     { id: 3312, type: 'ability', name: 'Raging Strike', class: 'Raging Fighter', rarity: 'Common', art: 'https://placehold.co/150x126/ef4444/FFFFFF?text=Ability', effect: 'Deal 3 damage, but reduce your defense by 1 until next turn.', energyCost: 1, category: 'Defense' },
     { id: 3313, type: 'ability', name: 'Battle Roar', class: 'Raging Fighter', rarity: 'Common', art: 'https://placehold.co/150x126/ef4444/FFFFFF?text=Ability', effect: 'Gain +2 attack for 2 turns.', energyCost: 1, category: 'Support' },
     // Uncommon
-    { id: 3321, type: 'ability', name: 'Savage Cleave', class: 'Raging Fighter', rarity: 'Uncommon', art: 'https://placehold.co/150x126/ef4444/FFFFFF?text=Ability', effect: 'Deal 4 damage to one enemy. If you kill them, gain +1 attack on your next action.', energyCost: 2, category: 'Offense' },
+    { id: 3321, type: 'ability', name: 'Savage Cleave', class: 'Raging Fighter', rarity: 'Uncommon', art: 'https://placehold.co/150x126/ef4444/FFFFFF?text=Ability', effect: 'Deal 4 damage to one enemy. If you kill them, gain +1 attack on your next action.', energyCost: 2, category: 'Offense', env_effect: 'wind' },
     { id: 3322, type: 'ability', name: 'Frenzied Defense', class: 'Raging Fighter', rarity: 'Uncommon', art: 'https://placehold.co/150x126/ef4444/FFFFFF?text=Ability', effect: 'Take -2 damage reduction this turn and deal 2 damage back when attacked.', energyCost: 2, category: 'Defense' },
     { id: 3323, type: 'ability', name: 'Unbreakable Will', class: 'Raging Fighter', rarity: 'Uncommon', art: 'https://placehold.co/150x126/ef4444/FFFFFF?text=Ability', effect: 'Prevent defeat if your HP would drop to 0 this turn (survive with 1 HP).', energyCost: 2, category: 'Support' },
     // Rare
