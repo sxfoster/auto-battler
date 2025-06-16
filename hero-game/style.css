@@ -506,7 +506,100 @@ button:disabled {
 .compact-card.is-charged::after {
     animation: charged-aura-crackle 1.5s ease-in-out infinite;
 }
-#battle-log { position: absolute; bottom: 1rem; left: 50%; transform: translateX(-50%); width: 90%; max-width: 600px; background-color: rgba(0,0,0,0.5); backdrop-filter: blur(4px); padding: 0.75rem; border-radius: 0.5rem; text-align: center; font-size: 1.1rem; transition: opacity 0.5s; }
+#battle-log-container {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    z-index: 150;
+}
+
+#battle-log-summary {
+    width: 100%;
+    max-width: 800px;
+    margin: 0 auto 1rem auto;
+    background-color: rgba(0,0,0,0.6);
+    backdrop-filter: blur(4px);
+    padding: 0.75rem;
+    border-radius: 0.5rem;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    text-align: center;
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+#battle-log-summary:hover {
+    background-color: rgba(0,0,0,0.8);
+}
+
+#battle-log-summary i {
+    transition: transform 0.3s ease-in-out;
+}
+
+#battle-log-panel {
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    max-width: 800px;
+    height: 40vh;
+    background-color: rgba(17, 24, 39, 0.8);
+    backdrop-filter: blur(8px);
+    border-radius: 0.75rem 0.75rem 0 0;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-bottom: none;
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s, visibility 0.3s;
+    margin-bottom: -1px;
+}
+
+#battle-log-panel.expanded {
+    opacity: 1;
+    visibility: visible;
+}
+
+#battle-log-panel.expanded + #battle-log-summary i {
+    transform: rotate(180deg);
+}
+
+.log-entry {
+    padding: 0.4rem 0.6rem;
+    border-radius: 0.25rem;
+    margin-bottom: 0.5rem;
+    animation: log-entry-fade-in 0.4s ease-out;
+    font-size: 0.9rem;
+    flex-shrink: 0;
+}
+
+@keyframes log-entry-fade-in {
+    from {
+        opacity: 0;
+        transform: translateX(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.log-entry.info { color: #9ca3af; }
+.log-entry.damage { color: #f87171; }
+.log-entry.heal { color: #4ade80; }
+.log-entry.ability { color: #fde047; font-weight: 600; background-color: rgba(253, 224, 71, 0.1); }
+.log-entry.status { color: #c084fc; }
+.log-entry.round { color: #fff; font-weight: 700; background-color: rgba(255, 255, 255, 0.1); text-align: center; }
+.log-entry.victory { color: #fde047; font-weight: bold; text-transform: uppercase; }
+.log-entry.defeat { color: #ef4444; font-weight: bold; text-transform: uppercase; }
 
 #screen-flash {
     position: fixed;

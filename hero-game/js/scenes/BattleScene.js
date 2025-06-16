@@ -10,7 +10,9 @@ export class BattleScene {
         // DOM Elements
         this.playerContainer = this.element.querySelector('#player-team-container');
         this.enemyContainer = this.element.querySelector('#enemy-team-container');
-        this.battleLog = this.element.querySelector('#battle-log');
+        this.battleLogContainer = this.element.querySelector('#battle-log-container');
+        this.battleLogSummary = this.element.querySelector('#battle-log-summary');
+        this.battleLogPanel = this.element.querySelector('#battle-log-panel');
         this.endScreen = this.element.querySelector('#end-screen');
         this.resultText = this.element.querySelector('#end-screen-result-text');
         this.resultsContainer = this.element.querySelector('#end-screen-results');
@@ -31,6 +33,12 @@ export class BattleScene {
         this.isBattleOver = false;
 
         this.speedButton.addEventListener('click', () => this._cycleSpeed());
+
+        if (this.battleLogSummary) {
+            this.battleLogSummary.addEventListener('click', () => {
+                this.battleLogPanel.classList.toggle('expanded');
+            });
+        }
     }
 
     _cycleSpeed() {
@@ -39,14 +47,20 @@ export class BattleScene {
         this.speedButton.textContent = `Speed: ${newSpeed.label}`;
     }
     
-    _logToBattle(message) {
-        this.battleLog.textContent = message;
-        this.battleLog.style.opacity = '1';
-        setTimeout(() => {
-            if (!this.isBattleOver) {
-                 this.battleLog.style.opacity = '0';
-            }
-        }, 667 * battleSpeeds[this.currentSpeedIndex].multiplier);
+    _logToBattle(message, type = 'info') {
+        if (!this.battleLogSummary || !this.battleLogPanel) return;
+
+        this.battleLogSummary.innerHTML = `${message} <i class="fas fa-chevron-up"></i>`;
+
+        const entry = document.createElement('div');
+        entry.className = `log-entry ${type}`;
+        entry.textContent = message;
+
+        this.battleLogPanel.prepend(entry);
+
+        if (this.battleLogPanel.children.length > 50) {
+            this.battleLogPanel.lastChild.remove();
+        }
     }
 
     async start(initialState) {
@@ -61,8 +75,11 @@ export class BattleScene {
         // --- UI Setup ---
         this.playerContainer.innerHTML = '';
         this.enemyContainer.innerHTML = '';
+        if (this.battleLogPanel) {
+            this.battleLogPanel.innerHTML = '';
+        }
         this.endScreen.classList.remove('visible', 'victory', 'defeat');
-        this._logToBattle('The battle begins!');
+        this._logToBattle('The battle begins!', 'round');
 
         // --- 1. Initially hide the teams to prepare for slide-in ---
         this.playerContainer.style.opacity = 0;
@@ -131,7 +148,7 @@ export class BattleScene {
         this.turnQueue = [...this.state.filter(c => c.currentHp > 0)]
             .sort((a, b) => b.speed - a.speed);
 
-        this._logToBattle('New round! Turn order: ' + this.turnQueue.map(c => c.heroData.name).join(', '));
+        this._logToBattle('New round! Turn order: ' + this.turnQueue.map(c => c.heroData.name).join(', '), 'round');
 
         // --- 2. Start Executing Turns ---
         this.executeNextTurn();
@@ -159,7 +176,7 @@ export class BattleScene {
 
         // --- 1. GAIN ENERGY ---
         attacker.currentEnergy += 1;
-        this._logToBattle(`${attacker.heroData.name} gains 1 energy!`);
+        this._logToBattle(`${attacker.heroData.name} gains 1 energy!`, 'heal');
 
         await this._triggerEnergyChargeUp(attacker.element);
         this._showCombatText(attacker.element, '+1', 'energy');
@@ -182,7 +199,7 @@ export class BattleScene {
 
             this._announceAbility(ability.name);
             this._triggerArenaEffect('ability-zoom');
-            this._logToBattle(`${attacker.heroData.name} uses ${ability.name}!`);
+            this._logToBattle(`${attacker.heroData.name} uses ${ability.name}!`, 'ability');
 
             if (ability.target === 'ALLIES') {
                 this._triggerTeamBanner(attacker.team, ability.name, 'buff');
@@ -303,6 +320,11 @@ export class BattleScene {
 
         const isOverkill = (target.currentHp - finalDamage) < -5;
 
+        let logMessage = `${attacker.heroData.name} hits ${target.heroData.name} for ${finalDamage} damage.`;
+        if(isCritical) logMessage += ' CRITICAL HIT!';
+        if(isOverkill) logMessage += ' OVERKILL!';
+        this._logToBattle(logMessage, 'damage');
+
         target.currentHp = Math.max(0, target.currentHp - finalDamage);
 
         target.element.classList.add('is-taking-damage');
@@ -335,7 +357,7 @@ export class BattleScene {
         if (target.currentHp <= 0) {
             // Remove the critical health state if the hero is defeated
             target.element.classList.remove('is-critical-health');
-            this._logToBattle(`${target.heroData.name} has been defeated!`);
+            this._logToBattle(`${target.heroData.name} has been defeated!`, 'defeat');
             target.element.classList.add('is-defeated');
             this._triggerArenaEffect('critical-shake');
         }
@@ -343,12 +365,12 @@ export class BattleScene {
 
     _heal(target, amount) {
         target.currentHp = Math.min(target.maxHp, target.currentHp + amount);
-        this._logToBattle(`${target.heroData.name} heals ${amount} HP!`);
+        this._logToBattle(`${target.heroData.name} heals ${amount} HP!`, 'heal');
         updateHealthBar(target, target.element);
     }
 
     _applyStatus(target, statusName, duration){
-        this._logToBattle(`${target.heroData.name} is afflicted with ${statusName}!`);
+        this._logToBattle(`${target.heroData.name} is afflicted with ${statusName}!`, 'status');
         target.statusEffects.push({name: statusName, turnsRemaining: duration});
         this._updateStatusIcons(target);
     }
@@ -584,7 +606,7 @@ export class BattleScene {
     async _endBattle(didPlayerWin) {
         this.isBattleOver = true;
         const winningTeam = didPlayerWin ? 'player' : 'enemy';
-        this._logToBattle(didPlayerWin ? "Player team is victorious!" : "Enemy team is victorious!");
+        this._logToBattle(didPlayerWin ? "Player team is victorious!" : "Enemy team is victorious!", didPlayerWin ? 'victory' : 'defeat');
 
         this.state.forEach(combatant => {
             if (combatant.team === winningTeam && combatant.currentHp > 0) {
