@@ -758,6 +758,45 @@ button:disabled {
     animation: announce-and-fade 1.5s ease-out forwards;
 }
 
+/* -------------------------------------------------- */
+/* Team-Wide Effect Banners                           */
+/* -------------------------------------------------- */
+
+.team-banner {
+    position: absolute;
+    top: 50%;
+    left: 10%;
+    width: 80%;
+    background: linear-gradient(to right, rgba(0,0,0,0) 0%, rgba(0,0,0,0.6) 25%, rgba(0,0,0,0.6) 75%, rgba(0,0,0,0) 100%);
+    padding: 0.5rem;
+    text-align: center;
+    font-family: 'Cinzel', serif;
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #fde047;
+    text-shadow: 0 0 10px #000;
+    z-index: 5;
+    pointer-events: none;
+
+    opacity: 0;
+    transform: translateY(-50%) scale(0.8);
+    transition: opacity 0.5s ease-out, transform 0.5s ease-out;
+}
+
+#enemy-team-banner {
+    left: auto;
+    right: 10%;
+}
+
+.team-banner.is-visible {
+    opacity: 1;
+    transform: translateY(-50%) scale(1);
+}
+
+.team-banner.debuff {
+    color: #ef4444;
+}
+
 /* --- 1. Combo Counter Styles --- */
 .combo-counter {
     position: absolute;
