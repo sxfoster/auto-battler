@@ -16,6 +16,8 @@ export class BattleScene {
         this.resultsContainer = this.element.querySelector('#end-screen-results');
         this.playAgainButton = this.element.querySelector('#play-again-button');
         this.speedButton = this.element.querySelector('#speed-cycle-button');
+        this.arena = this.element.querySelector('.battle-arena');
+        this.abilityAnnouncer = this.element.querySelector('#ability-announcer');
         
         // State
         this.state = [];
@@ -91,8 +93,8 @@ export class BattleScene {
 
         const attacker = this.turnQueue.shift();
 
-        this.state.forEach(c => c.element.classList.remove('is-attacking'));
-        attacker.element.classList.add('is-attacking');
+        this.state.forEach(c => c.element.classList.remove('is-attacking', 'is-lunging'));
+        attacker.element.classList.add('is-attacking', 'is-lunging');
 
         // --- 1. GAIN ENERGY ---
         attacker.currentEnergy += 1;
@@ -112,26 +114,36 @@ export class BattleScene {
             attacker.currentEnergy -= ability.energyCost;
             updateEnergyDisplay(attacker, attacker.element);
 
+            this._announceAbility(ability.name);
+            this._triggerArenaEffect('ability-zoom');
             this._logToBattle(`${attacker.heroData.name} uses ${ability.name}!`);
             await sleep(500 * battleSpeeds[this.currentSpeedIndex].multiplier);
 
             if (ability.effect && ability.effect.includes('damage')) {
                 const match = ability.effect.match(/\d+/);
                 const damageAmount = match ? parseInt(match[0]) : attacker.attack;
+                this._fireProjectile(attacker.element, target.element);
+                await sleep(500 * battleSpeeds[this.currentSpeedIndex].multiplier);
                 this._dealDamage(attacker, target, damageAmount);
             }
 
             // --- Auto-attack after ability ---
             this._logToBattle(`${attacker.heroData.name} also performs a basic attack!`);
             await sleep(500 * battleSpeeds[this.currentSpeedIndex].multiplier);
+            this._fireProjectile(attacker.element, target.element);
+            await sleep(500 * battleSpeeds[this.currentSpeedIndex].multiplier);
             const autoAttackDamage = Math.max(1, attacker.attack - (target.block || 0));
             this._dealDamage(attacker, target, autoAttackDamage);
         } else {
             this._logToBattle(`${attacker.heroData.name} attacks ${target.heroData.name}!`);
             await sleep(500 * battleSpeeds[this.currentSpeedIndex].multiplier);
+            this._fireProjectile(attacker.element, target.element);
+            await sleep(500 * battleSpeeds[this.currentSpeedIndex].multiplier);
             const damage = Math.max(1, attacker.attack - (target.block || 0));
             this._dealDamage(attacker, target, damage);
         }
+
+        attacker.element.classList.remove('is-lunging');
 
         // --- 6. Check for Battle End ---
         const isPlayerTeamDefeated = this.state.filter(c => c.team === 'player' && c.currentHp > 0).length === 0;
@@ -155,7 +167,7 @@ export class BattleScene {
         target.currentHp = Math.max(0, target.currentHp - amount);
         
         target.element.classList.add('is-taking-damage');
-        setTimeout(() => target.element.classList.remove('is-taking-damage'), 67 * battleSpeeds[this.currentSpeedIndex].multiplier);
+        setTimeout(() => target.element.classList.remove('is-taking-damage'), 400 * battleSpeeds[this.currentSpeedIndex].multiplier);
         
         this._showDamagePopup(target.element, amount);
         updateHealthBar(target, target.element);
@@ -163,6 +175,7 @@ export class BattleScene {
         if (target.currentHp <= 0) {
             this._logToBattle(`${target.heroData.name} has been defeated!`);
             target.element.classList.add('is-defeated');
+            this._triggerArenaEffect('critical-shake');
         }
     }
 
@@ -192,10 +205,67 @@ export class BattleScene {
         combatant.statusEffects.forEach(effect => {
             const icon = document.createElement('div');
             icon.className = 'status-icon';
-            icon.innerHTML = effect.name === 'Stun' ? '<i class="fa-solid fa-star"></i>' : '<i class="fa-solid fa-skull-crossbones"></i>';
+            switch(effect.name){
+                case 'Stun':
+                    icon.innerHTML = '<i class="fas fa-star"></i>';
+                    break;
+                case 'Poison':
+                    icon.innerHTML = '<i class="fas fa-skull-crossbones"></i>';
+                    break;
+                case 'Attack Up':
+                    icon.innerHTML = '<i class="fas fa-arrow-up"></i>';
+                    break;
+                default:
+                    icon.innerHTML = '<i class="fas fa-circle"></i>';
+            }
             icon.title = `${effect.name} (${effect.turnsRemaining} turns left)`;
             container.appendChild(icon);
         });
+    }
+
+    _announceAbility(name){
+        if(!this.abilityAnnouncer) return;
+        this.abilityAnnouncer.textContent = name;
+        this.abilityAnnouncer.classList.add('show');
+        setTimeout(() => this.abilityAnnouncer.classList.remove('show'), 1500);
+    }
+
+    _triggerArenaEffect(cls){
+        if(!this.arena) return;
+        this.arena.classList.add(cls);
+        const duration = cls === 'ability-zoom' ? 1000 : 300;
+        setTimeout(() => this.arena.classList.remove(cls), duration);
+    }
+
+    _fireProjectile(startElement, endElement){
+        const projectile = document.createElement('div');
+        projectile.className = 'battle-projectile';
+        this.element.appendChild(projectile);
+
+        const startRect = startElement.getBoundingClientRect();
+        const endRect = endElement.getBoundingClientRect();
+
+        projectile.style.left = `${startRect.left + startRect.width / 2}px`;
+        projectile.style.top = `${startRect.top + startRect.height / 2}px`;
+
+        setTimeout(() => {
+            projectile.style.transform = `translate(${endRect.left - startRect.left}px, ${endRect.top - startRect.top}px)`;
+        }, 10);
+
+        setTimeout(() => {
+            projectile.remove();
+            this._createHitSpark(endElement);
+        }, 500);
+    }
+
+    _createHitSpark(targetElement){
+        const rect = targetElement.getBoundingClientRect();
+        const spark = document.createElement('div');
+        spark.className = 'hit-spark';
+        spark.style.left = `${rect.left + rect.width/2}px`;
+        spark.style.top = `${rect.top + rect.height/2}px`;
+        this.element.appendChild(spark);
+        setTimeout(() => spark.remove(), 300);
     }
 
     _endBattle(didPlayerWin) {

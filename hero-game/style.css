@@ -223,8 +223,13 @@ body {
     font-size: 0.7rem;
 }
 .compact-card.is-attacking { transform: scale(1.1) translateY(-10px); z-index: 50; }
-.compact-card.is-taking-damage { animation: take-damage 0.07s ease; }
-@keyframes take-damage { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
+.compact-card.is-lunging { transform: scale(1.1) translateY(-15px); z-index: 50; }
+.compact-card.is-taking-damage { animation: shake-horizontal 0.4s ease-in-out; }
+@keyframes shake-horizontal {
+  0%, 100% { transform: translateX(0); }
+  10%, 30%, 50%, 70% { transform: translateX(-8px); }
+  20%, 40%, 60%, 80% { transform: translateX(8px); }
+}
 .compact-card.is-defeated { opacity: 0.4; filter: grayscale(100%); transform: translateY(20px) scale(0.9); }
 .damage-popup { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 2rem; font-weight: 700; color: #ef4444; text-shadow: 1px 1px 2px black; animation: popup-and-fade 0.25s ease-out forwards; pointer-events: none; z-index: 100; }
 @keyframes popup-and-fade { 0% { transform: translate(-50%, -50%) scale(0.5); opacity: 1; } 100% { transform: translate(-50%, -150%) scale(1.2); opacity: 0; } }
@@ -466,4 +471,79 @@ body {
 .gear-socket:hover .socket-modal-popup {
     visibility: visible;
     opacity: 1;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Battle Scene Enhancements                                                  */
+/* -------------------------------------------------------------------------- */
+
+.battle-projectile {
+    position: fixed;
+    width: 15px;
+    height: 15px;
+    background-color: #fde047;
+    border-radius: 50%;
+    box-shadow: 0 0 15px 5px #fde047;
+    transition: transform 0.5s ease-out;
+    z-index: 99;
+}
+
+.hit-spark {
+    position: fixed;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background-color: #fde047;
+    box-shadow: 0 0 20px 8px #f59e0b;
+    transform: translate(-50%, -50%) scale(0.5);
+    animation: spark-pop 0.3s forwards;
+    pointer-events: none;
+    z-index: 100;
+}
+
+@keyframes spark-pop {
+    from { opacity: 1; transform: translate(-50%, -50%) scale(0.5); }
+    to { opacity: 0; transform: translate(-50%, -50%) scale(1.5); }
+}
+
+.ability-announcer {
+    position: absolute;
+    top: 40%;
+    left: 50%;
+    transform: translateX(-50%);
+    font-family: 'Cinzel', serif;
+    font-size: 4rem;
+    font-weight: 700;
+    color: #fde047;
+    text-shadow: 0 0 10px #000, 0 0 20px #f59e0b;
+    pointer-events: none;
+    opacity: 0;
+    z-index: 100;
+}
+.ability-announcer.show {
+    animation: announce-and-fade 1.5s ease-out forwards;
+}
+@keyframes announce-and-fade {
+    0% { transform: translateX(-50%) scale(0.5); opacity: 0; }
+    20% { transform: translateX(-50%) scale(1.1); opacity: 1; }
+    80% { transform: translateX(-50%) scale(1); opacity: 1; }
+    100% { transform: translateX(-50%) scale(1.2); opacity: 0; }
+}
+
+.battle-arena.ability-zoom {
+    animation: zoom-in-out 1s ease;
+}
+
+.battle-arena.critical-shake {
+    animation: screen-shake 0.3s ease;
+}
+
+@keyframes zoom-in-out {
+  50% { transform: scale(1.03); }
+}
+
+@keyframes screen-shake {
+  0%, 100% { transform: translate(0, 0) rotate(0); }
+  25% { transform: translate(5px, 2px) rotate(0.5deg); }
+  75% { transform: translate(-5px, -2px) rotate(-0.5deg); }
 }
