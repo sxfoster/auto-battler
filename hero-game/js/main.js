@@ -37,12 +37,6 @@ const sceneElements = {
     recap: document.getElementById('recap-scene'),
 };
 
-const packElements = {
-    hero: document.getElementById('hero-pack'),
-    ability: document.getElementById('ability-pack'),
-    weapon: document.getElementById('weapon-pack'),
-    armor: document.getElementById('armor-pack')
-};
 const confirmationBar = document.getElementById('confirmation-bar');
 const confirmDraftButton = document.getElementById('confirm-draft');
 
@@ -105,13 +99,9 @@ function transitionToScene(sceneName) {
 }
 
 function configurePackScene(stage) {
-    const stageType = stage.split('_')[0].toLowerCase();
-    for (const key in packElements) {
-        packElements[key].classList.add('hidden');
-    }
-    if (packElements[stageType]) {
-        packElements[stageType].classList.remove('hidden');
-    }
+    // Single pack implementation no longer swaps between pack types.
+    // This function is kept for compatibility with existing calls.
+    return stage;
 }
 
 function openPack() {
