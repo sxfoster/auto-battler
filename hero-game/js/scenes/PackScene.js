@@ -13,12 +13,14 @@ export class PackScene {
         this.imageArea = this.element.querySelector('#image-area');
 
         // Bind interactions
-        if (this.topCrimp) {
-            this.topCrimp.addEventListener('click', () => this._handleTearOff());
-        }
         if (this.packageEl) {
+            this.packageEl.addEventListener('click', () => this._handleTearOff());
             this.packageEl.addEventListener('mousemove', (e) => this._handleMouseMove(e));
             this.packageEl.addEventListener('mouseleave', () => this._handleMouseLeave());
+        }
+        if (this.topCrimp) {
+            // The crimp element still hosts the tear-off animation but no longer
+            // directly receives click events.
         }
     }
 
@@ -70,7 +72,7 @@ export class PackScene {
         } else if (draftStage.includes('HERO_2')) {
             this.titleElement.textContent = 'Forge Your Second Champion';
         }
-        this.instructionsElement.textContent = 'Click the top of the pack to tear it open.';
+        this.instructionsElement.textContent = 'Click anywhere on the pack to tear it open.';
     }
 
     reset() {
