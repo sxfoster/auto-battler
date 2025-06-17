@@ -37,7 +37,7 @@ export class PackScene {
             this.packageEl.classList.add('is-open');
             setTimeout(() => {
                 this.onPackOpened();
-            }, 300);
+            }, 100);
         }, { once: true });
     }
 
