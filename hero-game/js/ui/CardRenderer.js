@@ -35,7 +35,7 @@ export function createDetailCard(item, selectionHandler) {
             if (item.abilities && item.abilities.length > 0) {
                 descriptionHtml = item.abilities.map(ab => `
                     <li class="ability-item">${ab.name}
-                        <div class="tooltip">${ab.description}</div>
+                        <div class="tooltip">${ab.effect}</div>
                     </li>
                 `).join('');
             } else {
@@ -53,7 +53,7 @@ export function createDetailCard(item, selectionHandler) {
             // Display the ability's effect description
             descriptionHtml = `
         <div class="item-ability">
-            <p class="ability-description">${item.description}</p>
+            <p class="ability-description">${item.effect}</p>
         </div>`;
             break;
         case 'weapon':
