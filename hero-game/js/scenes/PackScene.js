@@ -1,8 +1,8 @@
 const boosterPackImages = {
-    hero: 'img/character_booster.png',
-    ability: 'img/ability_booster.png',
-    weapon: 'img/weapon_booster.png',
-    armor: 'img/armor_booster.png'
+    hero: '../../img/character_booster.png',
+    ability: '../../img/ability_booster.png',
+    weapon: '../../img/weapon_booster.png',
+    armor: '../../img/armor_booster.png'
 };
 
 export class PackScene {
