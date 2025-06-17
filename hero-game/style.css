@@ -265,7 +265,7 @@ button:disabled {
     animation: wind-gust ease-in forwards;
 }
 .battle-arena { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; width: 100%; max-width: 1200px; padding: 2rem; align-items: center; }
-.team-container { display: flex; flex-direction: column; align-items: center; gap: 2rem; }
+.team-container { display: flex; flex-direction: column; align-items: center; gap: 2rem; flex-wrap: wrap; }
 
 /* Banner displayed when a team-wide effect occurs */
 .team-banner {
