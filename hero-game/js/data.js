@@ -51,6 +51,63 @@ export const allPossibleHeroes = [
     { type: 'hero', id: 804, name: 'Wild Lord', class: 'Wilderness Expert', rarity: 'Epic', art: '../img/wild_lord_card.png', hp: 30, attack: 15, speed: 7, abilities: [] },
 ];
 
+export const allPossibleMinions = {
+    SKELETON: {
+        id: 'MINION_SKELETON',
+        name: 'Skeleton',
+        art: '../img/skeleton_card.png',
+        rarity: 'Common',
+        hp: 10,
+        attack: 3,
+        speed: 4,
+        abilities: [],
+        isMinion: true
+    },
+    GOLEM: {
+        id: 'MINION_GOLEM',
+        name: 'Rock Golem',
+        art: '../img/golem_card.png',
+        rarity: 'Uncommon',
+        hp: 20,
+        attack: 2,
+        speed: 2,
+        isMinion: true
+    },
+    WOLF: {
+        id: 'MINION_WOLF',
+        name: 'Wolf',
+        art: '../img/wolf_card.png',
+        rarity: 'Common',
+        hp: 8,
+        attack: 2,
+        speed: 5,
+        abilities: [],
+        isMinion: true
+    },
+    BEAR: {
+        id: 'MINION_BEAR',
+        name: 'Bear',
+        art: '../img/bear_card.png',
+        rarity: 'Uncommon',
+        hp: 15,
+        attack: 3,
+        speed: 3,
+        abilities: [],
+        isMinion: true
+    },
+    FALCON: {
+        id: 'MINION_FALCON',
+        name: 'Falcon',
+        art: '../img/falcon_card.png',
+        rarity: 'Rare',
+        hp: 6,
+        attack: 1,
+        speed: 7,
+        abilities: [],
+        isMinion: true
+    }
+};
+
 export const allPossibleWeapons = [
     // 1. Sword Family
     { id: 1101, type: 'weapon', name: 'Worn Sword', rarity: 'Common', art: '../img/weapons/worn_sword_card.png', statBonuses: { ATK: 3 }, ability: null },
@@ -234,19 +291,21 @@ export const allPossibleAbilities = [
     // Common
     { id: 3811, type: 'ability', name: 'Precision Shot', class: 'Wilderness Expert', rarity: 'Common', art: 'https://placehold.co/150x126/ef4444/FFFFFF?text=Ability', effect: 'Deal 3 damage to a single enemy.', energyCost: 1, category: 'Offense' },
     { id: 3812, type: 'ability', name: 'Camouflage', class: 'Wilderness Expert', rarity: 'Common', art: 'https://placehold.co/150x126/ef4444/FFFFFF?text=Ability', effect: 'Gain +2 evasion for 1 turn and +1 speed next turn.', energyCost: 1, category: 'Defense' },
-    { id: 3813, type: 'ability', name: 'Animal Companion – Wolf', class: 'Wilderness Expert', rarity: 'Common', art: 'https://placehold.co/150x126/ef4444/FFFFFF?text=Ability', effect: 'Summon a Wolf that deals 2 damage and lasts 1 turn.', energyCost: 1, category: 'Support' },
+    { id: 3813, type: 'ability', name: 'Animal Companion – Wolf', class: 'Wilderness Expert', rarity: 'Common', art: 'https://placehold.co/150x126/ef4444/FFFFFF?text=Ability', effect: 'Summon a Wolf that deals 2 damage and lasts 1 turn.', energyCost: 1, category: 'Support', summons: 'WOLF' },
     // Uncommon
     { id: 3821, type: 'ability', name: 'Multi-Shot', class: 'Wilderness Expert', rarity: 'Uncommon', art: 'https://placehold.co/150x126/ef4444/FFFFFF?text=Ability', effect: 'Deal 2 damage to up to 3 enemies.', energyCost: 2, category: 'Offense' },
     { id: 3822, type: 'ability', name: 'Hawk Eye', class: 'Wilderness Expert', rarity: 'Uncommon', art: 'https://placehold.co/150x126/ef4444/FFFFFF?text=Ability', effect: 'Gain +1 attack and +1 crit chance for 2 turns.', energyCost: 2, category: 'Support' },
-    { id: 3823, type: 'ability', name: 'Animal Companion – Bear', class: 'Wilderness Expert', rarity: 'Uncommon', art: 'https://placehold.co/150x126/ef4444/FFFFFF?text=Ability', effect: 'Summon a Bear that deals 3 damage and taunts enemies.', energyCost: 2, category: 'Defense' },
+    { id: 3823, type: 'ability', name: 'Animal Companion – Bear', class: 'Wilderness Expert', rarity: 'Uncommon', art: 'https://placehold.co/150x126/ef4444/FFFFFF?text=Ability', effect: 'Summon a Bear that deals 3 damage and taunts enemies.', energyCost: 2, category: 'Defense', summons: 'BEAR' },
     // Rare
     { id: 3831, type: 'ability', name: 'Rain of Arrows', class: 'Wilderness Expert', rarity: 'Rare', art: 'https://placehold.co/150x126/ef4444/FFFFFF?text=Ability', effect: 'Deal 3 damage to all enemies.', energyCost: 3, category: 'Offense', target: 'ENEMIES' },
     { id: 3832, type: 'ability', name: 'Trap Mastery', class: 'Wilderness Expert', rarity: 'Rare', art: 'https://placehold.co/150x126/ef4444/FFFFFF?text=Ability', effect: 'Set a trap: next enemy to attack you takes 4 damage and is rooted.', energyCost: 3, category: 'Defense' },
-    { id: 3833, type: 'ability', name: 'Animal Companion – Falcon', class: 'Wilderness Expert', rarity: 'Rare', art: 'https://placehold.co/150x126/ef4444/FFFFFF?text=Ability', effect: 'Summon a Falcon that grants +1 attack and reveals hidden enemies for 2 turns.', energyCost: 3, category: 'Support' },
+    { id: 3833, type: 'ability', name: 'Animal Companion – Falcon', class: 'Wilderness Expert', rarity: 'Rare', art: 'https://placehold.co/150x126/ef4444/FFFFFF?text=Ability', effect: 'Summon a Falcon that grants +1 attack and reveals hidden enemies for 2 turns.', energyCost: 3, category: 'Support', summons: 'FALCON' },
     // Epic
-    { id: 3841, type: 'ability', name: 'Alpha\'s Call', class: 'Wilderness Expert', rarity: 'Epic', art: 'https://placehold.co/150x126/ef4444/FFFFFF?text=Ability', effect: 'Summon all three animal companions simultaneously.', energyCost: 4, category: 'Support' },
+    { id: 3841, type: 'ability', name: 'Alpha\'s Call', class: 'Wilderness Expert', rarity: 'Epic', art: 'https://placehold.co/150x126/ef4444/FFFFFF?text=Ability', effect: 'Summon all three animal companions simultaneously.', energyCost: 4, category: 'Support', summons: ['WOLF', 'BEAR', 'FALCON'] },
     { id: 3842, type: 'ability', name: 'True Shot', class: 'Wilderness Expert', rarity: 'Epic', art: 'https://placehold.co/150x126/ef4444/FFFFFF?text=Ability', effect: 'Deal 7 damage to one enemy, ignoring evasion and armor.', energyCost: 4, category: 'Offense' },
     { id: 3843, type: 'ability', name: 'Ranger\'s Focus', class: 'Wilderness Expert', rarity: 'Epic', art: 'https://placehold.co/150x126/ef4444/FFFFFF?text=Ability', effect: 'Gain +2 attack and +2 speed for 2 turns.', energyCost: 4, category: 'Defense' },
+    // --- Necromancer Abilities ---
+    { id: 3911, type: 'ability', name: 'Raise Skeleton', class: 'Necromancer', rarity: 'Common', art: 'https://placehold.co/150x126/ef4444/FFFFFF?text=Ability', effect: 'Summon a Skeleton with 10 HP and 3 Attack.', summons: 'SKELETON', energyCost: 1, category: 'Support' },
 ];
 // NOTE: Placeholder art links ('...') and new IDs have been assigned.
 

@@ -1,6 +1,6 @@
 import { createCompactCard, updateHealthBar, updateEnergyDisplay } from '../ui/CardRenderer.js';
 import { sleep } from '../utils.js';
-import { battleSpeeds } from '../data.js';
+import { battleSpeeds, allPossibleMinions } from '../data.js';
 
 export class BattleScene {
     constructor(element, onBattleComplete) {
@@ -255,6 +255,15 @@ export class BattleScene {
                 return;
             }
 
+            if (ability.summons) {
+                const summonList = Array.isArray(ability.summons) ? ability.summons : [ability.summons];
+                summonList.forEach(key => {
+                    if (allPossibleMinions[key]) {
+                        this._summonUnit(attacker, allPossibleMinions[key]);
+                    }
+                });
+            }
+
             if (ability.effect && ability.effect.includes('damage')) {
                 const match = ability.effect.match(/\d+/);
                 const baseDamage = match ? parseInt(match[0]) : attacker.attack;
@@ -458,10 +467,19 @@ export class BattleScene {
         updateHealthBar(target, target.element);
 
         if (target.currentHp <= 0) {
-            // Remove the critical health state if the hero is defeated
             target.element.classList.remove('is-critical-health');
             this._logToBattle(`${target.heroData.name} has been defeated!`, 'defeat');
             target.element.classList.add('is-defeated');
+
+            setTimeout(() => {
+                if (target.element && target.element.parentNode) {
+                    target.element.parentNode.removeChild(target.element);
+                }
+                this.state = this.state.filter(c => c.id !== target.id);
+            }, 1500);
+
+            this._recalculateTurnQueue(null, target.id);
+
             this._triggerArenaEffect('critical-shake');
         }
     }
@@ -536,6 +554,60 @@ export class BattleScene {
                 cardElement.classList.remove('has-aura');
             }
         }
+    }
+
+    _summonUnit(summoner, minionData) {
+        const teamContainer = summoner.team === 'player' ? this.playerContainer : this.enemyContainer;
+        const team = summoner.team;
+
+        const minionId = `${team}-minion-${Date.now()}`;
+        const newMinion = {
+            id: minionId,
+            heroData: { ...minionData },
+            weaponData: null,
+            armorData: null,
+            abilityData: null,
+            team: team,
+            position: this.state.filter(c => c.team === team).length,
+            currentHp: minionData.hp,
+            maxHp: minionData.hp,
+            attack: minionData.attack,
+            speed: minionData.speed,
+            currentEnergy: 0,
+            statusEffects: [],
+            element: null
+        };
+
+        this.state.push(newMinion);
+
+        const card = createCompactCard(newMinion);
+        newMinion.element = card;
+        teamContainer.appendChild(card);
+        card.classList.add('is-landing');
+
+        this._logToBattle(`${summoner.heroData.name} summons a ${minionData.name}!`, 'ability-result');
+
+        this._recalculateTurnQueue(newMinion);
+    }
+
+    _recalculateTurnQueue(newUnit = null, defeatedUnitId = null) {
+        if (defeatedUnitId) {
+            this.turnQueue = this.turnQueue.filter(c => c.id !== defeatedUnitId);
+        }
+        if (newUnit) {
+            let inserted = false;
+            for (let i = 0; i < this.turnQueue.length; i++) {
+                if (newUnit.speed > this.turnQueue[i].speed) {
+                    this.turnQueue.splice(i, 0, newUnit);
+                    inserted = true;
+                    break;
+                }
+            }
+            if (!inserted) {
+                this.turnQueue.push(newUnit);
+            }
+        }
+        this._logToBattle(`Turn order updated!`, 'info');
     }
 
     _announceAbility(name){
