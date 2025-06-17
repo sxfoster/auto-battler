@@ -190,7 +190,7 @@ export class BattleScene {
         if (dotEffects.length > 0) {
             for (const effect of dotEffects) {
                 const dotDamage = effect.name === 'Poison' ? 2 : 3;
-                this._logToBattle(`${attacker.heroData.name} takes ${dotDamage} damage from ${effect.name}.`, 'damage');
+                this._logToBattle(`${attacker.heroData.name} takes ${dotDamage} damage from ${effect.name}.`, 'status-damage');
                 this._dealDamage(attacker, attacker, dotDamage, false, false, null);
                 effect.turnsRemaining--;
             }
