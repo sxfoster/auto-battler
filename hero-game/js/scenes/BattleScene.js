@@ -636,13 +636,19 @@ export class BattleScene {
         const endX = targetRect.left + targetRect.width - 20;
         const endY = targetRect.top + targetRect.height - 20;
 
+        // Determine the origin point of the particles - the center of the arena
+        const arenaRect = this.arena.getBoundingClientRect();
+        const arenaCenterX = arenaRect.left + (arenaRect.width / 2);
+        const arenaCenterY = arenaRect.top + (arenaRect.height / 2);
+
         for (let i = 0; i < 3; i++) {
             const particle = document.createElement('div');
             particle.className = 'energy-particle';
             this.element.appendChild(particle);
 
-            const startX = (window.innerWidth / 2) + (Math.random() * 200 - 100);
-            const startY = -50;
+            // Begin particles roughly from the center of the arena with a slight spread
+            const startX = arenaCenterX + (Math.random() * 100 - 50);
+            const startY = arenaCenterY + (Math.random() * 100 - 50);
             particle.style.transform = `translate(${startX}px, ${startY}px)`;
 
             await sleep(50 + (i * 60));
