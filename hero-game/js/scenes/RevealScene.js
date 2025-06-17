@@ -55,7 +55,7 @@ export class RevealScene {
                 }
                 setTimeout(() => {
                     this.onRevealComplete(this.packContents);
-                }, 800);
+                }, 300);
             }
         } else {
             const cardIndex = parseInt(cardWrapper.dataset.cardIndex);
