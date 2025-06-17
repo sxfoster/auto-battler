@@ -223,9 +223,9 @@ export class BattleScene {
                 return;
             }
 
-            const damageEffect = ability.effects && ability.effects.find(e => e.type === "DEAL_DAMAGE");
-            if (damageEffect) {
-                const baseDamage = damageEffect.amount ?? attacker.attack;
+            if (ability.effect && ability.effect.includes('damage')) {
+                const match = ability.effect.match(/\d+/);
+                const baseDamage = match ? parseInt(match[0]) : attacker.attack;
 
                 let finalDamage = baseDamage;
                 let isSynergy = false;
