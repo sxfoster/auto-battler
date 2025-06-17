@@ -377,7 +377,7 @@ function createCombatant(heroData, weaponData, armorData, abilityData, team, pos
         }
     }
 
-    return {
+    const combatant = {
         id: `${team}-hero-${position}`,
         heroData: heroData,
         weaponData: weaponData,
@@ -392,6 +392,46 @@ function createCombatant(heroData, weaponData, armorData, abilityData, team, pos
         statusEffects: [],
         element: null, // To be assigned in BattleScene
     };
+
+    // --- Consolidate Active and Passive Abilities ---
+    combatant.allActiveAbilities = [];
+    combatant.allPassiveEffects = [];
+
+    if (heroData.abilities && Array.isArray(heroData.abilities)) {
+        combatant.allActiveAbilities.push(...heroData.abilities);
+    }
+
+    if (abilityData) {
+        combatant.allActiveAbilities.push(abilityData);
+    }
+
+    if (weaponData && weaponData.ability) {
+        if (weaponData.ability.energyCost) {
+            combatant.allActiveAbilities.push(weaponData.ability);
+        } else {
+            combatant.allPassiveEffects.push(weaponData.ability);
+        }
+    }
+
+    if (armorData && armorData.ability) {
+        if (armorData.ability.energyCost) {
+            combatant.allActiveAbilities.push(armorData.ability);
+        } else {
+            combatant.allPassiveEffects.push(armorData.ability);
+        }
+    }
+
+    if (heroData.passiveEffects && Array.isArray(heroData.passiveEffects)) {
+        combatant.allPassiveEffects.push(...heroData.passiveEffects);
+    }
+    if (weaponData && weaponData.passiveEffects) {
+        combatant.allPassiveEffects.push(...weaponData.passiveEffects);
+    }
+    if (armorData && armorData.passiveEffects) {
+        combatant.allPassiveEffects.push(...armorData.passiveEffects);
+    }
+
+    return combatant;
 }
 
 function startNextBattle() {
