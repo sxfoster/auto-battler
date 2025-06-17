@@ -178,23 +178,6 @@ export class BattleScene {
         this.state.forEach(c => c.element.classList.remove('is-attacking', 'is-lunging'));
         attacker.element.classList.add('is-attacking', 'is-lunging');
 
-        // --- 1. GAIN ENERGY ---
-        attacker.currentEnergy += 1;
-        this._logToBattle(`${attacker.heroData.name} gains 1 energy!`, 'heal');
-
-        await this._triggerEnergyChargeUp(attacker.element);
-        if (attacker.currentHp <= 0) {
-            this.executeNextTurn();
-            return;
-        }
-        this._showCombatText(attacker.element, '+1', 'energy');
-        updateEnergyDisplay(attacker, attacker.element);
-        this._updateChargedStatus(attacker);
-        await sleep(600 * battleSpeeds[this.currentSpeedIndex].multiplier);
-        if (attacker.currentHp <= 0) {
-            this.executeNextTurn();
-            return;
-        }
 
         const potentialTargets = this.state.filter(c => c.team !== attacker.team && c.currentHp > 0);
         if (potentialTargets.length === 0) {
@@ -277,6 +260,15 @@ export class BattleScene {
             }
 
             // --- Auto-attack after ability ---
+            // --- ADD ENERGY GAIN HERE AS WELL ---
+            attacker.currentEnergy += 1;
+            this._showCombatText(attacker.element, '+1', 'energy');
+            updateEnergyDisplay(attacker, attacker.element);
+            this._updateChargedStatus(attacker);
+            this._logToBattle(`${attacker.heroData.name} gains 1 energy from attacking!`, 'heal');
+            await sleep(400 * battleSpeeds[this.currentSpeedIndex].multiplier);
+            // --- END OF ADDITION ---
+
             this._logToBattle(`${attacker.heroData.name} also performs a basic attack!`);
             await this._fireProjectile(attacker.element, target.element);
             if (attacker.currentHp <= 0) {
@@ -292,6 +284,15 @@ export class BattleScene {
                 return;
             }
         } else {
+            // --- NEW LOCATION FOR ENERGY GAIN ---
+            attacker.currentEnergy += 1;
+            this._showCombatText(attacker.element, '+1', 'energy');
+            updateEnergyDisplay(attacker, attacker.element);
+            this._updateChargedStatus(attacker);
+            this._logToBattle(`${attacker.heroData.name} gains 1 energy from attacking!`, 'heal');
+            await sleep(400 * battleSpeeds[this.currentSpeedIndex].multiplier); // A small pause for the text to be readable
+            // --- END OF NEW LOGIC ---
+
             this._logToBattle(`${attacker.heroData.name} attacks ${target.heroData.name}!`);
 
             const isMeleeClash = (attacker.position === 0 && target.position === 0);
