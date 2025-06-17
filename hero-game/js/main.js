@@ -363,17 +363,28 @@ function createCombatant(heroData, weaponData, armorData, abilityData, team, pos
         magicResist: 0, // Base magic resist
     };
 
+    const statMap = {
+        HP: 'hp',
+        ATK: 'attack',
+        SPD: 'speed',
+        Block: 'block',
+        Evasion: 'evasion',
+        MagicResist: 'magicResist'
+    };
+
     // Add weapon stat bonuses
     if (weaponData && weaponData.statBonuses) {
         for (const [stat, value] of Object.entries(weaponData.statBonuses)) {
-            finalStats[stat.toLowerCase()] = (finalStats[stat.toLowerCase()] || 0) + value;
+            const key = statMap[stat] || stat.toLowerCase();
+            finalStats[key] = (finalStats[key] || 0) + value;
         }
     }
 
     // Add armor stat bonuses
     if (armorData && armorData.statBonuses) {
         for (const [stat, value] of Object.entries(armorData.statBonuses)) {
-            finalStats[stat.toLowerCase()] = (finalStats[stat.toLowerCase()] || 0) + value;
+            const key = statMap[stat] || stat.toLowerCase();
+            finalStats[key] = (finalStats[key] || 0) + value;
         }
     }
 
