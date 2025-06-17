@@ -182,7 +182,7 @@ export class BattleScene {
         attacker.currentEnergy += 1;
         this._logToBattle(`${attacker.heroData.name} gains 1 energy!`, 'heal');
 
-        await this._triggerEnergyChargeUp(attacker.element);
+        // await this._triggerEnergyChargeUp(attacker.element); // This effect is deprecated
         if (attacker.currentHp <= 0) {
             this.executeNextTurn();
             return;
