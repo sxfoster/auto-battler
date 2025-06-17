@@ -1,49 +1,32 @@
 # Technical Overview
 
-This document explains the structure of the MVP code in `card_rpg_mvp/public` and how the pieces fit together. It is intended for developers who want to extend the prototype or integrate AI generated features.
+This document explains the structure of the playable prototype located in `hero-game/` and how the pieces fit together. It is intended for developers who want to extend the prototype or integrate AI generated features.
 
 ## Folder Layout
 
 ```
-card_rpg_mvp/public/
-├── api/            # PHP endpoints for saving/loading data
-├── app.js          # Main client-side logic
-├── index.html      # Entry point for the browser game
-├── style.css       # Basic styling
-└── includes/       # Shared PHP includes
+hero-game/
+├── index.html       # Entry point for the browser game
+├── style.css        # Basic styling
+└── js/
+    ├── main.js      # Game bootstrap and scene management
+    ├── data.js      # Static card and hero data
+    ├── background-animation.js
+    ├── utils.js
+    ├── scenes/      # Individual scenes (pack, draft, battle, recap)
+    ├── systems/     # Game systems such as EffectProcessor
+    └── ui/          # UI helpers like CardRenderer
 ```
-
-### API Endpoints
-
-The `api/` directory contains simple PHP scripts used for data persistence:
-
-- `battle_simulate.php`
-- `cards_common_by_type.php`
-- `champions.php`
-- `player_current_setup.php`
-- `player_setup.php`
-- `test_ai_decision.php`
-- `tournament_reset.php`
-- `tournament_status.php`
-
-These scripts are intentionally minimal and can be replaced with a real backend.
 
 ### Client Logic
 
-`app.js` manages the user interface and communicates with the PHP API via `fetch`. Key features include:
+The project is entirely client side. `js/main.js` manages the overall state machine and coordinates the various scenes. Supporting modules under `js/scenes/`, `js/ui/` and `js/systems/` implement the draft flow, battle simulator and rendering helpers.
 
-- Dynamic creation of character and card elements
-- Simple turn-based battle loop
-- Logging of battle events for replay
+### Suggested Improvements
 
-The code is organized by scene (setup, battle, tournament). Each scene has helper functions for rendering and user interactions.
-
-## Suggested Improvements
-
-- Replace the PHP API with a more robust backend (Node.js, Python, etc.) and a real database if persistent storage is required.
-- Split `app.js` into modules or components to improve maintainability.
-- Add tests for combat logic and API functions.
-- Consider using a JavaScript framework (React/Vue) for complex UI flows.
+- Introduce a real backend (Node.js, Python, etc.) if persistent storage or matchmaking is desired.
+- Break large modules into smaller units and add tests for combat logic.
+- Consider using a framework such as React or Vue for complex UI flows.
 
 ## Related Design Docs
 
