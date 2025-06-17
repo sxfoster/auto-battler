@@ -1,3 +1,10 @@
+const boosterPackImages = {
+    hero: 'img/character_booster.png',
+    ability: 'img/ability_booster.png',
+    weapon: 'img/weapon_booster.png',
+    armor: 'img/armor_booster.png'
+};
+
 export class PackScene {
     constructor(element, onPackOpened) {
         this.element = element;
@@ -11,6 +18,7 @@ export class PackScene {
         this.packageEl = this.element.querySelector('#package');
         this.topCrimp = this.element.querySelector('#top-crimp');
         this.imageArea = this.element.querySelector('#image-area');
+        this.imageElem = this.imageArea.querySelector('#booster-pack-img');
 
         // Bind interactions
         if (this.packageEl) {
@@ -67,6 +75,12 @@ export class PackScene {
 
     render(draftStage) {
         this.isOpening = false;
+        const type = draftStage.split('_')[0].toLowerCase();
+        this.packType = type;
+        if (this.imageElem) {
+            this.imageElem.src = boosterPackImages[type] || boosterPackImages.hero;
+            this.imageElem.alt = `${type} booster pack`;
+        }
         if (draftStage.includes('HERO_1')) {
             this.titleElement.textContent = 'Forge Your First Champion';
         } else if (draftStage.includes('HERO_2')) {

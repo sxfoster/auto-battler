@@ -1283,6 +1283,13 @@ button:disabled {
     position: relative;
 }
 
+.booster-pack-image {
+    width: 100%;
+    height: auto;
+    display: block;
+    user-select: none;
+}
+
 .image-area::before {
     content: '';
     position: absolute;
