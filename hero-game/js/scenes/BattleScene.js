@@ -196,12 +196,15 @@ export class BattleScene {
             this._triggerArenaEffect('ability-zoom');
             this._logToBattle(`${attacker.heroData.name} unleashes ${ability.name}!`, 'ability-cast');
 
+            // This is now redundant with the main _announceAbility call.
+            /*
             if (ability.target === 'ALLIES') {
                 this._triggerTeamBanner(attacker.team, ability.name, 'buff');
             } else if (ability.target === 'ENEMIES') {
                 const enemyTeam = attacker.team === 'player' ? 'enemy' : 'player';
                 this._triggerTeamBanner(enemyTeam, ability.name, 'debuff');
             }
+            */
 
             if (ability.env_effect) {
                 this._triggerEnvironmentalEffect(ability.env_effect);
