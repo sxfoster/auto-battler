@@ -1,0 +1,144 @@
+# Game Design Document (GDD)
+
+## 1. Game Overview
+- **Title:** [TBD]
+- **Genre:** Card-based RPG
+- **Platform:** Digital card game
+- **Target Audience:** Strategy and RPG fans, ages 12+
+- **Core Concept:** Players choose a class and use ability cards to battle monsters, gaining new item and ability cards as they progress. The game focuses on managing a party of heroes through turn-based combat and survival mechanics within a dungeon ecosystem.
+
+## 2. Gameplay Mechanics
+- **Turn-Based Combat:** Players engage in strategic battles using ability cards against AI-controlled or player-controlled monsters.
+- **Class System:** Players choose from multiple classes, each with unique ability cards.
+- **Deck Building:** Players can customize their decks by collecting and equipping new ability and item cards.
+- **Resource Management:** Players must manage energy to play cards effectively. Additionally, players must manage party fatigue, hunger, and thirst during dungeon exploration.
+- **Progression System:** Players gain experience, unlock new cards, and improve their decks as they progress.
+
+## 3. Game Components
+- **Ability Cards:** Unique to each class, used for attacks, defense, and special effects.
+- **Item Cards:** Grant temporary buffs, healing, or special actions.
+- **Monster Cards:** AI-controlled enemies with varying difficulty levels and attack patterns. Monsters can also be played by players and can take multiple team slots.
+- **Player Board:** Tracks health, mana, and other status effects.
+- **Dice/RNG Elements (Optional):** Adds an element of chance for critical hits, status effects, or card draws. Initially, the prototype will not include RNG. These elements may be phased in over time for critical hits, status effects, or card draws.
+
+## 4. Class System
+### Bard
+- **Inspiring Tune** – Buffs all allies, increasing attack power for two turns.
+- **Dissonant Chord** – Deals minor damage and reduces an enemy’s next attack.
+- **Song of Restoration** – Heals an ally over time.
+- **Encore** – Allows a player to replay their last action.
+
+### Barbarian
+- **Raging Strike** – Deals heavy melee damage but reduces defense.
+- **Battle Roar** – Increases attack power for the next two turns.
+- **Reckless Charge** – Attacks all enemies but leaves the Barbarian vulnerable.
+- **Unbreakable Will** – Prevents defeat for one turn.
+
+### Cleric
+- **Divine Light** – Restores a large amount of health to an ally.
+- **Smite Evil** – Deals extra damage to undead or dark creatures.
+- **Holy Barrier** – Reduces all incoming damage for one turn.
+- **Resurrect** – Revives a fallen ally with partial health.
+
+### Druid
+- **Nature’s Wrath** – Deals damage over time with poison effects.
+- **Shapeshift** – Temporarily transforms into a beast, altering abilities.
+- **Regrowth** – Gradually heals an ally over time.
+- **Entangle** – Roots an enemy in place, preventing their next action.
+
+### Enchanter
+- **Charm** – Temporarily turns an enemy into an ally.
+- **Mind Fog** – Reduces an enemy’s accuracy.
+- **Arcane Ward** – Absorbs the next incoming magical attack.
+- **Illusionary Strike** – Deals damage and confuses the target.
+
+### Paladin
+- **Divine Strike** – Deals holy damage and restores health to the Paladin.
+- **Righteous Shield** – Blocks the next attack completely.
+- **Lay on Hands** – Fully restores an ally’s health.
+- **Judgment** – Deals damage and reduces an enemy’s defense.
+
+### Rogue
+- **Backstab** – Deals double damage if the target is distracted.
+- **Smoke Bomb** – Increases evasion for two turns.
+- **Poison Blade** – Inflicts damage over time.
+- **Shadow Step** – Avoids an attack and gains an extra action.
+
+### Ranger
+- **Precision Shot** – Deals high damage to a single enemy.
+- **Camouflage** – Increases evasion for the next turn.
+- **Multi-Shot** – Hits multiple enemies for moderate damage.
+- **Animal Companion** – Summons an ally for temporary assistance.
+
+### Sorcerer
+- **Chaos Bolt** – Deals random elemental damage.
+- **Mana Surge** – Restores energy and increases spell damage.
+- **Arcane Explosion** – Deals area-of-effect magic damage.
+- **Spell Mirror** – Reflects the next magic attack.
+
+### Warrior
+- **Power Strike** – Deals heavy melee damage.
+- **Shield Bash** – Deals minor damage and stuns an enemy.
+- **Fortify** – Reduces incoming damage for two turns.
+- **Whirlwind Slash** – Attacks all enemies for moderate damage.
+
+### Wizard
+- **Fireball** – Deals magic damage to a single enemy.
+- **Ice Storm** – Slows all enemies and deals minor damage.
+- **Lightning Bolt** – Has a chance to paralyze an enemy.
+- **Time Warp** – Allows the Wizard to take two actions in one turn.
+
+## 5. Battle System
+- **Initiative System:** Determines turn order based on agility or dice rolls.
+- **Card Phases:** Draw phase, action phase (play cards), and resolution phase.
+- **Victory Conditions:** Defeat all enemies or fulfill specific battle objectives.
+- **Failure Conditions:** Lose all HP or fail objectives.
+
+## 6. Progression & Rewards
+- **Experience Points (XP):** Earned from battles, unlocking new abilities.
+- **New Cards:** Gained from loot drops, shops, or leveling up.
+- **Equipment System:** Equippable gear that provides passive bonuses.
+
+## 7. Multiplayer & Cooperative Play (Optional)
+- **PvE Co-op:** Team up against stronger AI-controlled bosses.
+- **PvP Duels:** Test decks against other players in strategic battles.
+- **PvP Tournament:** A structured 1v1 competitive mode with weekly/daily schedules, XP and bonus card rewards for high-ranking players.
+
+## 8. Art & Theme
+- **Art Style:** Fantasy-themed, with detailed illustrations for each card, drawing inspiration from *Delicious in Dungeon*'s unique blend of fantasy and resourcefulness.
+- **Story Setting:** A mystical world where adventurers battle legendary creatures for power and treasure. A mystical world where adventurers manage a party of heroes, battling creatures and navigating survival challenges within dungeon ecosystems.
+
+## 9. Monetization (For Digital Version)
+- **Expansion Packs:** New classes, cards, and monsters.
+- **Cosmetic Items:** Alternate card designs, themes, and effects.
+- **Battle Pass (Optional):** Seasonal rewards and progression system.
+
+## 10. Development Roadmap
+- **Prototype Development:** Create basic card mechanics and battle system, focusing on core energy and survival mechanics, and AI player personas.
+- **Playtesting:** Gather feedback and balance card abilities.
+- **Art & Design:** Develop card visuals and UI elements.
+- **Final Release:** Launch digital version.
+
+## 11. Monster Card System
+For detailed information on Monster Archetypes, Abilities, Traits, and Items, please refer to the separate **Monster Design Document (Monster GDD)**.
+
+## 12. Item System
+For detailed information on Item Tiers and specific Item Lists, please refer to the separate **Item Design Document (Item GDD)**.
+
+## 13. Armor System
+For detailed information on Armor Categories, Abilities, Synergy, Drop Rates, and Crafting, please refer to the separate **Armor Design Document (Armor GDD)**.
+
+## 14. Weapon System
+For detailed information on Weapon Techniques, Damage Types, and Effectiveness against Armor, please refer to the separate **Weapon Design Document (Weapon GDD)**.
+
+## 15. UI/UX Elements
+For detailed information on the Card Tooltip Layout, please refer to the separate **UI/UX Design Document**.
+
+## 16. Game Modes
+For detailed information on the PvP Tournament Flowchart with XP System and PvP Stat Framework, please refer to the separate **Game Modes Design Document**.
+
+## 17. Game Mechanics - Status Effects
+For detailed information on Core Status Conditions, Buff Keywords, and Debuff Keywords, please refer to the separate **Game Mechanics Design Document - Status Effects**.
+
+## 18. Progression & Economy
+For detailed information on Deck Size Progression, Card Power Curves, and Loot Distribution, please refer to the separate **Progression & Economy Design Document**.
