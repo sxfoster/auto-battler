@@ -171,6 +171,38 @@ export class BattleScene {
             return;
         }
 
+        // --- Check for incapacitating effects like Stun ---
+        const stunEffect = attacker.statusEffects.find(e => e.name === 'Stun');
+        if (stunEffect) {
+            this._logToBattle(`${attacker.heroData.name} is stunned and skips their turn!`, 'status');
+            stunEffect.turnsRemaining--;
+            if (stunEffect.turnsRemaining <= 0) {
+                attacker.statusEffects = attacker.statusEffects.filter(e => e !== stunEffect);
+            }
+            this._updateStatusIcons(attacker);
+            await sleep(800 * battleSpeeds[this.currentSpeedIndex].multiplier);
+            this.executeNextTurn();
+            return;
+        }
+
+        // --- Apply damage over time effects like Poison or Burn ---
+        const dotEffects = attacker.statusEffects.filter(e => e.name === 'Poison' || e.name === 'Burn');
+        if (dotEffects.length > 0) {
+            for (const effect of dotEffects) {
+                const dotDamage = effect.name === 'Poison' ? 2 : 3;
+                this._logToBattle(`${attacker.heroData.name} takes ${dotDamage} damage from ${effect.name}.`, 'damage');
+                this._dealDamage(attacker, attacker, dotDamage, false, false, null);
+                effect.turnsRemaining--;
+            }
+            attacker.statusEffects = attacker.statusEffects.filter(e => e.turnsRemaining > 0);
+            this._updateStatusIcons(attacker);
+            if (attacker.currentHp <= 0) {
+                await sleep(800 * battleSpeeds[this.currentSpeedIndex].multiplier);
+                this.executeNextTurn();
+                return;
+            }
+        }
+
         this._updateCombo(attacker.team);
 
         attacker.element.classList.add('is-active-turn');
@@ -364,15 +396,33 @@ export class BattleScene {
 
 
     _dealDamage(attacker, target, damage, isCritical = false, isSynergy = false, sourceAbility = null) {
-        if (target.heroData.abilities.some(a => a.name === 'Fortify')) {
-            damage = Math.max(0, damage - 1);
+        let finalDamage = damage;
+
+        // --- Apply buffs and debuffs ---
+        if (attacker.statusEffects.some(e => e.name === 'Attack Up')) {
+            finalDamage += 2;
         }
 
-        const finalDamage = damage;
+        let totalBlock = (target.block || 0);
+        if (target.statusEffects.some(e => e.name === 'Defense Down' || e.name === 'Burn')) {
+            this._logToBattle(`${target.heroData.name}'s defense is lowered!`, 'status');
+            totalBlock = Math.max(0, totalBlock - 1);
+        }
+
+        if (target.heroData.abilities.some(a => a.name === 'Fortify')) {
+            finalDamage = Math.max(0, finalDamage - 1);
+        }
+
+        finalDamage = Math.max(1, finalDamage - totalBlock);
 
         const isOverkill = (target.currentHp - finalDamage) < -5;
 
-        let logMessage = `${attacker.heroData.name} hits ${target.heroData.name} for ${finalDamage} damage.`;
+        let logMessage;
+        if (attacker === target) {
+            logMessage = `${target.heroData.name} takes ${finalDamage} damage.`;
+        } else {
+            logMessage = `${attacker.heroData.name} hits ${target.heroData.name} for ${finalDamage} damage.`;
+        }
         if(isCritical) logMessage += ' CRITICAL HIT!';
         if(isOverkill) logMessage += ' OVERKILL!';
         const type = sourceAbility ? 'ability-result damage' : 'damage';
