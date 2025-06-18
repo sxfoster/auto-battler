@@ -966,6 +966,23 @@ export class BattleScene {
 
         this.cardAnnouncerContainer.innerHTML = '';
         const cardElement = createAnnouncerCard(abilityData);
+
+        const maxTilt = 15;
+        cardElement.addEventListener('mousemove', (e) => {
+            const rect = cardElement.getBoundingClientRect();
+            const x = e.clientX - rect.left - rect.width / 2;
+            const y = e.clientY - rect.top - rect.height / 2;
+
+            const rotateY = (x / (rect.width / 2)) * maxTilt;
+            const rotateX = (y / (rect.height / 2)) * -maxTilt;
+
+            cardElement.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+        });
+
+        cardElement.addEventListener('mouseleave', () => {
+            cardElement.style.transform = 'rotateX(0deg) rotateY(0deg)';
+        });
+
         this.cardAnnouncerContainer.appendChild(cardElement);
         this.cardAnnouncerContainer.classList.add('is-announcing');
 
