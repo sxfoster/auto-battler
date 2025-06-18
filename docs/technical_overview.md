@@ -10,7 +10,7 @@ hero-game/
 ├── style.css        # Basic styling
 └── js/
     ├── main.js      # Game bootstrap and scene management
-    ├── data.js      # Static card and hero data
+    ├── data.js      # Static card and hero data, including `allPossibleMinions`
     ├── background-animation.js
     ├── utils.js
     ├── scenes/      # Individual scenes (pack, draft, battle, recap)
@@ -21,6 +21,8 @@ hero-game/
 ### Client Logic
 
 The project is entirely client side. `js/main.js` manages the overall state machine and coordinates the various scenes. Supporting modules under `js/scenes/`, `js/ui/` and `js/systems/` implement the draft flow, battle simulator and rendering helpers.
+
+`js/data.js` also defines an `allPossibleMinions` object that lists every summonable unit. Ability cards can include a `summons` property referencing one or more of those keys. `BattleScene.js` uses this information to create minions via a `_summonUnit` helper and recalculates the turn queue so newly spawned units act at the correct time. Status effects apply specific aura classes to the affected card and each icon displays a tooltip describing the effect.
 
 ### Suggested Improvements
 
