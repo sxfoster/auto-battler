@@ -41,6 +41,8 @@ export class BattleScene {
         this.speedButton = this.element.querySelector('#speed-cycle-button');
         this.arena = this.element.querySelector('.battle-arena');
         this.abilityAnnouncer = this.element.querySelector('#ability-announcer');
+        this.announcerMainText = this.element.querySelector('#announcer-main-text');
+        this.announcerSubtitle = this.element.querySelector('#announcer-subtitle');
         this.statusTooltip = document.getElementById('status-tooltip');
 
         this.comboCount = 0;
@@ -417,11 +419,11 @@ export class BattleScene {
             updateEnergyDisplay(attacker, attacker.element);
             this._updateChargedStatus(attacker);
 
-            this._announceAbility(ability.name);
+            this._showBattleAnnouncement(ability.name, 'ability', ability.effect);
             this._triggerArenaEffect('ability-zoom');
             this._logToBattle(`${attacker.heroData.name} unleashes ${ability.name}!`, 'ability-cast', attacker, 2);
 
-            // This is now redundant with the main _announceAbility call.
+            // This is now redundant with the main _showBattleAnnouncement call.
             /*
             if (ability.target === 'ALLIES') {
                 this._triggerTeamBanner(attacker.team, ability.name, 'buff');
@@ -530,7 +532,6 @@ export class BattleScene {
             await sleep(400 * battleSpeeds[this.currentSpeedIndex].multiplier);
             // --- END ENERGY GAIN ---
 
-            this._logToBattle(`${attacker.heroData.name} attacks ${target.heroData.name}!`, 'info', attacker, 1);
 
             const isMeleeClash = (attacker.position === 0 && target.position === 0);
 
@@ -626,16 +627,20 @@ export class BattleScene {
         const isOverkill = (target.currentHp - finalDamage) < -5;
 
         let logMessage;
+        const verb = sourceAbility ? 'hits' : 'strikes';
         if (attacker === target) {
-            logMessage = `${target.heroData.name} takes ${finalDamage} damage.`;
+            logMessage = `${target.heroData.name} takes ${finalDamage} damage from an effect.`;
         } else {
-            logMessage = `${attacker.heroData.name} hits ${target.heroData.name} for ${finalDamage} damage.`;
+            logMessage = `${attacker.heroData.name} ${verb} ${target.heroData.name} for ${finalDamage} damage.`;
         }
+
         if (isVulnerable) logMessage += ' (+1 Vulnerable)';
-        if(isCritical) logMessage += ' CRITICAL HIT!';
-        if(isOverkill) logMessage += ' OVERKILL!';
-        const type = sourceAbility ? 'ability-result damage' : 'damage';
-        this._logToBattle(logMessage, type, target, (isCritical || isSynergy) ? 2 : 1);
+        if (isCritical) logMessage += ' CRITICAL HIT!';
+        if (isOverkill) logMessage += ' OVERKILL!';
+
+        const logType = sourceAbility ? 'ability-result damage' : 'damage';
+        const logPriority = isCritical || isOverkill ? 3 : 2;
+        this._logToBattle(logMessage, logType, target, logPriority);
 
         if (target.team === 'player') {
             this.roundStats.enemyDamage += finalDamage;
@@ -895,11 +900,21 @@ export class BattleScene {
         this._logToBattle(`Turn order updated!`, 'info', null, 1);
     }
 
-    _announceAbility(name){
-        if(!this.abilityAnnouncer) return;
-        this.abilityAnnouncer.textContent = name;
+    _showBattleAnnouncement(text, styleClass = '', subtitle = '') {
+        if (!this.abilityAnnouncer) return;
+
+        if (this.announcerMainText) this.announcerMainText.textContent = text;
+        if (this.announcerSubtitle) this.announcerSubtitle.textContent = subtitle;
+
+        this.abilityAnnouncer.className = 'ability-announcer';
+        if (styleClass) {
+            this.abilityAnnouncer.classList.add(styleClass);
+        }
+
         this.abilityAnnouncer.classList.add('show');
-        setTimeout(() => this.abilityAnnouncer.classList.remove('show'), 1500);
+        setTimeout(() => {
+            this.abilityAnnouncer.classList.remove('show');
+        }, 1500);
     }
 
     _triggerArenaEffect(cls){
