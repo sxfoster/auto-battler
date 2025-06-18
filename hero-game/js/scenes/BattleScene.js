@@ -63,6 +63,28 @@ export class BattleScene {
         }
 
         this._setupTooltipListeners();
+
+        if (this.battleLogPanel) {
+            this.battleLogPanel.addEventListener('mouseover', (e) => {
+                const entry = e.target.closest('.log-entry');
+                if (entry && entry.dataset.combatantId) {
+                    const combatantElement = this.element.querySelector(`#${entry.dataset.combatantId}`);
+                    if (combatantElement) {
+                        combatantElement.classList.add('is-log-hovered');
+                    }
+                }
+            });
+
+            this.battleLogPanel.addEventListener('mouseout', (e) => {
+                const entry = e.target.closest('.log-entry');
+                if (entry && entry.dataset.combatantId) {
+                    const combatantElement = this.element.querySelector(`#${entry.dataset.combatantId}`);
+                    if (combatantElement) {
+                        combatantElement.classList.remove('is-log-hovered');
+                    }
+                }
+            });
+        }
     }
 
     _cycleSpeed() {
@@ -71,7 +93,7 @@ export class BattleScene {
         this.speedButton.textContent = `Speed: ${newSpeed.label}`;
     }
     
-    _logToBattle(message, type = 'info') {
+    _logToBattle(message, type = 'info', combatant = null) {
         if (!this.battleLogSummary || !this.battleLogPanel) return;
 
         this.battleLogSummary.innerHTML = `${message} <i class="fas fa-chevron-up"></i>`;
@@ -79,6 +101,43 @@ export class BattleScene {
         const entry = document.createElement('div');
         entry.className = `log-entry ${type}`;
         entry.textContent = message;
+
+        if (combatant && combatant.id) {
+            entry.dataset.combatantId = combatant.id;
+        }
+
+        const icon = document.createElement('i');
+        icon.className = 'log-entry-icon fas';
+        const baseType = type.split(' ')[0];
+        switch (baseType) {
+            case 'damage':
+            case 'status-damage':
+                icon.classList.add('fa-gavel');
+                break;
+            case 'heal':
+                icon.classList.add('fa-heart');
+                break;
+            case 'ability-cast':
+            case 'ability-result':
+                icon.classList.add('fa-star');
+                break;
+            case 'status':
+                icon.classList.add('fa-flask-potion');
+                break;
+            case 'round':
+                icon.classList.add('fa-shield-halved');
+                break;
+            case 'victory':
+                icon.classList.add('fa-crown');
+                break;
+            case 'defeat':
+                icon.classList.add('fa-skull');
+                break;
+            default:
+                icon.classList.add('fa-circle-info');
+                break;
+        }
+        entry.prepend(icon);
 
         this.battleLogPanel.prepend(entry);
 
@@ -202,7 +261,7 @@ export class BattleScene {
         // --- Check for incapacitating effects like Root or Stun ---
         const rootEffect = attacker.statusEffects.find(e => e.name === 'Root');
         if (rootEffect) {
-            this._logToBattle(`${attacker.heroData.name} is rooted and cannot act!`, 'status');
+            this._logToBattle(`${attacker.heroData.name} is rooted and cannot act!`, 'status', attacker);
             rootEffect.turnsRemaining--;
             if (rootEffect.turnsRemaining <= 0) {
                 attacker.statusEffects = attacker.statusEffects.filter(e => e !== rootEffect);
@@ -216,7 +275,7 @@ export class BattleScene {
 
         const stunEffect = attacker.statusEffects.find(e => e.name === 'Stun');
         if (stunEffect) {
-            this._logToBattle(`${attacker.heroData.name} is stunned and skips their turn!`, 'status');
+            this._logToBattle(`${attacker.heroData.name} is stunned and skips their turn!`, 'status', attacker);
             stunEffect.turnsRemaining--;
             if (stunEffect.turnsRemaining <= 0) {
                 attacker.statusEffects = attacker.statusEffects.filter(e => e !== stunEffect);
@@ -239,7 +298,7 @@ export class BattleScene {
                 } else if (effect.name === 'Bleed') {
                     dotDamage = 1;
                 }
-                this._logToBattle(`${attacker.heroData.name} takes ${dotDamage} damage from ${effect.name}.`, 'status-damage');
+                this._logToBattle(`${attacker.heroData.name} takes ${dotDamage} damage from ${effect.name}.`, 'status-damage', attacker);
                 this._dealDamage(attacker, attacker, dotDamage, false, false, null);
                 effect.turnsRemaining--;
             }
@@ -278,7 +337,7 @@ export class BattleScene {
             }
             this._updateStatusIcons(attacker);
             if (miss) {
-                this._logToBattle(`${attacker.heroData.name} is confused and misses their action!`, 'status');
+                this._logToBattle(`${attacker.heroData.name} is confused and misses their action!`, 'status', attacker);
                 attacker.element.classList.remove('is-active-turn', 'is-lunging');
                 await sleep(800 * battleSpeeds[this.currentSpeedIndex].multiplier);
                 this.executeNextTurn();
@@ -312,7 +371,7 @@ export class BattleScene {
                     attacker.statusEffects = attacker.statusEffects.filter(e => e !== shockEffect);
                 }
                 if (fail) {
-                    this._logToBattle(`${attacker.heroData.name}'s ability fizzles due to Shock!`, 'status');
+                    this._logToBattle(`${attacker.heroData.name}'s ability fizzles due to Shock!`, 'status', attacker);
                     this._updateStatusIcons(attacker);
                     await sleep(800 * battleSpeeds[this.currentSpeedIndex].multiplier);
                     useAbility = false;
@@ -329,7 +388,7 @@ export class BattleScene {
 
             this._announceAbility(ability.name);
             this._triggerArenaEffect('ability-zoom');
-            this._logToBattle(`${attacker.heroData.name} unleashes ${ability.name}!`, 'ability-cast');
+            this._logToBattle(`${attacker.heroData.name} unleashes ${ability.name}!`, 'ability-cast', attacker);
 
             // This is now redundant with the main _announceAbility call.
             /*
@@ -409,14 +468,14 @@ export class BattleScene {
             // --- Auto-attack after ability ---
             // --- GAIN ENERGY FOR ATTEMPTING ATTACK ---
             attacker.currentEnergy = Math.min(attacker.currentEnergy + 1, 10); // Cap energy at 10
-            this._logToBattle(`${attacker.heroData.name} gains 1 energy for attacking!`, 'heal');
+            this._logToBattle(`${attacker.heroData.name} gains 1 energy for attacking!`, 'heal', attacker);
             this._showCombatText(attacker.element, '+1', 'energy');
             updateEnergyDisplay(attacker, attacker.element);
             this._updateChargedStatus(attacker);
             await sleep(400 * battleSpeeds[this.currentSpeedIndex].multiplier);
             // --- END ENERGY GAIN ---
 
-            this._logToBattle(`${attacker.heroData.name} also performs a basic attack!`);
+            this._logToBattle(`${attacker.heroData.name} also performs a basic attack!`, 'info', attacker);
             await this._fireProjectile(attacker.element, target.element);
             if (attacker.currentHp <= 0) {
                 this.executeNextTurn();
@@ -433,14 +492,14 @@ export class BattleScene {
         } else {
             // --- GAIN ENERGY FOR ATTEMPTING ATTACK ---
             attacker.currentEnergy = Math.min(attacker.currentEnergy + 1, 10); // Cap energy at 10
-            this._logToBattle(`${attacker.heroData.name} gains 1 energy for attacking!`, 'heal');
+            this._logToBattle(`${attacker.heroData.name} gains 1 energy for attacking!`, 'heal', attacker);
             this._showCombatText(attacker.element, '+1', 'energy');
             updateEnergyDisplay(attacker, attacker.element);
             this._updateChargedStatus(attacker);
             await sleep(400 * battleSpeeds[this.currentSpeedIndex].multiplier);
             // --- END ENERGY GAIN ---
 
-            this._logToBattle(`${attacker.heroData.name} attacks ${target.heroData.name}!`);
+            this._logToBattle(`${attacker.heroData.name} attacks ${target.heroData.name}!`, 'info', attacker);
 
             const isMeleeClash = (attacker.position === 0 && target.position === 0);
 
@@ -517,7 +576,7 @@ export class BattleScene {
 
         let totalBlock = (target.block || 0);
         if (target.statusEffects.some(e => e.name === 'Defense Down' || e.name === 'Burn')) {
-            this._logToBattle(`${target.heroData.name}'s defense is lowered!`, 'status');
+            this._logToBattle(`${target.heroData.name}'s defense is lowered!`, 'status', target);
             totalBlock = Math.max(0, totalBlock - 1);
         }
 
@@ -545,7 +604,7 @@ export class BattleScene {
         if(isCritical) logMessage += ' CRITICAL HIT!';
         if(isOverkill) logMessage += ' OVERKILL!';
         const type = sourceAbility ? 'ability-result damage' : 'damage';
-        this._logToBattle(logMessage, type);
+        this._logToBattle(logMessage, type, target);
 
         target.currentHp = Math.max(0, target.currentHp - finalDamage);
 
@@ -578,7 +637,7 @@ export class BattleScene {
 
         if (target.currentHp <= 0) {
             target.element.classList.remove('is-critical-health');
-            this._logToBattle(`${target.heroData.name} has been defeated!`, 'defeat');
+            this._logToBattle(`${target.heroData.name} has been defeated!`, 'defeat', target);
             target.element.classList.add('is-defeated');
 
             setTimeout(() => {
@@ -598,11 +657,11 @@ export class BattleScene {
         let finalHealAmount = amount;
         if (target.statusEffects.some(e => e.name === 'Bleed')) {
             finalHealAmount = Math.floor(amount * 0.5);
-            this._logToBattle(`${target.heroData.name}'s healing is reduced by Bleed to ${finalHealAmount} HP!`, 'status');
+            this._logToBattle(`${target.heroData.name}'s healing is reduced by Bleed to ${finalHealAmount} HP!`, 'status', target);
         }
         target.currentHp = Math.min(target.maxHp, target.currentHp + finalHealAmount);
         const type = sourceAbility ? 'ability-result heal' : 'heal';
-        this._logToBattle(`${target.heroData.name} heals ${finalHealAmount} HP!`, type);
+        this._logToBattle(`${target.heroData.name} heals ${finalHealAmount} HP!`, type, target);
         updateHealthBar(target, target.element);
     }
 
@@ -612,9 +671,9 @@ export class BattleScene {
         const existing = target.statusEffects.find(e => e.name === statusName);
         if (existing) {
             existing.turnsRemaining = Math.min(MAX_DURATION_CAP, existing.turnsRemaining + duration);
-            this._logToBattle(`${target.heroData.name}'s ${statusName} duration was extended to ${existing.turnsRemaining} turns.`, type);
+            this._logToBattle(`${target.heroData.name}'s ${statusName} duration was extended to ${existing.turnsRemaining} turns.`, type, target);
         } else {
-            this._logToBattle(`${target.heroData.name} is afflicted with ${statusName}!`, type);
+            this._logToBattle(`${target.heroData.name} is afflicted with ${statusName}!`, type, target);
             target.statusEffects.push({
                 name: statusName,
                 turnsRemaining: duration,
@@ -633,7 +692,7 @@ export class BattleScene {
             target.statusEffects = target.statusEffects.filter(e => e.name !== type);
         }
         const removed = before.filter(e => !target.statusEffects.includes(e));
-        removed.forEach(e => this._logToBattle(`${target.heroData.name} cleansed ${e.name}!`, 'status'));
+        removed.forEach(e => this._logToBattle(`${target.heroData.name} cleansed ${e.name}!`, 'status', target));
         this._updateStatusIcons(target);
     }
     
@@ -767,7 +826,7 @@ export class BattleScene {
         teamContainer.appendChild(card);
         card.classList.add('is-landing');
 
-        this._logToBattle(`${summoner.heroData.name} summons a ${minionData.name}!`, 'ability-result');
+        this._logToBattle(`${summoner.heroData.name} summons a ${minionData.name}!`, 'ability-result', summoner);
 
         this._recalculateTurnQueue(newMinion);
     }
