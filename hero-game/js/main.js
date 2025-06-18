@@ -263,11 +263,21 @@ function generateArmorChoices() {
 
 // Generate a fully equipped random champion
 function generateRandomChampion() {
-    const randomHero = allPossibleHeroes[Math.floor(Math.random() * allPossibleHeroes.length)];
-    const abilityPool = allPossibleAbilities.filter(a => a.class === randomHero.class);
+    // Filter heroes to only include Common rarity
+    const commonHeroes = allPossibleHeroes.filter(h => h.rarity === 'Common');
+    const randomHero = commonHeroes[Math.floor(Math.random() * commonHeroes.length)];
+
+    // Filter abilities for the hero's class to only include Common rarity
+    const abilityPool = allPossibleAbilities.filter(a => a.class === randomHero.class && a.rarity === 'Common');
     const randomAbility = abilityPool.length > 0 ? abilityPool[Math.floor(Math.random() * abilityPool.length)] : null;
-    const randomWeapon = allPossibleWeapons[Math.floor(Math.random() * allPossibleWeapons.length)];
-    const randomArmor = allPossibleArmors[Math.floor(Math.random() * allPossibleArmors.length)];
+
+    // Filter weapons to only include Common rarity
+    const commonWeapons = allPossibleWeapons.filter(w => w.rarity === 'Common');
+    const randomWeapon = commonWeapons[Math.floor(Math.random() * commonWeapons.length)];
+
+    // Filter armors to only include Common rarity
+    const commonArmors = allPossibleArmors.filter(a => a.rarity === 'Common');
+    const randomArmor = commonArmors[Math.floor(Math.random() * commonArmors.length)];
 
     return {
         hero: randomHero.id,
