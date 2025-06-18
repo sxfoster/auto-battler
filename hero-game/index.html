@@ -103,10 +103,21 @@
         </div>
         <div id="player-combo-counter" class="combo-counter player-side"></div>
         <div id="enemy-combo-counter" class="combo-counter enemy-side"></div>
-        <div id="ability-announcer" class="ability-announcer"></div>
+        <div id="ability-announcer" class="ability-announcer">
+            <h1 id="announcer-main-text"></h1>
+            <p id="announcer-subtitle"></p>
+        </div>
 
         <div id="battle-log-container">
             <div id="battle-log-panel">
+                <div id="battle-log-filters">
+                    <button class="filter-btn active" data-filter="all">All</button>
+                    <button class="filter-btn" data-filter="combat">Combat</button>
+                    <button class="filter-btn" data-filter="healing">Healing</button>
+                    <button class="filter-btn" data-filter="status">Status</button>
+                    <button class="filter-btn" data-filter="utility">Utility</button>
+                </div>
+                <div id="log-entries-container"></div>
             </div>
             <div id="battle-log-summary" title="Click to expand log">
                 The battle is about to begin...
@@ -169,6 +180,12 @@
             <div class="status-icon-container"></div>
         </div>
     </template>
+
+    <div id="status-tooltip" class="status-tooltip">
+        <h4 class="status-tooltip-name"></h4>
+        <p class="status-tooltip-duration"></p>
+        <p class="status-tooltip-description"></p>
+    </div>
 
     <script type="module" src="js/main.js"></script>
 

@@ -1,6 +1,27 @@
 import { createCompactCard, updateHealthBar, updateEnergyDisplay } from '../ui/CardRenderer.js';
 import { sleep } from '../utils.js';
-import { battleSpeeds } from '../data.js';
+import { battleSpeeds, allPossibleMinions } from '../data.js';
+
+// --- Constants for status handling ---
+const MAX_DURATION_CAP = 6;
+const STATUS_DESCRIPTIONS = {
+    'Stun': 'Skips the next action.',
+    'Poison': 'Takes 2 damage per turn.',
+    'Bleed': 'Takes 1 damage per turn and healing is halved.',
+    'Burn': 'Takes 3 damage per turn and suffers -1 defense.',
+    'Slow': 'Speed reduced by 1.',
+    'Confuse': '50% chance to miss actions.',
+    'Root': 'Cannot act next turn.',
+    'Shock': '50% chance to fail casting abilities.',
+    'Vulnerable': 'Takes +1 damage from all sources.',
+    'Defense Down': 'Defense is reduced by 1.',
+    'Attack Up': 'Attack power increased.',
+    'Fortify': 'Defense increased.'
+};
+
+const NEGATIVE_STATUSES = [
+    'Bleed','Burn','Poison','Confuse','Root','Slow','Shock','Stun','Vulnerable','Defense Down'
+];
 
 export class BattleScene {
     constructor(element, onBattleComplete) {
@@ -13,6 +34,8 @@ export class BattleScene {
         this.battleLogContainer = this.element.querySelector('#battle-log-container');
         this.battleLogSummary = this.element.querySelector('#battle-log-summary');
         this.battleLogPanel = this.element.querySelector('#battle-log-panel');
+        this.logEntriesContainer = this.element.querySelector('#log-entries-container');
+        this.logFilters = this.element.querySelector('#battle-log-filters');
         this.endScreen = this.element.querySelector('#end-screen');
         this.resultText = this.element.querySelector('#end-screen-result-text');
         this.resultsContainer = this.element.querySelector('#end-screen-results');
@@ -20,6 +43,9 @@ export class BattleScene {
         this.speedButton = this.element.querySelector('#speed-cycle-button');
         this.arena = this.element.querySelector('.battle-arena');
         this.abilityAnnouncer = this.element.querySelector('#ability-announcer');
+        this.announcerMainText = this.element.querySelector('#announcer-main-text');
+        this.announcerSubtitle = this.element.querySelector('#announcer-subtitle');
+        this.statusTooltip = document.getElementById('status-tooltip');
 
         this.comboCount = 0;
         this.lastAttackingTeam = null;
@@ -32,11 +58,59 @@ export class BattleScene {
         this.currentSpeedIndex = 0;
         this.isBattleOver = false;
 
+        // Round tracking and summary bar state
+        this.roundStats = {};
+        this.summaryLockTime = 0;
+        this.summaryLockPriority = 0;
+
         this.speedButton.addEventListener('click', () => this._cycleSpeed());
 
         if (this.battleLogSummary) {
             this.battleLogSummary.addEventListener('click', () => {
                 this.battleLogPanel.classList.toggle('expanded');
+            });
+        }
+
+        this._setupTooltipListeners();
+
+        if (this.logFilters) {
+            this.logFilters.addEventListener('click', (e) => {
+                const target = e.target.closest('.filter-btn');
+                if (!target) return;
+
+                const current = this.logFilters.querySelector('.active');
+                if (current) current.classList.remove('active');
+                target.classList.add('active');
+
+                const filter = target.dataset.filter;
+                const entries = (this.logEntriesContainer || this.battleLogPanel).querySelectorAll('.log-entry');
+                entries.forEach(entry => {
+                    const entryCategory = entry.dataset.category || 'info';
+                    const show = filter === 'all' || entryCategory === filter;
+                    entry.classList.toggle('hidden-by-filter', !show);
+                });
+            });
+        }
+
+        if (this.battleLogPanel) {
+            this.battleLogPanel.addEventListener('mouseover', (e) => {
+                const entry = e.target.closest('.log-entry');
+                if (entry && entry.dataset.combatantId) {
+                    const combatantElement = this.element.querySelector(`#${entry.dataset.combatantId}`);
+                    if (combatantElement) {
+                        combatantElement.classList.add('is-log-hovered');
+                    }
+                }
+            });
+
+            this.battleLogPanel.addEventListener('mouseout', (e) => {
+                const entry = e.target.closest('.log-entry');
+                if (entry && entry.dataset.combatantId) {
+                    const combatantElement = this.element.querySelector(`#${entry.dataset.combatantId}`);
+                    if (combatantElement) {
+                        combatantElement.classList.remove('is-log-hovered');
+                    }
+                }
             });
         }
     }
@@ -47,19 +121,86 @@ export class BattleScene {
         this.speedButton.textContent = `Speed: ${newSpeed.label}`;
     }
     
-    _logToBattle(message, type = 'info') {
+    _logToBattle(message, type = 'info', combatant = null, priority = 1, linkedPopupId = null) {
         if (!this.battleLogSummary || !this.battleLogPanel) return;
 
-        this.battleLogSummary.innerHTML = `${message} <i class="fas fa-chevron-up"></i>`;
+        const now = Date.now();
+        const isLocked = now < this.summaryLockTime;
+
+        if (!isLocked || priority > this.summaryLockPriority) {
+            this.battleLogSummary.innerHTML = `${message} <i class="fas fa-chevron-up"></i>`;
+
+            if (priority >= 2) {
+                const lockDuration = priority === 3 ? 2500 : 1500;
+                this.summaryLockTime = now + lockDuration;
+                this.summaryLockPriority = priority;
+            } else {
+                this.summaryLockTime = 0;
+                this.summaryLockPriority = 0;
+            }
+        }
 
         const entry = document.createElement('div');
         entry.className = `log-entry ${type}`;
         entry.textContent = message;
 
-        this.battleLogPanel.prepend(entry);
+        let category = 'info';
+        if (type.includes('damage')) category = 'combat';
+        if (type.includes('heal')) category = 'healing';
+        if (type.includes('status')) category = 'status';
+        if (type.includes('energy')) category = 'utility';
+        entry.dataset.category = category;
 
-        if (this.battleLogPanel.children.length > 50) {
-            this.battleLogPanel.lastChild.remove();
+        if (combatant && combatant.id) {
+            entry.dataset.combatantId = combatant.id;
+        }
+
+        const icon = document.createElement('i');
+        icon.className = 'log-entry-icon fas';
+        const baseType = type.split(' ')[0];
+        switch (baseType) {
+            case 'damage':
+            case 'status-damage':
+                icon.classList.add('fa-gavel');
+                break;
+            case 'heal':
+                icon.classList.add('fa-heart');
+                break;
+            case 'energy':
+                icon.classList.add('fa-bolt');
+                break;
+            case 'ability-cast':
+            case 'ability-result':
+                icon.classList.add('fa-star');
+                break;
+            case 'status':
+                icon.classList.add('fa-flask-potion');
+                break;
+            case 'round':
+                icon.classList.add('fa-shield-halved');
+                break;
+            case 'victory':
+                icon.classList.add('fa-crown');
+                break;
+            case 'defeat':
+                icon.classList.add('fa-skull');
+                break;
+            default:
+                icon.classList.add('fa-circle-info');
+                break;
+        }
+        entry.prepend(icon);
+
+        const container = this.logEntriesContainer || this.battleLogPanel;
+        container.prepend(entry);
+
+
+        if (linkedPopupId) {
+            const popupElement = document.getElementById(linkedPopupId);
+            if (popupElement) {
+                popupElement.classList.add('log-linked-pulse');
+                setTimeout(() => popupElement.classList.remove('log-linked-pulse'), 300);
+            }
         }
     }
 
@@ -75,11 +216,13 @@ export class BattleScene {
         // --- UI Setup ---
         this.playerContainer.innerHTML = '';
         this.enemyContainer.innerHTML = '';
-        if (this.battleLogPanel) {
+        if (this.logEntriesContainer) {
+            this.logEntriesContainer.innerHTML = '';
+        } else if (this.battleLogPanel) {
             this.battleLogPanel.innerHTML = '';
         }
         this.endScreen.classList.remove('visible', 'victory', 'defeat');
-        this._logToBattle('The battle begins!', 'round');
+        this._logToBattle('The battle begins!', 'round', null, 2);
 
         // --- 1. Initially hide the teams to prepare for slide-in ---
         this.playerContainer.style.opacity = 0;
@@ -144,11 +287,24 @@ export class BattleScene {
     runCombatRound() {
         if (this.isBattleOver) return;
 
+        this.roundStats = {
+            roundNumber: (this.roundStats.roundNumber || 0) + 1,
+            playerDamage: 0,
+            enemyDamage: 0,
+            playerHealing: 0,
+            enemyHealing: 0
+        };
+        this._logToBattle(`Round ${this.roundStats.roundNumber} Begins`, 'round', null, 1);
+
         // --- 1. Determine Turn Order (Initiative) ---
         this.turnQueue = [...this.state.filter(c => c.currentHp > 0)]
-            .sort((a, b) => b.speed - a.speed);
+            .sort((a, b) => {
+                const aSpeed = a.speed - (a.statusEffects.some(e => e.name === 'Slow') ? 1 : 0);
+                const bSpeed = b.speed - (b.statusEffects.some(e => e.name === 'Slow') ? 1 : 0);
+                return bSpeed - aSpeed;
+            });
 
-        this._logToBattle('New round! Turn order: ' + this.turnQueue.map(c => c.heroData.name).join(', '), 'round');
+        this._logToBattle('Turn order: ' + this.turnQueue.map(c => c.heroData.name).join(', '), 'round', null, 1);
 
         // --- 2. Start Executing Turns ---
         this.executeNextTurn();
@@ -160,7 +316,10 @@ export class BattleScene {
         this.state.forEach(c => c.element.classList.remove('is-active-turn'));
 
         if (this.turnQueue.length === 0) {
-            await sleep(1000 * battleSpeeds[this.currentSpeedIndex].multiplier);
+            const summaryMessage = `Round ${this.roundStats.roundNumber} Summary: Player dealt ${this.roundStats.playerDamage} damage and healed ${this.roundStats.playerHealing}. Enemy dealt ${this.roundStats.enemyDamage} damage and healed ${this.roundStats.enemyHealing}.`;
+            this._logToBattle(summaryMessage, 'round-summary', null, 2);
+
+            await sleep(1500 * battleSpeeds[this.currentSpeedIndex].multiplier);
             this.runCombatRound();
             return;
         }
@@ -169,6 +328,93 @@ export class BattleScene {
         if (attacker.currentHp <= 0) {
             this.executeNextTurn();
             return;
+        }
+
+        // --- Check for incapacitating effects like Root or Stun ---
+        const rootEffect = attacker.statusEffects.find(e => e.name === 'Root');
+        if (rootEffect) {
+            this._logToBattle(`${attacker.heroData.name} is rooted and cannot act!`, 'status', attacker, 2);
+            rootEffect.turnsRemaining--;
+            if (rootEffect.turnsRemaining <= 0) {
+                attacker.statusEffects = attacker.statusEffects.filter(e => e !== rootEffect);
+            }
+            this._updateStatusIcons(attacker);
+            attacker.element.classList.remove('is-active-turn', 'is-lunging');
+            await sleep(800 * battleSpeeds[this.currentSpeedIndex].multiplier);
+            this.executeNextTurn();
+            return;
+        }
+
+        const stunEffect = attacker.statusEffects.find(e => e.name === 'Stun');
+        if (stunEffect) {
+            this._logToBattle(`${attacker.heroData.name} is stunned and skips their turn!`, 'status', attacker, 2);
+            stunEffect.turnsRemaining--;
+            if (stunEffect.turnsRemaining <= 0) {
+                attacker.statusEffects = attacker.statusEffects.filter(e => e !== stunEffect);
+            }
+            this._updateStatusIcons(attacker);
+            await sleep(800 * battleSpeeds[this.currentSpeedIndex].multiplier);
+            this.executeNextTurn();
+            return;
+        }
+
+        // --- Apply damage over time effects like Poison, Burn, or Bleed ---
+        const dotEffects = attacker.statusEffects.filter(e => e.name === 'Poison' || e.name === 'Burn' || e.name === 'Bleed');
+        if (dotEffects.length > 0) {
+            for (const effect of dotEffects) {
+                let dotDamage = 0;
+                if (effect.name === 'Poison') {
+                    dotDamage = 2;
+                } else if (effect.name === 'Burn') {
+                    dotDamage = 3;
+                } else if (effect.name === 'Bleed') {
+                    dotDamage = 1;
+                }
+                this._logToBattle(`${attacker.heroData.name} takes ${dotDamage} damage from ${effect.name}.`, 'status-damage', attacker, 1);
+                this._dealDamage(attacker, attacker, dotDamage, false, false, null);
+                effect.turnsRemaining--;
+            }
+            attacker.statusEffects = attacker.statusEffects.filter(e => e.turnsRemaining > 0);
+            this._updateStatusIcons(attacker);
+            if (attacker.currentHp <= 0) {
+                await sleep(800 * battleSpeeds[this.currentSpeedIndex].multiplier);
+                this.executeNextTurn();
+                return;
+            }
+        }
+
+        // --- Decrement lingering effects like Slow or Vulnerable ---
+        const slowEffect = attacker.statusEffects.find(e => e.name === 'Slow');
+        if (slowEffect) {
+            slowEffect.turnsRemaining--;
+            if (slowEffect.turnsRemaining <= 0) {
+                attacker.statusEffects = attacker.statusEffects.filter(e => e !== slowEffect);
+            }
+        }
+        const vulnerableEffect = attacker.statusEffects.find(e => e.name === 'Vulnerable');
+        if (vulnerableEffect) {
+            vulnerableEffect.turnsRemaining--;
+            if (vulnerableEffect.turnsRemaining <= 0) {
+                attacker.statusEffects = attacker.statusEffects.filter(e => e !== vulnerableEffect);
+            }
+        }
+        this._updateStatusIcons(attacker);
+
+        const confuseEffect = attacker.statusEffects.find(e => e.name === 'Confuse');
+        if (confuseEffect) {
+            const miss = Math.random() < 0.5;
+            confuseEffect.turnsRemaining--;
+            if (confuseEffect.turnsRemaining <= 0) {
+                attacker.statusEffects = attacker.statusEffects.filter(e => e !== confuseEffect);
+            }
+            this._updateStatusIcons(attacker);
+            if (miss) {
+                this._logToBattle(`${attacker.heroData.name} is confused and misses their action!`, 'status', attacker, 2);
+                attacker.element.classList.remove('is-active-turn', 'is-lunging');
+                await sleep(800 * battleSpeeds[this.currentSpeedIndex].multiplier);
+                this.executeNextTurn();
+                return;
+            }
         }
 
         this._updateCombo(attacker.team);
@@ -187,16 +433,36 @@ export class BattleScene {
         const target = potentialTargets[0];
 
         const ability = attacker.abilityData;
-        if (ability && attacker.currentEnergy >= ability.energyCost) {
+        let useAbility = ability && attacker.currentEnergy >= ability.energyCost;
+        if (useAbility) {
+            const shockEffect = attacker.statusEffects.find(e => e.name === 'Shock');
+            if (shockEffect) {
+                const fail = Math.random() < 0.5;
+                shockEffect.turnsRemaining--;
+                if (shockEffect.turnsRemaining <= 0) {
+                    attacker.statusEffects = attacker.statusEffects.filter(e => e !== shockEffect);
+                }
+                if (fail) {
+                    this._logToBattle(`${attacker.heroData.name}'s ability fizzles due to Shock!`, 'status', attacker, 2);
+                    this._updateStatusIcons(attacker);
+                    await sleep(800 * battleSpeeds[this.currentSpeedIndex].multiplier);
+                    useAbility = false;
+                } else {
+                    this._updateStatusIcons(attacker);
+                }
+            }
+        }
+
+        if (useAbility) {
             attacker.currentEnergy -= ability.energyCost;
             updateEnergyDisplay(attacker, attacker.element);
             this._updateChargedStatus(attacker);
 
-            this._announceAbility(ability.name);
+            this._showBattleAnnouncement(ability.name, 'ability', ability.effect);
             this._triggerArenaEffect('ability-zoom');
-            this._logToBattle(`${attacker.heroData.name} unleashes ${ability.name}!`, 'ability-cast');
+            this._logToBattle(`${attacker.heroData.name} unleashes ${ability.name}!`, 'ability-cast', attacker, 2);
 
-            // This is now redundant with the main _announceAbility call.
+            // This is now redundant with the main _showBattleAnnouncement call.
             /*
             if (ability.target === 'ALLIES') {
                 this._triggerTeamBanner(attacker.team, ability.name, 'buff');
@@ -221,6 +487,15 @@ export class BattleScene {
             if (attacker.currentHp <= 0) {
                 this.executeNextTurn();
                 return;
+            }
+
+            if (ability.summons) {
+                const summonList = Array.isArray(ability.summons) ? ability.summons : [ability.summons];
+                summonList.forEach(key => {
+                    if (allPossibleMinions[key]) {
+                        this._summonUnit(attacker, allPossibleMinions[key]);
+                    }
+                });
             }
 
             if (ability.effect && ability.effect.includes('damage')) {
@@ -265,14 +540,14 @@ export class BattleScene {
             // --- Auto-attack after ability ---
             // --- GAIN ENERGY FOR ATTEMPTING ATTACK ---
             attacker.currentEnergy = Math.min(attacker.currentEnergy + 1, 10); // Cap energy at 10
-            this._logToBattle(`${attacker.heroData.name} gains 1 energy for attacking!`, 'heal');
+            this._logToBattle(`${attacker.heroData.name} gains 1 energy for attacking!`, 'energy', attacker, 1);
             this._showCombatText(attacker.element, '+1', 'energy');
             updateEnergyDisplay(attacker, attacker.element);
             this._updateChargedStatus(attacker);
             await sleep(400 * battleSpeeds[this.currentSpeedIndex].multiplier);
             // --- END ENERGY GAIN ---
 
-            this._logToBattle(`${attacker.heroData.name} also performs a basic attack!`);
+            this._logToBattle(`${attacker.heroData.name} also performs a basic attack!`, 'info', attacker, 1);
             await this._fireProjectile(attacker.element, target.element);
             if (attacker.currentHp <= 0) {
                 this.executeNextTurn();
@@ -289,14 +564,13 @@ export class BattleScene {
         } else {
             // --- GAIN ENERGY FOR ATTEMPTING ATTACK ---
             attacker.currentEnergy = Math.min(attacker.currentEnergy + 1, 10); // Cap energy at 10
-            this._logToBattle(`${attacker.heroData.name} gains 1 energy for attacking!`, 'heal');
+            this._logToBattle(`${attacker.heroData.name} gains 1 energy for attacking!`, 'energy', attacker, 1);
             this._showCombatText(attacker.element, '+1', 'energy');
             updateEnergyDisplay(attacker, attacker.element);
             this._updateChargedStatus(attacker);
             await sleep(400 * battleSpeeds[this.currentSpeedIndex].multiplier);
             // --- END ENERGY GAIN ---
 
-            this._logToBattle(`${attacker.heroData.name} attacks ${target.heroData.name}!`);
 
             const isMeleeClash = (attacker.position === 0 && target.position === 0);
 
@@ -364,19 +638,71 @@ export class BattleScene {
 
 
     _dealDamage(attacker, target, damage, isCritical = false, isSynergy = false, sourceAbility = null) {
-        if (target.heroData.abilities.some(a => a.name === 'Fortify')) {
-            damage = Math.max(0, damage - 1);
+        let finalDamage = damage;
+
+        // --- Apply buffs and debuffs ---
+        if (attacker.statusEffects.some(e => e.name === 'Attack Up')) {
+            finalDamage += 2;
         }
 
-        const finalDamage = damage;
+        let totalBlock = (target.block || 0);
+        if (target.statusEffects.some(e => e.name === 'Defense Down' || e.name === 'Burn')) {
+            this._logToBattle(`${target.heroData.name}'s defense is lowered!`, 'status', target, 1);
+            totalBlock = Math.max(0, totalBlock - 1);
+        }
+
+        const isVulnerable = target.statusEffects.some(e => e.name === 'Vulnerable');
+
+        if (target.heroData.abilities.some(a => a.name === 'Fortify')) {
+            finalDamage = Math.max(0, finalDamage - 1);
+        }
+
+        finalDamage = Math.max(1, finalDamage - totalBlock);
+
+        if (isVulnerable) {
+            finalDamage += 1;
+        }
 
         const isOverkill = (target.currentHp - finalDamage) < -5;
 
-        let logMessage = `${attacker.heroData.name} hits ${target.heroData.name} for ${finalDamage} damage.`;
-        if(isCritical) logMessage += ' CRITICAL HIT!';
-        if(isOverkill) logMessage += ' OVERKILL!';
-        const type = sourceAbility ? 'ability-result damage' : 'damage';
-        this._logToBattle(logMessage, type);
+        let logMessage;
+        const verb = sourceAbility ? 'hits' : 'strikes';
+        if (attacker === target) {
+            logMessage = `${target.heroData.name} takes ${finalDamage} damage from an effect.`;
+        } else {
+            logMessage = `${attacker.heroData.name} ${verb} ${target.heroData.name} for ${finalDamage} damage.`;
+        }
+
+        if (isVulnerable) logMessage += ' (+1 Vulnerable)';
+        if (isCritical) logMessage += ' CRITICAL HIT!';
+        if (isOverkill) logMessage += ' OVERKILL!';
+
+        if (isCritical) {
+            this._showBattleAnnouncement('Critical Hit!', 'critical');
+        }
+
+        const logType = sourceAbility ? 'ability-result damage' : 'damage';
+        const logPriority = isCritical || isOverkill ? 3 : 2;
+
+        let popupText = `-${finalDamage}`;
+        let popupType = 'damage';
+        if (isOverkill) {
+            popupText = `-${finalDamage}!!`;
+            popupType = 'overkill';
+        } else if (isCritical || isSynergy) {
+            popupText = `-${finalDamage}!`;
+            popupType = 'critical';
+        }
+
+        const popupId = this._showCombatText(target.element, popupText, popupType);
+
+        this._logToBattle(logMessage, logType, target, logPriority, popupId);
+
+        if (target.team === 'player') {
+            this.roundStats.enemyDamage += finalDamage;
+        } else {
+            this.roundStats.playerDamage += finalDamage;
+        }
 
         target.currentHp = Math.max(0, target.currentHp - finalDamage);
 
@@ -384,14 +710,9 @@ export class BattleScene {
         setTimeout(() => target.element.classList.remove('is-taking-damage'), 400 * battleSpeeds[this.currentSpeedIndex].multiplier);
 
         if (isOverkill) {
-            this._showCombatText(target.element, `-${finalDamage}!!`, 'overkill');
             const flash = document.getElementById('screen-flash');
             if (flash) flash.classList.add('flash');
             setTimeout(() => flash.classList.remove('flash'), 400);
-        } else if (isCritical || isSynergy) {
-            this._showCombatText(target.element, `-${finalDamage}!`, 'critical');
-        } else {
-            this._showCombatText(target.element, `-${finalDamage}`, 'damage');
         }
 
         this._createVFX(target.element, 'physical-hit');
@@ -408,25 +729,73 @@ export class BattleScene {
         updateHealthBar(target, target.element);
 
         if (target.currentHp <= 0) {
-            // Remove the critical health state if the hero is defeated
             target.element.classList.remove('is-critical-health');
-            this._logToBattle(`${target.heroData.name} has been defeated!`, 'defeat');
+            this._logToBattle(`${target.heroData.name} has been defeated!`, 'defeat', target, 3);
             target.element.classList.add('is-defeated');
+
+            setTimeout(() => {
+                if (target.element && target.element.parentNode) {
+                    target.element.parentNode.removeChild(target.element);
+                }
+                this.state = this.state.filter(c => c.id !== target.id);
+            }, 1500);
+
+            this._recalculateTurnQueue(null, target.id);
+
             this._triggerArenaEffect('critical-shake');
         }
     }
 
     _heal(target, amount, sourceAbility = null) {
-        target.currentHp = Math.min(target.maxHp, target.currentHp + amount);
+        let finalHealAmount = amount;
+        if (target.statusEffects.some(e => e.name === 'Bleed')) {
+            finalHealAmount = Math.floor(amount * 0.5);
+            this._logToBattle(`${target.heroData.name}'s healing is reduced by Bleed to ${finalHealAmount} HP!`, 'status', target, 2);
+        }
+        target.currentHp = Math.min(target.maxHp, target.currentHp + finalHealAmount);
         const type = sourceAbility ? 'ability-result heal' : 'heal';
-        this._logToBattle(`${target.heroData.name} heals ${amount} HP!`, type);
+
+        const popupId = this._showCombatText(target.element, `+${finalHealAmount}`, 'heal');
+
+        this._logToBattle(`${target.heroData.name} heals ${finalHealAmount} HP!`, type, target, 1, popupId);
+
+        if (target.team === 'player') {
+            this.roundStats.playerHealing += finalHealAmount;
+        } else {
+            this.roundStats.enemyHealing += finalHealAmount;
+        }
         updateHealthBar(target, target.element);
     }
 
     _applyStatus(target, statusName, duration, sourceAbility = null){
         const type = sourceAbility ? 'ability-result status' : 'status';
-        this._logToBattle(`${target.heroData.name} is afflicted with ${statusName}!`, type);
-        target.statusEffects.push({name: statusName, turnsRemaining: duration});
+        const priority = (statusName === 'Stun' || statusName === 'Root') ? 2 : 1;
+
+        const existing = target.statusEffects.find(e => e.name === statusName);
+        if (existing) {
+            existing.turnsRemaining = Math.min(MAX_DURATION_CAP, existing.turnsRemaining + duration);
+            this._logToBattle(`${target.heroData.name}'s ${statusName} duration was extended to ${existing.turnsRemaining} turns.`, type, target, priority);
+        } else {
+            this._logToBattle(`${target.heroData.name} is afflicted with ${statusName}!`, type, target, priority);
+            target.statusEffects.push({
+                name: statusName,
+                turnsRemaining: duration,
+                baseDuration: duration,
+                description: STATUS_DESCRIPTIONS[statusName] || ''
+            });
+        }
+        this._updateStatusIcons(target);
+    }
+
+    _cleanseStatus(target, type = 'all_negative') {
+        const before = target.statusEffects.slice();
+        if (type === 'all_negative') {
+            target.statusEffects = target.statusEffects.filter(e => !NEGATIVE_STATUSES.includes(e.name));
+        } else {
+            target.statusEffects = target.statusEffects.filter(e => e.name !== type);
+        }
+        const removed = before.filter(e => !target.statusEffects.includes(e));
+        removed.forEach(e => this._logToBattle(`${target.heroData.name} cleansed ${e.name}!`, 'status', target, 1));
         this._updateStatusIcons(target);
     }
     
@@ -434,8 +803,14 @@ export class BattleScene {
         const popup = document.createElement('div');
         popup.className = `combat-text-popup ${type}`;
         popup.textContent = text;
+
+        const id = `combat-text-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+        popup.id = id;
+
         targetElement.appendChild(popup);
         setTimeout(() => popup.remove(), 1200 * battleSpeeds[this.currentSpeedIndex].multiplier);
+
+        return id;
     }
 
     _updateStatusIcons(combatant){
@@ -444,10 +819,17 @@ export class BattleScene {
         container.innerHTML = ''; // Clear old icons
 
         // First, remove all potential aura classes to reset the state
-        cardElement.classList.remove('has-aura', 'aura-poison', 'aura-buff');
+        cardElement.classList.remove(
+            'has-aura',
+            'aura-poison', 'aura-buff',
+            'aura-stun', 'aura-bleed', 'aura-burn', 'aura-slow',
+            'aura-confuse', 'aura-root', 'aura-shock', 'aura-vulnerable', 'aura-defense-down'
+        );
 
         if (combatant.statusEffects.length > 0) {
             cardElement.classList.add('has-aura');
+        } else {
+            cardElement.classList.remove('has-aura');
         }
 
         combatant.statusEffects.forEach(effect => {
@@ -456,10 +838,43 @@ export class BattleScene {
             switch(effect.name){
                 case 'Stun':
                     icon.innerHTML = '<i class="fas fa-star"></i>';
+                    cardElement.classList.add('aura-stun');
                     break;
                 case 'Poison':
                     icon.innerHTML = '<i class="fas fa-skull-crossbones"></i>';
                     cardElement.classList.add('aura-poison');
+                    break;
+                case 'Bleed':
+                    icon.innerHTML = '<i class="fas fa-droplet"></i>';
+                    cardElement.classList.add('aura-bleed');
+                    break;
+                case 'Burn':
+                    icon.innerHTML = '<i class="fas fa-fire-alt"></i>';
+                    cardElement.classList.add('aura-burn');
+                    break;
+                case 'Slow':
+                    icon.innerHTML = '<i class="fas fa-hourglass-half"></i>';
+                    cardElement.classList.add('aura-slow');
+                    break;
+                case 'Confuse':
+                    icon.innerHTML = '<i class="fas fa-question"></i>';
+                    cardElement.classList.add('aura-confuse');
+                    break;
+                case 'Root':
+                    icon.innerHTML = '<i class="fas fa-tree"></i>';
+                    cardElement.classList.add('aura-root');
+                    break;
+                case 'Shock':
+                    icon.innerHTML = '<i class="fas fa-bolt"></i>';
+                    cardElement.classList.add('aura-shock');
+                    break;
+                case 'Vulnerable':
+                    icon.innerHTML = '<i class="fas fa-crosshairs"></i>';
+                    cardElement.classList.add('aura-vulnerable');
+                    break;
+                case 'Defense Down':
+                    icon.innerHTML = '<i class="fas fa-shield-slash"></i>';
+                    cardElement.classList.add('aura-defense-down');
                     break;
                 case 'Attack Up':
                 case 'Fortify':
@@ -469,7 +884,9 @@ export class BattleScene {
                 default:
                     icon.innerHTML = '<i class="fas fa-circle"></i>';
             }
-            icon.title = `${effect.name} (${effect.turnsRemaining} turns left)`;
+            icon.dataset.statusName = effect.name;
+            icon.dataset.statusTurns = effect.turnsRemaining;
+            icon.dataset.statusDesc = effect.description || '';
             container.appendChild(icon);
         });
     }
@@ -482,17 +899,82 @@ export class BattleScene {
             cardElement.classList.add('is-charged', 'has-aura');
         } else {
             cardElement.classList.remove('is-charged');
-            if (!cardElement.classList.contains('aura-poison') && !cardElement.classList.contains('aura-buff')) {
+            const hasOtherAura = Array.from(cardElement.classList).some(c => c.startsWith('aura-'));
+            if (!hasOtherAura) {
                 cardElement.classList.remove('has-aura');
             }
         }
     }
 
-    _announceAbility(name){
-        if(!this.abilityAnnouncer) return;
-        this.abilityAnnouncer.textContent = name;
+    _summonUnit(summoner, minionData) {
+        const teamContainer = summoner.team === 'player' ? this.playerContainer : this.enemyContainer;
+        const team = summoner.team;
+
+        const minionId = `${team}-minion-${Date.now()}`;
+        const newMinion = {
+            id: minionId,
+            heroData: { ...minionData },
+            weaponData: null,
+            armorData: null,
+            abilityData: null,
+            team: team,
+            position: this.state.filter(c => c.team === team).length,
+            currentHp: minionData.hp,
+            maxHp: minionData.hp,
+            attack: minionData.attack,
+            speed: minionData.speed,
+            currentEnergy: 0,
+            statusEffects: [],
+            element: null
+        };
+
+        this.state.push(newMinion);
+
+        const card = createCompactCard(newMinion);
+        newMinion.element = card;
+        teamContainer.appendChild(card);
+        card.classList.add('is-landing');
+
+        this._logToBattle(`${summoner.heroData.name} summons a ${minionData.name}!`, 'ability-result', summoner, 2);
+
+        this._recalculateTurnQueue(newMinion);
+    }
+
+    _recalculateTurnQueue(newUnit = null, defeatedUnitId = null) {
+        if (defeatedUnitId) {
+            this.turnQueue = this.turnQueue.filter(c => c.id !== defeatedUnitId);
+        }
+        if (newUnit) {
+            let inserted = false;
+            for (let i = 0; i < this.turnQueue.length; i++) {
+                if (newUnit.speed > this.turnQueue[i].speed) {
+                    this.turnQueue.splice(i, 0, newUnit);
+                    inserted = true;
+                    break;
+                }
+            }
+            if (!inserted) {
+                this.turnQueue.push(newUnit);
+            }
+        }
+        this._logToBattle(`Turn order updated!`, 'info', null, 1);
+    }
+
+    _showBattleAnnouncement(text, styleClass = '', subtitle = '') {
+        if (!this.abilityAnnouncer) return;
+
+        if (this.announcerMainText) this.announcerMainText.textContent = text;
+        if (this.announcerSubtitle) this.announcerSubtitle.textContent = subtitle;
+
+        this.abilityAnnouncer.className = 'ability-announcer';
+        if (styleClass) {
+            this.abilityAnnouncer.classList.add(styleClass);
+        }
+
         this.abilityAnnouncer.classList.add('show');
-        setTimeout(() => this.abilityAnnouncer.classList.remove('show'), 1500);
+        setTimeout(() => {
+            this.abilityAnnouncer.classList.remove('show');
+        }, 1500);
     }
 
     _triggerArenaEffect(cls){
@@ -667,7 +1149,8 @@ export class BattleScene {
     async _endBattle(didPlayerWin) {
         this.isBattleOver = true;
         const winningTeam = didPlayerWin ? 'player' : 'enemy';
-        this._logToBattle(didPlayerWin ? "Player team is victorious!" : "Enemy team is victorious!", didPlayerWin ? 'victory' : 'defeat');
+        this._logToBattle(didPlayerWin ? "Player team is victorious!" : "Enemy team is victorious!", didPlayerWin ? 'victory' : 'defeat', null, 3);
+        this._showBattleAnnouncement(didPlayerWin ? 'VICTORY' : 'DEFEAT', didPlayerWin ? 'victory' : 'defeat');
 
         this.state.forEach(combatant => {
             if (combatant.team === winningTeam && combatant.currentHp > 0) {
@@ -700,6 +1183,31 @@ export class BattleScene {
         }, { once: true });
 
         setTimeout(() => this.endScreen.classList.add('visible'), 167 * battleSpeeds[this.currentSpeedIndex].multiplier);
+    }
+
+    _setupTooltipListeners() {
+        if (!this.statusTooltip) return;
+        this.element.addEventListener('mouseover', (e) => {
+            const icon = e.target.closest('.status-icon');
+            if (!icon) return;
+            const { statusName, statusTurns, statusDesc } = icon.dataset;
+            const nameEl = this.statusTooltip.querySelector('.status-tooltip-name');
+            const durEl = this.statusTooltip.querySelector('.status-tooltip-duration');
+            const descEl = this.statusTooltip.querySelector('.status-tooltip-description');
+            if (nameEl) nameEl.textContent = statusName;
+            if (durEl) durEl.textContent = `Turns remaining: ${statusTurns}`;
+            if (descEl) descEl.textContent = statusDesc;
+            this.statusTooltip.style.left = `${e.clientX + 10}px`;
+            this.statusTooltip.style.top = `${e.clientY + 10}px`;
+            this.statusTooltip.classList.add('visible');
+        });
+
+        this.element.addEventListener('mouseout', (e) => {
+            const icon = e.target.closest('.status-icon');
+            if (icon) {
+                this.statusTooltip.classList.remove('visible');
+            }
+        });
     }
     
     show() {

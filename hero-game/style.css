@@ -265,7 +265,7 @@ button:disabled {
     animation: wind-gust ease-in forwards;
 }
 .battle-arena { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; width: 100%; max-width: 1200px; padding: 2rem; align-items: center; }
-.team-container { display: flex; flex-direction: column; align-items: center; gap: 2rem; }
+.team-container { display: flex; flex-direction: column; align-items: center; gap: 2rem; flex-wrap: wrap; }
 
 /* Banner displayed when a team-wide effect occurs */
 .team-banner {
@@ -372,6 +372,13 @@ button:disabled {
     animation: defeat-animation 1.5s forwards ease-in-out;
 }
 
+/* Highlighted when hovering corresponding log entry */
+.compact-card.is-log-hovered {
+    transform: scale(1.1);
+    box-shadow: 0 0 25px 8px #3b82f6;
+    z-index: 51;
+}
+
 @keyframes defeat-animation {
     0% {
         transform: scale(1);
@@ -461,6 +468,16 @@ button:disabled {
     opacity: 0;
   }
 }
+
+@keyframes linked-pulse {
+    0% { transform: translate(-50%, -50%) scale(1.1); filter: brightness(1.2); }
+    50% { transform: translate(-50%, -50%) scale(1.3); filter: brightness(1.8); }
+    100% { transform: translate(-50%, -50%) scale(1.1); filter: brightness(1.2); }
+}
+
+.combat-text-popup.log-linked-pulse {
+    animation: linked-pulse 0.3s ease-in-out;
+}
 .status-icon-container { position: absolute; top: -10px; right: -10px; display: flex; gap: 0.25rem; }
 .status-icon { width: 24px; height: 24px; background-color: rgba(0,0,0,0.7); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; border: 1px solid white; }
 
@@ -470,6 +487,27 @@ button:disabled {
 
 .status-icon.synergy-flash {
     animation: icon-flash 0.6s ease-in-out;
+}
+
+/* Tooltip for status effects */
+.status-tooltip {
+    position: absolute;
+    background-color: rgba(0,0,0,0.85);
+    color: #fff;
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.5rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+    pointer-events: none;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s ease;
+    z-index: 9999;
+    font-size: 0.8rem;
+}
+
+.status-tooltip.visible {
+    opacity: 1;
+    visibility: visible;
 }
 
 /* Base style for all auras to enable positioning */
@@ -501,6 +539,97 @@ button:disabled {
 }
 .compact-card.aura-buff::after {
     animation: buff-aura-pulse 2.5s ease-in-out infinite;
+}
+
+/* Stun Aura - Pulsing Gold */
+@keyframes stun-aura-pulse {
+    0% { box-shadow: 0 0 8px 2px #facc15, inset 0 0 6px #ca8a04; }
+    50% { box-shadow: 0 0 16px 4px #fde047, inset 0 0 10px #facc15; }
+    100% { box-shadow: 0 0 8px 2px #facc15, inset 0 0 6px #ca8a04; }
+}
+.compact-card.aura-stun::after {
+    animation: stun-aura-pulse 1.5s ease-in-out infinite;
+}
+
+/* Bleed Aura - Dripping Red */
+@keyframes bleed-aura-drip {
+    0% { box-shadow: 0 0 8px 2px #991b1b, inset 0 0 6px #7f1d1d; }
+    50% { box-shadow: 0 0 14px 4px #b91c1c, inset 0 0 10px #991b1b; }
+    100% { box-shadow: 0 0 8px 2px #991b1b, inset 0 0 6px #7f1d1d; }
+}
+.compact-card.aura-bleed::after {
+    animation: bleed-aura-drip 2s ease-in-out infinite;
+}
+
+/* Burn Aura - Fiery Shimmer */
+@keyframes burn-aura-shimmer {
+    0% { box-shadow: 0 0 10px 2px #f97316, inset 0 0 6px #b91c1c; }
+    50% { box-shadow: 0 0 18px 5px #fb923c, inset 0 0 10px #ef4444; }
+    100% { box-shadow: 0 0 10px 2px #f97316, inset 0 0 6px #b91c1c; }
+}
+.compact-card.aura-burn::after {
+    animation: burn-aura-shimmer 1.8s ease-in-out infinite;
+}
+
+/* Slow Aura - Icy Mist */
+@keyframes slow-aura-mist {
+    0% { box-shadow: 0 0 8px 2px #38bdf8, inset 0 0 6px #0ea5e9; }
+    50% { box-shadow: 0 0 14px 4px #7dd3fc, inset 0 0 10px #38bdf8; }
+    100% { box-shadow: 0 0 8px 2px #38bdf8, inset 0 0 6px #0ea5e9; }
+}
+.compact-card.aura-slow::after {
+    animation: slow-aura-mist 2s ease-in-out infinite;
+}
+
+/* Confuse Aura - Swirling Purple */
+@keyframes confuse-aura-swirl {
+    0% { box-shadow: 0 0 8px 2px #c084fc, inset 0 0 6px #9333ea; }
+    50% { box-shadow: 0 0 14px 4px #e879f9, inset 0 0 10px #c084fc; }
+    100% { box-shadow: 0 0 8px 2px #c084fc, inset 0 0 6px #9333ea; }
+}
+.compact-card.aura-confuse::after {
+    animation: confuse-aura-swirl 2.2s ease-in-out infinite;
+}
+
+/* Root Aura - Earthen Tendrils */
+@keyframes root-aura-grow {
+    0% { box-shadow: 0 0 8px 2px #4d7c0f, inset 0 0 6px #365314; }
+    50% { box-shadow: 0 0 14px 4px #65a30d, inset 0 0 10px #4d7c0f; }
+    100% { box-shadow: 0 0 8px 2px #4d7c0f, inset 0 0 6px #365314; }
+}
+.compact-card.aura-root::after {
+    animation: root-aura-grow 2s ease-in-out infinite;
+}
+
+/* Shock Aura - Electric Crackle */
+@keyframes shock-aura-crackle {
+    0% { box-shadow: 0 0 8px 2px #fde047, inset 0 0 6px #2563eb; }
+    50% { box-shadow: 0 0 16px 4px #facc15, inset 0 0 10px #3b82f6; }
+    100% { box-shadow: 0 0 8px 2px #fde047, inset 0 0 6px #2563eb; }
+}
+.compact-card.aura-shock::after {
+    animation: shock-aura-crackle 1.5s ease-in-out infinite;
+}
+
+/* Vulnerable Aura - Cracked Target */
+@keyframes vulnerable-aura-crack {
+    0% { box-shadow: 0 0 8px 2px #dc2626, inset 0 0 6px #991b1b; }
+    50% { box-shadow: 0 0 16px 4px #ef4444, inset 0 0 10px #dc2626; }
+    100% { box-shadow: 0 0 8px 2px #dc2626, inset 0 0 6px #991b1b; }
+}
+.compact-card.aura-vulnerable::after {
+    animation: vulnerable-aura-crack 2s ease-in-out infinite;
+    background-image: url('https://www.transparenttextures.com/patterns/cracks.png');
+}
+
+/* Defense Down Aura - Dull Pulse */
+@keyframes defense-down-aura {
+    0% { box-shadow: 0 0 8px 2px #6b7280, inset 0 0 6px #4b5563; }
+    50% { box-shadow: 0 0 14px 4px #9ca3af, inset 0 0 10px #6b7280; }
+    100% { box-shadow: 0 0 8px 2px #6b7280, inset 0 0 6px #4b5563; }
+}
+.compact-card.aura-defense-down::after {
+    animation: defense-down-aura 2s ease-in-out infinite;
 }
 
 @keyframes charged-aura-crackle {
@@ -543,7 +672,7 @@ button:disabled {
 }
 
 #battle-log-summary i {
-    transition: transform 0.3s ease-in-out;
+    transition: transform 0.4s ease-in-out;
 }
 
 #battle-log-panel {
@@ -553,7 +682,6 @@ button:disabled {
     transform: translateX(-50%);
     width: 100%;
     max-width: 800px;
-    height: 40vh;
     background-color: rgba(17, 24, 39, 0.8);
     backdrop-filter: blur(8px);
     border-radius: 0.75rem 0.75rem 0 0;
@@ -563,19 +691,50 @@ button:disabled {
     display: flex;
     flex-direction: column;
     overflow-y: auto;
-    opacity: 0;
-    visibility: hidden;
-    transition: opacity 0.3s, visibility 0.3s;
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.4s ease-in-out;
     margin-bottom: -1px;
 }
 
 #battle-log-panel.expanded {
-    opacity: 1;
-    visibility: visible;
+    max-height: 40vh;
 }
 
 #battle-log-panel.expanded + #battle-log-summary i {
     transform: rotate(180deg);
+}
+
+#battle-log-filters {
+    display: flex;
+    gap: 0.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    margin-bottom: 1rem;
+}
+
+.filter-btn {
+    background-color: #4b5563;
+    border: 1px solid #6b7280;
+    color: white;
+    padding: 0.25rem 0.75rem;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.filter-btn:hover {
+    background-color: #6b7280;
+}
+
+.filter-btn.active {
+    background-color: #f59e0b;
+    color: #111827;
+    font-weight: 600;
+}
+
+.log-entry.hidden-by-filter {
+    display: none;
 }
 
 .log-entry {
@@ -601,6 +760,7 @@ button:disabled {
 .log-entry.info { color: #9ca3af; }
 .log-entry.damage { color: #f87171; }
 .log-entry.heal { color: #4ade80; }
+.log-entry.energy { color: #60a5fa; }
 .log-entry.ability { color: #fde047; font-weight: 600; background-color: rgba(253, 224, 71, 0.1); }
 .log-entry.ability-cast { color: #fde047; font-weight: 600; background-color: rgba(253, 224, 71, 0.1); }
 .log-entry.ability-result { margin-left: 1rem; position: relative; }
@@ -611,6 +771,15 @@ button:disabled {
 }
 .log-entry.status { color: #c084fc; }
 .log-entry.round { color: #fff; font-weight: 700; background-color: rgba(255, 255, 255, 0.1); text-align: center; }
+.log-entry.round-summary {
+    background-color: rgba(20, 30, 48, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: #fde047;
+    text-align: center;
+    font-weight: 600;
+    margin-top: 0.5rem;
+    margin-bottom: 0.5rem;
+}
 .log-entry.victory { color: #fde047; font-weight: bold; text-transform: uppercase; }
 .log-entry.defeat { color: #ef4444; font-weight: bold; text-transform: uppercase; }
 
@@ -651,7 +820,7 @@ button:disabled {
     background-color: #6b7280;
 }
 
-#end-screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.7); backdrop-filter: blur(8px); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 200; opacity: 0; transition: opacity 1s ease; pointer-events: none; }
+#end-screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.7); backdrop-filter: blur(8px); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 50; opacity: 0; transition: opacity 1s ease; pointer-events: none; }
 #end-screen.visible { opacity: 1; pointer-events: all; }
 #end-screen-result-text { font-size: 6rem; font-weight: 700; text-transform: uppercase; }
 #end-screen.victory #end-screen-result-text { color: #fde047; text-shadow: 0 0 20px #f59e0b; }
@@ -919,17 +1088,50 @@ button:disabled {
     top: 40%;
     left: 50%;
     transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+    opacity: 0;
+    z-index: 100;
+}
+
+#announcer-main-text {
     font-family: 'Cinzel', serif;
     font-size: 4rem;
     font-weight: 700;
     color: #fde047;
     text-shadow: 0 0 10px #000, 0 0 20px #f59e0b;
-    pointer-events: none;
-    opacity: 0;
-    z-index: 100;
+    margin: 0;
+    padding: 0;
+}
+
+#announcer-subtitle {
+    font-family: 'Inter', sans-serif;
+    font-size: 1.25rem;
+    color: #e5e7eb;
+    text-shadow: 1px 1px 2px #000;
+    margin-top: -0.5rem;
+    opacity: 0.9;
 }
 .ability-announcer.show {
     animation: announce-and-fade 1.5s ease-out forwards;
+}
+
+.ability-announcer.critical {
+    color: #f97316;
+    text-shadow: 0 0 10px #000, 0 0 20px #dc2626;
+}
+
+.ability-announcer.victory {
+    color: #fde047;
+    text-shadow: 0 0 10px #000, 0 0 20px #f59e0b;
+}
+
+.ability-announcer.defeat {
+    color: #ef4444;
+    text-shadow: 0 0 10px #000, 0 0 20px #b91c1c;
 }
 
 /* --- 1. Combo Counter Styles --- */
@@ -1336,4 +1538,47 @@ button:disabled {
     border-top: 2px solid transparent;
     border-image: url("data:image/svg+xml,%3csvg width='100' height='2' preserveAspectRatio='none' viewBox='0 0 100 2' xmlns='http://www.w3.org/2000/svg'%3e%3cpath d='M0 1 L10 1.5 L20 0 L30 1.2 L40 0.5 L50 1.5 L60 0 L70 1.8 L80 0.2 L90 1.5 L100 1' stroke='%233c1a6e' stroke-width='1.5' fill='none' /%3e%3c/svg%3e") 2 stretch;
     box-shadow: inset 7px 0 15px rgba(0,0,0,0.4), inset -7px 0 15px rgba(0,0,0,0.4), inset 0 5px 10px -3px rgba(0,0,0,0.6);
+}
+
+/* --- Damage over Time Log Entry --- */
+.log-entry.status-damage {
+    color: #c084fc;
+    font-style: italic;
+    background-color: rgba(167, 139, 250, 0.1);
+}
+
+.log-entry.status-damage::before {
+    content: '☣';
+    margin-right: 0.5rem;
+    color: #a855f7;
+}
+
+/* Icon styling for log entries */
+.log-entry-icon {
+    margin-right: 0.75rem;
+    width: 1.25rem;
+    text-align: center;
+    opacity: 0.8;
+}
+
+/* Match icon colors to log entry text colors */
+.log-entry.damage .log-entry-icon,
+.log-entry.status-damage .log-entry-icon {
+    color: #f87171;
+}
+
+.log-entry.heal .log-entry-icon {
+    color: #4ade80;
+}
+.log-entry.energy .log-entry-icon {
+    color: #60a5fa;
+}
+
+.log-entry.ability-cast .log-entry-icon,
+.log-entry.ability-result .log-entry-icon {
+    color: #fde047;
+}
+
+.log-entry.status .log-entry-icon {
+    color: #c084fc;
 }
