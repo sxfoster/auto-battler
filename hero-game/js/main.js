@@ -216,28 +216,34 @@ function advanceDraft() {
 // --- DATA GENERATION ---
 
 function generateHeroPack() {
+    const recruitHero = allPossibleHeroes.find(hero => hero.name === 'Recruit');
+    const heroPool = allPossibleHeroes.filter(hero => hero.name !== 'Recruit');
+
     const rarities = [];
-    for (let i = 0; i < 4; i++) {
+    for (let i = 0; i < 3; i++) {
         const roll = Math.random();
-        if (roll < 0.05) rarities.push('Epic'); // Changed 'Ultra Rare' to 'Epic'
+        if (roll < 0.05) rarities.push('Epic');
         else if (roll < 0.20) rarities.push('Rare');
         else if (roll < 0.50) rarities.push('Uncommon');
         else rarities.push('Common');
     }
 
     let openedPack = rarities.map(rarity => {
-        const available = allPossibleHeroes.filter(h => h.rarity === rarity);
+        const available = heroPool.filter(h => h.rarity === rarity);
         return available[Math.floor(Math.random() * available.length)];
     });
 
     // Ensure no duplicate heroes in the pack
     openedPack = [...new Map(openedPack.map(item => [item.id, item])).values()];
-    
+
     // Fill with randoms if duplicates were removed
-    while(openedPack.length < 4) {
-        const fallback = allPossibleHeroes[Math.floor(Math.random() * allPossibleHeroes.length)];
+    while(openedPack.length < 3) {
+        const fallback = heroPool[Math.floor(Math.random() * heroPool.length)];
         if(!openedPack.find(h => h.id === fallback.id)) openedPack.push(fallback);
     }
+
+    // Add the Recruit as the final option
+    openedPack.push(recruitHero);
 
     return openedPack;
 }
