@@ -372,6 +372,13 @@ button:disabled {
     animation: defeat-animation 1.5s forwards ease-in-out;
 }
 
+/* Highlighted when hovering corresponding log entry */
+.compact-card.is-log-hovered {
+    transform: scale(1.1);
+    box-shadow: 0 0 25px 8px #3b82f6;
+    z-index: 51;
+}
+
 @keyframes defeat-animation {
     0% {
         transform: scale(1);
@@ -1461,4 +1468,31 @@ button:disabled {
     content: '☣';
     margin-right: 0.5rem;
     color: #a855f7;
+}
+
+/* Icon styling for log entries */
+.log-entry-icon {
+    margin-right: 0.75rem;
+    width: 1.25rem;
+    text-align: center;
+    opacity: 0.8;
+}
+
+/* Match icon colors to log entry text colors */
+.log-entry.damage .log-entry-icon,
+.log-entry.status-damage .log-entry-icon {
+    color: #f87171;
+}
+
+.log-entry.heal .log-entry-icon {
+    color: #4ade80;
+}
+
+.log-entry.ability-cast .log-entry-icon,
+.log-entry.ability-result .log-entry-icon {
+    color: #fde047;
+}
+
+.log-entry.status .log-entry-icon {
+    color: #c084fc;
 }
