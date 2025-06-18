@@ -122,8 +122,15 @@ export function createDetailCard(item, selectionHandler) {
 export function createAnnouncerCard(ability) {
     const clone = detailCardTemplate.content.cloneNode(true);
     const cardElement = clone.querySelector('.hero-card');
+    const container = clone.querySelector('.hero-card-container');
     const rarityClass = (ability.rarity || 'common').toLowerCase().replace(' ', '-');
     cardElement.classList.add(rarityClass);
+
+    if (ability.elementType) {
+        const overlay = document.createElement('div');
+        overlay.className = `vfx-overlay vfx-${ability.elementType}`;
+        cardElement.prepend(overlay);
+    }
 
     clone.querySelector('.hero-art').style.backgroundImage = `url('${ability.art}')`;
     clone.querySelector('.hero-name').textContent = ability.name;
@@ -140,7 +147,7 @@ export function createAnnouncerCard(ability) {
     clone.querySelector('.hero-stats').innerHTML = statsHtml;
     clone.querySelector('.hero-abilities').innerHTML = descriptionHtml;
 
-    return clone.querySelector('.hero-card-container');
+    return container;
 }
 
 /**

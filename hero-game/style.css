@@ -1145,6 +1145,7 @@ button:disabled {
     pointer-events: none;
     background-color: transparent;
     transition: background-color 0.3s ease, opacity 0.3s ease;
+    perspective: 1000px;
 }
 
 #card-announcer-container.is-announcing {
@@ -1153,17 +1154,22 @@ button:disabled {
     background-color: rgba(0, 0, 0, 0.6);
 }
 
+#card-announcer-container .hero-card-container {
+    transform-style: preserve-3d;
+    transition: transform 0.1s linear;
+}
+
 @keyframes fly-in-and-hold {
     0% {
-        transform: translateY(100vh) scale(0.5) rotate(15deg);
+        transform: translateY(100vh) scale(0.6) rotateX(-60deg) rotateY(20deg);
         opacity: 0;
     }
     40% {
-        transform: translateY(0) scale(1.05) rotate(-2deg);
+        transform: translateY(0) scale(1.05) rotateX(10deg) rotateY(-5deg);
         opacity: 1;
     }
     80% {
-        transform: translateY(0) scale(1) rotate(0deg);
+        transform: translateY(0) scale(1) rotateX(0deg) rotateY(0deg);
         opacity: 1;
     }
     100% {
@@ -1623,4 +1629,28 @@ button:disabled {
 
 .log-entry.status .log-entry-icon {
     color: #c084fc;
+}
+
+/* --- Elemental VFX Overlay Styles --- */
+.hero-card .vfx-overlay {
+    position: absolute;
+    inset: 0;
+    border-radius: 1.25rem;
+    opacity: 0.5;
+    pointer-events: none;
+}
+
+@keyframes fire-animation {
+    from { box-shadow: inset 0 0 15px 5px #ff5722; }
+    to { box-shadow: inset 0 0 25px 10px #ffc107; }
+}
+
+.vfx-overlay.vfx-fire {
+    background: linear-gradient(45deg, rgba(255, 87, 34, 0.2), rgba(255, 193, 7, 0.3));
+    animation: fire-animation 1s alternate infinite ease-in-out;
+}
+
+.vfx-overlay.vfx-ice {
+    background: radial-gradient(circle, rgba(3, 169, 244, 0.1), rgba(173, 216, 230, 0.3));
+    box-shadow: inset 0 0 20px 8px #e0f7fa;
 }
