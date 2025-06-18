@@ -34,6 +34,8 @@ export class BattleScene {
         this.battleLogContainer = this.element.querySelector('#battle-log-container');
         this.battleLogSummary = this.element.querySelector('#battle-log-summary');
         this.battleLogPanel = this.element.querySelector('#battle-log-panel');
+        this.logEntriesContainer = this.element.querySelector('#log-entries-container');
+        this.logFilters = this.element.querySelector('#battle-log-filters');
         this.endScreen = this.element.querySelector('#end-screen');
         this.resultText = this.element.querySelector('#end-screen-result-text');
         this.resultsContainer = this.element.querySelector('#end-screen-results');
@@ -70,6 +72,25 @@ export class BattleScene {
         }
 
         this._setupTooltipListeners();
+
+        if (this.logFilters) {
+            this.logFilters.addEventListener('click', (e) => {
+                const target = e.target.closest('.filter-btn');
+                if (!target) return;
+
+                const current = this.logFilters.querySelector('.active');
+                if (current) current.classList.remove('active');
+                target.classList.add('active');
+
+                const filter = target.dataset.filter;
+                const entries = (this.logEntriesContainer || this.battleLogPanel).querySelectorAll('.log-entry');
+                entries.forEach(entry => {
+                    const entryCategory = entry.dataset.category || 'info';
+                    const show = filter === 'all' || entryCategory === filter;
+                    entry.classList.toggle('hidden-by-filter', !show);
+                });
+            });
+        }
 
         if (this.battleLogPanel) {
             this.battleLogPanel.addEventListener('mouseover', (e) => {
@@ -123,6 +144,12 @@ export class BattleScene {
         entry.className = `log-entry ${type}`;
         entry.textContent = message;
 
+        let category = 'info';
+        if (type.includes('damage')) category = 'combat';
+        if (type.includes('heal')) category = 'healing';
+        if (type.includes('status')) category = 'status';
+        entry.dataset.category = category;
+
         if (combatant && combatant.id) {
             entry.dataset.combatantId = combatant.id;
         }
@@ -160,10 +187,11 @@ export class BattleScene {
         }
         entry.prepend(icon);
 
-        this.battleLogPanel.prepend(entry);
+        const container = this.logEntriesContainer || this.battleLogPanel;
+        container.prepend(entry);
 
-        if (this.battleLogPanel.children.length > 50) {
-            this.battleLogPanel.lastChild.remove();
+        if (container.children.length > 50) {
+            container.lastChild.remove();
         }
     }
 
@@ -179,7 +207,9 @@ export class BattleScene {
         // --- UI Setup ---
         this.playerContainer.innerHTML = '';
         this.enemyContainer.innerHTML = '';
-        if (this.battleLogPanel) {
+        if (this.logEntriesContainer) {
+            this.logEntriesContainer.innerHTML = '';
+        } else if (this.battleLogPanel) {
             this.battleLogPanel.innerHTML = '';
         }
         this.endScreen.classList.remove('visible', 'victory', 'defeat');
@@ -638,6 +668,10 @@ export class BattleScene {
         if (isCritical) logMessage += ' CRITICAL HIT!';
         if (isOverkill) logMessage += ' OVERKILL!';
 
+        if (isCritical) {
+            this._showBattleAnnouncement('Critical Hit!', 'critical');
+        }
+
         const logType = sourceAbility ? 'ability-result damage' : 'damage';
         const logPriority = isCritical || isOverkill ? 3 : 2;
         this._logToBattle(logMessage, logType, target, logPriority);
@@ -1090,6 +1124,7 @@ export class BattleScene {
         this.isBattleOver = true;
         const winningTeam = didPlayerWin ? 'player' : 'enemy';
         this._logToBattle(didPlayerWin ? "Player team is victorious!" : "Enemy team is victorious!", didPlayerWin ? 'victory' : 'defeat', null, 3);
+        this._showBattleAnnouncement(didPlayerWin ? 'VICTORY' : 'DEFEAT', didPlayerWin ? 'victory' : 'defeat');
 
         this.state.forEach(combatant => {
             if (combatant.team === winningTeam && combatant.currentHp > 0) {
