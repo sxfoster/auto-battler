@@ -2,6 +2,27 @@ import { createCompactCard, updateHealthBar, updateEnergyDisplay } from '../ui/C
 import { sleep } from '../utils.js';
 import { battleSpeeds, allPossibleMinions } from '../data.js';
 
+// --- Constants for status handling ---
+const MAX_DURATION_CAP = 6;
+const STATUS_DESCRIPTIONS = {
+    'Stun': 'Skips the next action.',
+    'Poison': 'Takes 2 damage per turn.',
+    'Bleed': 'Takes 1 damage per turn and healing is halved.',
+    'Burn': 'Takes 3 damage per turn and suffers -1 defense.',
+    'Slow': 'Speed reduced by 1.',
+    'Confuse': '50% chance to miss actions.',
+    'Root': 'Cannot act next turn.',
+    'Shock': '50% chance to fail casting abilities.',
+    'Vulnerable': 'Takes +1 damage from all sources.',
+    'Defense Down': 'Defense is reduced by 1.',
+    'Attack Up': 'Attack power increased.',
+    'Fortify': 'Defense increased.'
+};
+
+const NEGATIVE_STATUSES = [
+    'Bleed','Burn','Poison','Confuse','Root','Slow','Shock','Stun','Vulnerable','Defense Down'
+];
+
 export class BattleScene {
     constructor(element, onBattleComplete) {
         this.element = element;
@@ -20,6 +41,7 @@ export class BattleScene {
         this.speedButton = this.element.querySelector('#speed-cycle-button');
         this.arena = this.element.querySelector('.battle-arena');
         this.abilityAnnouncer = this.element.querySelector('#ability-announcer');
+        this.statusTooltip = document.getElementById('status-tooltip');
 
         this.comboCount = 0;
         this.lastAttackingTeam = null;
@@ -39,6 +61,8 @@ export class BattleScene {
                 this.battleLogPanel.classList.toggle('expanded');
             });
         }
+
+        this._setupTooltipListeners();
     }
 
     _cycleSpeed() {
@@ -584,8 +608,32 @@ export class BattleScene {
 
     _applyStatus(target, statusName, duration, sourceAbility = null){
         const type = sourceAbility ? 'ability-result status' : 'status';
-        this._logToBattle(`${target.heroData.name} is afflicted with ${statusName}!`, type);
-        target.statusEffects.push({name: statusName, turnsRemaining: duration});
+
+        const existing = target.statusEffects.find(e => e.name === statusName);
+        if (existing) {
+            existing.turnsRemaining = Math.min(MAX_DURATION_CAP, existing.turnsRemaining + duration);
+            this._logToBattle(`${target.heroData.name}'s ${statusName} duration was extended to ${existing.turnsRemaining} turns.`, type);
+        } else {
+            this._logToBattle(`${target.heroData.name} is afflicted with ${statusName}!`, type);
+            target.statusEffects.push({
+                name: statusName,
+                turnsRemaining: duration,
+                baseDuration: duration,
+                description: STATUS_DESCRIPTIONS[statusName] || ''
+            });
+        }
+        this._updateStatusIcons(target);
+    }
+
+    _cleanseStatus(target, type = 'all_negative') {
+        const before = target.statusEffects.slice();
+        if (type === 'all_negative') {
+            target.statusEffects = target.statusEffects.filter(e => !NEGATIVE_STATUSES.includes(e.name));
+        } else {
+            target.statusEffects = target.statusEffects.filter(e => e.name !== type);
+        }
+        const removed = before.filter(e => !target.statusEffects.includes(e));
+        removed.forEach(e => this._logToBattle(`${target.heroData.name} cleansed ${e.name}!`, 'status'));
         this._updateStatusIcons(target);
     }
     
@@ -668,7 +716,9 @@ export class BattleScene {
                 default:
                     icon.innerHTML = '<i class="fas fa-circle"></i>';
             }
-            icon.title = `${effect.name} (${effect.turnsRemaining} turns left)`;
+            icon.dataset.statusName = effect.name;
+            icon.dataset.statusTurns = effect.turnsRemaining;
+            icon.dataset.statusDesc = effect.description || '';
             container.appendChild(icon);
         });
     }
@@ -954,6 +1004,31 @@ export class BattleScene {
         }, { once: true });
 
         setTimeout(() => this.endScreen.classList.add('visible'), 167 * battleSpeeds[this.currentSpeedIndex].multiplier);
+    }
+
+    _setupTooltipListeners() {
+        if (!this.statusTooltip) return;
+        this.element.addEventListener('mouseover', (e) => {
+            const icon = e.target.closest('.status-icon');
+            if (!icon) return;
+            const { statusName, statusTurns, statusDesc } = icon.dataset;
+            const nameEl = this.statusTooltip.querySelector('.status-tooltip-name');
+            const durEl = this.statusTooltip.querySelector('.status-tooltip-duration');
+            const descEl = this.statusTooltip.querySelector('.status-tooltip-description');
+            if (nameEl) nameEl.textContent = statusName;
+            if (durEl) durEl.textContent = `Turns remaining: ${statusTurns}`;
+            if (descEl) descEl.textContent = statusDesc;
+            this.statusTooltip.style.left = `${e.clientX + 10}px`;
+            this.statusTooltip.style.top = `${e.clientY + 10}px`;
+            this.statusTooltip.classList.add('visible');
+        });
+
+        this.element.addEventListener('mouseout', (e) => {
+            const icon = e.target.closest('.status-icon');
+            if (icon) {
+                this.statusTooltip.classList.remove('visible');
+            }
+        });
     }
     
     show() {
