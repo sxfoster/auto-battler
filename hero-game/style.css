@@ -730,6 +730,15 @@ button:disabled {
 }
 .log-entry.status { color: #c084fc; }
 .log-entry.round { color: #fff; font-weight: 700; background-color: rgba(255, 255, 255, 0.1); text-align: center; }
+.log-entry.round-summary {
+    background-color: rgba(20, 30, 48, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: #fde047;
+    text-align: center;
+    font-weight: 600;
+    margin-top: 0.5rem;
+    margin-bottom: 0.5rem;
+}
 .log-entry.victory { color: #fde047; font-weight: bold; text-transform: uppercase; }
 .log-entry.defeat { color: #ef4444; font-weight: bold; text-transform: uppercase; }
 
