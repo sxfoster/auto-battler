@@ -568,12 +568,14 @@ export class BattleScene {
     }
 
     _heal(target, amount, sourceAbility = null) {
+        let finalHealAmount = amount;
         if (target.statusEffects.some(e => e.name === 'Bleed')) {
-            amount = Math.floor(amount * 0.5);
+            finalHealAmount = Math.floor(amount * 0.5);
+            this._logToBattle(`${target.heroData.name}'s healing is reduced by Bleed to ${finalHealAmount} HP!`, 'status');
         }
-        target.currentHp = Math.min(target.maxHp, target.currentHp + amount);
+        target.currentHp = Math.min(target.maxHp, target.currentHp + finalHealAmount);
         const type = sourceAbility ? 'ability-result heal' : 'heal';
-        this._logToBattle(`${target.heroData.name} heals ${amount} HP!`, type);
+        this._logToBattle(`${target.heroData.name} heals ${finalHealAmount} HP!`, type);
         updateHealthBar(target, target.element);
     }
 
