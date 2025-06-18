@@ -1182,6 +1182,79 @@ button:disabled {
     animation: fly-in-and-hold 1.5s ease-out forwards;
 }
 
+/* --- Word Effect Overlay --- */
+#word-effect-container {
+    position: absolute;
+    inset: 0;
+    z-index: 180;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    pointer-events: none;
+}
+
+.word-effect-text {
+    font-family: 'Cinzel', serif;
+    font-size: 8rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    position: absolute;
+    opacity: 0;
+}
+
+/* --- Modifier Classes --- */
+.critical-text {
+    color: #f97316;
+    text-shadow: 0 0 5px #fff, 0 0 15px #f97316, 0 0 25px #ef4444;
+}
+
+.victory-text {
+    color: #fde047;
+    text-shadow: 0 0 5px #fff, 0 0 20px #fde047, 0 0 35px #f59e0b;
+}
+
+.defeat-text {
+    color: #4b5563;
+    text-shadow: 0 0 10px #000;
+}
+
+/* --- Animation Definitions --- */
+@keyframes smash-and-fade {
+    0% { transform: scale(2.5); opacity: 0; }
+    20% { transform: scale(1); opacity: 1; }
+    25% { transform: scale(1.1) rotate(-2deg); }
+    30% { transform: scale(1) rotate(2deg); }
+    80% { transform: scale(1); opacity: 1; }
+    100% { transform: scale(0.8); opacity: 0; }
+}
+
+@keyframes forge-and-glow {
+    0% { filter: blur(15px); opacity: 0; }
+    40% { filter: blur(0); opacity: 1; text-shadow: 0 0 15px #fff, 0 0 25px #ef4444, 0 0 40px #ef4444; }
+    80% { opacity: 1; text-shadow: 0 0 5px #fff, 0 0 20px #fde047, 0 0 35px #f59e0b; }
+    100% { opacity: 0; }
+}
+
+@keyframes crumble-and-dust {
+    0% { opacity: 0; transform: scale(2); filter: blur(2px); }
+    20% { opacity: 1; transform: scale(1); filter: blur(0); }
+    80% { opacity: 1; transform: scale(1); }
+    100% { opacity: 0; transform: translateY(50px) scale(0.8); filter: blur(4px); }
+}
+
+.word-effect-text.animate-smash {
+    animation: smash-and-fade 1.2s cubic-bezier(0.36, 0.07, 0.19, 0.97) forwards;
+}
+
+.word-effect-text.animate-forge {
+    animation: forge-and-glow 1.8s ease-out forwards;
+}
+
+.word-effect-text.animate-crumble {
+    animation: crumble-and-dust 1.5s ease-out forwards;
+}
+
 /* --- 1. Combo Counter Styles --- */
 .combo-counter {
     position: absolute;
