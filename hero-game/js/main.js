@@ -269,13 +269,6 @@ function generateArmorChoices() {
 }
 
 function generateBonusPack(wins) {
-    const pool = [
-        ...allPossibleHeroes,
-        ...allPossibleWeapons,
-        ...allPossibleArmors,
-        ...allPossibleAbilities
-    ];
-
     let allowedRarities;
     if (wins <= 1) {
         allowedRarities = ['Common'];
@@ -287,9 +280,45 @@ function generateBonusPack(wins) {
         allowedRarities = ['Common', 'Uncommon', 'Rare', 'Epic'];
     }
 
-    const filtered = pool.filter(item => allowedRarities.includes(item.rarity));
-    const shuffled = [...filtered].sort(() => 0.5 - Math.random());
-    return shuffled.slice(0, 6);
+    // Create rarity-filtered pools
+    const weaponPool = allPossibleWeapons.filter(w => allowedRarities.includes(w.rarity));
+    const armorPool = allPossibleArmors.filter(a => allowedRarities.includes(a.rarity));
+
+    // Determine hero classes to filter abilities
+    const hero1 = allPossibleHeroes.find(h => h.id === gameState.draft.playerTeam.hero1);
+    const hero2 = allPossibleHeroes.find(h => h.id === gameState.draft.playerTeam.hero2);
+    const heroClasses = [hero1?.class, hero2?.class];
+    const classAbilityPool = allPossibleAbilities.filter(ab =>
+        allowedRarities.includes(ab.rarity) && heroClasses.includes(ab.class)
+    );
+
+    const bonusPack = [];
+
+    // Guarantee one of each type
+    if (weaponPool.length) {
+        const idx = Math.floor(Math.random() * weaponPool.length);
+        bonusPack.push(weaponPool.splice(idx, 1)[0]);
+    }
+    if (armorPool.length) {
+        const idx = Math.floor(Math.random() * armorPool.length);
+        bonusPack.push(armorPool.splice(idx, 1)[0]);
+    }
+    if (classAbilityPool.length) {
+        const idx = Math.floor(Math.random() * classAbilityPool.length);
+        bonusPack.push(classAbilityPool.splice(idx, 1)[0]);
+    }
+
+    // Combine remaining cards into a general pool
+    const generalPool = [...weaponPool, ...armorPool, ...classAbilityPool];
+    const shuffled = [...generalPool].sort(() => 0.5 - Math.random());
+    while (bonusPack.length < 6 && shuffled.length > 0) {
+        bonusPack.push(shuffled.shift());
+    }
+
+    // Final shuffle before presenting
+    const finalPack = [...bonusPack].sort(() => 0.5 - Math.random());
+    console.log(finalPack);
+    return finalPack;
 }
 
 // Generate a fully equipped random champion
