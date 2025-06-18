@@ -121,7 +121,7 @@ export class BattleScene {
         this.speedButton.textContent = `Speed: ${newSpeed.label}`;
     }
     
-    _logToBattle(message, type = 'info', combatant = null, priority = 1) {
+    _logToBattle(message, type = 'info', combatant = null, priority = 1, linkedPopupId = null) {
         if (!this.battleLogSummary || !this.battleLogPanel) return;
 
         const now = Date.now();
@@ -192,6 +192,14 @@ export class BattleScene {
 
         if (container.children.length > 50) {
             container.lastChild.remove();
+        }
+
+        if (linkedPopupId) {
+            const popupElement = document.getElementById(linkedPopupId);
+            if (popupElement) {
+                popupElement.classList.add('log-linked-pulse');
+                setTimeout(() => popupElement.classList.remove('log-linked-pulse'), 300);
+            }
         }
     }
 
@@ -674,7 +682,20 @@ export class BattleScene {
 
         const logType = sourceAbility ? 'ability-result damage' : 'damage';
         const logPriority = isCritical || isOverkill ? 3 : 2;
-        this._logToBattle(logMessage, logType, target, logPriority);
+
+        let popupText = `-${finalDamage}`;
+        let popupType = 'damage';
+        if (isOverkill) {
+            popupText = `-${finalDamage}!!`;
+            popupType = 'overkill';
+        } else if (isCritical || isSynergy) {
+            popupText = `-${finalDamage}!`;
+            popupType = 'critical';
+        }
+
+        const popupId = this._showCombatText(target.element, popupText, popupType);
+
+        this._logToBattle(logMessage, logType, target, logPriority, popupId);
 
         if (target.team === 'player') {
             this.roundStats.enemyDamage += finalDamage;
@@ -688,14 +709,9 @@ export class BattleScene {
         setTimeout(() => target.element.classList.remove('is-taking-damage'), 400 * battleSpeeds[this.currentSpeedIndex].multiplier);
 
         if (isOverkill) {
-            this._showCombatText(target.element, `-${finalDamage}!!`, 'overkill');
             const flash = document.getElementById('screen-flash');
             if (flash) flash.classList.add('flash');
             setTimeout(() => flash.classList.remove('flash'), 400);
-        } else if (isCritical || isSynergy) {
-            this._showCombatText(target.element, `-${finalDamage}!`, 'critical');
-        } else {
-            this._showCombatText(target.element, `-${finalDamage}`, 'damage');
         }
 
         this._createVFX(target.element, 'physical-hit');
@@ -737,7 +753,10 @@ export class BattleScene {
         }
         target.currentHp = Math.min(target.maxHp, target.currentHp + finalHealAmount);
         const type = sourceAbility ? 'ability-result heal' : 'heal';
-        this._logToBattle(`${target.heroData.name} heals ${finalHealAmount} HP!`, type, target, 1);
+
+        const popupId = this._showCombatText(target.element, `+${finalHealAmount}`, 'heal');
+
+        this._logToBattle(`${target.heroData.name} heals ${finalHealAmount} HP!`, type, target, 1, popupId);
 
         if (target.team === 'player') {
             this.roundStats.playerHealing += finalHealAmount;
@@ -783,8 +802,14 @@ export class BattleScene {
         const popup = document.createElement('div');
         popup.className = `combat-text-popup ${type}`;
         popup.textContent = text;
+
+        const id = `combat-text-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+        popup.id = id;
+
         targetElement.appendChild(popup);
         setTimeout(() => popup.remove(), 1200 * battleSpeeds[this.currentSpeedIndex].multiplier);
+
+        return id;
     }
 
     _updateStatusIcons(combatant){

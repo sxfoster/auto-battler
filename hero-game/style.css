@@ -468,6 +468,16 @@ button:disabled {
     opacity: 0;
   }
 }
+
+@keyframes linked-pulse {
+    0% { transform: translate(-50%, -50%) scale(1.1); filter: brightness(1.2); }
+    50% { transform: translate(-50%, -50%) scale(1.3); filter: brightness(1.8); }
+    100% { transform: translate(-50%, -50%) scale(1.1); filter: brightness(1.2); }
+}
+
+.combat-text-popup.log-linked-pulse {
+    animation: linked-pulse 0.3s ease-in-out;
+}
 .status-icon-container { position: absolute; top: -10px; right: -10px; display: flex; gap: 0.25rem; }
 .status-icon { width: 24px; height: 24px; background-color: rgba(0,0,0,0.7); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; border: 1px solid white; }
 
@@ -662,7 +672,7 @@ button:disabled {
 }
 
 #battle-log-summary i {
-    transition: transform 0.3s ease-in-out;
+    transition: transform 0.4s ease-in-out;
 }
 
 #battle-log-panel {
@@ -672,7 +682,6 @@ button:disabled {
     transform: translateX(-50%);
     width: 100%;
     max-width: 800px;
-    height: 40vh;
     background-color: rgba(17, 24, 39, 0.8);
     backdrop-filter: blur(8px);
     border-radius: 0.75rem 0.75rem 0 0;
@@ -682,15 +691,14 @@ button:disabled {
     display: flex;
     flex-direction: column;
     overflow-y: auto;
-    opacity: 0;
-    visibility: hidden;
-    transition: opacity 0.3s, visibility 0.3s;
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.4s ease-in-out;
     margin-bottom: -1px;
 }
 
 #battle-log-panel.expanded {
-    opacity: 1;
-    visibility: visible;
+    max-height: 40vh;
 }
 
 #battle-log-panel.expanded + #battle-log-summary i {
