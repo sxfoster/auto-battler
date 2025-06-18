@@ -146,7 +146,11 @@ export class BattleScene {
 
         // --- 1. Determine Turn Order (Initiative) ---
         this.turnQueue = [...this.state.filter(c => c.currentHp > 0)]
-            .sort((a, b) => b.speed - a.speed);
+            .sort((a, b) => {
+                const aSpeed = a.speed - (a.statusEffects.some(e => e.name === 'Slow') ? 1 : 0);
+                const bSpeed = b.speed - (b.statusEffects.some(e => e.name === 'Slow') ? 1 : 0);
+                return bSpeed - aSpeed;
+            });
 
         this._logToBattle('New round! Turn order: ' + this.turnQueue.map(c => c.heroData.name).join(', '), 'round');
 
@@ -171,7 +175,20 @@ export class BattleScene {
             return;
         }
 
-        // --- Check for incapacitating effects like Stun ---
+        // --- Check for incapacitating effects like Root or Stun ---
+        const rootEffect = attacker.statusEffects.find(e => e.name === 'Root');
+        if (rootEffect) {
+            this._logToBattle(`${attacker.heroData.name} is rooted and skips their turn!`, 'status');
+            rootEffect.turnsRemaining--;
+            if (rootEffect.turnsRemaining <= 0) {
+                attacker.statusEffects = attacker.statusEffects.filter(e => e !== rootEffect);
+            }
+            this._updateStatusIcons(attacker);
+            await sleep(800 * battleSpeeds[this.currentSpeedIndex].multiplier);
+            this.executeNextTurn();
+            return;
+        }
+
         const stunEffect = attacker.statusEffects.find(e => e.name === 'Stun');
         if (stunEffect) {
             this._logToBattle(`${attacker.heroData.name} is stunned and skips their turn!`, 'status');
@@ -185,11 +202,18 @@ export class BattleScene {
             return;
         }
 
-        // --- Apply damage over time effects like Poison or Burn ---
-        const dotEffects = attacker.statusEffects.filter(e => e.name === 'Poison' || e.name === 'Burn');
+        // --- Apply damage over time effects like Poison, Burn, or Bleed ---
+        const dotEffects = attacker.statusEffects.filter(e => e.name === 'Poison' || e.name === 'Burn' || e.name === 'Bleed');
         if (dotEffects.length > 0) {
             for (const effect of dotEffects) {
-                const dotDamage = effect.name === 'Poison' ? 2 : 3;
+                let dotDamage = 0;
+                if (effect.name === 'Poison') {
+                    dotDamage = 2;
+                } else if (effect.name === 'Burn') {
+                    dotDamage = 3;
+                } else if (effect.name === 'Bleed') {
+                    dotDamage = 1;
+                }
                 this._logToBattle(`${attacker.heroData.name} takes ${dotDamage} damage from ${effect.name}.`, 'status-damage');
                 this._dealDamage(attacker, attacker, dotDamage, false, false, null);
                 effect.turnsRemaining--;
@@ -197,6 +221,39 @@ export class BattleScene {
             attacker.statusEffects = attacker.statusEffects.filter(e => e.turnsRemaining > 0);
             this._updateStatusIcons(attacker);
             if (attacker.currentHp <= 0) {
+                await sleep(800 * battleSpeeds[this.currentSpeedIndex].multiplier);
+                this.executeNextTurn();
+                return;
+            }
+        }
+
+        // --- Decrement lingering effects like Slow or Vulnerable ---
+        const slowEffect = attacker.statusEffects.find(e => e.name === 'Slow');
+        if (slowEffect) {
+            slowEffect.turnsRemaining--;
+            if (slowEffect.turnsRemaining <= 0) {
+                attacker.statusEffects = attacker.statusEffects.filter(e => e !== slowEffect);
+            }
+        }
+        const vulnerableEffect = attacker.statusEffects.find(e => e.name === 'Vulnerable');
+        if (vulnerableEffect) {
+            vulnerableEffect.turnsRemaining--;
+            if (vulnerableEffect.turnsRemaining <= 0) {
+                attacker.statusEffects = attacker.statusEffects.filter(e => e !== vulnerableEffect);
+            }
+        }
+        this._updateStatusIcons(attacker);
+
+        const confuseEffect = attacker.statusEffects.find(e => e.name === 'Confuse');
+        if (confuseEffect) {
+            const miss = Math.random() < 0.5;
+            confuseEffect.turnsRemaining--;
+            if (confuseEffect.turnsRemaining <= 0) {
+                attacker.statusEffects = attacker.statusEffects.filter(e => e !== confuseEffect);
+            }
+            this._updateStatusIcons(attacker);
+            if (miss) {
+                this._logToBattle(`${attacker.heroData.name} is confused and misses their action!`, 'status');
                 await sleep(800 * battleSpeeds[this.currentSpeedIndex].multiplier);
                 this.executeNextTurn();
                 return;
@@ -219,7 +276,26 @@ export class BattleScene {
         const target = potentialTargets[0];
 
         const ability = attacker.abilityData;
-        if (ability && attacker.currentEnergy >= ability.energyCost) {
+        let useAbility = ability && attacker.currentEnergy >= ability.energyCost;
+        if (useAbility) {
+            const shockEffect = attacker.statusEffects.find(e => e.name === 'Shock');
+            if (shockEffect) {
+                const fail = Math.random() < 0.5;
+                shockEffect.turnsRemaining--;
+                if (shockEffect.turnsRemaining <= 0) {
+                    attacker.statusEffects = attacker.statusEffects.filter(e => e !== shockEffect);
+                }
+                if (fail) {
+                    this._logToBattle(`${attacker.heroData.name}'s ability fizzles due to Shock!`, 'status');
+                    this._updateStatusIcons(attacker);
+                    useAbility = false;
+                } else {
+                    this._updateStatusIcons(attacker);
+                }
+            }
+        }
+
+        if (useAbility) {
             attacker.currentEnergy -= ability.energyCost;
             updateEnergyDisplay(attacker, attacker.element);
             this._updateChargedStatus(attacker);
@@ -418,11 +494,17 @@ export class BattleScene {
             totalBlock = Math.max(0, totalBlock - 1);
         }
 
+        const isVulnerable = target.statusEffects.some(e => e.name === 'Vulnerable');
+
         if (target.heroData.abilities.some(a => a.name === 'Fortify')) {
             finalDamage = Math.max(0, finalDamage - 1);
         }
 
         finalDamage = Math.max(1, finalDamage - totalBlock);
+
+        if (isVulnerable) {
+            finalDamage += 1;
+        }
 
         const isOverkill = (target.currentHp - finalDamage) < -5;
 
@@ -432,6 +514,7 @@ export class BattleScene {
         } else {
             logMessage = `${attacker.heroData.name} hits ${target.heroData.name} for ${finalDamage} damage.`;
         }
+        if (isVulnerable) logMessage += ' (Vulnerable!)';
         if(isCritical) logMessage += ' CRITICAL HIT!';
         if(isOverkill) logMessage += ' OVERKILL!';
         const type = sourceAbility ? 'ability-result damage' : 'damage';
@@ -485,6 +568,9 @@ export class BattleScene {
     }
 
     _heal(target, amount, sourceAbility = null) {
+        if (target.statusEffects.some(e => e.name === 'Bleed')) {
+            amount = Math.floor(amount * 0.5);
+        }
         target.currentHp = Math.min(target.maxHp, target.currentHp + amount);
         const type = sourceAbility ? 'ability-result heal' : 'heal';
         this._logToBattle(`${target.heroData.name} heals ${amount} HP!`, type);
