@@ -34,6 +34,8 @@ export class BattleScene {
         this.battleLogContainer = this.element.querySelector('#battle-log-container');
         this.battleLogSummary = this.element.querySelector('#battle-log-summary');
         this.battleLogPanel = this.element.querySelector('#battle-log-panel');
+        this.logEntriesContainer = this.element.querySelector('#log-entries-container');
+        this.battleLogFilters = this.element.querySelector('#battle-log-filters');
         this.endScreen = this.element.querySelector('#end-screen');
         this.resultText = this.element.querySelector('#end-screen-result-text');
         this.resultsContainer = this.element.querySelector('#end-screen-results');
@@ -69,6 +71,25 @@ export class BattleScene {
 
         this._setupTooltipListeners();
 
+        if (this.battleLogFilters) {
+            this.battleLogFilters.addEventListener('click', (e) => {
+                const target = e.target.closest('.filter-btn');
+                if (!target) return;
+
+                const active = this.battleLogFilters.querySelector('.active');
+                if (active) active.classList.remove('active');
+                target.classList.add('active');
+
+                const filter = target.dataset.filter;
+                const entries = this.logEntriesContainer.querySelectorAll('.log-entry');
+                entries.forEach(entry => {
+                    const entryCategory = entry.dataset.category || 'info';
+                    const show = filter === 'all' || entryCategory === filter;
+                    entry.classList.toggle('hidden-by-filter', !show);
+                });
+            });
+        }
+
         if (this.battleLogPanel) {
             this.battleLogPanel.addEventListener('mouseover', (e) => {
                 const entry = e.target.closest('.log-entry');
@@ -99,7 +120,7 @@ export class BattleScene {
     }
     
     _logToBattle(message, type = 'info', combatant = null, priority = 1) {
-        if (!this.battleLogSummary || !this.battleLogPanel) return;
+        if (!this.battleLogSummary || !this.logEntriesContainer) return;
 
         const now = Date.now();
         const isLocked = now < this.summaryLockTime;
@@ -120,6 +141,12 @@ export class BattleScene {
         const entry = document.createElement('div');
         entry.className = `log-entry ${type}`;
         entry.textContent = message;
+
+        let category = 'info';
+        if (type.includes('damage')) category = 'combat';
+        if (type.includes('heal')) category = 'healing';
+        if (type.includes('status')) category = 'status';
+        entry.dataset.category = category;
 
         if (combatant && combatant.id) {
             entry.dataset.combatantId = combatant.id;
@@ -158,10 +185,12 @@ export class BattleScene {
         }
         entry.prepend(icon);
 
-        this.battleLogPanel.prepend(entry);
+        if (this.logEntriesContainer) {
+            this.logEntriesContainer.prepend(entry);
 
-        if (this.battleLogPanel.children.length > 50) {
-            this.battleLogPanel.lastChild.remove();
+            if (this.logEntriesContainer.children.length > 50) {
+                this.logEntriesContainer.lastChild.remove();
+            }
         }
     }
 
@@ -177,8 +206,8 @@ export class BattleScene {
         // --- UI Setup ---
         this.playerContainer.innerHTML = '';
         this.enemyContainer.innerHTML = '';
-        if (this.battleLogPanel) {
-            this.battleLogPanel.innerHTML = '';
+        if (this.logEntriesContainer) {
+            this.logEntriesContainer.innerHTML = '';
         }
         this.endScreen.classList.remove('visible', 'victory', 'defeat');
         this._logToBattle('The battle begins!', 'round', null, 2);
@@ -417,11 +446,11 @@ export class BattleScene {
             updateEnergyDisplay(attacker, attacker.element);
             this._updateChargedStatus(attacker);
 
-            this._announceAbility(ability.name);
+            this._showBattleAnnouncement(ability.name, 'ability');
             this._triggerArenaEffect('ability-zoom');
             this._logToBattle(`${attacker.heroData.name} unleashes ${ability.name}!`, 'ability-cast', attacker, 2);
 
-            // This is now redundant with the main _announceAbility call.
+            // This is now redundant with the main _showBattleAnnouncement call.
             /*
             if (ability.target === 'ALLIES') {
                 this._triggerTeamBanner(attacker.team, ability.name, 'buff');
@@ -632,7 +661,10 @@ export class BattleScene {
             logMessage = `${attacker.heroData.name} hits ${target.heroData.name} for ${finalDamage} damage.`;
         }
         if (isVulnerable) logMessage += ' (+1 Vulnerable)';
-        if(isCritical) logMessage += ' CRITICAL HIT!';
+        if(isCritical) {
+            logMessage += ' CRITICAL HIT!';
+            this._showBattleAnnouncement('Critical Hit!', 'critical');
+        }
         if(isOverkill) logMessage += ' OVERKILL!';
         const type = sourceAbility ? 'ability-result damage' : 'damage';
         this._logToBattle(logMessage, type, target, (isCritical || isSynergy) ? 2 : 1);
@@ -895,11 +927,19 @@ export class BattleScene {
         this._logToBattle(`Turn order updated!`, 'info', null, 1);
     }
 
-    _announceAbility(name){
-        if(!this.abilityAnnouncer) return;
-        this.abilityAnnouncer.textContent = name;
+    _showBattleAnnouncement(text, styleClass = '') {
+        if (!this.abilityAnnouncer) return;
+
+        this.abilityAnnouncer.textContent = text;
+        this.abilityAnnouncer.className = 'ability-announcer';
+        if (styleClass) {
+            this.abilityAnnouncer.classList.add(styleClass);
+        }
+
         this.abilityAnnouncer.classList.add('show');
-        setTimeout(() => this.abilityAnnouncer.classList.remove('show'), 1500);
+        setTimeout(() => {
+            this.abilityAnnouncer.classList.remove('show');
+        }, 1500);
     }
 
     _triggerArenaEffect(cls){
@@ -1074,6 +1114,7 @@ export class BattleScene {
     async _endBattle(didPlayerWin) {
         this.isBattleOver = true;
         const winningTeam = didPlayerWin ? 'player' : 'enemy';
+        this._showBattleAnnouncement(didPlayerWin ? 'VICTORY' : 'DEFEAT', didPlayerWin ? 'victory' : 'defeat');
         this._logToBattle(didPlayerWin ? "Player team is victorious!" : "Enemy team is victorious!", didPlayerWin ? 'victory' : 'defeat', null, 3);
 
         this.state.forEach(combatant => {

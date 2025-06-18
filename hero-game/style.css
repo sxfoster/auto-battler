@@ -742,6 +742,38 @@ button:disabled {
 .log-entry.victory { color: #fde047; font-weight: bold; text-transform: uppercase; }
 .log-entry.defeat { color: #ef4444; font-weight: bold; text-transform: uppercase; }
 
+#battle-log-filters {
+    display: flex;
+    gap: 0.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    margin-bottom: 1rem;
+}
+
+.filter-btn {
+    background-color: #4b5563;
+    border: 1px solid #6b7280;
+    color: white;
+    padding: 0.25rem 0.75rem;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.filter-btn:hover {
+    background-color: #6b7280;
+}
+
+.filter-btn.active {
+    background-color: #f59e0b;
+    color: #111827;
+    font-weight: 600;
+}
+
+.log-entry.hidden-by-filter {
+    display: none;
+}
+
 #screen-flash {
     position: fixed;
     top: 0;
@@ -1058,6 +1090,21 @@ button:disabled {
 }
 .ability-announcer.show {
     animation: announce-and-fade 1.5s ease-out forwards;
+}
+
+.ability-announcer.critical {
+    color: #f97316;
+    text-shadow: 0 0 10px #000, 0 0 20px #dc2626;
+}
+
+.ability-announcer.victory {
+    color: #fde047;
+    text-shadow: 0 0 10px #000, 0 0 20px #f59e0b;
+}
+
+.ability-announcer.defeat {
+    color: #ef4444;
+    text-shadow: 0 0 10px #000, 0 0 20px #b91c1c;
 }
 
 /* --- 1. Combo Counter Styles --- */
