@@ -178,12 +178,13 @@ export class BattleScene {
         // --- Check for incapacitating effects like Root or Stun ---
         const rootEffect = attacker.statusEffects.find(e => e.name === 'Root');
         if (rootEffect) {
-            this._logToBattle(`${attacker.heroData.name} is rooted and skips their turn!`, 'status');
+            this._logToBattle(`${attacker.heroData.name} is rooted and cannot act!`, 'status');
             rootEffect.turnsRemaining--;
             if (rootEffect.turnsRemaining <= 0) {
                 attacker.statusEffects = attacker.statusEffects.filter(e => e !== rootEffect);
             }
             this._updateStatusIcons(attacker);
+            attacker.element.classList.remove('is-active-turn', 'is-lunging');
             await sleep(800 * battleSpeeds[this.currentSpeedIndex].multiplier);
             this.executeNextTurn();
             return;
@@ -254,6 +255,7 @@ export class BattleScene {
             this._updateStatusIcons(attacker);
             if (miss) {
                 this._logToBattle(`${attacker.heroData.name} is confused and misses their action!`, 'status');
+                attacker.element.classList.remove('is-active-turn', 'is-lunging');
                 await sleep(800 * battleSpeeds[this.currentSpeedIndex].multiplier);
                 this.executeNextTurn();
                 return;
@@ -288,6 +290,7 @@ export class BattleScene {
                 if (fail) {
                     this._logToBattle(`${attacker.heroData.name}'s ability fizzles due to Shock!`, 'status');
                     this._updateStatusIcons(attacker);
+                    await sleep(800 * battleSpeeds[this.currentSpeedIndex].multiplier);
                     useAbility = false;
                 } else {
                     this._updateStatusIcons(attacker);
@@ -514,7 +517,7 @@ export class BattleScene {
         } else {
             logMessage = `${attacker.heroData.name} hits ${target.heroData.name} for ${finalDamage} damage.`;
         }
-        if (isVulnerable) logMessage += ' (Vulnerable!)';
+        if (isVulnerable) logMessage += ' (+1 Vulnerable)';
         if(isCritical) logMessage += ' CRITICAL HIT!';
         if(isOverkill) logMessage += ' OVERKILL!';
         const type = sourceAbility ? 'ability-result damage' : 'damage';
