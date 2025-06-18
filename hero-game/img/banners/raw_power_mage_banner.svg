@@ -1,9 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="800" height="150">
-<rect width="800" height="150" fill="url(#grad)" stroke="#6b21a8" stroke-width="10" rx="15"/>
-<defs>
-<linearGradient id="grad" x1="0" x2="0" y1="0" y2="1">
-<stop offset="0%" stop-color="#b39ddb"/>
-<stop offset="100%" stop-color="#512da8"/>
-</linearGradient>
-</defs>
-</svg>
