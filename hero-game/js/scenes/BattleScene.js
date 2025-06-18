@@ -41,6 +41,7 @@ export class BattleScene {
         this.speedButton = this.element.querySelector('#speed-cycle-button');
         this.arena = this.element.querySelector('.battle-arena');
         this.abilityAnnouncer = this.element.querySelector('#ability-announcer');
+        this.logEntriesContainer = this.element.querySelector('#log-entries-container');
         this.statusTooltip = document.getElementById('status-tooltip');
 
         this.comboCount = 0;
@@ -64,8 +65,27 @@ export class BattleScene {
 
         this._setupTooltipListeners();
 
-        if (this.battleLogPanel) {
-            this.battleLogPanel.addEventListener('mouseover', (e) => {
+        const filters = this.element.querySelector('#battle-log-filters');
+        if (filters) {
+            filters.addEventListener('click', (e) => {
+                const target = e.target.closest('.filter-btn');
+                if (!target) return;
+
+                filters.querySelector('.active')?.classList.remove('active');
+                target.classList.add('active');
+
+                const filter = target.dataset.filter;
+                const entries = this.logEntriesContainer?.querySelectorAll('.log-entry') || [];
+                entries.forEach(entry => {
+                    const entryCategory = entry.dataset.category || 'info';
+                    const show = filter === 'all' || entryCategory === filter;
+                    entry.classList.toggle('hidden-by-filter', !show);
+                });
+            });
+        }
+
+        if (this.logEntriesContainer) {
+            this.logEntriesContainer.addEventListener('mouseover', (e) => {
                 const entry = e.target.closest('.log-entry');
                 if (entry && entry.dataset.combatantId) {
                     const combatantElement = this.element.querySelector(`#${entry.dataset.combatantId}`);
@@ -75,7 +95,7 @@ export class BattleScene {
                 }
             });
 
-            this.battleLogPanel.addEventListener('mouseout', (e) => {
+            this.logEntriesContainer.addEventListener('mouseout', (e) => {
                 const entry = e.target.closest('.log-entry');
                 if (entry && entry.dataset.combatantId) {
                     const combatantElement = this.element.querySelector(`#${entry.dataset.combatantId}`);
@@ -94,7 +114,7 @@ export class BattleScene {
     }
     
     _logToBattle(message, type = 'info', combatant = null) {
-        if (!this.battleLogSummary || !this.battleLogPanel) return;
+        if (!this.battleLogSummary || !this.logEntriesContainer) return;
 
         this.battleLogSummary.innerHTML = `${message} <i class="fas fa-chevron-up"></i>`;
 
@@ -139,10 +159,16 @@ export class BattleScene {
         }
         entry.prepend(icon);
 
-        this.battleLogPanel.prepend(entry);
+        let category = 'info';
+        if (type.includes('damage')) category = 'combat';
+        if (type.includes('heal')) category = 'healing';
+        if (type.includes('status')) category = 'status';
+        entry.dataset.category = category;
 
-        if (this.battleLogPanel.children.length > 50) {
-            this.battleLogPanel.lastChild.remove();
+        this.logEntriesContainer.prepend(entry);
+
+        if (this.logEntriesContainer.children.length > 50) {
+            this.logEntriesContainer.lastChild.remove();
         }
     }
 
@@ -158,8 +184,8 @@ export class BattleScene {
         // --- UI Setup ---
         this.playerContainer.innerHTML = '';
         this.enemyContainer.innerHTML = '';
-        if (this.battleLogPanel) {
-            this.battleLogPanel.innerHTML = '';
+        if (this.logEntriesContainer) {
+            this.logEntriesContainer.innerHTML = '';
         }
         this.endScreen.classList.remove('visible', 'victory', 'defeat');
         this._logToBattle('The battle begins!', 'round');
@@ -386,11 +412,11 @@ export class BattleScene {
             updateEnergyDisplay(attacker, attacker.element);
             this._updateChargedStatus(attacker);
 
-            this._announceAbility(ability.name);
+            this._showBattleAnnouncement(ability.name, 'ability');
             this._triggerArenaEffect('ability-zoom');
             this._logToBattle(`${attacker.heroData.name} unleashes ${ability.name}!`, 'ability-cast', attacker);
 
-            // This is now redundant with the main _announceAbility call.
+            // This is now redundant with the main announcement call.
             /*
             if (ability.target === 'ALLIES') {
                 this._triggerTeamBanner(attacker.team, ability.name, 'buff');
@@ -568,6 +594,10 @@ export class BattleScene {
 
     _dealDamage(attacker, target, damage, isCritical = false, isSynergy = false, sourceAbility = null) {
         let finalDamage = damage;
+
+        if (isCritical) {
+            this._showBattleAnnouncement('Critical Hit!', 'critical');
+        }
 
         // --- Apply buffs and debuffs ---
         if (attacker.statusEffects.some(e => e.name === 'Attack Up')) {
@@ -851,11 +881,19 @@ export class BattleScene {
         this._logToBattle(`Turn order updated!`, 'info');
     }
 
-    _announceAbility(name){
-        if(!this.abilityAnnouncer) return;
-        this.abilityAnnouncer.textContent = name;
+    _showBattleAnnouncement(text, styleClass = '') {
+        if (!this.abilityAnnouncer) return;
+
+        this.abilityAnnouncer.textContent = text;
+        this.abilityAnnouncer.className = 'ability-announcer';
+        if (styleClass) {
+            this.abilityAnnouncer.classList.add(styleClass);
+        }
+
         this.abilityAnnouncer.classList.add('show');
-        setTimeout(() => this.abilityAnnouncer.classList.remove('show'), 1500);
+        setTimeout(() => {
+            this.abilityAnnouncer.classList.remove('show');
+        }, 1500);
     }
 
     _triggerArenaEffect(cls){
@@ -1030,6 +1068,7 @@ export class BattleScene {
     async _endBattle(didPlayerWin) {
         this.isBattleOver = true;
         const winningTeam = didPlayerWin ? 'player' : 'enemy';
+        this._showBattleAnnouncement(didPlayerWin ? 'VICTORY' : 'DEFEAT', didPlayerWin ? 'victory' : 'defeat');
         this._logToBattle(didPlayerWin ? "Player team is victorious!" : "Enemy team is victorious!", didPlayerWin ? 'victory' : 'defeat');
 
         this.state.forEach(combatant => {
