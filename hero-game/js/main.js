@@ -6,6 +6,7 @@ import { PackScene } from './scenes/PackScene.js';
 import { DraftScene } from './scenes/DraftScene.js';
 import { WeaponScene } from './scenes/WeaponScene.js';
 import { RecapScene } from './scenes/RecapScene.js';
+import { UpgradeScene } from './scenes/UpgradeScene.js';
 // RevealScene handles displaying cards from a pack
 import { RevealScene } from './scenes/RevealScene.js';
 import { BattleScene } from './scenes/BattleScene.js';
@@ -35,6 +36,7 @@ const sceneElements = {
     weapon: document.getElementById('weapon-scene'),
     battle: document.getElementById('battle-scene'),
     recap: document.getElementById('recap-scene'),
+    upgrade: document.getElementById('upgrade-scene'),
 };
 
 const confirmationBar = document.getElementById('confirmation-bar');
@@ -86,6 +88,11 @@ const draftScene = new DraftScene(sceneElements.draft, (selectedItem) => {
 const weaponScene = new WeaponScene(sceneElements.weapon, null, () => openPack());
 const recapScene = new RecapScene(sceneElements.recap, () => {
     advanceDraft();
+});
+
+const upgradeScene = new UpgradeScene(sceneElements.upgrade, (slot, newId) => {
+    gameState.draft.playerTeam[slot] = newId;
+    startNextBattle();
 });
 
 const battleScene = new BattleScene(sceneElements.battle, handleBattleComplete);
@@ -259,6 +266,30 @@ function generateWeaponChoices() {
 function generateArmorChoices() {
     const shuffled = [...allPossibleArmors].sort(() => 0.5 - Math.random());
     return shuffled.slice(0, 3);
+}
+
+function generateBonusPack(wins) {
+    const pool = [
+        ...allPossibleHeroes,
+        ...allPossibleWeapons,
+        ...allPossibleArmors,
+        ...allPossibleAbilities
+    ];
+
+    let allowedRarities;
+    if (wins <= 1) {
+        allowedRarities = ['Common'];
+    } else if (wins <= 3) {
+        allowedRarities = ['Common', 'Uncommon'];
+    } else if (wins <= 5) {
+        allowedRarities = ['Common', 'Uncommon', 'Rare'];
+    } else {
+        allowedRarities = ['Common', 'Uncommon', 'Rare', 'Epic'];
+    }
+
+    const filtered = pool.filter(item => allowedRarities.includes(item.rarity));
+    const shuffled = [...filtered].sort(() => 0.5 - Math.random());
+    return shuffled.slice(0, 6);
 }
 
 // Generate a fully equipped random champion
@@ -497,7 +528,9 @@ function handleBattleComplete(didPlayerWin) {
     if (gameState.tournament.wins >= 10 || gameState.tournament.losses >= 2) {
         endTournament();
     } else {
-        startNextBattle();
+        const bonusPack = generateBonusPack(gameState.tournament.wins);
+        upgradeScene.render(bonusPack, gameState.draft.playerTeam);
+        transitionToScene('upgrade');
     }
 }
 

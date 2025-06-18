@@ -129,11 +129,25 @@
                 <i class="fas fa-chevron-up"></i>
             </div>
         </div>
+
         <div id="end-screen">
             <h1 id="end-screen-result-text"></h1>
             <div id="end-screen-results"></div>
             <button id="play-again-button">Play Again</button>
         </div>
+    </div>
+
+    <!-- Post-battle upgrade scene -->
+    <div id="upgrade-scene" class="scene hidden">
+        <header class="text-center mb-6">
+            <h1 class="text-5xl font-cinzel tracking-wider">Choose an Upgrade</h1>
+            <p class="text-lg text-gray-400 mt-2">Select a reward then replace a matching item.</p>
+        </header>
+        <div id="upgrade-content" class="flex flex-col lg:flex-row gap-8">
+            <div id="upgrade-bonus-pool" class="grid grid-cols-3 gap-4"></div>
+            <div id="upgrade-team-roster" class="flex flex-col lg:flex-row gap-4"></div>
+        </div>
+        <button id="upgrade-continue-button" class="confirm-button mt-6 hidden">Continue</button>
     </div>
 
     <div id="tournament-end-screen" class="scene hidden flex-col items-center justify-center bg-gray-900 bg-opacity-90">
