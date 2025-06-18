@@ -432,7 +432,7 @@ For detailed information on the PvP Tournament Flowchart with XP System and PvP 
 For detailed information on Core Status Conditions, Buff Keywords, and Debuff Keywords, please refer to the separate **Game Mechanics Design Document - Status Effects**.
 
 ## 18. Progression & Economy
-For detailed information on Deck Size Progression, Card Power Curves, and Loot Distribution, please refer to the separate **Progression & Economy Design Document**.
+For detailed information on Deck Size Progression, Card Power Curves, and Loot Distribution, please refer to the separate **[Progression & Economy Design Document](progression_economy_gdd.md)**.
 
 ## 19. Auto-Battle Scene
 ### Scene Layout
