@@ -1134,6 +1134,48 @@ button:disabled {
     text-shadow: 0 0 10px #000, 0 0 20px #b91c1c;
 }
 
+#card-announcer-container {
+    position: absolute;
+    inset: 0;
+    z-index: 175;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+    background-color: transparent;
+    transition: background-color 0.3s ease, opacity 0.3s ease;
+}
+
+#card-announcer-container.is-announcing {
+    opacity: 1;
+    pointer-events: auto;
+    background-color: rgba(0, 0, 0, 0.6);
+}
+
+@keyframes fly-in-and-hold {
+    0% {
+        transform: translateY(100vh) scale(0.5) rotate(15deg);
+        opacity: 0;
+    }
+    40% {
+        transform: translateY(0) scale(1.05) rotate(-2deg);
+        opacity: 1;
+    }
+    80% {
+        transform: translateY(0) scale(1) rotate(0deg);
+        opacity: 1;
+    }
+    100% {
+        transform: translateY(0) scale(0.95);
+        opacity: 0;
+    }
+}
+
+#card-announcer-container.is-announcing .hero-card-container {
+    animation: fly-in-and-hold 1.5s ease-out forwards;
+}
+
 /* --- 1. Combo Counter Styles --- */
 .combo-counter {
     position: absolute;

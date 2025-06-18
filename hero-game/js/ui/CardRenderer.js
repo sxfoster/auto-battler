@@ -115,6 +115,35 @@ export function createDetailCard(item, selectionHandler) {
 }
 
 /**
+ * Creates a simplified card element for ability announcements.
+ * @param {object} ability - The ability data object.
+ * @returns {HTMLElement} The created card element.
+ */
+export function createAnnouncerCard(ability) {
+    const clone = detailCardTemplate.content.cloneNode(true);
+    const cardElement = clone.querySelector('.hero-card');
+    const rarityClass = (ability.rarity || 'common').toLowerCase().replace(' ', '-');
+    cardElement.classList.add(rarityClass);
+
+    clone.querySelector('.hero-art').style.backgroundImage = `url('${ability.art}')`;
+    clone.querySelector('.hero-name').textContent = ability.name;
+
+    const statsHtml = `
+        <div class="stat-block"><span class="stat-value">${ability.energyCost}</span><span class="stat-label">ENERGY</span></div>
+        <div class="stat-block"><span class="stat-value">${ability.category.toUpperCase()}</span><span class="stat-label">TYPE</span></div>
+    `;
+    const descriptionHtml = `
+        <div class="item-ability">
+            <p class="ability-description">${ability.effect}</p>
+        </div>`;
+
+    clone.querySelector('.hero-stats').innerHTML = statsHtml;
+    clone.querySelector('.hero-abilities').innerHTML = descriptionHtml;
+
+    return clone.querySelector('.hero-card-container');
+}
+
+/**
  * Creates a smaller, compact card for the battle scene.
  * @param {object} combatant - The combatant object from the battle state.
  * @returns {HTMLElement} The created card element.
