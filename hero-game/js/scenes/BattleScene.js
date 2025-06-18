@@ -1,4 +1,4 @@
-import { createCompactCard, updateHealthBar, updateEnergyDisplay, createAnnouncerCard } from '../ui/CardRenderer.js';
+import { createCompactCard, updateHealthBar, updateEnergyDisplay } from '../ui/CardRenderer.js';
 import { sleep } from '../utils.js';
 import { battleSpeeds, allPossibleMinions } from '../data.js';
 
@@ -45,7 +45,9 @@ export class BattleScene {
         this.abilityAnnouncer = this.element.querySelector('#ability-announcer');
         this.announcerMainText = this.element.querySelector('#announcer-main-text');
         this.announcerSubtitle = this.element.querySelector('#announcer-subtitle');
-        this.cardAnnouncerContainer = this.element.querySelector('#card-announcer-container');
+        this.bannerAnnouncerContainer = this.element.querySelector('#banner-announcer-container');
+        this.bannerContent = this.element.querySelector('#banner-content');
+        this.bannerText = this.element.querySelector('#banner-text');
         this.statusTooltip = document.getElementById('status-tooltip');
 
         this.comboCount = 0;
@@ -459,7 +461,7 @@ export class BattleScene {
             updateEnergyDisplay(attacker, attacker.element);
             this._updateChargedStatus(attacker);
 
-            this._showAbilityCard(ability);
+            this._showSignatureBanner(ability, attacker);
             this._triggerArenaEffect('ability-zoom');
             this._logToBattle(`${attacker.heroData.name} unleashes ${ability.name}!`, 'ability-cast', attacker, 2);
 
@@ -961,34 +963,20 @@ export class BattleScene {
         this._logToBattle(`Turn order updated!`, 'info', null, 1);
     }
 
-    _showAbilityCard(abilityData) {
-        if (!this.cardAnnouncerContainer || !abilityData) return;
+    _showSignatureBanner(abilityData, caster) {
+        if (!this.bannerAnnouncerContainer || !caster) return;
 
-        this.cardAnnouncerContainer.innerHTML = '';
-        const cardElement = createAnnouncerCard(abilityData);
+        const cssClassName = caster.heroData.class.toLowerCase().replace(/\s+/g, '-');
 
-        const maxTilt = 15;
-        cardElement.addEventListener('mousemove', (e) => {
-            const rect = cardElement.getBoundingClientRect();
-            const x = e.clientX - rect.left - rect.width / 2;
-            const y = e.clientY - rect.top - rect.height / 2;
+        this.bannerText.textContent = abilityData.name;
 
-            const rotateY = (x / (rect.width / 2)) * maxTilt;
-            const rotateX = (y / (rect.height / 2)) * -maxTilt;
+        this.bannerContent.className = '';
+        this.bannerContent.classList.add(cssClassName);
 
-            cardElement.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
-        });
-
-        cardElement.addEventListener('mouseleave', () => {
-            cardElement.style.transform = 'rotateX(0deg) rotateY(0deg)';
-        });
-
-        this.cardAnnouncerContainer.appendChild(cardElement);
-        this.cardAnnouncerContainer.classList.add('is-announcing');
+        this.bannerAnnouncerContainer.classList.add('is-announcing');
 
         setTimeout(() => {
-            this.cardAnnouncerContainer.classList.remove('is-announcing');
-            this.cardAnnouncerContainer.innerHTML = '';
+            this.bannerAnnouncerContainer.classList.remove('is-announcing');
         }, 1500);
     }
 
