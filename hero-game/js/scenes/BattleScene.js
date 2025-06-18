@@ -46,11 +46,16 @@ export class BattleScene {
         this.announcerMainText = this.element.querySelector('#announcer-main-text');
         this.announcerSubtitle = this.element.querySelector('#announcer-subtitle');
         this.cardAnnouncerContainer = this.element.querySelector('#card-announcer-container');
+        this.wordEffectContainer = this.element.querySelector('#word-effect-container');
         this.statusTooltip = document.getElementById('status-tooltip');
 
         // Queue state for ability announcer
         this.announcementQueue = [];
         this.isAnnouncementPlaying = false;
+
+        // Queue state for word effects
+        this.wordEffectQueue = [];
+        this.isWordEffectPlaying = false;
 
         this.comboCount = 0;
         this.lastAttackingTeam = null;
@@ -683,7 +688,7 @@ export class BattleScene {
         if (isOverkill) logMessage += ' OVERKILL!';
 
         if (isCritical) {
-            this._showBattleAnnouncement('Critical Hit!', 'critical');
+            this._triggerWordEffect('Critical Hit!', 'critical-text', 'animate-smash');
         }
 
         const logType = sourceAbility ? 'ability-result damage' : 'damage';
@@ -1027,6 +1032,30 @@ export class BattleScene {
         }, 1500);
     }
 
+    _processWordEffectQueue() {
+        if (this.isWordEffectPlaying || this.wordEffectQueue.length === 0) return;
+
+        this.isWordEffectPlaying = true;
+        const { text, styleClass, animationClass } = this.wordEffectQueue.shift();
+
+        const effectElement = document.createElement('h1');
+        effectElement.className = `word-effect-text ${styleClass} ${animationClass}`;
+        effectElement.textContent = text;
+
+        this.wordEffectContainer.appendChild(effectElement);
+
+        effectElement.addEventListener('animationend', () => {
+            effectElement.remove();
+            this.isWordEffectPlaying = false;
+            this._processWordEffectQueue();
+        }, { once: true });
+    }
+
+    _triggerWordEffect(text, styleClass, animationClass) {
+        this.wordEffectQueue.push({ text, styleClass, animationClass });
+        this._processWordEffectQueue();
+    }
+
     _triggerArenaEffect(cls){
         if(!this.arena) return;
         this.arena.classList.add(cls);
@@ -1200,7 +1229,11 @@ export class BattleScene {
         this.isBattleOver = true;
         const winningTeam = didPlayerWin ? 'player' : 'enemy';
         this._logToBattle(didPlayerWin ? "Player team is victorious!" : "Enemy team is victorious!", didPlayerWin ? 'victory' : 'defeat', null, 3);
-        this._showBattleAnnouncement(didPlayerWin ? 'VICTORY' : 'DEFEAT', didPlayerWin ? 'victory' : 'defeat');
+
+        const word = didPlayerWin ? 'Victory!' : 'Defeat!';
+        const style = didPlayerWin ? 'victory-text' : 'defeat-text';
+        const anim = didPlayerWin ? 'animate-forge' : 'animate-crumble';
+        this._triggerWordEffect(word, style, anim);
 
         this.state.forEach(combatant => {
             if (combatant.team === winningTeam && combatant.currentHp > 0) {
