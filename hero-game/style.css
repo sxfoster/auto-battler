@@ -225,19 +225,62 @@ button:disabled {
 /* -------------------------------------------------------------------------- */
 
 /* Define the variables for each class */
-.hero-card.raw-power-mage {
-    --frame-base-image: url('../img/frames/mage-base-texture.png');
-    --frame-inlay-image: url('../img/frames/mage-runic-inlay.png');
-    --title-plate-image: url('../img/frames/mage-title-plate.png');
-}
-
 .hero-card.stalwart-defender {
-    --frame-base-image: url('../img/frames/warrior-base-metal.png');
-    --frame-inlay-image: url('../img/frames/warrior-forged-inlay.png');
-    --title-plate-image: url('../img/frames/warrior-title-plate.png');
+    --frame-base-image: url('../img/frames/stalwart-defender-base.png');
+    --frame-inlay-image: url('../img/frames/stalwart-defender-inlay.png');
+    --title-plate-image: url('../img/frames/stalwart-defender-title-plate.png');
 }
 
-/* Additional hero class themes can be added here */
+.hero-card.holy-warrior {
+    --frame-base-image: url('../img/frames/holy-warrior-base.png');
+    --frame-inlay-image: url('../img/frames/holy-warrior-inlay.png');
+    --title-plate-image: url('../img/frames/holy-warrior-title-plate.png');
+}
+
+.hero-card.raging-fighter {
+    --frame-base-image: url('../img/frames/raging-fighter-base.png');
+    --frame-inlay-image: url('../img/frames/raging-fighter-inlay.png');
+    --title-plate-image: url('../img/frames/raging-fighter-title-plate.png');
+}
+
+.hero-card.raw-power-mage {
+    --frame-base-image: url('../img/frames/raw-power-mage-base.png');
+    --frame-inlay-image: url('../img/frames/raw-power-mage-inlay.png');
+    --title-plate-image: url('../img/frames/raw-power-mage-title-plate.png');
+}
+
+.hero-card.divine-healer {
+    --frame-base-image: url('../img/frames/divine-healer-base.png');
+    --frame-inlay-image: url('../img/frames/divine-healer-inlay.png');
+    --title-plate-image: url('../img/frames/divine-healer-title-plate.png');
+}
+
+.hero-card.nature-shaper {
+    --frame-base-image: url('../img/frames/nature-shaper-base.png');
+    --frame-inlay-image: url('../img/frames/nature-shaper-inlay.png');
+    --title-plate-image: url('../img/frames/nature-shaper-title-plate.png');
+}
+
+.hero-card.inspiring-artist {
+    --frame-base-image: url('../img/frames/inspiring-artist-base.png');
+    --frame-inlay-image: url('../img/frames/inspiring-artist-inlay.png');
+    --title-plate-image: url('../img/frames/inspiring-artist-title-plate.png');
+}
+
+.hero-card.wilderness-expert {
+    --frame-base-image: url('../img/frames/wilderness-expert-base.png');
+    --frame-inlay-image: url('../img/frames/wilderness-expert-inlay.png');
+    --title-plate-image: url('../img/frames/wilderness-expert-title-plate.png');
+}
+
+/* Specific VFX for Raw Power Mage */
+.hero-card.raw-power-mage .card-frame-vfx {
+    position: absolute;
+    inset: 0;
+    border-radius: 1.25rem; /* Match card rounding */
+    animation: pulse-glow 3s infinite ease-in-out;
+    z-index: 3; /* Ensure it's above inlay but below art/title */
+}
 
 /* Rarity glow effects */
 .card-rarity-glow {
@@ -1810,4 +1853,11 @@ button:disabled {
 /* Add a hover effect for the thumb */
 #battle-log-panel::-webkit-scrollbar-thumb:hover {
     background-color: #6b7280;
+}
+
+/* Keyframes for Raw Power Mage card frame VFX */
+@keyframes pulse-glow {
+  0% { box-shadow: 0 0 8px 2px rgba(167, 139, 250, 0.5); }
+  50% { box-shadow: 0 0 16px 6px rgba(192, 132, 252, 0.8); }
+  100% { box-shadow: 0 0 8px 2px rgba(167, 139, 250, 0.5); }
 }
