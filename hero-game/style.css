@@ -1134,7 +1134,7 @@ button:disabled {
     text-shadow: 0 0 10px #000, 0 0 20px #b91c1c;
 }
 
-#banner-announcer-container {
+#card-announcer-container {
     position: absolute;
     inset: 0;
     z-index: 175;
@@ -1142,65 +1142,44 @@ button:disabled {
     align-items: center;
     justify-content: center;
     opacity: 0;
-    visibility: hidden;
-    transition: opacity 0.3s, visibility 0.3s;
+    pointer-events: none;
+    background-color: transparent;
+    transition: background-color 0.3s ease, opacity 0.3s ease;
+    perspective: 1000px;
 }
 
-#banner-announcer-container.is-announcing {
+#card-announcer-container.is-announcing {
     opacity: 1;
-    visibility: visible;
+    pointer-events: auto;
+    background-color: rgba(0, 0, 0, 0.6);
 }
 
-#banner-content {
-    position: relative;
-    width: 800px;
-    height: 150px;
-    transform: scaleX(0);
+#card-announcer-container .hero-card-container {
+    transform-style: preserve-3d;
+    transition: transform 0.1s linear;
 }
 
-#banner-announcer-container.is-announcing #banner-content {
-    animation: unfurl-animation 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+@keyframes fly-in-and-hold {
+    0% {
+        transform: translateY(100vh) scale(0.6) rotateX(-60deg) rotateY(20deg);
+        opacity: 0;
+    }
+    40% {
+        transform: translateY(0) scale(1.05) rotateX(10deg) rotateY(-5deg);
+        opacity: 1;
+    }
+    80% {
+        transform: translateY(0) scale(1) rotateX(0deg) rotateY(0deg);
+        opacity: 1;
+    }
+    100% {
+        transform: translateY(0) scale(0.95);
+        opacity: 0;
+    }
 }
 
-@keyframes unfurl-animation {
-    0% { transform: scaleX(0); }
-    70% { transform: scaleX(1.05); }
-    100% { transform: scaleX(1); }
-}
-
-#banner-background {
-    position: absolute;
-    inset: 0;
-    background-size: 100% 100%;
-    background-repeat: no-repeat;
-}
-
-#banner-text {
-    position: relative;
-    color: white;
-    font-family: 'Cinzel', serif;
-    font-size: 2.5rem;
-    text-shadow: 2px 2px 4px rgba(0,0,0,0.7);
-    text-align: center;
-    line-height: 150px;
-    opacity: 0;
-    transition: opacity 0.3s ease-in 0.2s;
-}
-
-#banner-announcer-container.is-announcing #banner-text {
-    opacity: 1;
-}
-
-#banner-content.holy-warrior #banner-background {
-    background-image: url('img/banners/holy_warrior_banner.svg');
-}
-
-#banner-content.raging-fighter #banner-background {
-    background-image: url('img/banners/raging_fighter_banner.svg');
-}
-
-#banner-content.raw-power-mage #banner-background {
-    background-image: url('img/banners/raw_power_mage_banner.svg');
+#card-announcer-container.is-announcing .hero-card-container {
+    animation: fly-in-and-hold 1.5s ease-out forwards;
 }
 
 /* --- 1. Combo Counter Styles --- */
