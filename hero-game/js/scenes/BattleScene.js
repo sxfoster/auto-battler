@@ -148,6 +148,7 @@ export class BattleScene {
         if (type.includes('damage')) category = 'combat';
         if (type.includes('heal')) category = 'healing';
         if (type.includes('status')) category = 'status';
+        if (type.includes('energy')) category = 'utility';
         entry.dataset.category = category;
 
         if (combatant && combatant.id) {
@@ -164,6 +165,9 @@ export class BattleScene {
                 break;
             case 'heal':
                 icon.classList.add('fa-heart');
+                break;
+            case 'energy':
+                icon.classList.add('fa-bolt');
                 break;
             case 'ability-cast':
             case 'ability-result':
@@ -190,9 +194,6 @@ export class BattleScene {
         const container = this.logEntriesContainer || this.battleLogPanel;
         container.prepend(entry);
 
-        if (container.children.length > 50) {
-            container.lastChild.remove();
-        }
 
         if (linkedPopupId) {
             const popupElement = document.getElementById(linkedPopupId);
@@ -539,7 +540,7 @@ export class BattleScene {
             // --- Auto-attack after ability ---
             // --- GAIN ENERGY FOR ATTEMPTING ATTACK ---
             attacker.currentEnergy = Math.min(attacker.currentEnergy + 1, 10); // Cap energy at 10
-            this._logToBattle(`${attacker.heroData.name} gains 1 energy for attacking!`, 'heal', attacker, 1);
+            this._logToBattle(`${attacker.heroData.name} gains 1 energy for attacking!`, 'energy', attacker, 1);
             this._showCombatText(attacker.element, '+1', 'energy');
             updateEnergyDisplay(attacker, attacker.element);
             this._updateChargedStatus(attacker);
@@ -563,7 +564,7 @@ export class BattleScene {
         } else {
             // --- GAIN ENERGY FOR ATTEMPTING ATTACK ---
             attacker.currentEnergy = Math.min(attacker.currentEnergy + 1, 10); // Cap energy at 10
-            this._logToBattle(`${attacker.heroData.name} gains 1 energy for attacking!`, 'heal', attacker, 1);
+            this._logToBattle(`${attacker.heroData.name} gains 1 energy for attacking!`, 'energy', attacker, 1);
             this._showCombatText(attacker.element, '+1', 'energy');
             updateEnergyDisplay(attacker, attacker.element);
             this._updateChargedStatus(attacker);
