@@ -48,6 +48,10 @@ export class BattleScene {
         this.cardAnnouncerContainer = this.element.querySelector('#card-announcer-container');
         this.statusTooltip = document.getElementById('status-tooltip');
 
+        // Queue state for ability announcer
+        this.announcementQueue = [];
+        this.isAnnouncementPlaying = false;
+
         this.comboCount = 0;
         this.lastAttackingTeam = null;
         this.playerComboCounter = document.getElementById('player-combo-counter');
@@ -961,8 +965,14 @@ export class BattleScene {
         this._logToBattle(`Turn order updated!`, 'info', null, 1);
     }
 
-    _showAbilityCard(abilityData) {
-        if (!this.cardAnnouncerContainer || !abilityData) return;
+    _processAnnouncementQueue() {
+        if (this.isAnnouncementPlaying || this.announcementQueue.length === 0) {
+            return;
+        }
+
+        this.isAnnouncementPlaying = true;
+        const next = this.announcementQueue.shift();
+        const { abilityData } = next;
 
         this.cardAnnouncerContainer.innerHTML = '';
         const cardElement = createAnnouncerCard(abilityData);
@@ -972,10 +982,8 @@ export class BattleScene {
             const rect = cardElement.getBoundingClientRect();
             const x = e.clientX - rect.left - rect.width / 2;
             const y = e.clientY - rect.top - rect.height / 2;
-
             const rotateY = (x / (rect.width / 2)) * maxTilt;
             const rotateX = (y / (rect.height / 2)) * -maxTilt;
-
             cardElement.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
         });
 
@@ -986,10 +994,20 @@ export class BattleScene {
         this.cardAnnouncerContainer.appendChild(cardElement);
         this.cardAnnouncerContainer.classList.add('is-announcing');
 
+        const animationDuration = 1500;
         setTimeout(() => {
             this.cardAnnouncerContainer.classList.remove('is-announcing');
             this.cardAnnouncerContainer.innerHTML = '';
-        }, 1500);
+            this.isAnnouncementPlaying = false;
+            this._processAnnouncementQueue();
+        }, animationDuration);
+    }
+
+    _showAbilityCard(abilityData) {
+        if (!this.cardAnnouncerContainer || !abilityData) return;
+
+        this.announcementQueue.push({ abilityData });
+        this._processAnnouncementQueue();
     }
 
     _showBattleAnnouncement(text, styleClass = '', subtitle = '') {
