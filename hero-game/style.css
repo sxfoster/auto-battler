@@ -503,6 +503,97 @@ button:disabled {
     animation: buff-aura-pulse 2.5s ease-in-out infinite;
 }
 
+/* Stun Aura - Pulsing Gold */
+@keyframes stun-aura-pulse {
+    0% { box-shadow: 0 0 8px 2px #facc15, inset 0 0 6px #ca8a04; }
+    50% { box-shadow: 0 0 16px 4px #fde047, inset 0 0 10px #facc15; }
+    100% { box-shadow: 0 0 8px 2px #facc15, inset 0 0 6px #ca8a04; }
+}
+.compact-card.aura-stun::after {
+    animation: stun-aura-pulse 1.5s ease-in-out infinite;
+}
+
+/* Bleed Aura - Dripping Red */
+@keyframes bleed-aura-drip {
+    0% { box-shadow: 0 0 8px 2px #991b1b, inset 0 0 6px #7f1d1d; }
+    50% { box-shadow: 0 0 14px 4px #b91c1c, inset 0 0 10px #991b1b; }
+    100% { box-shadow: 0 0 8px 2px #991b1b, inset 0 0 6px #7f1d1d; }
+}
+.compact-card.aura-bleed::after {
+    animation: bleed-aura-drip 2s ease-in-out infinite;
+}
+
+/* Burn Aura - Fiery Shimmer */
+@keyframes burn-aura-shimmer {
+    0% { box-shadow: 0 0 10px 2px #f97316, inset 0 0 6px #b91c1c; }
+    50% { box-shadow: 0 0 18px 5px #fb923c, inset 0 0 10px #ef4444; }
+    100% { box-shadow: 0 0 10px 2px #f97316, inset 0 0 6px #b91c1c; }
+}
+.compact-card.aura-burn::after {
+    animation: burn-aura-shimmer 1.8s ease-in-out infinite;
+}
+
+/* Slow Aura - Icy Mist */
+@keyframes slow-aura-mist {
+    0% { box-shadow: 0 0 8px 2px #38bdf8, inset 0 0 6px #0ea5e9; }
+    50% { box-shadow: 0 0 14px 4px #7dd3fc, inset 0 0 10px #38bdf8; }
+    100% { box-shadow: 0 0 8px 2px #38bdf8, inset 0 0 6px #0ea5e9; }
+}
+.compact-card.aura-slow::after {
+    animation: slow-aura-mist 2s ease-in-out infinite;
+}
+
+/* Confuse Aura - Swirling Purple */
+@keyframes confuse-aura-swirl {
+    0% { box-shadow: 0 0 8px 2px #c084fc, inset 0 0 6px #9333ea; }
+    50% { box-shadow: 0 0 14px 4px #e879f9, inset 0 0 10px #c084fc; }
+    100% { box-shadow: 0 0 8px 2px #c084fc, inset 0 0 6px #9333ea; }
+}
+.compact-card.aura-confuse::after {
+    animation: confuse-aura-swirl 2.2s ease-in-out infinite;
+}
+
+/* Root Aura - Earthen Tendrils */
+@keyframes root-aura-grow {
+    0% { box-shadow: 0 0 8px 2px #4d7c0f, inset 0 0 6px #365314; }
+    50% { box-shadow: 0 0 14px 4px #65a30d, inset 0 0 10px #4d7c0f; }
+    100% { box-shadow: 0 0 8px 2px #4d7c0f, inset 0 0 6px #365314; }
+}
+.compact-card.aura-root::after {
+    animation: root-aura-grow 2s ease-in-out infinite;
+}
+
+/* Shock Aura - Electric Crackle */
+@keyframes shock-aura-crackle {
+    0% { box-shadow: 0 0 8px 2px #fde047, inset 0 0 6px #2563eb; }
+    50% { box-shadow: 0 0 16px 4px #facc15, inset 0 0 10px #3b82f6; }
+    100% { box-shadow: 0 0 8px 2px #fde047, inset 0 0 6px #2563eb; }
+}
+.compact-card.aura-shock::after {
+    animation: shock-aura-crackle 1.5s ease-in-out infinite;
+}
+
+/* Vulnerable Aura - Cracked Target */
+@keyframes vulnerable-aura-crack {
+    0% { box-shadow: 0 0 8px 2px #dc2626, inset 0 0 6px #991b1b; }
+    50% { box-shadow: 0 0 16px 4px #ef4444, inset 0 0 10px #dc2626; }
+    100% { box-shadow: 0 0 8px 2px #dc2626, inset 0 0 6px #991b1b; }
+}
+.compact-card.aura-vulnerable::after {
+    animation: vulnerable-aura-crack 2s ease-in-out infinite;
+    background-image: url('https://www.transparenttextures.com/patterns/cracks.png');
+}
+
+/* Defense Down Aura - Dull Pulse */
+@keyframes defense-down-aura {
+    0% { box-shadow: 0 0 8px 2px #6b7280, inset 0 0 6px #4b5563; }
+    50% { box-shadow: 0 0 14px 4px #9ca3af, inset 0 0 10px #6b7280; }
+    100% { box-shadow: 0 0 8px 2px #6b7280, inset 0 0 6px #4b5563; }
+}
+.compact-card.aura-defense-down::after {
+    animation: defense-down-aura 2s ease-in-out infinite;
+}
+
 @keyframes charged-aura-crackle {
     0% { box-shadow: 0 0 10px 2px #3b82f6, 0 0 5px #fff inset; }
     50% { box-shadow: 0 0 16px 4px #60a5fa, 0 0 8px #fff inset; }
