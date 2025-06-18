@@ -1,4 +1,4 @@
-import { createCompactCard, updateHealthBar, updateEnergyDisplay } from '../ui/CardRenderer.js';
+import { createCompactCard, updateHealthBar, updateEnergyDisplay, createAnnouncerCard } from '../ui/CardRenderer.js';
 import { sleep } from '../utils.js';
 import { battleSpeeds, allPossibleMinions } from '../data.js';
 
@@ -45,7 +45,17 @@ export class BattleScene {
         this.abilityAnnouncer = this.element.querySelector('#ability-announcer');
         this.announcerMainText = this.element.querySelector('#announcer-main-text');
         this.announcerSubtitle = this.element.querySelector('#announcer-subtitle');
+        this.cardAnnouncerContainer = this.element.querySelector('#card-announcer-container');
+        this.wordEffectContainer = this.element.querySelector('#word-effect-container');
         this.statusTooltip = document.getElementById('status-tooltip');
+
+        // Queue state for ability announcer
+        this.announcementQueue = [];
+        this.isAnnouncementPlaying = false;
+
+        // Queue state for word effects
+        this.wordEffectQueue = [];
+        this.isWordEffectPlaying = false;
 
         this.comboCount = 0;
         this.lastAttackingTeam = null;
@@ -458,7 +468,7 @@ export class BattleScene {
             updateEnergyDisplay(attacker, attacker.element);
             this._updateChargedStatus(attacker);
 
-            this._showBattleAnnouncement(ability.name, 'ability', ability.effect);
+            this._showAbilityCard(ability);
             this._triggerArenaEffect('ability-zoom');
             this._logToBattle(`${attacker.heroData.name} unleashes ${ability.name}!`, 'ability-cast', attacker, 2);
 
@@ -678,7 +688,7 @@ export class BattleScene {
         if (isOverkill) logMessage += ' OVERKILL!';
 
         if (isCritical) {
-            this._showBattleAnnouncement('Critical Hit!', 'critical');
+            this._triggerWordEffect('Critical Hit!', 'critical-text', 'animate-smash');
         }
 
         const logType = sourceAbility ? 'ability-result damage' : 'damage';
@@ -960,6 +970,51 @@ export class BattleScene {
         this._logToBattle(`Turn order updated!`, 'info', null, 1);
     }
 
+    _processAnnouncementQueue() {
+        if (this.isAnnouncementPlaying || this.announcementQueue.length === 0) {
+            return;
+        }
+
+        this.isAnnouncementPlaying = true;
+        const next = this.announcementQueue.shift();
+        const { abilityData } = next;
+
+        this.cardAnnouncerContainer.innerHTML = '';
+        const cardElement = createAnnouncerCard(abilityData);
+
+        const maxTilt = 15;
+        cardElement.addEventListener('mousemove', (e) => {
+            const rect = cardElement.getBoundingClientRect();
+            const x = e.clientX - rect.left - rect.width / 2;
+            const y = e.clientY - rect.top - rect.height / 2;
+            const rotateY = (x / (rect.width / 2)) * maxTilt;
+            const rotateX = (y / (rect.height / 2)) * -maxTilt;
+            cardElement.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+        });
+
+        cardElement.addEventListener('mouseleave', () => {
+            cardElement.style.transform = 'rotateX(0deg) rotateY(0deg)';
+        });
+
+        this.cardAnnouncerContainer.appendChild(cardElement);
+        this.cardAnnouncerContainer.classList.add('is-announcing');
+
+        const animationDuration = 1500;
+        setTimeout(() => {
+            this.cardAnnouncerContainer.classList.remove('is-announcing');
+            this.cardAnnouncerContainer.innerHTML = '';
+            this.isAnnouncementPlaying = false;
+            this._processAnnouncementQueue();
+        }, animationDuration);
+    }
+
+    _showAbilityCard(abilityData) {
+        if (!this.cardAnnouncerContainer || !abilityData || this.isBattleOver) return;
+
+        this.announcementQueue.push({ abilityData });
+        this._processAnnouncementQueue();
+    }
+
     _showBattleAnnouncement(text, styleClass = '', subtitle = '') {
         if (!this.abilityAnnouncer) return;
 
@@ -975,6 +1030,30 @@ export class BattleScene {
         setTimeout(() => {
             this.abilityAnnouncer.classList.remove('show');
         }, 1500);
+    }
+
+    _processWordEffectQueue() {
+        if (this.isWordEffectPlaying || this.wordEffectQueue.length === 0) return;
+
+        this.isWordEffectPlaying = true;
+        const { text, styleClass, animationClass } = this.wordEffectQueue.shift();
+
+        const effectElement = document.createElement('h1');
+        effectElement.className = `word-effect-text ${styleClass} ${animationClass}`;
+        effectElement.textContent = text;
+
+        this.wordEffectContainer.appendChild(effectElement);
+
+        effectElement.addEventListener('animationend', () => {
+            effectElement.remove();
+            this.isWordEffectPlaying = false;
+            this._processWordEffectQueue();
+        }, { once: true });
+    }
+
+    _triggerWordEffect(text, styleClass, animationClass) {
+        this.wordEffectQueue.push({ text, styleClass, animationClass });
+        this._processWordEffectQueue();
     }
 
     _triggerArenaEffect(cls){
@@ -1148,9 +1227,15 @@ export class BattleScene {
 
     async _endBattle(didPlayerWin) {
         this.isBattleOver = true;
+        // Clear any pending ability announcements but let the current one finish
+        this.announcementQueue = [];
         const winningTeam = didPlayerWin ? 'player' : 'enemy';
         this._logToBattle(didPlayerWin ? "Player team is victorious!" : "Enemy team is victorious!", didPlayerWin ? 'victory' : 'defeat', null, 3);
-        this._showBattleAnnouncement(didPlayerWin ? 'VICTORY' : 'DEFEAT', didPlayerWin ? 'victory' : 'defeat');
+
+        const word = didPlayerWin ? 'Victory!' : 'Defeat!';
+        const style = didPlayerWin ? 'victory-text' : 'defeat-text';
+        const anim = didPlayerWin ? 'animate-forge' : 'animate-crumble';
+        this._triggerWordEffect(word, style, anim);
 
         this.state.forEach(combatant => {
             if (combatant.team === winningTeam && combatant.currentHp > 0) {

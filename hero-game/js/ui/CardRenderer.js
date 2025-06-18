@@ -13,6 +13,11 @@ export function createDetailCard(item, selectionHandler) {
     const rarityClass = (item.rarity || 'common').toLowerCase().replace(' ', '-');
     cardElement.classList.add(rarityClass);
 
+    if (item.class) {
+        const heroClassString = item.class.toLowerCase().replace(/\s+/g, '-');
+        cardElement.classList.add(heroClassString);
+    }
+
     if (item.rarity === 'Epic') { // Changed 'Ultra Rare' to 'Epic'
         clone.querySelector('.shimmer-effect').style.display = 'block';
     }
@@ -112,6 +117,42 @@ export function createDetailCard(item, selectionHandler) {
 
     // The prototype returned the container, which is good practice
     return clone.querySelector('.hero-card-container');
+}
+
+/**
+ * Creates a simplified card element for ability announcements.
+ * @param {object} ability - The ability data object.
+ * @returns {HTMLElement} The created card element.
+ */
+export function createAnnouncerCard(ability) {
+    const clone = detailCardTemplate.content.cloneNode(true);
+    const cardElement = clone.querySelector('.hero-card');
+    const container = clone.querySelector('.hero-card-container');
+    const rarityClass = (ability.rarity || 'common').toLowerCase().replace(' ', '-');
+    cardElement.classList.add(rarityClass);
+
+    if (ability.elementType) {
+        const overlay = document.createElement('div');
+        overlay.className = `vfx-overlay vfx-${ability.elementType}`;
+        cardElement.prepend(overlay);
+    }
+
+    clone.querySelector('.hero-art').style.backgroundImage = `url('${ability.art}')`;
+    clone.querySelector('.hero-name').textContent = ability.name;
+
+    const statsHtml = `
+        <div class="stat-block"><span class="stat-value">${ability.energyCost}</span><span class="stat-label">ENERGY</span></div>
+        <div class="stat-block"><span class="stat-value">${ability.category.toUpperCase()}</span><span class="stat-label">TYPE</span></div>
+    `;
+    const descriptionHtml = `
+        <div class="item-ability">
+            <p class="ability-description">${ability.effect}</p>
+        </div>`;
+
+    clone.querySelector('.hero-stats').innerHTML = statsHtml;
+    clone.querySelector('.hero-abilities').innerHTML = descriptionHtml;
+
+    return container;
 }
 
 /**

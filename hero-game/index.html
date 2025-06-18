@@ -107,6 +107,11 @@
             <h1 id="announcer-main-text"></h1>
             <p id="announcer-subtitle"></p>
         </div>
+        <div id="word-effect-container">
+            <!-- Word effects like "CRITICAL!" will be injected here by JS -->
+        </div>
+        <div id="card-announcer-container">
+        </div>
 
         <div id="battle-log-container">
             <div id="battle-log-panel">
@@ -146,8 +151,18 @@
         <div class="hero-card-container">
             <div class="hero-card">
                 <div class="shimmer-effect" style="display: none;"></div>
-                <div class="hero-art"></div>
-                <h3 class="hero-name font-cinzel"></h3>
+                <div class="card-frame-base"></div>
+                <div class="card-frame-inlay"></div>
+                <div class="card-rarity-glow"></div>
+
+                <div class="hero-art-container">
+                    <div class="hero-art"></div>
+                </div>
+
+                <div class="hero-title-plate">
+                    <h3 class="hero-name font-cinzel"></h3>
+                </div>
+
                 <div class="hero-stats">
                     <div class="stat-block hp-stat">
                         <span class="stat-value"></span><span class="stat-label">HP</span>
