@@ -1,3 +1,5 @@
+import { makeCardInteractive } from './CardInteraction.js';
+
 const detailCardTemplate = document.getElementById('detail-card-template');
 const compactCardTemplate = document.getElementById('compact-card-template');
 
@@ -23,8 +25,17 @@ export function createDetailCard(item, selectionHandler) {
     }
 
     // Set universal properties
-    clone.querySelector('.hero-art').style.backgroundImage = `url('${item.art}')`;
+    const artElement = clone.querySelector('.hero-art');
     clone.querySelector('.hero-name').textContent = item.name;
+
+    if (item.name === 'Recruit') {
+        const artBase = item.art.replace('.png', '');
+        clone.querySelector('.hero-art-bg').style.backgroundImage = `url('${artBase}_bg.png')`;
+        clone.querySelector('.hero-art-fg').style.backgroundImage = `url('${artBase}_fg.png')`;
+        makeCardInteractive(cardElement);
+    } else {
+        artElement.style.backgroundImage = `url('${item.art}')`;
+    }
 
     let statsHtml = '';
     let descriptionHtml = '';
