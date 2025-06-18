@@ -119,11 +119,7 @@ function openPack() {
             const heroId = gameState.draft.playerTeam[heroSlot];
             const heroClass = allPossibleHeroes.find(h => h.id === heroId).class;
             dataSource = allPossibleAbilities.filter(a => a.class === heroClass);
-            const shuffledAbilities = [...dataSource].sort(() => 0.5 - Math.random());
-            choices = shuffledAbilities.slice(0, 3);
-            transitionToScene('reveal');
-            revealScene.startReveal(choices);
-            return;
+            break;
         }
         case 'WEAPON':
             dataSource = allPossibleWeapons;
@@ -133,7 +129,20 @@ function openPack() {
             break;
     }
 
-    const shuffled = [...dataSource].sort(() => 0.5 - Math.random());
+    const wins = gameState.tournament.wins;
+    let allowedRarities;
+    if (wins <= 1) {
+        allowedRarities = ['Common'];
+    } else if (wins <= 3) {
+        allowedRarities = ['Common', 'Uncommon'];
+    } else if (wins <= 5) {
+        allowedRarities = ['Common', 'Uncommon', 'Rare'];
+    } else {
+        allowedRarities = ['Common', 'Uncommon', 'Rare', 'Epic'];
+    }
+
+    const filteredDataSource = dataSource.filter(item => allowedRarities.includes(item.rarity));
+    const shuffled = [...filteredDataSource].sort(() => 0.5 - Math.random());
     choices = shuffled.slice(0, 3);
     transitionToScene('reveal');
     revealScene.startReveal(choices);
