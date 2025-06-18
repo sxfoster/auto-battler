@@ -54,6 +54,11 @@ export class BattleScene {
         this.currentSpeedIndex = 0;
         this.isBattleOver = false;
 
+        // Round tracking and summary bar state
+        this.roundStats = {};
+        this.summaryLockTime = 0;
+        this.summaryLockPriority = 0;
+
         this.speedButton.addEventListener('click', () => this._cycleSpeed());
 
         if (this.battleLogSummary) {
@@ -93,10 +98,24 @@ export class BattleScene {
         this.speedButton.textContent = `Speed: ${newSpeed.label}`;
     }
     
-    _logToBattle(message, type = 'info', combatant = null) {
+    _logToBattle(message, type = 'info', combatant = null, priority = 1) {
         if (!this.battleLogSummary || !this.battleLogPanel) return;
 
-        this.battleLogSummary.innerHTML = `${message} <i class="fas fa-chevron-up"></i>`;
+        const now = Date.now();
+        const isLocked = now < this.summaryLockTime;
+
+        if (!isLocked || priority > this.summaryLockPriority) {
+            this.battleLogSummary.innerHTML = `${message} <i class="fas fa-chevron-up"></i>`;
+
+            if (priority >= 2) {
+                const lockDuration = priority === 3 ? 2500 : 1500;
+                this.summaryLockTime = now + lockDuration;
+                this.summaryLockPriority = priority;
+            } else {
+                this.summaryLockTime = 0;
+                this.summaryLockPriority = 0;
+            }
+        }
 
         const entry = document.createElement('div');
         entry.className = `log-entry ${type}`;
@@ -162,7 +181,7 @@ export class BattleScene {
             this.battleLogPanel.innerHTML = '';
         }
         this.endScreen.classList.remove('visible', 'victory', 'defeat');
-        this._logToBattle('The battle begins!', 'round');
+        this._logToBattle('The battle begins!', 'round', null, 2);
 
         // --- 1. Initially hide the teams to prepare for slide-in ---
         this.playerContainer.style.opacity = 0;
@@ -227,6 +246,15 @@ export class BattleScene {
     runCombatRound() {
         if (this.isBattleOver) return;
 
+        this.roundStats = {
+            roundNumber: (this.roundStats.roundNumber || 0) + 1,
+            playerDamage: 0,
+            enemyDamage: 0,
+            playerHealing: 0,
+            enemyHealing: 0
+        };
+        this._logToBattle(`Round ${this.roundStats.roundNumber} Begins`, 'round', null, 1);
+
         // --- 1. Determine Turn Order (Initiative) ---
         this.turnQueue = [...this.state.filter(c => c.currentHp > 0)]
             .sort((a, b) => {
@@ -235,7 +263,7 @@ export class BattleScene {
                 return bSpeed - aSpeed;
             });
 
-        this._logToBattle('New round! Turn order: ' + this.turnQueue.map(c => c.heroData.name).join(', '), 'round');
+        this._logToBattle('Turn order: ' + this.turnQueue.map(c => c.heroData.name).join(', '), 'round', null, 1);
 
         // --- 2. Start Executing Turns ---
         this.executeNextTurn();
@@ -247,7 +275,10 @@ export class BattleScene {
         this.state.forEach(c => c.element.classList.remove('is-active-turn'));
 
         if (this.turnQueue.length === 0) {
-            await sleep(1000 * battleSpeeds[this.currentSpeedIndex].multiplier);
+            const summaryMessage = `Round ${this.roundStats.roundNumber} Summary: Player dealt ${this.roundStats.playerDamage} damage and healed ${this.roundStats.playerHealing}. Enemy dealt ${this.roundStats.enemyDamage} damage and healed ${this.roundStats.enemyHealing}.`;
+            this._logToBattle(summaryMessage, 'round-summary', null, 2);
+
+            await sleep(1500 * battleSpeeds[this.currentSpeedIndex].multiplier);
             this.runCombatRound();
             return;
         }
@@ -261,7 +292,7 @@ export class BattleScene {
         // --- Check for incapacitating effects like Root or Stun ---
         const rootEffect = attacker.statusEffects.find(e => e.name === 'Root');
         if (rootEffect) {
-            this._logToBattle(`${attacker.heroData.name} is rooted and cannot act!`, 'status', attacker);
+            this._logToBattle(`${attacker.heroData.name} is rooted and cannot act!`, 'status', attacker, 2);
             rootEffect.turnsRemaining--;
             if (rootEffect.turnsRemaining <= 0) {
                 attacker.statusEffects = attacker.statusEffects.filter(e => e !== rootEffect);
@@ -275,7 +306,7 @@ export class BattleScene {
 
         const stunEffect = attacker.statusEffects.find(e => e.name === 'Stun');
         if (stunEffect) {
-            this._logToBattle(`${attacker.heroData.name} is stunned and skips their turn!`, 'status', attacker);
+            this._logToBattle(`${attacker.heroData.name} is stunned and skips their turn!`, 'status', attacker, 2);
             stunEffect.turnsRemaining--;
             if (stunEffect.turnsRemaining <= 0) {
                 attacker.statusEffects = attacker.statusEffects.filter(e => e !== stunEffect);
@@ -298,7 +329,7 @@ export class BattleScene {
                 } else if (effect.name === 'Bleed') {
                     dotDamage = 1;
                 }
-                this._logToBattle(`${attacker.heroData.name} takes ${dotDamage} damage from ${effect.name}.`, 'status-damage', attacker);
+                this._logToBattle(`${attacker.heroData.name} takes ${dotDamage} damage from ${effect.name}.`, 'status-damage', attacker, 1);
                 this._dealDamage(attacker, attacker, dotDamage, false, false, null);
                 effect.turnsRemaining--;
             }
@@ -337,7 +368,7 @@ export class BattleScene {
             }
             this._updateStatusIcons(attacker);
             if (miss) {
-                this._logToBattle(`${attacker.heroData.name} is confused and misses their action!`, 'status', attacker);
+                this._logToBattle(`${attacker.heroData.name} is confused and misses their action!`, 'status', attacker, 2);
                 attacker.element.classList.remove('is-active-turn', 'is-lunging');
                 await sleep(800 * battleSpeeds[this.currentSpeedIndex].multiplier);
                 this.executeNextTurn();
@@ -371,7 +402,7 @@ export class BattleScene {
                     attacker.statusEffects = attacker.statusEffects.filter(e => e !== shockEffect);
                 }
                 if (fail) {
-                    this._logToBattle(`${attacker.heroData.name}'s ability fizzles due to Shock!`, 'status', attacker);
+                    this._logToBattle(`${attacker.heroData.name}'s ability fizzles due to Shock!`, 'status', attacker, 2);
                     this._updateStatusIcons(attacker);
                     await sleep(800 * battleSpeeds[this.currentSpeedIndex].multiplier);
                     useAbility = false;
@@ -388,7 +419,7 @@ export class BattleScene {
 
             this._announceAbility(ability.name);
             this._triggerArenaEffect('ability-zoom');
-            this._logToBattle(`${attacker.heroData.name} unleashes ${ability.name}!`, 'ability-cast', attacker);
+            this._logToBattle(`${attacker.heroData.name} unleashes ${ability.name}!`, 'ability-cast', attacker, 2);
 
             // This is now redundant with the main _announceAbility call.
             /*
@@ -468,14 +499,14 @@ export class BattleScene {
             // --- Auto-attack after ability ---
             // --- GAIN ENERGY FOR ATTEMPTING ATTACK ---
             attacker.currentEnergy = Math.min(attacker.currentEnergy + 1, 10); // Cap energy at 10
-            this._logToBattle(`${attacker.heroData.name} gains 1 energy for attacking!`, 'heal', attacker);
+            this._logToBattle(`${attacker.heroData.name} gains 1 energy for attacking!`, 'heal', attacker, 1);
             this._showCombatText(attacker.element, '+1', 'energy');
             updateEnergyDisplay(attacker, attacker.element);
             this._updateChargedStatus(attacker);
             await sleep(400 * battleSpeeds[this.currentSpeedIndex].multiplier);
             // --- END ENERGY GAIN ---
 
-            this._logToBattle(`${attacker.heroData.name} also performs a basic attack!`, 'info', attacker);
+            this._logToBattle(`${attacker.heroData.name} also performs a basic attack!`, 'info', attacker, 1);
             await this._fireProjectile(attacker.element, target.element);
             if (attacker.currentHp <= 0) {
                 this.executeNextTurn();
@@ -492,14 +523,14 @@ export class BattleScene {
         } else {
             // --- GAIN ENERGY FOR ATTEMPTING ATTACK ---
             attacker.currentEnergy = Math.min(attacker.currentEnergy + 1, 10); // Cap energy at 10
-            this._logToBattle(`${attacker.heroData.name} gains 1 energy for attacking!`, 'heal', attacker);
+            this._logToBattle(`${attacker.heroData.name} gains 1 energy for attacking!`, 'heal', attacker, 1);
             this._showCombatText(attacker.element, '+1', 'energy');
             updateEnergyDisplay(attacker, attacker.element);
             this._updateChargedStatus(attacker);
             await sleep(400 * battleSpeeds[this.currentSpeedIndex].multiplier);
             // --- END ENERGY GAIN ---
 
-            this._logToBattle(`${attacker.heroData.name} attacks ${target.heroData.name}!`, 'info', attacker);
+            this._logToBattle(`${attacker.heroData.name} attacks ${target.heroData.name}!`, 'info', attacker, 1);
 
             const isMeleeClash = (attacker.position === 0 && target.position === 0);
 
@@ -576,7 +607,7 @@ export class BattleScene {
 
         let totalBlock = (target.block || 0);
         if (target.statusEffects.some(e => e.name === 'Defense Down' || e.name === 'Burn')) {
-            this._logToBattle(`${target.heroData.name}'s defense is lowered!`, 'status', target);
+            this._logToBattle(`${target.heroData.name}'s defense is lowered!`, 'status', target, 1);
             totalBlock = Math.max(0, totalBlock - 1);
         }
 
@@ -604,7 +635,13 @@ export class BattleScene {
         if(isCritical) logMessage += ' CRITICAL HIT!';
         if(isOverkill) logMessage += ' OVERKILL!';
         const type = sourceAbility ? 'ability-result damage' : 'damage';
-        this._logToBattle(logMessage, type, target);
+        this._logToBattle(logMessage, type, target, (isCritical || isSynergy) ? 2 : 1);
+
+        if (target.team === 'player') {
+            this.roundStats.enemyDamage += finalDamage;
+        } else {
+            this.roundStats.playerDamage += finalDamage;
+        }
 
         target.currentHp = Math.max(0, target.currentHp - finalDamage);
 
@@ -637,7 +674,7 @@ export class BattleScene {
 
         if (target.currentHp <= 0) {
             target.element.classList.remove('is-critical-health');
-            this._logToBattle(`${target.heroData.name} has been defeated!`, 'defeat', target);
+            this._logToBattle(`${target.heroData.name} has been defeated!`, 'defeat', target, 3);
             target.element.classList.add('is-defeated');
 
             setTimeout(() => {
@@ -657,23 +694,30 @@ export class BattleScene {
         let finalHealAmount = amount;
         if (target.statusEffects.some(e => e.name === 'Bleed')) {
             finalHealAmount = Math.floor(amount * 0.5);
-            this._logToBattle(`${target.heroData.name}'s healing is reduced by Bleed to ${finalHealAmount} HP!`, 'status', target);
+            this._logToBattle(`${target.heroData.name}'s healing is reduced by Bleed to ${finalHealAmount} HP!`, 'status', target, 2);
         }
         target.currentHp = Math.min(target.maxHp, target.currentHp + finalHealAmount);
         const type = sourceAbility ? 'ability-result heal' : 'heal';
-        this._logToBattle(`${target.heroData.name} heals ${finalHealAmount} HP!`, type, target);
+        this._logToBattle(`${target.heroData.name} heals ${finalHealAmount} HP!`, type, target, 1);
+
+        if (target.team === 'player') {
+            this.roundStats.playerHealing += finalHealAmount;
+        } else {
+            this.roundStats.enemyHealing += finalHealAmount;
+        }
         updateHealthBar(target, target.element);
     }
 
     _applyStatus(target, statusName, duration, sourceAbility = null){
         const type = sourceAbility ? 'ability-result status' : 'status';
+        const priority = (statusName === 'Stun' || statusName === 'Root') ? 2 : 1;
 
         const existing = target.statusEffects.find(e => e.name === statusName);
         if (existing) {
             existing.turnsRemaining = Math.min(MAX_DURATION_CAP, existing.turnsRemaining + duration);
-            this._logToBattle(`${target.heroData.name}'s ${statusName} duration was extended to ${existing.turnsRemaining} turns.`, type, target);
+            this._logToBattle(`${target.heroData.name}'s ${statusName} duration was extended to ${existing.turnsRemaining} turns.`, type, target, priority);
         } else {
-            this._logToBattle(`${target.heroData.name} is afflicted with ${statusName}!`, type, target);
+            this._logToBattle(`${target.heroData.name} is afflicted with ${statusName}!`, type, target, priority);
             target.statusEffects.push({
                 name: statusName,
                 turnsRemaining: duration,
@@ -692,7 +736,7 @@ export class BattleScene {
             target.statusEffects = target.statusEffects.filter(e => e.name !== type);
         }
         const removed = before.filter(e => !target.statusEffects.includes(e));
-        removed.forEach(e => this._logToBattle(`${target.heroData.name} cleansed ${e.name}!`, 'status', target));
+        removed.forEach(e => this._logToBattle(`${target.heroData.name} cleansed ${e.name}!`, 'status', target, 1));
         this._updateStatusIcons(target);
     }
     
@@ -826,7 +870,7 @@ export class BattleScene {
         teamContainer.appendChild(card);
         card.classList.add('is-landing');
 
-        this._logToBattle(`${summoner.heroData.name} summons a ${minionData.name}!`, 'ability-result', summoner);
+        this._logToBattle(`${summoner.heroData.name} summons a ${minionData.name}!`, 'ability-result', summoner, 2);
 
         this._recalculateTurnQueue(newMinion);
     }
@@ -848,7 +892,7 @@ export class BattleScene {
                 this.turnQueue.push(newUnit);
             }
         }
-        this._logToBattle(`Turn order updated!`, 'info');
+        this._logToBattle(`Turn order updated!`, 'info', null, 1);
     }
 
     _announceAbility(name){
@@ -1030,7 +1074,7 @@ export class BattleScene {
     async _endBattle(didPlayerWin) {
         this.isBattleOver = true;
         const winningTeam = didPlayerWin ? 'player' : 'enemy';
-        this._logToBattle(didPlayerWin ? "Player team is victorious!" : "Enemy team is victorious!", didPlayerWin ? 'victory' : 'defeat');
+        this._logToBattle(didPlayerWin ? "Player team is victorious!" : "Enemy team is victorious!", didPlayerWin ? 'victory' : 'defeat', null, 3);
 
         this.state.forEach(combatant => {
             if (combatant.team === winningTeam && combatant.currentHp > 0) {
