@@ -1,4 +1,4 @@
-import { createCompactCard, updateHealthBar, updateEnergyDisplay } from '../ui/CardRenderer.js';
+import { createCompactCard, updateHealthBar, updateEnergyDisplay, createAnnouncerCard } from '../ui/CardRenderer.js';
 import { sleep } from '../utils.js';
 import { battleSpeeds, allPossibleMinions } from '../data.js';
 
@@ -45,6 +45,7 @@ export class BattleScene {
         this.abilityAnnouncer = this.element.querySelector('#ability-announcer');
         this.announcerMainText = this.element.querySelector('#announcer-main-text');
         this.announcerSubtitle = this.element.querySelector('#announcer-subtitle');
+        this.cardAnnouncerContainer = this.element.querySelector('#card-announcer-container');
         this.statusTooltip = document.getElementById('status-tooltip');
 
         this.comboCount = 0;
@@ -458,7 +459,7 @@ export class BattleScene {
             updateEnergyDisplay(attacker, attacker.element);
             this._updateChargedStatus(attacker);
 
-            this._showBattleAnnouncement(ability.name, 'ability', ability.effect);
+            this._showAbilityCard(ability);
             this._triggerArenaEffect('ability-zoom');
             this._logToBattle(`${attacker.heroData.name} unleashes ${ability.name}!`, 'ability-cast', attacker, 2);
 
@@ -958,6 +959,20 @@ export class BattleScene {
             }
         }
         this._logToBattle(`Turn order updated!`, 'info', null, 1);
+    }
+
+    _showAbilityCard(abilityData) {
+        if (!this.cardAnnouncerContainer || !abilityData) return;
+
+        this.cardAnnouncerContainer.innerHTML = '';
+        const cardElement = createAnnouncerCard(abilityData);
+        this.cardAnnouncerContainer.appendChild(cardElement);
+        this.cardAnnouncerContainer.classList.add('is-announcing');
+
+        setTimeout(() => {
+            this.cardAnnouncerContainer.classList.remove('is-announcing');
+            this.cardAnnouncerContainer.innerHTML = '';
+        }, 1500);
     }
 
     _showBattleAnnouncement(text, styleClass = '', subtitle = '') {
