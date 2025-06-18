@@ -512,10 +512,17 @@ export class BattleScene {
         container.innerHTML = ''; // Clear old icons
 
         // First, remove all potential aura classes to reset the state
-        cardElement.classList.remove('has-aura', 'aura-poison', 'aura-buff');
+        cardElement.classList.remove(
+            'has-aura',
+            'aura-poison', 'aura-buff',
+            'aura-stun', 'aura-bleed', 'aura-burn', 'aura-slow',
+            'aura-confuse', 'aura-root', 'aura-shock', 'aura-vulnerable', 'aura-defense-down'
+        );
 
         if (combatant.statusEffects.length > 0) {
             cardElement.classList.add('has-aura');
+        } else {
+            cardElement.classList.remove('has-aura');
         }
 
         combatant.statusEffects.forEach(effect => {
@@ -524,10 +531,43 @@ export class BattleScene {
             switch(effect.name){
                 case 'Stun':
                     icon.innerHTML = '<i class="fas fa-star"></i>';
+                    cardElement.classList.add('aura-stun');
                     break;
                 case 'Poison':
                     icon.innerHTML = '<i class="fas fa-skull-crossbones"></i>';
                     cardElement.classList.add('aura-poison');
+                    break;
+                case 'Bleed':
+                    icon.innerHTML = '<i class="fas fa-droplet"></i>';
+                    cardElement.classList.add('aura-bleed');
+                    break;
+                case 'Burn':
+                    icon.innerHTML = '<i class="fas fa-fire-alt"></i>';
+                    cardElement.classList.add('aura-burn');
+                    break;
+                case 'Slow':
+                    icon.innerHTML = '<i class="fas fa-hourglass-half"></i>';
+                    cardElement.classList.add('aura-slow');
+                    break;
+                case 'Confuse':
+                    icon.innerHTML = '<i class="fas fa-question"></i>';
+                    cardElement.classList.add('aura-confuse');
+                    break;
+                case 'Root':
+                    icon.innerHTML = '<i class="fas fa-tree"></i>';
+                    cardElement.classList.add('aura-root');
+                    break;
+                case 'Shock':
+                    icon.innerHTML = '<i class="fas fa-bolt"></i>';
+                    cardElement.classList.add('aura-shock');
+                    break;
+                case 'Vulnerable':
+                    icon.innerHTML = '<i class="fas fa-crosshairs"></i>';
+                    cardElement.classList.add('aura-vulnerable');
+                    break;
+                case 'Defense Down':
+                    icon.innerHTML = '<i class="fas fa-shield-slash"></i>';
+                    cardElement.classList.add('aura-defense-down');
                     break;
                 case 'Attack Up':
                 case 'Fortify':
@@ -550,7 +590,8 @@ export class BattleScene {
             cardElement.classList.add('is-charged', 'has-aura');
         } else {
             cardElement.classList.remove('is-charged');
-            if (!cardElement.classList.contains('aura-poison') && !cardElement.classList.contains('aura-buff')) {
+            const hasOtherAura = Array.from(cardElement.classList).some(c => c.startsWith('aura-'));
+            if (!hasOtherAura) {
                 cardElement.classList.remove('has-aura');
             }
         }
