@@ -216,105 +216,27 @@ function advanceDraft() {
 // --- DATA GENERATION ---
 
 function generateHeroPack() {
-    const recruitHero = allPossibleHeroes.find(hero => hero.name === 'Recruit');
-    const otherHeroes = allPossibleHeroes.filter(hero => hero.name !== 'Recruit');
-
-    // Generate rarities for 3 cards
     const rarities = [];
-    for (let i = 0; i < 3; i++) {
+    for (let i = 0; i < 4; i++) {
         const roll = Math.random();
-        if (roll < 0.05) rarities.push('Epic');
+        if (roll < 0.05) rarities.push('Epic'); // Changed 'Ultra Rare' to 'Epic'
         else if (roll < 0.20) rarities.push('Rare');
         else if (roll < 0.50) rarities.push('Uncommon');
         else rarities.push('Common');
     }
 
-    let openedPack = [];
-    rarities.forEach(rarity => {
-        const availableByRarity = otherHeroes.filter(h => h.rarity === rarity);
-        let selectedHero = null;
-        if (availableByRarity.length > 0) {
-            selectedHero = availableByRarity[Math.floor(Math.random() * availableByRarity.length)];
-        } else {
-            // Fallback: if no hero of specific rarity in otherHeroes, pick any from otherHeroes
-            // This check is important if otherHeroes pool is small or lacks certain rarities
-            if (otherHeroes.length > 0) {
-                 selectedHero = otherHeroes[Math.floor(Math.random() * otherHeroes.length)];
-            }
-        }
-        // Add if a hero was selected and pack is not full (should always be true here)
-        if (selectedHero && openedPack.length < 3) {
-            openedPack.push(selectedHero);
-        }
+    let openedPack = rarities.map(rarity => {
+        const available = allPossibleHeroes.filter(h => h.rarity === rarity);
+        return available[Math.floor(Math.random() * available.length)];
     });
 
-    // Ensure no duplicates among the 3 randoms
+    // Ensure no duplicate heroes in the pack
     openedPack = [...new Map(openedPack.map(item => [item.id, item])).values()];
-
-    // Fill with randoms from otherHeroes if duplicates were removed or initial selection was short
-    while (openedPack.length < 3 && otherHeroes.length > 0) {
-        const fallback = otherHeroes[Math.floor(Math.random() * otherHeroes.length)];
-        if (!openedPack.find(h => h.id === fallback.id)) {
-            openedPack.push(fallback);
-        }
-        // Break if otherHeroes is exhausted (highly unlikely with enough data)
-        if (openedPack.length === otherHeroes.length && openedPack.length < 3) break;
-    }
-
-    // If somehow still less than 3 and otherHeroes was exhausted, fill with any hero from allPossibleHeroes
-    // This is an extreme fallback, ideally otherHeroes has enough variety.
-    while(openedPack.length < 3) {
-        const emergencyFallback = allPossibleHeroes[Math.floor(Math.random() * allPossibleHeroes.length)];
-        if (!openedPack.find(h => h.id === emergencyFallback.id) && (!recruitHero || emergencyFallback.id !== recruitHero.id)) {
-            openedPack.push(emergencyFallback);
-        }
-    }
-
-
-    // Add the recruit hero if found
-    if (recruitHero) {
-        // Check if recruit is already in the pack (e.g. if it was selected as a fallback)
-        // Or if it was selected by extreme fallback from allPossibleHeroes
-        if (!openedPack.find(h => h.id === recruitHero.id)) {
-            // If pack is full (3/3), remove one to make space for Recruit.
-            // This prioritizes Recruit over one of the randoms if necessary.
-            if (openedPack.length === 3) {
-                 // Try to remove a common hero first if possible, otherwise last one.
-                let removed = false;
-                for(let i=0; i < openedPack.length; i++){
-                    if(openedPack[i].rarity === 'Common'){
-                        openedPack.splice(i,1);
-                        removed = true;
-                        break;
-                    }
-                }
-                if(!removed) openedPack.pop();
-            }
-            openedPack.push(recruitHero);
-        }
-    } else {
-        console.error("Recruit hero not found! The pack will have one less hero or a random one instead if space.");
-        // Attempt to fill the spot with another random hero if pack is less than 4
-        if (openedPack.length < 4) {
-            const fallbackForRecruit = otherHeroes.length > 0 ?
-                                       otherHeroes[Math.floor(Math.random() * otherHeroes.length)] :
-                                       allPossibleHeroes[Math.floor(Math.random() * allPossibleHeroes.length)];
-            if (!openedPack.find(h => h.id === fallbackForRecruit.id)) {
-                 openedPack.push(fallbackForRecruit);
-            }
-        }
-    }
     
-    // Final deduplication and fill to ensure exactly 4 unique heroes.
-    openedPack = [...new Map(openedPack.map(item => [item.id, item])).values()];
-
-    while (openedPack.length < 4) {
-        const finalFallback = allPossibleHeroes[Math.floor(Math.random() * allPossibleHeroes.length)];
-        if (!openedPack.find(h => h.id === finalFallback.id)) {
-            openedPack.push(finalFallback);
-        }
-        // Safety break if allPossibleHeroes somehow gets exhausted by duplicates
-        if (openedPack.length === allPossibleHeroes.length && openedPack.length < 4) break;
+    // Fill with randoms if duplicates were removed
+    while(openedPack.length < 4) {
+        const fallback = allPossibleHeroes[Math.floor(Math.random() * allPossibleHeroes.length)];
+        if(!openedPack.find(h => h.id === fallback.id)) openedPack.push(fallback);
     }
 
     return openedPack;
