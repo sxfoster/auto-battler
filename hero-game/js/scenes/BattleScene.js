@@ -1009,7 +1009,7 @@ export class BattleScene {
     }
 
     _showAbilityCard(abilityData) {
-        if (!this.cardAnnouncerContainer || !abilityData) return;
+        if (!this.cardAnnouncerContainer || !abilityData || this.isBattleOver) return;
 
         this.announcementQueue.push({ abilityData });
         this._processAnnouncementQueue();
@@ -1227,6 +1227,8 @@ export class BattleScene {
 
     async _endBattle(didPlayerWin) {
         this.isBattleOver = true;
+        // Clear any pending ability announcements but let the current one finish
+        this.announcementQueue = [];
         const winningTeam = didPlayerWin ? 'player' : 'enemy';
         this._logToBattle(didPlayerWin ? "Player team is victorious!" : "Enemy team is victorious!", didPlayerWin ? 'victory' : 'defeat', null, 3);
 
