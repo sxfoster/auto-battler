@@ -13,6 +13,11 @@ export function createDetailCard(item, selectionHandler) {
     const rarityClass = (item.rarity || 'common').toLowerCase().replace(' ', '-');
     cardElement.classList.add(rarityClass);
 
+    if (item.class) {
+        const heroClassString = item.class.toLowerCase().replace(/\s+/g, '-');
+        cardElement.classList.add(heroClassString);
+    }
+
     if (item.rarity === 'Epic') { // Changed 'Ultra Rare' to 'Epic'
         clone.querySelector('.shimmer-effect').style.display = 'block';
     }
