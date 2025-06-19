@@ -726,6 +726,60 @@ if (randomHeroButton) {
     randomHeroButton.addEventListener('click', generateSingleRandomHero);
 }
 
+// --- DEBUG MENU LOGIC ---
+const debugSkipToBattleBtn = document.getElementById('debug-skip-to-battle');
+const debugSkipToUpgradeWinBtn = document.getElementById('debug-skip-to-upgrade-win');
+const debugSkipToUpgradeLossBtn = document.getElementById('debug-skip-to-upgrade-loss');
+
+/**
+ * Ensures a random team exists for debugging purposes. If the player hasn't
+ * drafted a team, this function will generate one.
+ */
+function ensurePlayerTeamExists() {
+    if (!gameState.draft.playerTeam.hero1 || !gameState.draft.playerTeam.hero2) {
+        console.log("Debug: No team found. Generating a random team to proceed.");
+        const champion1 = generateRandomChampion();
+        let champion2 = generateRandomChampion();
+        while (champion2.hero === champion1.hero) {
+            champion2 = generateRandomChampion();
+        }
+
+        gameState.draft.playerTeam.hero1 = champion1.hero;
+        gameState.draft.playerTeam.ability1 = champion1.ability;
+        gameState.draft.playerTeam.weapon1 = champion1.weapon;
+        gameState.draft.playerTeam.armor1 = champion1.armor;
+
+        gameState.draft.playerTeam.hero2 = champion2.hero;
+        gameState.draft.playerTeam.ability2 = champion2.ability;
+        gameState.draft.playerTeam.weapon2 = champion2.weapon;
+        gameState.draft.playerTeam.armor2 = champion2.armor;
+    }
+}
+
+if (debugSkipToBattleBtn) {
+    debugSkipToBattleBtn.addEventListener('click', () => {
+        console.log("Debug: Skipping to battle...");
+        generateRandomTeamAndStartBattle();
+    });
+}
+
+if (debugSkipToUpgradeWinBtn) {
+    debugSkipToUpgradeWinBtn.addEventListener('click', () => {
+        console.log("Debug: Simulating battle win...");
+        ensurePlayerTeamExists();
+        handleBattleComplete(true);
+    });
+}
+
+if (debugSkipToUpgradeLossBtn) {
+    debugSkipToUpgradeLossBtn.addEventListener('click', () => {
+        console.log("Debug: Simulating battle loss...");
+        ensurePlayerTeamExists();
+        handleBattleComplete(false);
+    });
+}
+// --- END DEBUG MENU LOGIC ---
+
 // --- INITIALIZE ---
 // Set up the initial scene on page load
 initBackgroundAnimation();

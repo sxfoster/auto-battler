@@ -6,6 +6,7 @@ body {
     overflow-x: hidden;
 }
 
+
 #background-canvas {
     position: fixed;
     top: 0;
@@ -2188,4 +2189,45 @@ button:disabled {
         transform: translateY(250px) scale(0);
         opacity: 0;
     }
+}
+
+/* --- Debug Menu Styles --- */
+#debug-menu {
+    position: fixed;
+    bottom: 1rem;
+    left: 1rem;
+    background-color: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(4px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 0.5rem;
+    padding: 0.75rem;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.debug-title {
+    color: #fde047;
+    font-family: 'Cinzel', serif;
+    text-align: center;
+    font-size: 1rem;
+    margin-bottom: 0.25rem;
+    border-bottom: 1px solid #4b5563;
+    padding-bottom: 0.25rem;
+}
+
+.debug-btn {
+    background-color: #4b5563;
+    color: white;
+    border: 1px solid #6b7280;
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.debug-btn:hover {
+    background-color: #6b7280;
 }
