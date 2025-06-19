@@ -26,6 +26,9 @@ export class UpgradeScene {
         this.takeCardButton = element.querySelector('#take-card-btn');
         this.rerollButton = element.querySelector('#reroll-cards-btn');
 
+        // Track whether the pack is currently in the opening animation
+        this.isOpening = false;
+
         // The click listener is now correctly attached to the pack element.
         if (this.packElement) {
             this.packElement.addEventListener('click', () => this.handlePackOpen());
@@ -47,10 +50,22 @@ export class UpgradeScene {
 
     render(packContents, playerTeam, inventory) {
         this.phase = 'PACK';
+        this.isOpening = false;
         this.packContents = packContents;
         this.playerTeam = playerTeam;
         this.currentCardIndex = 0;
         this.clearSelection();
+
+        // Ensure the pack can be interacted with again
+        if (this.packElement) {
+            this.packElement.style.pointerEvents = 'auto';
+            this.packElement.classList.remove('is-open');
+        }
+        const topCrimp = this.element.querySelector('#upgrade-top-crimp');
+        if (topCrimp) {
+            topCrimp.classList.remove('torn-off');
+            topCrimp.style.pointerEvents = 'auto';
+        }
 
         this.packStage.classList.remove('upgrade-stage-hidden');
         this.revealStage.classList.add('upgrade-stage-hidden');
@@ -66,7 +81,8 @@ export class UpgradeScene {
     }
 
     handlePackOpen() {
-        if (this.phase !== 'PACK') return;
+        if (this.phase !== 'PACK' || this.isOpening) return;
+        this.isOpening = true;
         this.phase = 'REVEAL';
         this.packStage.classList.add('upgrade-stage-hidden');
         setTimeout(() => {
