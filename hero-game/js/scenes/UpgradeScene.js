@@ -20,6 +20,7 @@ export class UpgradeScene {
         this.dismissButton = element.querySelector('#upgrade-dismiss-button');
         this.teamRoster = element.querySelector('#upgrade-team-roster');
         this.confirmModal = element.querySelector('#upgrade-confirm-modal');
+        this.instructionsEl = element.querySelector('#upgrade-instructions');
 
         if (this.packEl) {
             this.packEl.addEventListener('click', () => this.handlePackOpen());
@@ -51,6 +52,9 @@ export class UpgradeScene {
         this.phase = 'PACK';
         this.selectedCard = null;
         this.pendingSlot = null;
+        if (this.instructionsEl) {
+            this.instructionsEl.textContent = 'Click the pack to reveal your reward cards.';
+        }
 
         if (this.topCrimp) {
             this.topCrimp.classList.remove('torn-off');
@@ -80,6 +84,9 @@ export class UpgradeScene {
                 this.packEl.classList.add('hidden');
                 this.revealArea.classList.remove('hidden');
                 this.phase = 'REVEAL';
+                if (this.instructionsEl) {
+                    this.instructionsEl.textContent = 'Take the card or dismiss it.';
+                }
                 this.revealNextCard();
             }, 100);
         }, { once: true });
@@ -134,6 +141,9 @@ export class UpgradeScene {
             this.revealArea.appendChild(wrapper);
         });
         if (this.actionContainer) this.actionContainer.classList.remove('hidden');
+        if (this.instructionsEl) {
+            this.instructionsEl.textContent = 'Take the card or dismiss it.';
+        }
     }
 
     handleTakeCard() {
@@ -142,17 +152,33 @@ export class UpgradeScene {
         this.phase = 'REPLACEMENT';
         if (this.actionContainer) this.actionContainer.classList.add('hidden');
         if (this.revealArea) this.revealArea.classList.add('hidden');
+        if (this.instructionsEl) {
+            this.instructionsEl.textContent = 'Select an item to replace.';
+        }
         this.updateTargetableSockets();
     }
 
     handleDismissCard() {
         if (this.phase !== 'REVEAL') return;
-        this.currentCardIndex++;
-        if (this.currentCardIndex >= this.packContents.length) {
-            this.onComplete();
-            return;
+        const card = this.revealArea.querySelector('.revealed-card:last-child');
+        if (card) {
+            card.classList.add('is-dismissed');
+            card.addEventListener('transitionend', () => {
+                this.currentCardIndex++;
+                if (this.currentCardIndex >= this.packContents.length) {
+                    this.onComplete();
+                } else {
+                    this.revealNextCard();
+                }
+            }, { once: true });
+        } else {
+            this.currentCardIndex++;
+            if (this.currentCardIndex >= this.packContents.length) {
+                this.onComplete();
+            } else {
+                this.revealNextCard();
+            }
         }
-        this.revealNextCard();
     }
 
     renderTeam(team) {
