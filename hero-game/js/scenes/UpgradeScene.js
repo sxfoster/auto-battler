@@ -122,7 +122,7 @@ export class UpgradeScene {
         const stack = remaining.slice().reverse();
         stack.forEach((card, idx) => {
             const wrapper = document.createElement('div');
-            wrapper.className = 'revealed-card';
+            wrapper.className = 'revealed-card bonus-card';
             const rotation = (idx - 1) * 5;
             const yOffset = Math.abs(idx - 1) * 20;
             wrapper.style.transform = `rotate(${rotation}deg) translateY(${yOffset}px) translateZ(${idx * -20}px)`;
@@ -132,6 +132,7 @@ export class UpgradeScene {
                 face.className = 'card-face';
                 face.appendChild(createDetailCard(card));
                 wrapper.appendChild(face);
+                wrapper.addEventListener('click', () => this.handleBonusCardSelect(wrapper, card));
             } else {
                 wrapper.classList.add('card-back-unrevealed');
                 const rarity = (card.rarity || 'common').toLowerCase();
@@ -146,20 +147,42 @@ export class UpgradeScene {
         }
     }
 
-    handleTakeCard() {
-        if (this.phase !== 'REVEAL') return;
-        this.selectedCard = this.packContents[this.currentCardIndex];
+    clearSelections() {
+        this.element.querySelectorAll('.bonus-card.selected').forEach(el => el.classList.remove('selected'));
+        this.selectedCard = null;
+        this.element.querySelectorAll('.equipment-socket, .champion-display').forEach(el => {
+            el.classList.remove('targetable', 'disabled');
+        });
+    }
+
+    handleBonusCardSelect(cardEl, cardData) {
+        if (cardEl.classList.contains('selected')) {
+            this.clearSelections();
+            return;
+        }
+        this.clearSelections();
         this.phase = 'REPLACEMENT';
+        this.selectedCard = cardData;
+        cardEl.classList.add('selected');
         if (this.actionContainer) this.actionContainer.classList.add('hidden');
-        if (this.revealArea) this.revealArea.classList.add('hidden');
         if (this.instructionsEl) {
             this.instructionsEl.textContent = 'Select an item to replace.';
         }
         this.updateTargetableSockets();
     }
 
+    handleTakeCard() {
+        if (this.phase !== 'REVEAL') return;
+        const cardEl = this.revealArea.querySelector('.bonus-card:last-child');
+        const cardData = this.packContents[this.currentCardIndex];
+        if (cardEl) {
+            this.handleBonusCardSelect(cardEl, cardData);
+        }
+    }
+
     handleDismissCard() {
         if (this.phase !== 'REVEAL') return;
+        this.clearSelections();
         const card = this.revealArea.querySelector('.revealed-card:last-child');
         if (card) {
             card.classList.add('is-dismissed');
@@ -195,6 +218,7 @@ export class UpgradeScene {
             const container = document.createElement('div');
             container.className = 'champion-display';
             container.dataset.slot = `hero${num}`;
+            container.dataset.type = 'hero';
 
             const cardElem = createDetailCard(heroData);
             const heroCard = cardElem.querySelector('.hero-card');
@@ -235,6 +259,7 @@ export class UpgradeScene {
             socket.textContent = '+';
         }
         socket.dataset.slot = slotKey;
+        socket.dataset.type = slotKey.replace(/\d+$/, '');
         socket.addEventListener('click', e => {
             e.stopPropagation();
             this.handleSocketSelect(slotKey);
@@ -243,18 +268,19 @@ export class UpgradeScene {
     }
 
     updateTargetableSockets() {
-        this.element.querySelectorAll('.equipment-socket, .champion-display').forEach(el => el.classList.remove('targetable'));
+        this.element.querySelectorAll('.equipment-socket, .champion-display').forEach(el => {
+            el.classList.remove('targetable', 'disabled');
+        });
         if (!this.selectedCard) return;
         const type = this.selectedCard.type;
-        if (type === 'weapon') {
-            this.element.querySelectorAll('.weapon-socket').forEach(el => el.classList.add('targetable'));
-        } else if (type === 'armor') {
-            this.element.querySelectorAll('.armor-socket').forEach(el => el.classList.add('targetable'));
-        } else if (type === 'ability') {
-            this.element.querySelectorAll('.ability-socket').forEach(el => el.classList.add('targetable'));
-        } else if (type === 'hero') {
-            this.element.querySelectorAll('.champion-display').forEach(el => el.classList.add('targetable'));
-        }
+        this.element.querySelectorAll('.equipment-socket, .champion-display').forEach(el => {
+            const slotType = el.dataset.type || (el.dataset.slot ? el.dataset.slot.replace(/\d+$/, '') : '');
+            if (slotType === type) {
+                el.classList.add('targetable');
+            } else {
+                el.classList.add('disabled');
+            }
+        });
     }
 
     handleSocketSelect(slotKey) {
@@ -284,6 +310,7 @@ export class UpgradeScene {
             socket.removeEventListener('animationend', finishSwap);
             socket.classList.remove('card-pop-in');
             this.onComplete(this.pendingSlot, this.selectedCard.id);
+            this.clearSelections();
         };
         if (socket.classList.contains('empty-socket')) {
             applyNewCard();
