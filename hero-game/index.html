@@ -94,6 +94,8 @@
         <div id="tournament-tracker" class="absolute top-4 right-4 bg-gray-900 bg-opacity-70 p-4 rounded-lg border border-gray-600 text-lg font-cinzel hidden">
             <p>Wins: <span id="tournament-wins">0</span></p>
             <p>Losses: <span id="tournament-losses">0</span></p>
+            <div id="resource-tracker" class="mt-2 border-t border-gray-700 pt-2">
+            </div>
         </div>
         <div class="battle-arena">
             <div id="player-team-container" class="team-container"></div>
@@ -164,6 +166,13 @@
 
                 <div id="upgrade-card-counter" class="flex justify-center gap-3 mt-4">
                     </div>
+
+                <div class="mt-4">
+                    <button id="reroll-cards-btn" class="action-btn text-sm py-2 px-4" disabled>
+                        <i class="fas fa-sync-alt mr-2"></i>
+                        Reroll Cards (Cost: 1 Token)
+                    </button>
+                </div>
             </header>
             <div id="upgrade-holding-slot" class="relative w-full h-96 -mt-24">
             </div>
@@ -171,7 +180,7 @@
                 <!-- The revealed card will be injected here by JS -->
             </div>
             <div id="reveal-actions" class="flex gap-4">
-                <button id="dismiss-card-btn" class="action-btn">Dismiss</button>
+                <button id="dismantle-card-btn" class="action-btn"><i class="fas fa-hammer mr-2"></i>Dismantle</button>
                 <button id="take-card-btn" class="action-btn" disabled>Take Card</button>
             </div>
         </div>
