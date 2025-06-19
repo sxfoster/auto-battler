@@ -42,6 +42,9 @@ const sceneElements = {
 const confirmationBar = document.getElementById('confirmation-bar');
 const confirmDraftButton = document.getElementById('confirm-draft');
 
+const transitionPopup = document.getElementById('transition-popup');
+const transitionMessage = document.getElementById('transition-popup-message');
+
 // --- SCENE INSTANTIATION ---
 // Create instances of each scene, passing their root element and necessary callbacks.
 const packScene = new PackScene(sceneElements.pack, () => openPack());
@@ -91,9 +94,9 @@ const recapScene = new RecapScene(sceneElements.recap, () => {
 });
 
 const upgradeScene = new UpgradeScene(sceneElements.upgrade, (slot, newId) => {
+    // This is the onComplete callback
     if (slot && newId) {
         gameState.draft.playerTeam[slot] = newId;
-
         if (slot.startsWith('hero')) {
             const idx = slot.endsWith('1') ? '1' : '2';
             gameState.draft.playerTeam[`ability${idx}`] = null;
@@ -102,19 +105,15 @@ const upgradeScene = new UpgradeScene(sceneElements.upgrade, (slot, newId) => {
         }
     }
 
-    const upgradePack = sceneElements.upgrade.querySelector('#upgrade-pack-container');
-    const revealArea = sceneElements.upgrade.querySelector('#upgrade-reveal-area');
-    const teamRoster = sceneElements.upgrade.querySelector('#upgrade-team-roster');
-    if (upgradePack) upgradePack.classList.add('hidden');
-    if (revealArea) revealArea.classList.add('hidden');
-    if (teamRoster) teamRoster.classList.add('hidden');
+    // --- NEW LOGIC FOR POPUP ---
+    // Determine the message based on whether an upgrade was made
+    const message = slot ? 'Upgrade Complete!' : 'Returning to Battle!';
+    transitionMessage.textContent = message;
+    transitionPopup.classList.remove('hidden');
 
-    const instructions = sceneElements.upgrade.querySelector('#upgrade-instructions');
-    if (instructions) {
-        instructions.textContent = 'Upgrade complete! Returning to the tournament...';
-    }
-
+    // Wait 2 seconds before hiding the popup and starting the next battle
     setTimeout(() => {
+        transitionPopup.classList.add('hidden');
         startNextBattle();
     }, 2000);
 });

@@ -326,8 +326,7 @@ export class UpgradeScene {
     }
 
     executeSwap() {
-        console.log('[executeSwap] Starting swap...');
-        console.log('Value of this.selectedCard at start of executeSwap:', this.selectedCard);
+        console.log('[executeSwap] Starting swap with new timer-based logic...');
         if (!this.pendingSlot || !this.selectedCard) {
             console.error('[executeSwap] Error: pendingSlot or selectedCard is null.');
             return;
@@ -339,32 +338,29 @@ export class UpgradeScene {
             return;
         }
 
-        const applyNewCard = () => {
-            console.log('[executeSwap] Running applyNewCard callback.');
-            socket.removeEventListener('animationend', applyNewCard);
-            socket.style.backgroundImage = `url('${this.selectedCard.art}')`;
-            socket.classList.remove('empty-socket', 'card-pop-out');
-            socket.classList.add('card-pop-in');
-            socket.addEventListener('animationend', finishSwap);
-        };
+        const animationDuration = 200; // This must match the duration in style.css (0.2s)
 
         const finishSwap = () => {
-            console.log('[executeSwap] Running finishSwap callback.');
-            socket.removeEventListener('animationend', finishSwap);
-            socket.classList.remove('card-pop-in');
-
-            console.log('[executeSwap] Calling onComplete to finalize state and transition.');
+            console.log('[executeSwap] Finishing swap and calling onComplete.');
             this.onComplete(this.pendingSlot, this.selectedCard.id);
             this.clearSelections();
         };
 
+        const applyNewCard = () => {
+            console.log('[executeSwap] Applying new card art and starting pop-in animation.');
+            socket.style.backgroundImage = `url('${this.selectedCard.art}')`;
+            socket.classList.remove('empty-socket', 'card-pop-out');
+            socket.classList.add('card-pop-in');
+            setTimeout(finishSwap, animationDuration);
+        };
+
         if (socket.classList.contains('empty-socket')) {
-            console.log('[executeSwap] Socket is empty, applying card directly.');
+            console.log('[executeSwap] Socket is empty. Applying new card immediately.');
             applyNewCard();
         } else {
-            console.log('[executeSwap] Socket has an item, starting pop-out animation.');
+            console.log('[executeSwap] Socket has an item. Starting pop-out animation.');
             socket.classList.add('card-pop-out');
-            socket.addEventListener('animationend', applyNewCard);
+            setTimeout(applyNewCard, animationDuration);
         }
     }
 
