@@ -65,19 +65,28 @@ export class UpgradeScene {
     }
 
     revealNextCard() {
+        // === START: FIX FOR DUPLICATE CARD ===
+        const revealArea = this.element.querySelector('#upgrade-reveal-area');
+        if (revealArea) {
+            revealArea.style.visibility = 'visible';
+        }
+        // === END: FIX FOR DUPLICATE CARD ===
+
         this.championsStage.classList.add('upgrade-stage-hidden');
         this.clearSelection();
         this._updateCardCounter();
+
         if (this.currentCardIndex >= this.packContents.length) {
             this.onComplete(null, null);
             return;
         }
 
         const cardData = this.packContents[this.currentCardIndex];
-        this.revealArea.innerHTML = '';
+        const revealAreaContainer = this.element.querySelector('#upgrade-reveal-area');
+        revealAreaContainer.innerHTML = '';
         const cardElement = createDetailCard(cardData);
         cardElement.addEventListener('click', () => this.handleCardSelect(cardData, cardElement));
-        this.revealArea.appendChild(cardElement);
+        revealAreaContainer.appendChild(cardElement);
     }
 
     handleCardSelect(cardData, cardElement) {
@@ -96,6 +105,13 @@ export class UpgradeScene {
         holdingSlot.appendChild(cardClone);
 
         cardElement.addEventListener('animationend', () => {
+            // === START: FIX FOR DUPLICATE CARD ===
+            const revealArea = this.element.querySelector('#upgrade-reveal-area');
+            if (revealArea) {
+                revealArea.style.visibility = 'hidden';
+            }
+            // === END: FIX FOR DUPLICATE CARD ===
+
             this.phase = 'EQUIP';
             this.renderTeamForEquip();
             this.championsStage.classList.remove('upgrade-stage-hidden');
@@ -160,6 +176,14 @@ export class UpgradeScene {
 
         const holdingSlot = this.element.querySelector('#upgrade-holding-slot');
         if (holdingSlot) holdingSlot.innerHTML = '';
+
+        // === START: FIX FOR DUPLICATE CARD ===
+        const revealArea = this.element.querySelector('#upgrade-reveal-area');
+        if (revealArea) {
+            revealArea.style.visibility = 'visible';
+        }
+        this.championsStage.classList.add('upgrade-stage-hidden');
+        // === END: FIX FOR DUPLICATE CARD ===
     }
 
     _showComparisonTooltip(event, slotKey) {
