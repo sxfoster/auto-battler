@@ -2120,7 +2120,7 @@ button:disabled {
 
 /* Space out champion displays in the upgrade roster */
 #upgrade-team-roster .champion-display {
-    margin-right: 5rem;
+    margin-right: 10rem;
 }
 
 /* --- Upgrade Scene Action Buttons --- */
