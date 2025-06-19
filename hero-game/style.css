@@ -225,17 +225,12 @@ button:disabled {
 /* -------------------------------------------------------------------------- */
 
 /* Define the variables for each class */
-.hero-card.raw-power-mage {
-    --frame-base-image: url('../img/frames/mage-base-texture.png');
-    --frame-inlay-image: url('../img/frames/mage-runic-inlay.png');
-    --title-plate-image: url('../img/frames/mage-title-plate.png');
-}
 
-.hero-card.stalwart-defender {
-    --frame-base-image: url('../img/frames/warrior-base-metal.png');
-    --frame-inlay-image: url('../img/frames/warrior-forged-inlay.png');
-    --title-plate-image: url('../img/frames/warrior-title-plate.png');
-}
+
+/* Remove frame image references to avoid 404 errors */
+.hero-card.raw-power-mage {}
+
+.hero-card.stalwart-defender {}
 
 /* Additional hero class themes can be added here */
 
