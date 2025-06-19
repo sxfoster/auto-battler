@@ -278,6 +278,21 @@ button:disabled {
 .confirmation-bar.visible { bottom: 0; }
 .confirm-button { background-color: #f59e0b; color: #111827; padding: 0.75rem 2rem; border-radius: 0.5rem; font-size: 1.125rem; font-weight: 600; cursor: pointer; transition: background-color 0.2s; }
 .confirm-button:hover { background-color: #fbbf24; }
+.secondary-button {
+    background-color: transparent;
+    color: #d1d5db;
+    padding: 0.75rem 2rem;
+    border-radius: 0.5rem;
+    font-size: 1.125rem;
+    font-weight: 600;
+    border: 2px solid #6b7280;
+    cursor: pointer;
+    transition: background-color 0.2s, color 0.2s;
+}
+.secondary-button:hover {
+    background-color: #374151;
+    color: white;
+}
 
 /* --- Battle Scene Styles --- */
 #battle-scene-background {
@@ -1832,6 +1847,16 @@ button:disabled {
     border-radius: 0.5rem;
     cursor: pointer;
     transition: transform 0.2s;
+    opacity: 0;
+}
+
+.deal-in {
+    animation: deal-in 0.3s forwards;
+}
+
+@keyframes deal-in {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
 .bonus-card.selected {
@@ -1864,8 +1889,36 @@ button:disabled {
     transition: transform 0.2s;
 }
 
+.equipment-socket.card-pop-out {
+    animation: card-pop-out 0.2s forwards;
+}
+
+.equipment-socket.card-pop-in {
+    animation: card-pop-in 0.2s forwards;
+}
+
+@keyframes card-pop-out {
+    from { opacity: 1; transform: scale(1); }
+    to { opacity: 0; transform: scale(0); }
+}
+
+@keyframes card-pop-in {
+    from { opacity: 0; transform: scale(0.5); }
+    to { opacity: 1; transform: scale(1); }
+}
+
 .equipment-socket:hover {
     transform: scale(1.05);
+}
+
+.empty-socket {
+    background-color: rgba(255,255,255,0.1);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:#9ca3af;
+    font-size:1.5rem;
+    font-weight:bold;
 }
 
 .weapon-socket {
@@ -1888,4 +1941,37 @@ button:disabled {
 
 .targetable {
     outline: 2px dashed #f59e0b;
+}
+
+/* Modal styles */
+.modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    animation: modal-fade 0.2s forwards;
+    z-index: 50;
+}
+
+.modal-content {
+    background: #1f2937;
+    padding: 1.5rem;
+    border-radius: 0.5rem;
+    animation: modal-scale 0.2s forwards;
+}
+
+.modal.hidden {
+    display: none;
+}
+
+@keyframes modal-fade {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes modal-scale {
+    from { transform: scale(0.8); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
 }

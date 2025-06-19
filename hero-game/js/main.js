@@ -91,7 +91,9 @@ const recapScene = new RecapScene(sceneElements.recap, () => {
 });
 
 const upgradeScene = new UpgradeScene(sceneElements.upgrade, (slot, newId) => {
-    gameState.draft.playerTeam[slot] = newId;
+    if (slot && newId) {
+        gameState.draft.playerTeam[slot] = newId;
+    }
     startNextBattle();
 });
 

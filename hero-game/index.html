@@ -147,7 +147,21 @@
             <div id="upgrade-bonus-pool" class="grid grid-cols-3 gap-4"></div>
             <div id="upgrade-team-roster" class="flex flex-col lg:flex-row gap-4"></div>
         </div>
-        <button id="upgrade-continue-button" class="confirm-button mt-6 hidden">Continue</button>
+        <div class="mt-6 flex gap-4">
+            <button id="upgrade-continue-button" class="confirm-button hidden">Continue</button>
+            <button id="upgrade-skip-button" class="secondary-button">Skip Upgrade</button>
+        </div>
+        <div id="upgrade-confirm-modal" class="modal hidden">
+            <div class="modal-backdrop">
+                <div class="modal-content">
+                    <p class="mb-4">Replace this item with the selected card?</p>
+                    <div class="flex gap-4 justify-end">
+                        <button id="upgrade-confirm-yes" class="confirm-button">Confirm</button>
+                        <button id="upgrade-confirm-no" class="secondary-button">Cancel</button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <div id="tournament-end-screen" class="scene hidden flex-col items-center justify-center bg-gray-900 bg-opacity-90">

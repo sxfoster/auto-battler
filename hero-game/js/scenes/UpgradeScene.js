@@ -8,11 +8,32 @@ export class UpgradeScene {
         this.bonusPool = this.element.querySelector('#upgrade-bonus-pool');
         this.teamRoster = this.element.querySelector('#upgrade-team-roster');
         this.continueButton = this.element.querySelector('#upgrade-continue-button');
+        this.skipButton = this.element.querySelector('#upgrade-skip-button');
+        this.confirmModal = this.element.querySelector('#upgrade-confirm-modal');
         if (this.continueButton) {
             this.continueButton.addEventListener('click', () => {
-                if (this.pendingSlot && this.selectedCard) {
+                if (this.skipMode) {
+                    this.skipMode = false;
+                    this.onComplete();
+                } else if (this.pendingSlot && this.selectedCard) {
                     this.onComplete(this.pendingSlot, this.selectedCard.id);
                 }
+            });
+        }
+        if (this.skipButton) {
+            this.skipButton.addEventListener('click', () => this.handleSkip());
+        }
+        if (this.confirmModal) {
+            this.confirmYes = this.confirmModal.querySelector('#upgrade-confirm-yes');
+            this.confirmNo = this.confirmModal.querySelector('#upgrade-confirm-no');
+            this.confirmYes.addEventListener('click', () => {
+                this.confirmModal.classList.add('hidden');
+                this.executeSwap();
+            });
+            this.confirmNo.addEventListener('click', () => {
+                this.confirmModal.classList.add('hidden');
+                this.pendingSlot = null;
+                this.updateTargetableSockets();
             });
         }
     }
@@ -20,16 +41,20 @@ export class UpgradeScene {
     render(bonusCards, playerTeam) {
         this.selectedCard = null;
         this.pendingSlot = null;
+        this.skipMode = false;
         if (this.continueButton) this.continueButton.classList.add('hidden');
+        if (this.skipButton) this.skipButton.classList.remove('hidden');
+        if (this.confirmModal) this.confirmModal.classList.add('hidden');
         this.renderBonusPool(bonusCards);
         this.renderTeam(playerTeam);
     }
 
     renderBonusPool(cards) {
         this.bonusPool.innerHTML = '';
-        cards.forEach(card => {
+        cards.forEach((card, index) => {
             const el = document.createElement('div');
-            el.className = 'bonus-card';
+            el.className = 'bonus-card deal-in';
+            el.style.animationDelay = `${index * 100}ms`;
             el.style.backgroundImage = `url('${card.art}')`;
             el.addEventListener('click', () => this.handleBonusCardSelect(card, el));
             this.bonusPool.appendChild(el);
@@ -67,10 +92,14 @@ export class UpgradeScene {
     }
 
     createSocket(itemData, slotKey, cssClass) {
-        if (!itemData) return null;
         const socket = document.createElement('div');
         socket.className = `equipment-socket ${cssClass}`;
-        socket.style.backgroundImage = `url('${itemData.art}')`;
+        if (itemData) {
+            socket.style.backgroundImage = `url('${itemData.art}')`;
+        } else {
+            socket.classList.add('empty-socket');
+            socket.textContent = '+';
+        }
         socket.dataset.slot = slotKey;
         socket.addEventListener('click', (e) => {
             e.stopPropagation();
@@ -107,8 +136,45 @@ export class UpgradeScene {
         if (!this.selectedCard) return;
         const expected = this.selectedCard.type;
         if (!slotKey.startsWith(expected)) return;
-        if (!window.confirm('Replace this item with the selected card?')) return;
         this.pendingSlot = slotKey;
+        if (this.confirmModal) {
+            this.confirmModal.classList.remove('hidden');
+        } else {
+            this.executeSwap();
+        }
+    }
+
+    executeSwap() {
+        if (!this.pendingSlot || !this.selectedCard) return;
+        const socket = this.element.querySelector(`[data-slot='${this.pendingSlot}']`);
+        if (!socket) return;
+        const applyNewCard = () => {
+            socket.removeEventListener('animationend', applyNewCard);
+            socket.style.backgroundImage = `url('${this.selectedCard.art}')`;
+            socket.classList.remove('empty-socket', 'card-pop-out');
+            socket.classList.add('card-pop-in');
+            socket.addEventListener('animationend', finishSwap);
+        };
+        const finishSwap = () => {
+            socket.removeEventListener('animationend', finishSwap);
+            socket.classList.remove('card-pop-in');
+            if (this.continueButton) this.continueButton.classList.remove('hidden');
+        };
+        if (socket.classList.contains('empty-socket')) {
+            applyNewCard();
+        } else {
+            socket.classList.add('card-pop-out');
+            socket.addEventListener('animationend', applyNewCard);
+        }
+    }
+
+    handleSkip() {
+        this.selectedCard = null;
+        this.pendingSlot = null;
+        this.skipMode = true;
+        this.bonusPool.classList.add('hidden');
+        this.teamRoster.classList.add('hidden');
         if (this.continueButton) this.continueButton.classList.remove('hidden');
+        if (this.confirmModal) this.confirmModal.classList.add('hidden');
     }
 }
