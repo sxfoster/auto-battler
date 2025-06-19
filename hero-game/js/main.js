@@ -24,7 +24,13 @@ const gameState = {
         wins: 0,
         losses: 0,
         isComplete: false
+    },
+    // === START: NEW CODE ===
+    inventory: {
+        shards: 0,
+        rerollTokens: 1 // Start with 1 token for testing
     }
+    // === END: NEW CODE ===
 };
 
 // --- DOM ELEMENTS ---
@@ -93,17 +99,19 @@ const recapScene = new RecapScene(sceneElements.recap, () => {
     advanceDraft();
 });
 
-const upgradeScene = new UpgradeScene(sceneElements.upgrade, (slot, newId) => {
-    // This is the onComplete callback
-    if (slot && newId) {
-        gameState.draft.playerTeam[slot] = newId;
-        if (slot.startsWith('hero')) {
-            const idx = slot.endsWith('1') ? '1' : '2';
-            gameState.draft.playerTeam[`ability${idx}`] = null;
-            gameState.draft.playerTeam[`weapon${idx}`] = null;
-            gameState.draft.playerTeam[`armor${idx}`] = null;
+const upgradeScene = new UpgradeScene(
+    sceneElements.upgrade,
+    (slot, newId) => {
+        // This is the onComplete callback
+        if (slot && newId) {
+            gameState.draft.playerTeam[slot] = newId;
+            if (slot.startsWith('hero')) {
+                const idx = slot.endsWith('1') ? '1' : '2';
+                gameState.draft.playerTeam[`ability${idx}`] = null;
+                gameState.draft.playerTeam[`weapon${idx}`] = null;
+                gameState.draft.playerTeam[`armor${idx}`] = null;
+            }
         }
-    }
 
     // --- NEW LOGIC FOR POPUP ---
     // Determine the message based on whether an upgrade was made
@@ -116,7 +124,22 @@ const upgradeScene = new UpgradeScene(sceneElements.upgrade, (slot, newId) => {
         transitionPopup.classList.add('hidden');
         startNextBattle();
     }, 2000);
-});
+    },
+    // === START: NEW CODE ===
+    (shardsGained) => {
+        gameState.inventory.shards += shardsGained;
+        document.getElementById('player-shards').textContent = gameState.inventory.shards;
+    },
+    () => {
+        if (gameState.inventory.rerollTokens >= 1) {
+            gameState.inventory.rerollTokens--;
+            const bonusPack = generateBonusPack(gameState.tournament.wins, true);
+            upgradeScene.render(bonusPack, gameState.draft.playerTeam, gameState.inventory);
+            document.getElementById('player-reroll-tokens').textContent = gameState.inventory.rerollTokens;
+        }
+    }
+    // === END: NEW CODE ===
+);
 
 const battleScene = new BattleScene(sceneElements.battle, handleBattleComplete);
 
@@ -521,6 +544,14 @@ function startNextBattle() {
     document.getElementById('tournament-wins').textContent = gameState.tournament.wins;
     document.getElementById('tournament-losses').textContent = gameState.tournament.losses;
 
+    // === START: NEW CODE ===
+    // Display player resources in the tracker
+    const resourcesDiv = document.getElementById('resource-tracker');
+    if (resourcesDiv) {
+        resourcesDiv.innerHTML = `\n        <p>Shards: <span id="player-shards">${gameState.inventory.shards}</span></p>\n        <p>Reroll Tokens: <span id="player-reroll-tokens">${gameState.inventory.rerollTokens}</span></p>\n    `;
+    }
+    // === END: NEW CODE ===
+
     let enemyRarity = 'Common';
     if (gameState.tournament.wins >= 5) {
         enemyRarity = 'Epic';
@@ -586,8 +617,14 @@ function handleBattleComplete(didPlayerWin) {
     if (gameState.tournament.wins >= 10 || gameState.tournament.losses >= 2) {
         endTournament();
     } else {
+        if (didPlayerWin) {
+            gameState.inventory.rerollTokens++;
+            const tokenEl = document.getElementById('player-reroll-tokens');
+            if (tokenEl) tokenEl.textContent = gameState.inventory.rerollTokens;
+        }
+
         const bonusPack = generateBonusPack(gameState.tournament.wins, didPlayerWin);
-        upgradeScene.render(bonusPack, gameState.draft.playerTeam);
+        upgradeScene.render(bonusPack, gameState.draft.playerTeam, gameState.inventory);
         transitionToScene('upgrade');
     }
 }

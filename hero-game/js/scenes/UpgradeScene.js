@@ -5,9 +5,11 @@ import { createChampionDisplay } from '../ui/ChampionDisplay.js';
 import { allPossibleWeapons, allPossibleArmors, allPossibleHeroes } from '../data.js';
 
 export class UpgradeScene {
-    constructor(element, onComplete) {
+    constructor(element, onComplete, onDismantle, onReroll) {
         this.element = element;
         this.onComplete = onComplete;
+        this.onDismantle = onDismantle;
+        this.onReroll = onReroll;
 
         // Stage containers
         this.packStage = element.querySelector('#upgrade-stage-pack');
@@ -18,8 +20,9 @@ export class UpgradeScene {
         this.packContainer = element.querySelector('#upgrade-pack-container');
         this.revealArea = element.querySelector('#upgrade-reveal-area');
         this.teamRoster = element.querySelector('#upgrade-team-roster');
-        this.dismissButton = element.querySelector('#dismiss-card-btn');
+        this.dismantleButton = element.querySelector('#dismantle-card-btn');
         this.takeCardButton = element.querySelector('#take-card-btn');
+        this.rerollButton = element.querySelector('#reroll-cards-btn');
 
         // State management
         this.phase = 'PACK';
@@ -32,15 +35,20 @@ export class UpgradeScene {
         if (this.packContainer) {
             this.packContainer.addEventListener('click', () => this.handlePackOpen());
         }
-        if (this.dismissButton) {
-            this.dismissButton.addEventListener('click', () => this.handleDismissCard());
+        if (this.dismantleButton) {
+            this.dismantleButton.addEventListener('click', () => this.handleDismantleCard());
         }
         if (this.takeCardButton) {
             this.takeCardButton.addEventListener('click', () => this.handleTakeCard());
         }
+        if (this.rerollButton) {
+            this.rerollButton.addEventListener('click', () => {
+                if (this.onReroll) this.onReroll();
+            });
+        }
     }
 
-    render(packContents, playerTeam) {
+    render(packContents, playerTeam, inventory) {
         this.phase = 'PACK';
         this.packContents = packContents;
         this.playerTeam = playerTeam;
@@ -52,6 +60,12 @@ export class UpgradeScene {
         this.championsStage.classList.add('upgrade-stage-hidden');
 
         this._updateCardCounter();
+
+        // === START: NEW CODE ===
+        if (this.rerollButton) {
+            this.rerollButton.disabled = inventory && inventory.rerollTokens < 1;
+        }
+        // === END: NEW CODE ===
     }
 
     handlePackOpen() {
@@ -96,7 +110,7 @@ export class UpgradeScene {
         this.selectedCardElement = cardElement;
 
         cardElement.classList.add('is-selecting');
-        this.dismissButton.disabled = true;
+        this.dismantleButton.disabled = true;
 
         const holdingSlot = this.element.querySelector('#upgrade-holding-slot');
         holdingSlot.innerHTML = '';
@@ -118,11 +132,28 @@ export class UpgradeScene {
         }, { once: true });
     }
 
-    handleDismissCard() {
-        if (this.phase === 'REVEAL' || this.phase === 'EQUIP') {
-            this.currentCardIndex++;
-            this.revealNextCard();
+    handleDismantleCard() {
+        if (this.phase !== 'REVEAL' && this.phase !== 'EQUIP') return;
+
+        // === START: NEW LOGIC ===
+        if (this.selectedCardData) {
+            let shardsAwarded = 0;
+            switch (this.selectedCardData.rarity) {
+                case 'Uncommon': shardsAwarded = 3; break;
+                case 'Rare': shardsAwarded = 5; break;
+                case 'Epic': shardsAwarded = 10; break;
+                default: shardsAwarded = 1; break; // Common
+            }
+
+            if (this.onDismantle) {
+                this.onDismantle(shardsAwarded);
+            }
+            console.log(`Dismantled for ${shardsAwarded} shards.`);
         }
+        // === END: NEW LOGIC ===
+
+        this.currentCardIndex++;
+        this.revealNextCard();
     }
 
     handleTakeCard() {
@@ -170,8 +201,8 @@ export class UpgradeScene {
         this.selectedCardData = null;
         this.selectedCardElement = null;
 
-        if (this.dismissButton) {
-            this.dismissButton.disabled = false;
+        if (this.dismantleButton) {
+            this.dismantleButton.disabled = false;
         }
 
         const holdingSlot = this.element.querySelector('#upgrade-holding-slot');
