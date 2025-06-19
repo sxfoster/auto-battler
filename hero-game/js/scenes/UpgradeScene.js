@@ -172,20 +172,11 @@ export class UpgradeScene {
 
         const holdingSlot = this.element.querySelector('#upgrade-holding-slot');
         const cardToAnimate = holdingSlot.querySelector('.hero-card-container');
-        const targetSocket = document.querySelector(`[data-slot="${slotKey}"]`);
 
-        if (!cardToAnimate || !targetSocket) return;
+        if (!cardToAnimate) return;
 
-        const startRect = cardToAnimate.getBoundingClientRect();
-        const endRect = targetSocket.getBoundingClientRect();
-
-        const deltaX = endRect.left - startRect.left;
-        const deltaY = endRect.top - startRect.top;
-        const scaleX = endRect.width / startRect.width;
-        const scaleY = endRect.height / startRect.height;
-
-        cardToAnimate.style.setProperty('--card-equip-transform', `translate(${deltaX}px, ${deltaY}px) scale(${scaleX}, ${scaleY})`);
-        cardToAnimate.style.animation = `card-equip-to-socket 0.6s ease-in-out forwards`;
+        // Play the simple fly-down animation
+        cardToAnimate.style.animation = 'fly-down-and-shrink 0.5s ease-in forwards';
 
         cardToAnimate.addEventListener('animationend', () => {
             this.onComplete(slotKey, this.selectedCardData.id);
