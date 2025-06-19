@@ -1883,6 +1883,11 @@ button:disabled {
     margin-top: 23rem;
 }
 
+#reveal-actions {
+    position: relative;
+    z-index: 5;
+}
+
 .champion-display {
     position: relative;
     width: 320px;
