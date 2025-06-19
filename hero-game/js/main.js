@@ -101,7 +101,22 @@ const upgradeScene = new UpgradeScene(sceneElements.upgrade, (slot, newId) => {
             gameState.draft.playerTeam[`armor${idx}`] = null;
         }
     }
-    startNextBattle();
+
+    const upgradePack = sceneElements.upgrade.querySelector('#upgrade-pack-container');
+    const revealArea = sceneElements.upgrade.querySelector('#upgrade-reveal-area');
+    const teamRoster = sceneElements.upgrade.querySelector('#upgrade-team-roster');
+    if (upgradePack) upgradePack.classList.add('hidden');
+    if (revealArea) revealArea.classList.add('hidden');
+    if (teamRoster) teamRoster.classList.add('hidden');
+
+    const instructions = sceneElements.upgrade.querySelector('#upgrade-instructions');
+    if (instructions) {
+        instructions.textContent = 'Upgrade complete! Returning to the tournament...';
+    }
+
+    setTimeout(() => {
+        startNextBattle();
+    }, 2000);
 });
 
 const battleScene = new BattleScene(sceneElements.battle, handleBattleComplete);
