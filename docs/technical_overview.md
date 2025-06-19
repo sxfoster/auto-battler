@@ -30,9 +30,13 @@ python3 -m http.server 8000
 
 Then open `http://localhost:8000/hero-game/` in your browser. Additional options are described in [../README.md](../README.md).
 
+If you prefer Node.js you can run `npx http-server -p 8000` instead of the Python command above.
+
 ### Client Logic
 
 The project is entirely client side. `js/main.js` manages the overall state machine and coordinates the various scenes. Supporting modules under `js/scenes/`, `js/ui/` and `js/systems/` implement the draft flow, battle simulator and rendering helpers.
+
+All card and hero definitions live in `js/data.js`.  Editing this file is the quickest way to experiment with new abilities or unit stats.
 
 `js/data.js` also defines an `allPossibleMinions` object that lists every summonable unit. Ability cards can include a `summons` property referencing one or more of those keys. `BattleScene.js` uses this information to create minions via a `_summonUnit` helper and recalculates the turn queue so newly spawned units act at the correct time. Status effects apply specific aura classes to the affected card and each icon displays a tooltip describing the effect.
 

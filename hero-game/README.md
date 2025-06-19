@@ -30,6 +30,12 @@ python3 -m http.server 8000
 
 Then visit `http://localhost:8000/hero-game/`.
 
+If you prefer Node.js you can run:
+
+```bash
+npx http-server -p 8000
+```
+
 See [../README.md](../README.md) for additional server options and repository layout.
 
 ## Gameplay UI
