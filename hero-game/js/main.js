@@ -207,7 +207,7 @@ function advanceDraft() {
             ability: team.ability1,
             weapon: team.weapon1,
             armor: team.armor1
-        });
+        }, 1);
         recapScene.setContinueButtonLabel('Draft Next Champion');
         transitionToScene('recap');
     } else if (stage === 'RECAP_1_DRAFT') {
@@ -241,7 +241,7 @@ function advanceDraft() {
             ability: team.ability2,
             weapon: team.weapon2,
             armor: team.armor2
-        });
+        }, 2);
         recapScene.setContinueButtonLabel('Start Battle');
         transitionToScene('recap');
     } else if (stage === 'RECAP_2_DRAFT') {
@@ -427,7 +427,7 @@ function generateSingleRandomHero() {
             ability: team.ability1,
             weapon: team.weapon1,
             armor: team.armor1
-        });
+        }, 1);
         recapScene.setContinueButtonLabel('Draft Next Champion');
         transitionToScene('recap');
     } else {
@@ -442,7 +442,7 @@ function generateSingleRandomHero() {
             ability: team.ability2,
             weapon: team.weapon2,
             armor: team.armor2
-        });
+        }, 2);
         recapScene.setContinueButtonLabel('Start Battle');
         transitionToScene('recap');
     }
