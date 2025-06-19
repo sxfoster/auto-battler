@@ -2097,3 +2097,28 @@ button:disabled {
 #upgrade-team-roster .champion-display {
     margin-right: 5rem;
 }
+
+/* --- Upgrade Scene Action Buttons --- */
+#take-card-btn {
+    background-color: #f59e0b;
+    color: #111827;
+    font-weight: 600;
+}
+
+#take-card-btn:hover:not(:disabled) {
+    background-color: #fbbf24;
+}
+
+#take-card-btn:disabled {
+    background-color: #4b5563;
+    color: #9ca3af;
+    cursor: not-allowed;
+}
+
+#dismiss-card-btn {
+    background-color: #4b5563;
+    border: 1px solid #6b7280;
+}
+#dismiss-card-btn:hover {
+    background-color: #6b7280;
+}
