@@ -2,6 +2,7 @@
 
 import { createDetailCard } from '../ui/CardRenderer.js';
 import { createChampionDisplay } from '../ui/ChampionDisplay.js';
+import { allPossibleWeapons, allPossibleArmors } from '../data.js';
 
 export class UpgradeScene {
     constructor(element, onComplete) {
@@ -18,6 +19,7 @@ export class UpgradeScene {
         this.revealArea = element.querySelector('#upgrade-reveal-area');
         this.teamRoster = element.querySelector('#upgrade-team-roster');
         this.dismissButton = element.querySelector('#dismiss-card-btn');
+        this.takeCardButton = element.querySelector('#take-card-btn');
 
         // State management
         this.phase = 'PACK';
@@ -32,6 +34,9 @@ export class UpgradeScene {
         }
         if (this.dismissButton) {
             this.dismissButton.addEventListener('click', () => this.handleDismissCard());
+        }
+        if (this.takeCardButton) {
+            this.takeCardButton.addEventListener('click', () => this.handleTakeCard());
         }
     }
 
@@ -76,19 +81,16 @@ export class UpgradeScene {
     }
 
     handleCardSelect(cardData, cardElement) {
-        if (this.phase === 'EQUIP' && this.selectedCardElement === cardElement) {
-            this.clearSelection();
-            this.phase = 'REVEAL';
-            this.championsStage.classList.add('upgrade-stage-hidden');
-        } else {
-            this.clearSelection();
-            this.phase = 'EQUIP';
-            this.selectedCardData = cardData;
-            this.selectedCardElement = cardElement;
-            this.selectedCardElement.classList.add('selected');
+        if (this.selectedCardElement === cardElement) return;
 
-            this.renderTeamForEquip();
-            this.championsStage.classList.remove('upgrade-stage-hidden');
+        this.clearSelection();
+
+        this.selectedCardData = cardData;
+        this.selectedCardElement = cardElement;
+        this.selectedCardElement.classList.add('selected');
+
+        if (this.takeCardButton) {
+            this.takeCardButton.disabled = false;
         }
     }
 
@@ -97,6 +99,14 @@ export class UpgradeScene {
             this.currentCardIndex++;
             this.revealNextCard();
         }
+    }
+
+    handleTakeCard() {
+        if (!this.selectedCardData) return;
+
+        this.phase = 'EQUIP';
+        this.renderTeamForEquip();
+        this.championsStage.classList.remove('upgrade-stage-hidden');
     }
 
     handleSocketSelect(slotKey) {
@@ -117,6 +127,51 @@ export class UpgradeScene {
         }
         this.selectedCardData = null;
         this.selectedCardElement = null;
+
+        if (this.takeCardButton) {
+            this.takeCardButton.disabled = true;
+        }
+    }
+
+    _showComparisonTooltip(event, slotKey) {
+        const tooltipElement = document.getElementById('item-tooltip');
+        if (!tooltipElement || !this.selectedCardData) return;
+
+        const newStats = this.selectedCardData.statBonuses || {};
+
+        const equippedItemId = this.playerTeam[slotKey];
+        const itemPool = slotKey.startsWith('weapon') ? allPossibleWeapons : allPossibleArmors;
+        const equippedItem = equippedItemId ? itemPool.find(i => i.id === equippedItemId) : null;
+        const oldStats = equippedItem ? equippedItem.statBonuses || {} : {};
+
+        let comparisonHtml = `<h4 class="font-bold text-lg font-cinzel text-amber-300 mb-2">${this.selectedCardData.name}</h4>`;
+
+        const allStatKeys = [...new Set([...Object.keys(newStats), ...Object.keys(oldStats)])];
+        allStatKeys.forEach(stat => {
+            const oldValue = oldStats[stat] || 0;
+            const newValue = newStats[stat] || 0;
+            const diff = newValue - oldValue;
+
+            const diffText = `(${diff > 0 ? '+' : ''}${diff})`;
+            const diffColor = diff === 0 ? 'text-gray-400' : diff > 0 ? 'text-green-400' : 'text-red-400';
+
+            comparisonHtml += `<div class="flex justify-between items-center">
+                <span>${stat}: ${newValue}</span>
+                <span class="text-xs ${diffColor}">${diffText} vs. ${oldValue}</span>
+            </div>`;
+        });
+
+        tooltipElement.innerHTML = comparisonHtml;
+        tooltipElement.classList.remove('hidden');
+        tooltipElement.style.left = `${event.clientX + 15}px`;
+        tooltipElement.style.top = `${event.clientY + 15}px`;
+    }
+
+    _hideComparisonTooltip() {
+        const tooltipElement = document.getElementById('item-tooltip');
+        if (tooltipElement) {
+            tooltipElement.classList.add('hidden');
+        }
     }
 
     renderTeamForEquip() {
@@ -136,6 +191,12 @@ export class UpgradeScene {
             const championContainer = createChampionDisplay(championSlotData, num, this.selectedCardData.type);
 
             championContainer.querySelectorAll('.equipment-socket.targetable').forEach(socket => {
+                socket.addEventListener('mouseover', (e) => {
+                    this._showComparisonTooltip(e, socket.dataset.slot);
+                });
+                socket.addEventListener('mouseout', () => {
+                    this._hideComparisonTooltip();
+                });
                 socket.addEventListener('click', (e) => {
                     e.stopPropagation();
                     this.handleSocketSelect(socket.dataset.slot);
