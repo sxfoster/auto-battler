@@ -1865,6 +1865,13 @@ button:disabled {
     z-index: 1;
 }
 
+
+
+
+
+
+
+
 /* Visual highlight when a reward card is selected */
 #upgrade-reveal-area .hero-card-container.selected .hero-card {
     border-color: #fde047;
@@ -2048,4 +2055,28 @@ button:disabled {
 #reveal-actions {
     position: relative;
     z-index: 1;
+}
+/* --- Upgrade Scene Card Counter --- */
+#upgrade-card-counter {
+    min-height: 32px; /* Ensures layout doesn't shift */
+}
+
+.card-pip {
+    width: 20px;
+    height: 30px;
+    background-color: rgba(75, 85, 99, 0.5); /* Inactive/Used color */
+    border: 1px solid #6b7280;
+    border-radius: 3px;
+    box-shadow: inset 0 0 5px rgba(0,0,0,0.4);
+    transition: all 0.4s ease-in-out;
+    transform: scale(0.9);
+    opacity: 0.5;
+}
+
+.card-pip.active {
+    background-color: #fde047; /* Glowing color for available cards */
+    border-color: #f59e0b;
+    box-shadow: 0 0 10px #f59e0b;
+    transform: scale(1);
+    opacity: 1;
 }

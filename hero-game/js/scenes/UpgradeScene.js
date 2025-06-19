@@ -45,6 +45,8 @@ export class UpgradeScene {
         this.packStage.classList.remove('upgrade-stage-hidden');
         this.revealStage.classList.add('upgrade-stage-hidden');
         this.championsStage.classList.add('upgrade-stage-hidden');
+
+        this._updateCardCounter();
     }
 
     handlePackOpen() {
@@ -60,6 +62,7 @@ export class UpgradeScene {
     revealNextCard() {
         this.championsStage.classList.add('upgrade-stage-hidden');
         this.clearSelection();
+        this._updateCardCounter();
         if (this.currentCardIndex >= this.packContents.length) {
             this.onComplete(null, null);
             return;
@@ -141,5 +144,22 @@ export class UpgradeScene {
 
             this.teamRoster.appendChild(championContainer);
         });
+    }
+
+    _updateCardCounter() {
+        const counterElement = this.element.querySelector('#upgrade-card-counter');
+        if (!counterElement) return;
+
+        counterElement.innerHTML = '';
+        const totalCards = this.packContents.length;
+
+        for (let i = 0; i < totalCards; i++) {
+            const pip = document.createElement('div');
+            pip.className = 'card-pip';
+            if (i >= this.currentCardIndex) {
+                pip.classList.add('active');
+            }
+            counterElement.appendChild(pip);
+        }
     }
 }
