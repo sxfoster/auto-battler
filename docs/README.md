@@ -2,6 +2,8 @@
 
 This directory contains design documents and technical references for the auto‑battler prototypes.
 
+For instructions on running the playable demo see [../hero-game/README.md](../hero-game/README.md).  The general repository layout is described in [../README.md](../README.md).
+
 ## Files
 
 - `gdd.md` – High level game design document.

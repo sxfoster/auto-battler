@@ -1,6 +1,8 @@
 # Auto Battler Prototypes
 
-This repository contains a series of HTML and JavaScript prototypes for a card based auto‑battler.  The main implementation lives in the `hero-game` folder, while the root directory contains earlier proof‑of‑concept files.
+This repository contains a series of HTML and JavaScript prototypes for a card based auto‑battler.  The main implementation lives in the `hero-game` folder, while the root directory holds several earlier proof‑of‑concept files.
+
+For details on the current prototype and its user interface, see [hero-game/README.md](hero-game/README.md).
 
 ## Repository Layout
 
@@ -19,9 +21,9 @@ python3 -m http.server 8000
 
 Then open `http://localhost:8000/hero-game/` in your browser.
 
-Alternatively you can use `npx http-server` or another static file server.
+Alternatively you can use `npx http-server` or any other static file server.
 
 ## Documentation
 
-The `docs` directory hosts the game design document, technical overview and other reference material.  See [docs/README.md](docs/README.md) for a full listing.
+The `docs` directory hosts the game design document, technical overview and other reference material.  See [docs/README.md](docs/README.md) for a full listing.  Developers should also read [docs/technical_overview.md](docs/technical_overview.md) for a code walkthrough.
 

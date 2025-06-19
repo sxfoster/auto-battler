@@ -2,6 +2,8 @@
 
 This document explains the structure of the playable prototype located in `hero-game/` and how the pieces fit together. It is intended for developers who want to extend the prototype or integrate AI generated features.
 
+Additional design documents are listed in [README.md](README.md).
+
 ## Folder Layout
 
 ```
@@ -17,6 +19,16 @@ hero-game/
     ├── systems/     # Game systems such as EffectProcessor
     └── ui/          # UI helpers like CardRenderer
 ```
+
+## Running Locally
+
+From the repository root start any static server, e.g.:
+
+```bash
+python3 -m http.server 8000
+```
+
+Then open `http://localhost:8000/hero-game/` in your browser. Additional options are described in [../README.md](../README.md).
 
 ### Client Logic
 
