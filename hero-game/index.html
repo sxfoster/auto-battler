@@ -143,14 +143,21 @@
             <h1 class="text-5xl font-cinzel tracking-wider">Choose an Upgrade</h1>
             <p class="text-lg text-gray-400 mt-2">Select a reward then replace a matching item.</p>
         </header>
-        <div id="upgrade-content" class="flex flex-col lg:flex-row gap-8">
-            <div id="upgrade-bonus-pool" class="grid grid-cols-3 gap-4"></div>
-            <div id="upgrade-team-roster" class="flex flex-col lg:flex-row gap-4"></div>
+        <div id="upgrade-pack-container" class="package-wrapper mb-6">
+            <div id="upgrade-package" class="package flex flex-col rounded-lg">
+                <div id="upgrade-top-crimp" class="crimp h-6 rounded-t-lg"></div>
+                <div id="upgrade-image-area" class="image-area flex-grow flex items-center justify-center">
+                    <img id="upgrade-pack-img" src="img/ability_booster.png" alt="bonus booster pack" class="booster-pack-image w-[320px] h-auto" draggable="false" />
+                </div>
+                <div class="crimp h-6 rounded-b-lg"></div>
+            </div>
         </div>
-        <div class="mt-6 flex gap-4">
-            <button id="upgrade-continue-button" class="confirm-button hidden">Continue</button>
-            <button id="upgrade-skip-button" class="secondary-button">Skip Upgrade</button>
+        <div id="upgrade-reveal-area" class="hidden"></div>
+        <div id="upgrade-actions" class="mt-4 flex gap-4 hidden">
+            <button id="upgrade-take-button" class="confirm-button">Take Card</button>
+            <button id="upgrade-dismiss-button" class="secondary-button">Dismiss</button>
         </div>
+        <div id="upgrade-team-roster" class="flex flex-col lg:flex-row gap-4 mt-8"></div>
         <div id="upgrade-confirm-modal" class="modal hidden">
             <div class="modal-backdrop">
                 <div class="modal-content">
