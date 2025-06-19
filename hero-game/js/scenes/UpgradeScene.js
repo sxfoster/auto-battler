@@ -2,7 +2,7 @@
 
 import { createDetailCard } from '../ui/CardRenderer.js';
 import { createChampionDisplay } from '../ui/ChampionDisplay.js';
-import { allPossibleWeapons, allPossibleArmors, allPossibleHeroes, allPossibleAbilities } from '../data.js';
+import { allPossibleWeapons, allPossibleArmors, allPossibleHeroes } from '../data.js';
 
 export class UpgradeScene {
     constructor(element, onComplete, onDismantle, onReroll) {
@@ -258,66 +258,6 @@ export class UpgradeScene {
         }
     }
 
-    // NEW HELPER METHOD: To update stats for preview
-    _updatePreviewStats(slotKey) {
-        const championNum = slotKey.includes('1') ? 1 : 2;
-        const heroData = allPossibleHeroes.find(h => h.id === this.playerTeam[`hero${championNum}`]);
-        if (!heroData) return;
-
-        const championContainer = this.teamRoster.querySelector(`.champion-display:nth-child(${championNum})`);
-        if (!championContainer) return;
-
-        const newStats = this.selectedCardData.statBonuses || {};
-
-        const itemPool = slotKey.startsWith('weapon') ? allPossibleWeapons : allPossibleArmors;
-        const equippedItem = this.playerTeam[slotKey] ? itemPool.find(i => i.id === this.playerTeam[slotKey]) : null;
-        const oldStats = equippedItem ? equippedItem.statBonuses || {} : {};
-
-        const allStatKeys = [...new Set([...Object.keys(newStats), ...Object.keys(oldStats)])];
-
-        allStatKeys.forEach(statKey => {
-            const diff = (newStats[statKey] || 0) - (oldStats[statKey] || 0);
-
-            if (diff === 0) return;
-
-            let statElement, baseStatValue;
-            if (statKey.toUpperCase() === 'HP') {
-                statElement = championContainer.querySelector('.hp-stat .stat-value');
-                baseStatValue = heroData.hp;
-            } else if (statKey.toUpperCase() === 'ATK') {
-                statElement = championContainer.querySelector('.attack-stat .stat-value');
-                baseStatValue = heroData.attack;
-            }
-
-            if (statElement) {
-                if (!statElement.dataset.originalValue) {
-                    statElement.dataset.originalValue = statElement.textContent;
-                }
-
-                const originalNumericValue = parseInt(statElement.dataset.originalValue);
-                const newDisplayValue = originalNumericValue + diff;
-
-                statElement.textContent = newDisplayValue;
-                statElement.classList.add('stat-updating');
-                statElement.classList.toggle('stat-buff', diff > 0);
-                statElement.classList.toggle('stat-nerf', diff < 0);
-            }
-        });
-    }
-
-    // NEW HELPER METHOD: To revert stats after preview
-    _revertPreviewStats(slotKey) {
-        const championNum = slotKey.includes('1') ? 1 : 2;
-        const championContainer = this.teamRoster.querySelector(`.champion-display:nth-child(${championNum})`);
-        if (!championContainer) return;
-
-        championContainer.querySelectorAll('.stat-value[data-original-value]').forEach(statElement => {
-            statElement.textContent = statElement.dataset.originalValue;
-            statElement.classList.remove('stat-updating', 'stat-buff', 'stat-nerf');
-            delete statElement.dataset.originalValue;
-        });
-    }
-
     renderTeamForEquip() {
         this.teamRoster.innerHTML = '';
         if (!this.playerTeam || !this.selectedCardData) return;
@@ -348,17 +288,10 @@ export class UpgradeScene {
 
             if (isChampionValid) {
                 championContainer.querySelectorAll('.equipment-socket.targetable').forEach(socket => {
-                    socket.addEventListener('mouseover', (e) => {
-                        this._showComparisonTooltip(e, socket.dataset.slot);
-                        this._updatePreviewStats(socket.dataset.slot);
-                    });
-                    socket.addEventListener('mouseout', () => {
-                        this._hideComparisonTooltip();
-                        this._revertPreviewStats(socket.dataset.slot);
-                    });
+                    socket.addEventListener('mouseover', (e) => this._showComparisonTooltip(e, socket.dataset.slot));
+                    socket.addEventListener('mouseout', () => this._hideComparisonTooltip());
                     socket.addEventListener('click', (e) => {
                         e.stopPropagation();
-                        this._revertPreviewStats(socket.dataset.slot);
                         this.handleSocketSelect(socket.dataset.slot);
                     });
                 });
