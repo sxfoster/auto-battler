@@ -25,5 +25,5 @@ Alternatively you can use `npx http-server` or any other static file server.
 
 ## Documentation
 
-The `docs` directory hosts the game design document, technical overview and other reference material.  See [docs/README.md](docs/README.md) for a full listing.  Developers should also read [docs/technical_overview.md](docs/technical_overview.md) for a code walkthrough.
+The `docs` directory hosts the game design document, technical overview and other reference material.  See [docs/README.md](docs/README.md) for a full listing.  Developers should read [docs/technical_overview.md](docs/technical_overview.md) for a code walkthrough and [docs/event_schema.md](docs/event_schema.md) for the battle log message format.
 

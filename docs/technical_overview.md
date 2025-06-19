@@ -42,6 +42,12 @@ The project is entirely client side. `js/main.js` manages the overall state mach
 - Break large modules into smaller units and add tests for combat logic.
 - Consider using a framework such as React or Vue for complex UI flows.
 
+## Battle Event System
+
+The combat simulator outputs a stream of JSON messages used to update the interface.
+Each message includes an `eventType` and payload as described in [event_schema.md](event_schema.md).
+Animation guidelines for these events are listed in [animation_timing_map.md](animation_timing_map.md).
+
 ## Related Design Docs
 
 For gameplay and balancing details, consult the other documents in this folder:
