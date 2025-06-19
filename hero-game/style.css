@@ -2011,3 +2011,34 @@ button:disabled {
     from { transform: scale(0.8); opacity: 0; }
     to { transform: scale(1); opacity: 1; }
 }
+
+/* Add these new rules to the end of style.css */
+
+/* Generic fade transition for our stage containers */
+.upgrade-stage-transition {
+    transition: opacity 0.5s ease-in-out, transform 0.5s ease-in-out;
+}
+
+.upgrade-stage-hidden {
+    opacity: 0;
+    transform: scale(0.95);
+    pointer-events: none;
+    position: absolute;
+}
+
+/* Ensure the roster animates in smoothly */
+#upgrade-team-roster {
+    transition: opacity 0.5s ease-in-out;
+    opacity: 1;
+}
+
+/* Ensure the sockets are clickable */
+.equipment-socket, .champion-display {
+    position: relative;
+    z-index: 1;
+}
+
+#reveal-actions {
+    position: relative;
+    z-index: 1;
+}

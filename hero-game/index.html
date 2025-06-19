@@ -139,35 +139,52 @@
 
     <!-- Post-battle upgrade scene -->
     <div id="upgrade-scene" class="scene hidden">
-        <header class="text-center mb-6">
-            <h1 class="text-5xl font-cinzel tracking-wider">Choose an Upgrade</h1>
-            <p id="upgrade-instructions" class="text-lg text-gray-400 mt-2">Select a reward then replace a matching item.</p>
-        </header>
-        <div id="upgrade-pack-container" class="package-wrapper mb-6">
-            <div id="upgrade-package" class="package flex flex-col rounded-lg">
-                <div id="upgrade-top-crimp" class="crimp h-6 rounded-t-lg"></div>
-                <div id="upgrade-image-area" class="image-area flex-grow flex items-center justify-center">
-                    <img id="upgrade-pack-img" src="img/ability_booster.png" alt="bonus booster pack" class="booster-pack-image w-[320px] h-auto" draggable="false" />
-                </div>
-                <div class="crimp h-6 rounded-b-lg"></div>
-            </div>
-        </div>
-        <div id="upgrade-reveal-area" class="hidden"></div>
-        <div id="reveal-actions" class="mt-4 flex gap-4 hidden">
-            <button id="take-card-btn" class="action-btn">Take Card</button>
-            <button id="dismiss-card-btn" class="action-btn">Dismiss</button>
-        </div>
-        <div id="upgrade-team-roster" class="flex flex-col lg:flex-row gap-4 mt-8"></div>
-        <div id="upgrade-confirm-modal" class="modal hidden">
-            <div class="modal-backdrop">
-                <div class="modal-content">
-                    <p class="mb-4">Replace this item with the selected card?</p>
-                    <div class="flex gap-4 justify-end">
-                        <button id="upgrade-confirm-yes" class="confirm-button">Confirm</button>
-                        <button id="upgrade-confirm-no" class="secondary-button">Cancel</button>
+        <!-- STAGE 1: Pack Opening -->
+        <div id="upgrade-stage-pack" class="w-full h-full flex flex-col items-center justify-center">
+            <header class="text-center mb-6">
+                <h1 class="text-5xl font-cinzel tracking-wider">A Reward!</h1>
+                <p id="upgrade-pack-instructions" class="text-lg text-gray-400 mt-2">Click the pack to reveal your bonus card.</p>
+            </header>
+            <div id="upgrade-pack-container" class="package-wrapper">
+                <div id="upgrade-package" class="package flex flex-col rounded-lg">
+                    <div id="upgrade-top-crimp" class="crimp h-6 rounded-t-lg"></div>
+                    <div id="upgrade-image-area" class="image-area flex-grow flex items-center justify-center">
+                        <img id="upgrade-pack-img" src="img/ability_booster.png" alt="bonus booster pack" class="booster-pack-image w-[320px] h-auto" draggable="false" />
                     </div>
+                    <div class="crimp h-6 rounded-b-lg"></div>
                 </div>
             </div>
+        </div>
+
+        <!-- STAGE 2: Card Reveal & Choice -->
+        <div id="upgrade-stage-reveal" class="w-full h-full flex flex-col items-center justify-center hidden">
+            <header class="text-center mb-6">
+                <h1 class="text-5xl font-cinzel tracking-wider">Choose Your Upgrade</h1>
+                <p id="upgrade-reveal-instructions" class="text-lg text-gray-400 mt-2">Take the card to upgrade your team, or dismiss it.</p>
+            </header>
+            <div id="upgrade-reveal-area" class="mb-4">
+                <!-- The revealed card will be injected here by JS -->
+            </div>
+            <div id="reveal-actions" class="flex gap-4">
+                <button id="take-card-btn" class="action-btn">Take Card</button>
+                <button id="dismiss-card-btn" class="action-btn">Dismiss</button>
+            </div>
+        </div>
+
+        <!-- STAGE 3: Champion & Socket Selection -->
+        <div id="upgrade-stage-champions" class="w-full h-full flex flex-col items-center justify-center hidden">
+             <header class="text-center mb-6">
+                <h1 class="text-5xl font-cinzel tracking-wider">Equip Your Upgrade</h1>
+                <p id="upgrade-champions-instructions" class="text-lg text-gray-400 mt-2">Select a highlighted slot to equip your new item.</p>
+            </header>
+            <div id="upgrade-team-roster" class="flex flex-col lg:flex-row gap-8 mt-8">
+                <!-- Champion cards will be injected here by JS -->
+            </div>
+        </div>
+
+        <!-- MODAL (No longer used for confirmation, can be removed or kept for future use) -->
+        <div id="upgrade-confirm-modal" class="modal hidden">
+            <!-- Content of the modal can be left as is for now -->
         </div>
     </div>
 
