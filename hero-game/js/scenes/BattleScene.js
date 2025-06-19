@@ -522,7 +522,7 @@ export class BattleScene {
                         finalDamage *= ability.synergy.bonus_multiplier;
 
                         const iconToFlash = Array.from(target.element.querySelectorAll('.status-icon'))
-                            .find(icon => icon.title.includes(ability.synergy.condition));
+                            .find(icon => (icon.dataset.statusName || '').includes(ability.synergy.condition));
                         if (iconToFlash) {
                             iconToFlash.classList.add('synergy-flash');
                             setTimeout(() => iconToFlash.classList.remove('synergy-flash'), 600);
