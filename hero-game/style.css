@@ -1898,7 +1898,6 @@ button:disabled {
 }
 
 .champion-display {
-    position: relative;
     width: 320px;
     height: 450px;
 }
@@ -2048,7 +2047,6 @@ button:disabled {
 
 /* Ensure the sockets are clickable */
 .equipment-socket, .champion-display {
-    position: relative;
     z-index: 1;
 }
 
