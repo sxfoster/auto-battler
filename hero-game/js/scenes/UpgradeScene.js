@@ -82,7 +82,7 @@ export class UpgradeScene {
             this.phase = 'EQUIP';
             this.selectedCardData = cardData;
             this.selectedCardElement = cardElement;
-            this.selectedCardElement.querySelector('.hero-card-container').classList.add('selected');
+            this.selectedCardElement.classList.add('selected');
 
             this.renderTeamForEquip();
             this.championsStage.classList.remove('upgrade-stage-hidden');
@@ -110,7 +110,7 @@ export class UpgradeScene {
 
     clearSelection() {
         if (this.selectedCardElement) {
-            this.selectedCardElement.querySelector('.hero-card-container').classList.remove('selected');
+            this.selectedCardElement.classList.remove('selected');
         }
         this.selectedCardData = null;
         this.selectedCardElement = null;
