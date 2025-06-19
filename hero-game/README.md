@@ -2,6 +2,8 @@
 
 This folder contains the current JavaScript prototype of the auto‑battler.  It is fully client side and uses ES modules for structure.
 
+For a deeper walkthrough of the codebase see [../docs/technical_overview.md](../docs/technical_overview.md).
+
 ## Structure
 
 ```
@@ -27,6 +29,8 @@ python3 -m http.server 8000
 ```
 
 Then visit `http://localhost:8000/hero-game/`.
+
+See [../README.md](../README.md) for additional server options and repository layout.
 
 ## Gameplay UI
 
