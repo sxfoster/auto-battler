@@ -1904,6 +1904,7 @@ button:disabled {
 .champion-display {
     width: 320px;
     height: 450px;
+    position: relative;
 }
 
 .equipment-socket {
@@ -2081,4 +2082,18 @@ button:disabled {
     box-shadow: 0 0 10px #f59e0b;
     transform: scale(1);
     opacity: 1;
+}
+
+/* Additional layout adjustments */
+#upgrade-stage-champions {
+    padding-top: 2rem;
+}
+
+#reveal-actions {
+    padding-top: 1rem;
+}
+
+/* Space out champion displays in the upgrade roster */
+#upgrade-team-roster .champion-display {
+    margin-right: 5rem;
 }
