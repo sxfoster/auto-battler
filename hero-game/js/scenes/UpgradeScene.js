@@ -36,6 +36,7 @@ export class UpgradeScene {
     // --- Core Flow Methods ---
 
     render(packContents, playerTeam) {
+        this.phase = 'PACK';
         this.packContents = packContents;
         this.playerTeam = playerTeam;
         this.currentCardIndex = 0;
