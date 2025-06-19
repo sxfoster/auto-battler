@@ -1883,7 +1883,12 @@ button:disabled {
     margin-bottom: 18rem;
 }
 
-#upgrade-reveal-area { display: flex; justify-content: center; align-items: center; position: relative; margin-top: 25rem;}
+#upgrade-reveal-area {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+}
 
 #upgrade-team-roster {
     display: flex;
