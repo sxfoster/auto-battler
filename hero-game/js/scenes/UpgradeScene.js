@@ -27,7 +27,12 @@ export class UpgradeScene {
             this.packEl.addEventListener('mousemove', e => this.handleMouseMove(e));
             this.packEl.addEventListener('mouseleave', () => this.handleMouseLeave());
         }
-        if (this.takeButton) this.takeButton.addEventListener('click', () => this.handleTakeCard());
+        if (this.takeButton) {
+            this.takeButton.addEventListener('click', () => {
+                console.log('Take Card button clicked.');
+                this.handleTakeCard();
+            });
+        }
         // dismissButton's handler is assigned dynamically in revealNextCard
 
         if (this.confirmModal) {
@@ -149,10 +154,16 @@ export class UpgradeScene {
             this.dismissButton.onclick = null;
             if (this.currentCardIndex === this.packContents.length - 1) {
                 this.dismissButton.textContent = 'Skip';
-                this.dismissButton.onclick = () => this.skipUpgrade();
+                this.dismissButton.onclick = () => {
+                    console.log('Skip button clicked.');
+                    this.skipUpgrade();
+                };
             } else {
                 this.dismissButton.textContent = 'Dismiss';
-                this.dismissButton.onclick = () => this.handleDismissCard();
+                this.dismissButton.onclick = () => {
+                    console.log('Dismiss button clicked.');
+                    this.handleDismissCard();
+                };
             }
         }
     }

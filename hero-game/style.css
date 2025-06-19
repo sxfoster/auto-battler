@@ -1864,6 +1864,12 @@ button:disabled {
 /* Upgrade Scene Styles                                                       */
 /* -------------------------------------------------------------------------- */
 
+/* Action button container during card reveal */
+#reveal-actions {
+    position: relative;
+    z-index: 1;
+}
+
 
 #upgrade-reveal-area { display: flex; justify-content: center; align-items: center; position: relative; }
 
