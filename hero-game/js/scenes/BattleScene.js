@@ -1302,4 +1302,35 @@ export class BattleScene {
     hide() {
         this.element.classList.add('hidden');
     }
+
+    /**
+     * Removes all dynamic elements and resets the scene to a clean state.
+     * This is called after a battle is complete to prevent state leakage.
+     */
+    cleanup() {
+        console.log("Cleaning up BattleScene...");
+
+        // Remove all combat text popups
+        this.element.querySelectorAll('.combat-text-popup').forEach(el => el.remove());
+
+        // Remove all projectiles, sparks, and VFX containers
+        this.element.querySelectorAll('.battle-projectile, .hit-spark, .vfx-container').forEach(el => el.remove());
+
+        // Remove lingering combo counters
+        if (this.playerComboCounter) this.playerComboCounter.classList.remove('active');
+        if (this.enemyComboCounter) this.enemyComboCounter.classList.remove('active');
+
+        // Ensure team containers are empty and reset animation classes
+        if (this.playerContainer) this.playerContainer.innerHTML = '';
+        if (this.enemyContainer) this.enemyContainer.innerHTML = '';
+        if (this.arena) this.arena.className = 'battle-arena';
+
+        // Ensure the end screen is not visible
+        if (this.endScreen) this.endScreen.classList.remove('visible', 'victory', 'defeat');
+
+        // Clear the battle log
+        const logContainer = this.element.querySelector('#log-entries-container');
+        if (logContainer) logContainer.innerHTML = '';
+        if (this.battleLogSummary) this.battleLogSummary.innerHTML = 'The battle is about to begin... <i class="fas fa-chevron-up"></i>';
+    }
 }

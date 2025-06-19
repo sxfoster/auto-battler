@@ -670,6 +670,7 @@ function proceedToUpgradeScene(didPlayerWin) {
 }
 
 function handleBattleComplete(didPlayerWin) {
+    battleScene.cleanup();
     if (didPlayerWin) {
         gameState.tournament.wins++;
     } else {
