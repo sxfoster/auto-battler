@@ -4,7 +4,11 @@ export function processEffect(effect, attacker, target, scene) {
             scene._dealDamage(attacker, target, effect.amount, Math.random() < 0.1);
             break;
         case 'DEAL_DAMAGE_PERCENT':
-            const dmg = Math.ceil((attacker.heroData.attack + attacker.weaponData.damage) * (effect.percent / 100));
+            // attacker.weaponData does not have a `damage` field. The combatant
+            // object's `attack` stat already includes the hero's base attack and
+            // any bonuses from equipment, so use that value when calculating
+            // percentage based damage.
+            const dmg = Math.ceil(attacker.attack * (effect.percent / 100));
             scene._dealDamage(attacker, target, dmg, Math.random() < 0.1);
             break;
         case 'HEAL':
