@@ -2167,3 +2167,22 @@ button:disabled {
 #upgrade-reveal-area .is-selecting {
     animation: card-select-to-hold 0.5s ease-in-out forwards;
 }
+
+/* --- Dynamic Stat Update Styles --- */
+.stat-block .stat-value.stat-updating {
+    transition: all 0.2s ease-in-out;
+}
+
+/* Style for a stat that is increasing */
+.stat-block .stat-value.stat-buff {
+    color: #4ade80; /* Bright Green */
+    transform: scale(1.2);
+    text-shadow: 0 0 8px #4ade80;
+}
+
+/* Style for a stat that is decreasing */
+.stat-block .stat-value.stat-nerf {
+    color: #f87171; /* Bright Red */
+    transform: scale(1.2);
+    text-shadow: 0 0 8px #f87171;
+}
