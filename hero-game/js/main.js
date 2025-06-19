@@ -607,6 +607,68 @@ function startNextBattle() {
     battleScene.start(battleState);
 }
 
+/**
+ * Finds the next hero in a class's evolution path.
+ * @param {number} heroId The ID of the current hero.
+ * @returns {object|null} The data for the evolved hero, or null if at max rarity.
+ */
+function getNextHeroInEvolution(heroId) {
+    const currentHero = allPossibleHeroes.find(h => h.id === heroId);
+    if (!currentHero || currentHero.rarity === 'Epic') {
+        return null;
+    }
+
+    const evolutionMap = {
+        'Common': 'Uncommon',
+        'Uncommon': 'Rare',
+        'Rare': 'Epic'
+    };
+    const nextRarity = evolutionMap[currentHero.rarity];
+
+    return allPossibleHeroes.find(h =>
+        h.class === currentHero.class && h.rarity === nextRarity
+    );
+}
+
+/**
+ * Checks if the win count triggers an evolution and updates the player's team.
+ * @param {number} wins The current number of tournament wins.
+ * @param {object} playerTeam The player's team object from gameState.
+ * @returns {boolean} True if an evolution occurred.
+ */
+function checkForAndApplyEvolutions(wins, playerTeam) {
+    const evolutionThresholds = { 1: true, 2: true, 5: true };
+    if (!evolutionThresholds[wins]) {
+        return false;
+    }
+
+    let evolutionOccurred = false;
+    for (let i = 1; i <= 2; i++) {
+        const heroId = playerTeam[`hero${i}`];
+        const evolvedHero = getNextHeroInEvolution(heroId);
+        if (evolvedHero) {
+            playerTeam[`hero${i}`] = evolvedHero.id;
+            evolutionOccurred = true;
+        }
+    }
+    return evolutionOccurred;
+}
+
+/**
+ * A helper to proceed to the upgrade scene after battle.
+ */
+function proceedToUpgradeScene(didPlayerWin) {
+    if (didPlayerWin) {
+        gameState.inventory.rerollTokens++;
+        const tokenEl = document.getElementById('player-reroll-tokens');
+        if (tokenEl) tokenEl.textContent = gameState.inventory.rerollTokens;
+    }
+
+    const bonusPack = generateBonusPack(gameState.tournament.wins, didPlayerWin);
+    upgradeScene.render(bonusPack, gameState.draft.playerTeam, gameState.inventory);
+    transitionToScene('upgrade');
+}
+
 function handleBattleComplete(didPlayerWin) {
     if (didPlayerWin) {
         gameState.tournament.wins++;
@@ -617,15 +679,21 @@ function handleBattleComplete(didPlayerWin) {
     if (gameState.tournament.wins >= 10 || gameState.tournament.losses >= 2) {
         endTournament();
     } else {
-        if (didPlayerWin) {
-            gameState.inventory.rerollTokens++;
-            const tokenEl = document.getElementById('player-reroll-tokens');
-            if (tokenEl) tokenEl.textContent = gameState.inventory.rerollTokens;
-        }
+        const evolutionHappened = didPlayerWin ? checkForAndApplyEvolutions(gameState.tournament.wins, gameState.draft.playerTeam) : false;
 
-        const bonusPack = generateBonusPack(gameState.tournament.wins, didPlayerWin);
-        upgradeScene.render(bonusPack, gameState.draft.playerTeam, gameState.inventory);
-        transitionToScene('upgrade');
+        if (evolutionHappened) {
+            const banner = document.getElementById('evolution-banner');
+            banner.classList.remove('hidden');
+            setTimeout(() => banner.classList.add('visible'), 50);
+
+            setTimeout(() => {
+                banner.classList.remove('visible');
+                setTimeout(() => banner.classList.add('hidden'), 500);
+                proceedToUpgradeScene(didPlayerWin);
+            }, 3000);
+        } else {
+            proceedToUpgradeScene(didPlayerWin);
+        }
     }
 }
 

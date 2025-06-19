@@ -612,6 +612,20 @@ button:disabled {
     opacity: 1;
 }
 
+/* --- Evolution Banner Styles --- */
+#evolution-banner {
+    transition: opacity 0.5s ease-in-out, transform 0.5s ease-in-out;
+    opacity: 0;
+    /* Starts slightly above its final position */
+    transform: translate(-50%, -50px);
+}
+
+#evolution-banner.visible {
+    opacity: 1;
+    /* Moves down to its final position */
+    transform: translate(-50%, 0);
+}
+
 /* Base style for all auras to enable positioning */
 .compact-card.has-aura::after {
     content: '';
