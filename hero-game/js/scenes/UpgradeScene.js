@@ -221,17 +221,15 @@ export class UpgradeScene {
         // === END: FIX FOR DUPLICATE CARD ===
     }
 
-    _updateTooltipPosition(event) {
-        const tooltipElement = document.getElementById('item-tooltip');
-        if (!tooltipElement) return;
-
-        tooltipElement.style.left = `${event.clientX + 15}px`;
-        tooltipElement.style.top = `${event.clientY + 15}px`;
-    }
 
     _showComparisonTooltip(event, slotKey) {
         const tooltipElement = document.getElementById('item-tooltip');
         if (!tooltipElement || !this.selectedCardData) return;
+
+        const championDisplay = event.currentTarget.closest('.champion-display');
+        if (!championDisplay) return;
+
+        championDisplay.appendChild(tooltipElement);
 
         const newStats = this.selectedCardData.statBonuses || {};
 
@@ -259,12 +257,13 @@ export class UpgradeScene {
 
         tooltipElement.innerHTML = comparisonHtml;
         tooltipElement.classList.remove('hidden');
-        this._updateTooltipPosition(event);
+        tooltipElement.classList.add('is-visible');
     }
 
     _hideComparisonTooltip() {
         const tooltipElement = document.getElementById('item-tooltip');
         if (tooltipElement) {
+            tooltipElement.classList.remove('is-visible');
             tooltipElement.classList.add('hidden');
         }
     }
@@ -300,7 +299,6 @@ export class UpgradeScene {
             if (isChampionValid) {
                 championContainer.querySelectorAll('.equipment-socket.targetable').forEach(socket => {
                     socket.addEventListener('mouseover', (e) => this._showComparisonTooltip(e, socket.dataset.slot));
-                    socket.addEventListener('mousemove', (e) => this._updateTooltipPosition(e));
                     socket.addEventListener('mouseout', () => this._hideComparisonTooltip());
                     socket.addEventListener('click', (e) => {
                         e.stopPropagation();
