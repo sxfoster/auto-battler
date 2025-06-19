@@ -168,6 +168,11 @@ export class UpgradeScene {
     handleBonusCardSelect(cardEl, cardData) {
         if (cardEl.classList.contains('selected')) {
             this.clearSelections();
+            this.phase = 'REVEAL';
+            if (this.actionContainer) this.actionContainer.classList.remove('hidden');
+            if (this.instructionsEl) {
+                this.instructionsEl.textContent = 'Take the card or dismiss it.';
+            }
             return;
         }
         this.clearSelections();
