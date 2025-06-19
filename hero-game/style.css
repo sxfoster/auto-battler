@@ -2167,3 +2167,11 @@ button:disabled {
 #upgrade-reveal-area .is-selecting {
     animation: card-select-to-hold 0.5s ease-in-out forwards;
 }
+
+/* --- New Animation for Equipping Card --- */
+@keyframes fly-down-and-shrink {
+    to {
+        transform: translateY(250px) scale(0);
+        opacity: 0;
+    }
+}
