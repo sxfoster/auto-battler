@@ -327,6 +327,7 @@ export class UpgradeScene {
 
     executeSwap() {
         console.log('[executeSwap] Starting swap...');
+        console.log('Value of this.selectedCard at start of executeSwap:', this.selectedCard);
         if (!this.pendingSlot || !this.selectedCard) {
             console.error('[executeSwap] Error: pendingSlot or selectedCard is null.');
             return;
