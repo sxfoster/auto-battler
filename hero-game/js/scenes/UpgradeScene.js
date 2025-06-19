@@ -6,30 +6,27 @@ export class UpgradeScene {
         this.element = element;
         this.onComplete = onComplete;
 
-        // Get references to the new stage containers
+        // Stage containers
         this.packStage = element.querySelector('#upgrade-stage-pack');
         this.revealStage = element.querySelector('#upgrade-stage-reveal');
         this.championsStage = element.querySelector('#upgrade-stage-champions');
 
-        // References to interactive elements
+        // Interactive elements
         this.packContainer = element.querySelector('#upgrade-pack-container');
         this.revealArea = element.querySelector('#upgrade-reveal-area');
         this.teamRoster = element.querySelector('#upgrade-team-roster');
-        this.takeButton = element.querySelector('#take-card-btn');
         this.dismissButton = element.querySelector('#dismiss-card-btn');
 
-        // State management for the new flow
+        // State management
         this.phase = 'PACK'; // PACK, REVEAL, EQUIP
         this.packContents = [];
         this.currentCardIndex = 0;
-        this.lockedCard = null;
+        this.selectedCardData = null; // Changed from lockedCard
+        this.selectedCardElement = null;
 
         // Bind event listeners
         if (this.packContainer) {
             this.packContainer.addEventListener('click', () => this.handlePackOpen());
-        }
-        if (this.takeButton) {
-            this.takeButton.addEventListener('click', () => this.handleTakeCard());
         }
         if (this.dismissButton) {
             this.dismissButton.addEventListener('click', () => this.handleDismissCard());
@@ -42,10 +39,8 @@ export class UpgradeScene {
         this.packContents = packContents;
         this.playerTeam = playerTeam;
         this.currentCardIndex = 0;
-        this.lockedCard = null;
-        this.phase = 'PACK';
+        this.clearSelection(); // Use new helper to reset state
         
-        // Reset to the initial state: only the pack is visible
         this.packStage.classList.remove('upgrade-stage-hidden');
         this.revealStage.classList.add('upgrade-stage-hidden');
         this.championsStage.classList.add('upgrade-stage-hidden');
@@ -54,69 +49,81 @@ export class UpgradeScene {
     handlePackOpen() {
         if (this.phase !== 'PACK') return;
         this.phase = 'REVEAL';
-
-        // Animate pack out, reveal stage in
         this.packStage.classList.add('upgrade-stage-hidden');
         setTimeout(() => {
             this.revealStage.classList.remove('upgrade-stage-hidden');
             this.revealNextCard();
-        }, 500); // Wait for fade out animation
+        }, 500);
     }
 
     revealNextCard() {
+        this.championsStage.classList.add('upgrade-stage-hidden'); // Always hide champions when a new card is shown
+        this.clearSelection();
         if (this.currentCardIndex >= this.packContents.length) {
-            // No more cards, end the scene
-            this.onComplete(null, null); // Pass null to indicate no upgrade was chosen
+            this.onComplete(null, null);
             return;
         }
 
         const cardData = this.packContents[this.currentCardIndex];
         this.revealArea.innerHTML = '';
         const cardElement = createDetailCard(cardData);
+        // Attach the new selection handler directly to the card
+        cardElement.addEventListener('click', () => this.handleCardSelect(cardData, cardElement));
         this.revealArea.appendChild(cardElement);
     }
 
-    handleTakeCard() {
-        if (this.phase !== 'REVEAL') return;
-        this.phase = 'EQUIP';
-        this.lockedCard = this.packContents[this.currentCardIndex];
+    handleCardSelect(cardData, cardElement) {
+        if (this.phase === 'EQUIP' && this.selectedCardElement === cardElement) {
+            // --- DESELECTION LOGIC ---
+            this.clearSelection();
+            this.phase = 'REVEAL';
+            this.championsStage.classList.add('upgrade-stage-hidden');
+        } else {
+            // --- SELECTION LOGIC ---
+            this.clearSelection(); // Clear previous selection if any
+            this.phase = 'EQUIP';
+            this.selectedCardData = cardData;
+            this.selectedCardElement = cardElement;
+            this.selectedCardElement.classList.add('selected');
 
-        // Animate reveal stage out
-        this.revealStage.classList.add('upgrade-stage-hidden');
-        
-        // Render and animate champions stage in
-        setTimeout(() => {
+            // Render and show champions
             this.renderTeamForEquip();
             this.championsStage.classList.remove('upgrade-stage-hidden');
-        }, 500);
+        }
     }
-    
+
     handleDismissCard() {
-        if (this.phase !== 'REVEAL') return;
-        this.currentCardIndex++;
-        this.revealNextCard();
+        if (this.phase === 'REVEAL' || this.phase === 'EQUIP') {
+            this.currentCardIndex++;
+            this.revealNextCard();
+        }
     }
 
-    // This is the final step, triggered by clicking a socket
     handleSocketSelect(slotKey) {
-        if (this.phase !== 'EQUIP' || !this.lockedCard) return;
+        if (this.phase !== 'EQUIP' || !this.selectedCardData) return;
 
-        // Check if the clicked slot type matches the locked card type
-        const expectedType = this.lockedCard.type;
+        const expectedType = this.selectedCardData.type;
         if (!slotKey.startsWith(expectedType)) {
             console.warn(`Invalid slot selected. Expected ${expectedType}, got ${slotKey}`);
             return;
         }
 
-        // Immediately call onComplete with the final choice
-        this.onComplete(slotKey, this.lockedCard.id);
+        this.onComplete(slotKey, this.selectedCardData.id);
     }
 
     // --- Helper & Rendering Methods ---
 
+    clearSelection() {
+        if (this.selectedCardElement) {
+            this.selectedCardElement.classList.remove('selected');
+        }
+        this.selectedCardData = null;
+        this.selectedCardElement = null;
+    }
+
     renderTeamForEquip() {
         this.teamRoster.innerHTML = '';
-        if (!this.playerTeam || !this.lockedCard) return;
+        if (!this.playerTeam || !this.selectedCardData) return;
 
         [1, 2].forEach(num => {
             const heroId = this.playerTeam[`hero${num}`];
@@ -125,9 +132,8 @@ export class UpgradeScene {
             const heroData = { ...allPossibleHeroes.find(h => h.id === heroId) };
             const championContainer = this.createChampionDisplay(heroData, num);
             
-            // Highlight the correct sockets
             championContainer.querySelectorAll('.equipment-socket').forEach(socket => {
-                if (socket.dataset.type === this.lockedCard.type) {
+                if (socket.dataset.type === this.selectedCardData.type) {
                     socket.classList.add('targetable');
                 }
             });
@@ -137,6 +143,7 @@ export class UpgradeScene {
     }
 
     createChampionDisplay(heroData, num) {
+        // This function remains the same as Phase 1
         const ability = allPossibleAbilities.find(a => a.id === this.playerTeam[`ability${num}`]);
         const weapon = allPossibleWeapons.find(w => w.id === this.playerTeam[`weapon${num}`]);
         const armor = allPossibleArmors.find(a => a.id === this.playerTeam[`armor${num}`]);
@@ -144,24 +151,20 @@ export class UpgradeScene {
 
         const container = document.createElement('div');
         container.className = 'champion-display';
-        container.dataset.slot = `hero${num}`;
-        container.dataset.type = 'hero';
-
+        // ... (rest of the function is identical)
         const cardElem = createDetailCard(heroData);
         container.appendChild(cardElem);
-
         const abilitySocket = this.createSocket(ability, `ability${num}`, 'ability-socket');
         const weaponSocket = this.createSocket(weapon, `weapon${num}`, 'weapon-socket');
         const armorSocket = this.createSocket(armor, `armor${num}`, 'armor-socket');
-        
         container.appendChild(abilitySocket);
         container.appendChild(weaponSocket);
         container.appendChild(armorSocket);
-        
         return container;
     }
 
     createSocket(itemData, slotKey, cssClass) {
+        // This function remains the same as Phase 1
         const socket = document.createElement('div');
         socket.className = `equipment-socket ${cssClass}`;
         if (itemData) {
@@ -179,3 +182,4 @@ export class UpgradeScene {
         return socket;
     }
 }
+
