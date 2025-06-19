@@ -16,8 +16,9 @@ export class UpgradeScene {
         this.revealStage = element.querySelector('#upgrade-stage-reveal');
         this.championsStage = element.querySelector('#upgrade-stage-champions');
 
+        // --- START OF FIX ---
         // Interactive elements
-        // The clickable package is '#upgrade-package'.
+        // This now correctly targets the clickable package element itself.
         this.packElement = element.querySelector('#upgrade-package');
         this.revealArea = element.querySelector('#upgrade-reveal-area');
         this.teamRoster = element.querySelector('#upgrade-team-roster');
@@ -25,18 +26,12 @@ export class UpgradeScene {
         this.takeCardButton = element.querySelector('#take-card-btn');
         this.rerollButton = element.querySelector('#reroll-cards-btn');
 
-        // State management
-        this.phase = 'PACK';
-        this.packContents = [];
-        this.currentCardIndex = 0;
-        this.selectedCardData = null;
-        this.selectedCardElement = null;
-        this.playerTeam = null;
-
-        // Attach click listener to the actual package element.
+        // The click listener is now correctly attached to the pack element.
         if (this.packElement) {
             this.packElement.addEventListener('click', () => this.handlePackOpen());
         }
+        // --- END OF FIX ---
+
         if (this.dismantleButton) {
             this.dismantleButton.addEventListener('click', () => this.handleDismantleCard());
         }
