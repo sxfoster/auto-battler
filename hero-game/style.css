@@ -1894,7 +1894,6 @@ button:disabled {
     display: flex;
     gap: 2rem;
     justify-content: center;
-    margin-top: 23rem;
 }
 
 #reveal-actions {
