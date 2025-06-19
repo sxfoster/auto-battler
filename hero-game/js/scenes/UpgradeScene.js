@@ -15,9 +15,9 @@ export class UpgradeScene {
         this.topCrimp = element.querySelector('#upgrade-top-crimp');
         this.imageArea = element.querySelector('#upgrade-image-area');
         this.revealArea = element.querySelector('#upgrade-reveal-area');
-        this.actionContainer = element.querySelector('#upgrade-actions');
-        this.takeButton = element.querySelector('#upgrade-take-button');
-        this.dismissButton = element.querySelector('#upgrade-dismiss-button');
+        this.actionContainer = element.querySelector('#reveal-actions');
+        this.takeButton = element.querySelector('#take-card-btn');
+        this.dismissButton = element.querySelector('#dismiss-card-btn');
         this.teamRoster = element.querySelector('#upgrade-team-roster');
         this.confirmModal = element.querySelector('#upgrade-confirm-modal');
         this.instructionsEl = element.querySelector('#upgrade-instructions');
@@ -28,7 +28,7 @@ export class UpgradeScene {
             this.packEl.addEventListener('mouseleave', () => this.handleMouseLeave());
         }
         if (this.takeButton) this.takeButton.addEventListener('click', () => this.handleTakeCard());
-        if (this.dismissButton) this.dismissButton.addEventListener('click', () => this.handleDismissCard());
+        // dismissButton's handler is assigned dynamically in revealNextCard
 
         if (this.confirmModal) {
             this.confirmYes = this.confirmModal.querySelector('#upgrade-confirm-yes');
@@ -145,6 +145,16 @@ export class UpgradeScene {
         if (this.instructionsEl) {
             this.instructionsEl.textContent = 'Take the card or dismiss it.';
         }
+        if (this.dismissButton) {
+            this.dismissButton.onclick = null;
+            if (this.currentCardIndex === this.packContents.length - 1) {
+                this.dismissButton.textContent = 'Skip';
+                this.dismissButton.onclick = () => this.skipUpgrade();
+            } else {
+                this.dismissButton.textContent = 'Dismiss';
+                this.dismissButton.onclick = () => this.handleDismissCard();
+            }
+        }
     }
 
     clearSelections() {
@@ -202,6 +212,10 @@ export class UpgradeScene {
                 this.revealNextCard();
             }
         }
+    }
+
+    skipUpgrade() {
+        this.onComplete();
     }
 
     renderTeam(team) {

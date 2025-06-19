@@ -278,6 +278,14 @@ button:disabled {
 .confirmation-bar.visible { bottom: 0; }
 .confirm-button { background-color: #f59e0b; color: #111827; padding: 0.75rem 2rem; border-radius: 0.5rem; font-size: 1.125rem; font-weight: 600; cursor: pointer; transition: background-color 0.2s; }
 .confirm-button:hover { background-color: #fbbf24; }
+.action-btn {
+    padding: 0.75rem 2rem;
+    border-radius: 0.5rem;
+    font-size: 1.125rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
 .secondary-button {
     background-color: transparent;
     color: #d1d5db;
@@ -292,6 +300,21 @@ button:disabled {
 .secondary-button:hover {
     background-color: #374151;
     color: white;
+}
+#take-card-btn {
+    background-color: #f59e0b;
+    color: #111827;
+}
+#take-card-btn:hover {
+    background-color: #fbbf24;
+}
+#dismiss-card-btn {
+    background-color: #991b1b;
+    border: 2px solid #b91c1c;
+    color: white;
+}
+#dismiss-card-btn:hover {
+    background-color: #7f1d1d;
 }
 
 /* --- Battle Scene Styles --- */
