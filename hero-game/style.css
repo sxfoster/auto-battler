@@ -1870,14 +1870,17 @@ button:disabled {
     z-index: 1;
 }
 
+.upgrade-scene header {
+    margin-bottom: 18rem;
+}
 
-#upgrade-reveal-area { display: flex; justify-content: center; align-items: center; position: relative; }
+#upgrade-reveal-area { display: flex; justify-content: center; align-items: center; position: relative; margin-top: 25rem;}
 
 #upgrade-team-roster {
     display: flex;
     gap: 2rem;
     justify-content: center;
-    margin-top: 4rem;
+    margin-top: 23rem;
 }
 
 .champion-display {
