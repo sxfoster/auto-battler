@@ -584,6 +584,16 @@ button:disabled {
     visibility: visible;
 }
 
+/* Tooltip for equipped items */
+#item-tooltip {
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.1s ease;
+}
+#item-tooltip:not(.hidden) {
+    opacity: 1;
+}
+
 /* Base style for all auras to enable positioning */
 .compact-card.has-aura::after {
     content: '';
@@ -1868,6 +1878,7 @@ button:disabled {
     display: flex;
     gap: 2rem;
     justify-content: center;
+    margin-top: 4rem;
 }
 
 .champion-display {

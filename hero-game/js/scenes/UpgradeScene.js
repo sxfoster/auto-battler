@@ -1,6 +1,11 @@
 import { createDetailCard } from '../ui/CardRenderer.js';
 import { allPossibleHeroes, allPossibleWeapons, allPossibleArmors, allPossibleAbilities } from '../data.js';
 
+const tooltipEl = document.getElementById('item-tooltip');
+const tooltipNameEl = document.getElementById('tooltip-name');
+const tooltipStatsEl = document.getElementById('tooltip-stats');
+const tooltipEffectEl = document.getElementById('tooltip-effect');
+
 export class UpgradeScene {
     constructor(element, onComplete) {
         this.element = element;
@@ -77,15 +82,30 @@ export class UpgradeScene {
             container.dataset.slot = `hero${num}`;
 
             const cardElem = createDetailCard(heroData);
-            cardElem.querySelector('.hero-card').addEventListener('click', () => this.handleSocketSelect(`hero${num}`));
+            const heroCard = cardElem.querySelector('.hero-card');
+            heroCard.addEventListener('click', () => this.handleSocketSelect(`hero${num}`));
+            heroCard.addEventListener('mouseover', (e) => this.showTooltip(e, heroData));
+            heroCard.addEventListener('mouseout', () => this.hideTooltip());
             container.appendChild(cardElem);
 
             const abilitySocket = this.createSocket(ability, `ability${num}`, 'ability-socket');
-            if (abilitySocket) container.appendChild(abilitySocket);
+            if (abilitySocket) {
+                abilitySocket.addEventListener('mouseover', (e) => ability && this.showTooltip(e, ability));
+                abilitySocket.addEventListener('mouseout', () => this.hideTooltip());
+                container.appendChild(abilitySocket);
+            }
             const weaponSocket = this.createSocket(weapon, `weapon${num}`, 'weapon-socket');
-            if (weaponSocket) container.appendChild(weaponSocket);
+            if (weaponSocket) {
+                weaponSocket.addEventListener('mouseover', (e) => weapon && this.showTooltip(e, weapon));
+                weaponSocket.addEventListener('mouseout', () => this.hideTooltip());
+                container.appendChild(weaponSocket);
+            }
             const armorSocket = this.createSocket(armor, `armor${num}`, 'armor-socket');
-            if (armorSocket) container.appendChild(armorSocket);
+            if (armorSocket) {
+                armorSocket.addEventListener('mouseover', (e) => armor && this.showTooltip(e, armor));
+                armorSocket.addEventListener('mouseout', () => this.hideTooltip());
+                container.appendChild(armorSocket);
+            }
 
             this.teamRoster.appendChild(container);
         });
@@ -176,5 +196,35 @@ export class UpgradeScene {
         this.teamRoster.classList.add('hidden');
         if (this.continueButton) this.continueButton.classList.remove('hidden');
         if (this.confirmModal) this.confirmModal.classList.add('hidden');
+    }
+
+    showTooltip(event, item) {
+        if (!tooltipEl || !item) return;
+        tooltipNameEl.textContent = item.name || '';
+        tooltipStatsEl.textContent = this.formatStats(item);
+        const effect = item.effect || (item.ability ? item.ability.description || item.ability.effect : '') || (item.class ? `Class: ${item.class}` : '');
+        tooltipEffectEl.textContent = effect;
+        tooltipEl.style.left = `${event.clientX + 12}px`;
+        tooltipEl.style.top = `${event.clientY + 12}px`;
+        tooltipEl.classList.remove('hidden');
+    }
+
+    hideTooltip() {
+        if (tooltipEl) tooltipEl.classList.add('hidden');
+    }
+
+    formatStats(item) {
+        if (item.statBonuses) {
+            return Object.entries(item.statBonuses)
+                .map(([stat, val]) => `${val > 0 ? '+' : ''}${val} ${stat}`)
+                .join(' ');
+        }
+        if (typeof item.energyCost !== 'undefined') {
+            return `${item.energyCost} ENERGY`;
+        }
+        if (typeof item.hp !== 'undefined' && typeof item.attack !== 'undefined') {
+            return `${item.hp} HP  ${item.attack} ATK`;
+        }
+        return '';
     }
 }
