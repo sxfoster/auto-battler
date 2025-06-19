@@ -326,25 +326,42 @@ export class UpgradeScene {
     }
 
     executeSwap() {
-        if (!this.pendingSlot || !this.selectedCard) return;
+        console.log('[executeSwap] Starting swap...');
+        if (!this.pendingSlot || !this.selectedCard) {
+            console.error('[executeSwap] Error: pendingSlot or selectedCard is null.');
+            return;
+        }
+
         const socket = this.element.querySelector(`[data-slot='${this.pendingSlot}']`);
-        if (!socket) return;
+        if (!socket) {
+            console.error(`[executeSwap] Error: Could not find socket for ${this.pendingSlot}.`);
+            return;
+        }
+
         const applyNewCard = () => {
+            console.log('[executeSwap] Running applyNewCard callback.');
             socket.removeEventListener('animationend', applyNewCard);
             socket.style.backgroundImage = `url('${this.selectedCard.art}')`;
             socket.classList.remove('empty-socket', 'card-pop-out');
             socket.classList.add('card-pop-in');
             socket.addEventListener('animationend', finishSwap);
         };
+
         const finishSwap = () => {
+            console.log('[executeSwap] Running finishSwap callback.');
             socket.removeEventListener('animationend', finishSwap);
             socket.classList.remove('card-pop-in');
+
+            console.log('[executeSwap] Calling onComplete to finalize state and transition.');
             this.onComplete(this.pendingSlot, this.selectedCard.id);
             this.clearSelections();
         };
+
         if (socket.classList.contains('empty-socket')) {
+            console.log('[executeSwap] Socket is empty, applying card directly.');
             applyNewCard();
         } else {
+            console.log('[executeSwap] Socket has an item, starting pop-out animation.');
             socket.classList.add('card-pop-out');
             socket.addEventListener('animationend', applyNewCard);
         }
