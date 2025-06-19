@@ -1841,38 +1841,8 @@ button:disabled {
 /* Upgrade Scene Styles                                                       */
 /* -------------------------------------------------------------------------- */
 
-#upgrade-bonus-pool {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 1rem;
-}
 
-.bonus-card {
-    width: 100px;
-    height: 140px;
-    background-color: #1e293b;
-    background-size: cover;
-    background-position: center;
-    border: 2px solid #9ca3af;
-    border-radius: 0.5rem;
-    cursor: pointer;
-    transition: transform 0.2s;
-    opacity: 0;
-}
-
-.deal-in {
-    animation: deal-in 0.3s forwards;
-}
-
-@keyframes deal-in {
-    from { opacity: 0; transform: translateY(30px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-.bonus-card.selected {
-    outline: 2px solid #f59e0b;
-    transform: translateY(-4px);
-}
+#upgrade-reveal-area { display: flex; justify-content: center; align-items: center; position: relative; }
 
 #upgrade-team-roster {
     display: flex;
