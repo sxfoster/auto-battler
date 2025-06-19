@@ -98,8 +98,6 @@ export class UpgradeScene {
             this.element.querySelectorAll('.armor-socket').forEach(el => el.classList.add('targetable'));
         } else if (type === 'ability') {
             this.element.querySelectorAll('.ability-socket').forEach(el => el.classList.add('targetable'));
-        } else if (type === 'hero') {
-            this.element.querySelectorAll('.champion-display').forEach(el => el.classList.add('targetable'));
         }
     }
 
