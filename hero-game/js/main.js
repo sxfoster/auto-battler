@@ -93,6 +93,13 @@ const recapScene = new RecapScene(sceneElements.recap, () => {
 const upgradeScene = new UpgradeScene(sceneElements.upgrade, (slot, newId) => {
     if (slot && newId) {
         gameState.draft.playerTeam[slot] = newId;
+
+        if (slot.startsWith('hero')) {
+            const idx = slot.endsWith('1') ? '1' : '2';
+            gameState.draft.playerTeam[`ability${idx}`] = null;
+            gameState.draft.playerTeam[`weapon${idx}`] = null;
+            gameState.draft.playerTeam[`armor${idx}`] = null;
+        }
     }
     startNextBattle();
 });
@@ -270,16 +277,20 @@ function generateArmorChoices() {
     return shuffled.slice(0, 3);
 }
 
-function generateBonusPack(wins) {
+function generateBonusPack(wins, didPlayerWin) {
     let allowedRarities;
-    if (wins <= 1) {
-        allowedRarities = ['Common'];
-    } else if (wins <= 3) {
-        allowedRarities = ['Common', 'Uncommon'];
-    } else if (wins <= 5) {
-        allowedRarities = ['Common', 'Uncommon', 'Rare'];
+    if (didPlayerWin) {
+        if (wins <= 1) {
+            allowedRarities = ['Common'];
+        } else if (wins <= 3) {
+            allowedRarities = ['Common', 'Uncommon'];
+        } else if (wins <= 5) {
+            allowedRarities = ['Common', 'Uncommon', 'Rare'];
+        } else {
+            allowedRarities = ['Common', 'Uncommon', 'Rare', 'Epic'];
+        }
     } else {
-        allowedRarities = ['Common', 'Uncommon', 'Rare', 'Epic'];
+        allowedRarities = ['Common', 'Uncommon'];
     }
 
     // Create rarity-filtered pools
@@ -310,11 +321,13 @@ function generateBonusPack(wins) {
         bonusPack.push(classAbilityPool.splice(idx, 1)[0]);
     }
 
-    // Combine remaining cards into a general pool
-    const generalPool = [...weaponPool, ...armorPool, ...classAbilityPool];
-    const shuffled = [...generalPool].sort(() => 0.5 - Math.random());
-    while (bonusPack.length < 6 && shuffled.length > 0) {
-        bonusPack.push(shuffled.shift());
+    if (didPlayerWin) {
+        // Combine remaining cards into a general pool
+        const generalPool = [...weaponPool, ...armorPool, ...classAbilityPool];
+        const shuffled = [...generalPool].sort(() => 0.5 - Math.random());
+        while (bonusPack.length < 6 && shuffled.length > 0) {
+            bonusPack.push(shuffled.shift());
+        }
     }
 
     // Final shuffle before presenting
@@ -559,7 +572,7 @@ function handleBattleComplete(didPlayerWin) {
     if (gameState.tournament.wins >= 10 || gameState.tournament.losses >= 2) {
         endTournament();
     } else {
-        const bonusPack = generateBonusPack(gameState.tournament.wins);
+        const bonusPack = generateBonusPack(gameState.tournament.wins, didPlayerWin);
         upgradeScene.render(bonusPack, gameState.draft.playerTeam);
         transitionToScene('upgrade');
     }
