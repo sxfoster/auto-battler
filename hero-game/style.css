@@ -2122,3 +2122,48 @@ button:disabled {
 #dismiss-card-btn:hover {
     background-color: #6b7280;
 }
+
+/* --- Upgrade Scene Champion Highlighting --- */
+.champion-display.is-invalid {
+    filter: grayscale(80%) brightness(0.6);
+    transition: filter 0.3s ease-in-out;
+    pointer-events: none;
+}
+
+.champion-display:not(.is-invalid) {
+    transition: transform 0.2s ease-out;
+}
+
+.champion-display:not(.is-invalid):hover {
+    transform: scale(1.03);
+}
+
+/* --- Upgrade Scene Animations & Holding Slot --- */
+#upgrade-holding-slot {
+    pointer-events: none;
+}
+
+#upgrade-holding-slot .hero-card-container {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0.8);
+}
+
+@keyframes card-select-to-hold {
+    to {
+        transform: translateY(-200px) scale(0.8);
+        opacity: 0.8;
+    }
+}
+
+@keyframes card-equip-to-socket {
+    to {
+        transform: var(--card-equip-transform);
+        opacity: 0.5;
+    }
+}
+
+#upgrade-reveal-area .is-selecting {
+    animation: card-select-to-hold 0.5s ease-in-out forwards;
+}

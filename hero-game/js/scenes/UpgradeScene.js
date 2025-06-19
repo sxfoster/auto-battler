@@ -2,7 +2,7 @@
 
 import { createDetailCard } from '../ui/CardRenderer.js';
 import { createChampionDisplay } from '../ui/ChampionDisplay.js';
-import { allPossibleWeapons, allPossibleArmors } from '../data.js';
+import { allPossibleWeapons, allPossibleArmors, allPossibleHeroes } from '../data.js';
 
 export class UpgradeScene {
     constructor(element, onComplete) {
@@ -81,17 +81,25 @@ export class UpgradeScene {
     }
 
     handleCardSelect(cardData, cardElement) {
-        if (this.selectedCardElement === cardElement) return;
-
-        this.clearSelection();
+        if (this.selectedCardElement) return;
 
         this.selectedCardData = cardData;
         this.selectedCardElement = cardElement;
-        this.selectedCardElement.classList.add('selected');
 
-        if (this.takeCardButton) {
-            this.takeCardButton.disabled = false;
-        }
+        cardElement.classList.add('is-selecting');
+        this.dismissButton.disabled = true;
+
+        const holdingSlot = this.element.querySelector('#upgrade-holding-slot');
+        holdingSlot.innerHTML = '';
+        const cardClone = cardElement.cloneNode(true);
+        cardClone.classList.remove('is-selecting');
+        holdingSlot.appendChild(cardClone);
+
+        cardElement.addEventListener('animationend', () => {
+            this.phase = 'EQUIP';
+            this.renderTeamForEquip();
+            this.championsStage.classList.remove('upgrade-stage-hidden');
+        }, { once: true });
     }
 
     handleDismissCard() {
@@ -110,27 +118,48 @@ export class UpgradeScene {
     }
 
     handleSocketSelect(slotKey) {
-        if (this.phase !== 'EQUIP' || !this.selectedCardData) return;
+        if (this.phase !== 'EQUIP') return;
 
-        const expectedType = this.selectedCardData.type;
-        if (!slotKey.startsWith(expectedType)) {
-            console.warn(`Invalid slot selected. Expected ${expectedType}, got ${slotKey}`);
-            return;
-        }
+        this.phase = 'ANIMATING';
+        this.championsStage.style.pointerEvents = 'none';
 
-        this.onComplete(slotKey, this.selectedCardData.id);
+        const holdingSlot = this.element.querySelector('#upgrade-holding-slot');
+        const cardToAnimate = holdingSlot.querySelector('.hero-card-container');
+        const targetSocket = document.querySelector(`[data-slot="${slotKey}"]`);
+
+        if (!cardToAnimate || !targetSocket) return;
+
+        const startRect = cardToAnimate.getBoundingClientRect();
+        const endRect = targetSocket.getBoundingClientRect();
+
+        const deltaX = endRect.left - startRect.left;
+        const deltaY = endRect.top - startRect.top;
+        const scaleX = endRect.width / startRect.width;
+        const scaleY = endRect.height / startRect.height;
+
+        cardToAnimate.style.setProperty('--card-equip-transform', `translate(${deltaX}px, ${deltaY}px) scale(${scaleX}, ${scaleY})`);
+        cardToAnimate.style.animation = `card-equip-to-socket 0.6s ease-in-out forwards`;
+
+        cardToAnimate.addEventListener('animationend', () => {
+            this.onComplete(slotKey, this.selectedCardData.id);
+            holdingSlot.innerHTML = '';
+            this.championsStage.style.pointerEvents = 'auto';
+        }, { once: true });
     }
 
     clearSelection() {
         if (this.selectedCardElement) {
-            this.selectedCardElement.classList.remove('selected');
+            this.selectedCardElement.classList.remove('is-selecting');
         }
         this.selectedCardData = null;
         this.selectedCardElement = null;
 
-        if (this.takeCardButton) {
-            this.takeCardButton.disabled = true;
+        if (this.dismissButton) {
+            this.dismissButton.disabled = false;
         }
+
+        const holdingSlot = this.element.querySelector('#upgrade-holding-slot');
+        if (holdingSlot) holdingSlot.innerHTML = '';
     }
 
     _showComparisonTooltip(event, slotKey) {
@@ -186,22 +215,32 @@ export class UpgradeScene {
                 armor: this.playerTeam[`armor${num}`],
             };
 
-            if (!championSlotData.hero) return;
+            const hero = allPossibleHeroes.find(h => h.id === championSlotData.hero);
+            if (!hero) return;
+
+            let isChampionValid = true;
+            if (this.selectedCardData.type === 'ability') {
+                if (hero.class !== this.selectedCardData.class) {
+                    isChampionValid = false;
+                }
+            }
 
             const championContainer = createChampionDisplay(championSlotData, num, this.selectedCardData.type);
 
-            championContainer.querySelectorAll('.equipment-socket.targetable').forEach(socket => {
-                socket.addEventListener('mouseover', (e) => {
-                    this._showComparisonTooltip(e, socket.dataset.slot);
+            if (!isChampionValid) {
+                championContainer.classList.add('is-invalid');
+            }
+
+            if (isChampionValid) {
+                championContainer.querySelectorAll('.equipment-socket.targetable').forEach(socket => {
+                    socket.addEventListener('mouseover', (e) => this._showComparisonTooltip(e, socket.dataset.slot));
+                    socket.addEventListener('mouseout', () => this._hideComparisonTooltip());
+                    socket.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        this.handleSocketSelect(socket.dataset.slot);
+                    });
                 });
-                socket.addEventListener('mouseout', () => {
-                    this._hideComparisonTooltip();
-                });
-                socket.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    this.handleSocketSelect(socket.dataset.slot);
-                });
-            });
+            }
 
             this.teamRoster.appendChild(championContainer);
         });
