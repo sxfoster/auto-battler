@@ -90,10 +90,7 @@ const recapScene = new RecapScene(sceneElements.recap, () => {
     advanceDraft();
 });
 
-const upgradeScene = new UpgradeScene(sceneElements.upgrade, (slot, newId) => {
-    gameState.draft.playerTeam[slot] = newId;
-    startNextBattle();
-});
+const upgradeScene = new UpgradeScene(sceneElements.upgrade, handleUpgradeSwap);
 
 const battleScene = new BattleScene(sceneElements.battle, handleBattleComplete);
 
@@ -268,28 +265,49 @@ function generateArmorChoices() {
     return shuffled.slice(0, 3);
 }
 
-function generateBonusPack(wins) {
-    const pool = [
-        ...allPossibleHeroes,
-        ...allPossibleWeapons,
-        ...allPossibleArmors,
-        ...allPossibleAbilities
-    ];
+function generateBonusPack(wins, didPlayerWin) {
+    const team = gameState.draft.playerTeam;
+    const heroClasses = [];
+    [team.hero1, team.hero2].forEach(id => {
+        const hero = allPossibleHeroes.find(h => h.id === id);
+        if (hero) heroClasses.push(hero.class);
+    });
 
     let allowedRarities;
-    if (wins <= 1) {
-        allowedRarities = ['Common'];
-    } else if (wins <= 3) {
-        allowedRarities = ['Common', 'Uncommon'];
-    } else if (wins <= 5) {
-        allowedRarities = ['Common', 'Uncommon', 'Rare'];
+    if (didPlayerWin) {
+        if (wins <= 1) {
+            allowedRarities = ['Common'];
+        } else if (wins <= 3) {
+            allowedRarities = ['Common', 'Uncommon'];
+        } else if (wins <= 5) {
+            allowedRarities = ['Common', 'Uncommon', 'Rare'];
+        } else {
+            allowedRarities = ['Common', 'Uncommon', 'Rare', 'Epic'];
+        }
     } else {
-        allowedRarities = ['Common', 'Uncommon', 'Rare', 'Epic'];
+        allowedRarities = ['Common', 'Uncommon'];
     }
 
-    const filtered = pool.filter(item => allowedRarities.includes(item.rarity));
-    const shuffled = [...filtered].sort(() => 0.5 - Math.random());
-    return shuffled.slice(0, 6);
+    const weaponPool = allPossibleWeapons.filter(w => allowedRarities.includes(w.rarity));
+    const armorPool = allPossibleArmors.filter(a => allowedRarities.includes(a.rarity));
+    const abilityPool = allPossibleAbilities.filter(ab => heroClasses.includes(ab.class) && allowedRarities.includes(ab.rarity));
+    const heroPool = allPossibleHeroes.filter(h => allowedRarities.includes(h.rarity));
+
+    const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
+
+    if (!didPlayerWin) {
+        const pack = [pick(weaponPool), pick(armorPool), pick(abilityPool)];
+        return pack.sort(() => 0.5 - Math.random());
+    }
+
+    const pack = [pick(weaponPool), pick(armorPool), pick(abilityPool)];
+    const combined = [...heroPool, ...weaponPool, ...armorPool, ...abilityPool];
+    const unique = new Map(pack.map(c => [c.id, c]));
+    while (unique.size < 6 && combined.length > 0) {
+        const card = pick(combined);
+        unique.set(card.id, card);
+    }
+    return Array.from(unique.values()).slice(0, 6);
 }
 
 // Generate a fully equipped random champion
@@ -518,6 +536,20 @@ function startNextBattle() {
     battleScene.start(battleState);
 }
 
+function handleUpgradeSwap(slot, newId) {
+    const team = gameState.draft.playerTeam;
+    if (slot.startsWith('hero')) {
+        team[slot] = newId;
+        const suffix = slot.slice(-1);
+        team[`ability${suffix}`] = null;
+        team[`weapon${suffix}`] = null;
+        team[`armor${suffix}`] = null;
+    } else {
+        team[slot] = newId;
+    }
+    startNextBattle();
+}
+
 function handleBattleComplete(didPlayerWin) {
     if (didPlayerWin) {
         gameState.tournament.wins++;
@@ -528,7 +560,7 @@ function handleBattleComplete(didPlayerWin) {
     if (gameState.tournament.wins >= 10 || gameState.tournament.losses >= 2) {
         endTournament();
     } else {
-        const bonusPack = generateBonusPack(gameState.tournament.wins);
+        const bonusPack = generateBonusPack(gameState.tournament.wins, didPlayerWin);
         upgradeScene.render(bonusPack, gameState.draft.playerTeam);
         transitionToScene('upgrade');
     }

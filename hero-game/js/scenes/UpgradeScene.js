@@ -89,7 +89,7 @@ export class UpgradeScene {
     }
 
     updateTargetableSockets() {
-        this.element.querySelectorAll('.equipment-socket, .champion-display').forEach(el => el.classList.remove('targetable'));
+        this.element.querySelectorAll('.equipment-socket, .champion-display, .hero-card-container').forEach(el => el.classList.remove('targetable'));
         if (!this.selectedCard) return;
         const type = this.selectedCard.type;
         if (type === 'weapon') {
@@ -99,7 +99,7 @@ export class UpgradeScene {
         } else if (type === 'ability') {
             this.element.querySelectorAll('.ability-socket').forEach(el => el.classList.add('targetable'));
         } else if (type === 'hero') {
-            this.element.querySelectorAll('.champion-display').forEach(el => el.classList.add('targetable'));
+            this.element.querySelectorAll('.champion-display, .hero-card-container').forEach(el => el.classList.add('targetable'));
         }
     }
 
