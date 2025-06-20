@@ -1,28 +1,6 @@
-import { useState, useCallback } from 'react';
-import { allPossibleHeroes } from '../data/data.js';
+import { useState, useCallback, useEffect } from 'react';
 
 const MAX_ENERGY = 10;
-
-function getRandomHeroes(count) {
-  const pool = [...allPossibleHeroes].sort(() => 0.5 - Math.random());
-  return pool.slice(0, count);
-}
-
-function createCombatant(hero, team, position) {
-  return {
-    id: `${team}-${hero.id}-${position}`,
-    team,
-    name: hero.name,
-    maxHp: hero.hp,
-    currentHp: hero.hp,
-    attack: hero.attack,
-    speed: hero.speed,
-    position,
-    currentEnergy: 0,
-    abilityData: hero.ability || null,
-    statusEffects: [],
-  };
-}
 
 function computeTurnQueue(state) {
   return state
@@ -50,16 +28,16 @@ function calculateDamage(attacker, target, baseDamage) {
   return dmg;
 }
 
-export default function useBattleLogic(initialPlayerTeam = []) {
-  const createInitialState = () => {
-    const enemyHeroes = getRandomHeroes(initialPlayerTeam.length);
-    const players = initialPlayerTeam.map((h, i) => createCombatant(h, 'player', i));
-    const enemies = enemyHeroes.map((h, i) => createCombatant(h, 'enemy', i));
-    return [...players, ...enemies];
-  };
+export default function useBattleLogic(initialCombatants = []) {
+  const [battleState, setBattleState] = useState(() =>
+    initialCombatants.map(c => ({ ...c }))
+  );
+  const [turnQueue, setTurnQueue] = useState(() => computeTurnQueue(initialCombatants));
 
-  const [battleState, setBattleState] = useState(createInitialState());
-  const [turnQueue, setTurnQueue] = useState(() => computeTurnQueue(battleState));
+  useEffect(() => {
+    setBattleState(initialCombatants.map(c => ({ ...c })))
+    setTurnQueue(computeTurnQueue(initialCombatants))
+  }, [initialCombatants])
   const [battleLog, setBattleLog] = useState([]);
   const [isBattleOver, setIsBattleOver] = useState(false);
   const [winner, setWinner] = useState(null);
@@ -115,7 +93,7 @@ export default function useBattleLogic(initialPlayerTeam = []) {
     return false;
   };
 
-  const nextTurn = useCallback(() => {
+  const processTurn = useCallback(() => {
     if (isBattleOver) return;
 
     setBattleState((prevState) => {
@@ -180,6 +158,6 @@ export default function useBattleLogic(initialPlayerTeam = []) {
     });
   }, [turnQueue, isBattleOver, log]);
 
-  return { battleState, battleLog, isBattleOver, winner, nextTurn };
+  return { battleState, battleLog, isBattleOver, winner, processTurn };
 }
 
