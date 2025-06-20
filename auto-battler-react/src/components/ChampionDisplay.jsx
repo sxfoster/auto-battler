@@ -1,8 +1,20 @@
 import React from 'react'
 import Card from './Card.jsx'
-import { allPossibleHeroes, allPossibleAbilities, allPossibleWeapons, allPossibleArmors } from '../data/data.js'
+import {
+  allPossibleHeroes,
+  allPossibleAbilities,
+  allPossibleWeapons,
+  allPossibleArmors
+} from '../data/data.js'
 
-export default function ChampionDisplay({ slotData, championNum, targetType = null, valid = true, onSelectSlot }) {
+export default function ChampionDisplay({
+  slotData,
+  championNum,
+  targetType = null,
+  valid = true,
+  onSelectSlot,
+  onHoverSlot
+}) {
   const hero = allPossibleHeroes.find(h => h.id === slotData.hero)
   if (!hero) return null
   const ability = allPossibleAbilities.find(a => a.id === slotData.ability)
@@ -16,11 +28,22 @@ export default function ChampionDisplay({ slotData, championNum, targetType = nu
     const handleClick = () => {
       if (isTargetable && onSelectSlot) onSelectSlot(slotKey)
     }
+    const handleMouseOver = e => {
+      if (isTargetable && onHoverSlot) onHoverSlot(e, slotKey)
+    }
+    const handleMouseOut = () => {
+      if (isTargetable && onHoverSlot) onHoverSlot(null)
+    }
     return (
       <div
         className={`equipment-socket ${className} ${item ? '' : 'empty-socket'} ${isTargetable ? 'targetable' : ''} ${disabled ? 'disabled' : ''}`}
+        data-slot={slotKey}
+        data-type={type}
         style={item ? { backgroundImage: `url('${item.art}')` } : undefined}
+        title={item ? `${item.name} - ${item.rarity}` : undefined}
         onClick={handleClick}
+        onMouseOver={handleMouseOver}
+        onMouseOut={handleMouseOut}
       >
         {!item && <i className="fas fa-plus" />}
       </div>
