@@ -8,18 +8,19 @@ import {
 } from '../data/data.js'
 
 export default function ChampionDisplay({
-  slotData,
-  championNum,
+  championData,
+  championNum = 1,
   targetType = null,
   valid = true,
   onSelectSlot,
   onHoverSlot
 }) {
-  const hero = allPossibleHeroes.find(h => h.id === slotData.hero)
+  const data = championData || {}
+  const hero = allPossibleHeroes.find(h => h.id === data.hero)
   if (!hero) return null
-  const ability = allPossibleAbilities.find(a => a.id === slotData.ability)
-  const weapon = allPossibleWeapons.find(w => w.id === slotData.weapon)
-  const armor = allPossibleArmors.find(a => a.id === slotData.armor)
+  const ability = allPossibleAbilities.find(a => a.id === data.ability)
+  const weapon = allPossibleWeapons.find(w => w.id === data.weapon)
+  const armor = allPossibleArmors.find(a => a.id === data.armor)
 
   const renderSocket = (item, className, slotKey) => {
     const type = slotKey.replace(/\d+$/, '')

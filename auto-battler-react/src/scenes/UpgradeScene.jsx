@@ -141,7 +141,7 @@ export default function UpgradeScene() {
           return (
             <ChampionDisplay
               key={idx}
-              slotData={data}
+              championData={data}
               championNum={idx + 1}
               targetType={current.type}
               valid={valid}
