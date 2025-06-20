@@ -9,8 +9,8 @@ const boosterPackImages = {
 }
 
 export default function PackScene() {
-  const { advanceGamePhase, draftStage } = useGameStore(state => ({
-    advanceGamePhase: state.advanceGamePhase,
+  const { openPack, draftStage } = useGameStore(state => ({
+    openPack: state.openPack,
     draftStage: state.draftStage,
   }))
 
@@ -20,7 +20,7 @@ export default function PackScene() {
     if (isOpening) return
     setIsOpening(true)
     setTimeout(() => {
-      advanceGamePhase('REVEAL')
+      openPack()
     }, 1000)
   }
 

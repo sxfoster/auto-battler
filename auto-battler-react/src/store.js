@@ -1,5 +1,10 @@
 import { create } from 'zustand'
-import { allPossibleHeroes } from './data/data.js'
+import {
+  allPossibleHeroes,
+  allPossibleWeapons,
+  allPossibleArmors,
+  allPossibleAbilities
+} from './data/data.js'
 
 function getNextHeroInEvolution(heroId) {
   const currentHero = allPossibleHeroes.find(h => h.id === heroId)
@@ -26,7 +31,7 @@ function checkForAndApplyEvolutions(wins, playerTeam) {
 
 export const useGameStore = create(set => ({
   gamePhase: 'PACK',
-  draftStage: 'HERO_1_DRAFT',
+  draftStage: 'HERO_1_PACK',
   playerTeam: {
     hero1: null,
     ability1: null,
@@ -39,6 +44,8 @@ export const useGameStore = create(set => ({
   },
   tournament: { wins: 0, losses: 0 },
   inventory: { shards: 0, rerollTokens: 1 },
+  packChoices: [],
+  revealedCards: [],
 
   advanceGamePhase: newPhase => set({ gamePhase: newPhase }),
 
@@ -100,5 +107,80 @@ export const useGameStore = create(set => ({
       team[`armor${idx}`] = null
     }
     return { playerTeam: team }
-  })
+  }),
+
+  openPack: () =>
+    set(state => {
+      const stage = state.draftStage
+      const type = stage.split('_')[0]
+
+      let pool = []
+      if (type === 'HERO') pool = allPossibleHeroes
+      else if (type === 'WEAPON') pool = allPossibleWeapons
+      else if (type === 'ARMOR') pool = allPossibleArmors
+      else if (type === 'ABILITY') {
+        const heroSlot = stage.includes('_1_') ? 'hero1' : 'hero2'
+        const heroId = state.playerTeam[heroSlot]
+        const heroClass = allPossibleHeroes.find(h => h.id === heroId)?.class
+        pool = allPossibleAbilities.filter(a => a.class === heroClass)
+      }
+
+      const wins = state.tournament.wins
+      let allowed = []
+      if (wins <= 1) allowed = ['Common']
+      else if (wins <= 3) allowed = ['Common', 'Uncommon']
+      else if (wins <= 5) allowed = ['Common', 'Uncommon', 'Rare']
+      else allowed = ['Common', 'Uncommon', 'Rare', 'Epic']
+
+      const filtered = pool.filter(p => allowed.includes(p.rarity))
+      const shuffled = [...filtered].sort(() => 0.5 - Math.random())
+      const num = type === 'HERO' ? 4 : 3
+      const choices = shuffled.slice(0, num)
+
+      return { packChoices: choices, gamePhase: 'REVEAL' }
+    }),
+
+  finishReveal: () =>
+    set(state => ({
+      revealedCards: state.packChoices,
+      draftStage: state.draftStage.replace('PACK', 'DRAFT'),
+      gamePhase: 'DRAFT'
+    })),
+
+  selectDraftCard: card =>
+    set(state => {
+      const team = { ...state.playerTeam }
+      let stage = state.draftStage
+      let phase = 'PACK'
+
+      switch (stage) {
+        case 'HERO_1_DRAFT':
+          team.hero1 = card.id
+          stage = 'WEAPON_1_PACK'
+          break
+        case 'WEAPON_1_DRAFT':
+          team.weapon1 = card.id
+          stage = 'HERO_2_PACK'
+          break
+        case 'HERO_2_DRAFT':
+          team.hero2 = card.id
+          stage = 'WEAPON_2_PACK'
+          break
+        case 'WEAPON_2_DRAFT':
+          team.weapon2 = card.id
+          stage = 'COMPLETE'
+          phase = 'BATTLE'
+          break
+        default:
+          break
+      }
+
+      return {
+        playerTeam: team,
+        draftStage: stage,
+        packChoices: [],
+        revealedCards: [],
+        gamePhase: phase
+      }
+    })
 }))
