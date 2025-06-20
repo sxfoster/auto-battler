@@ -58,14 +58,14 @@ export default function UpgradeScene() {
     tournament,
     inventory,
     dismantleCard,
-    advanceGamePhase,
+    startBattle,
     equipItem
   } = useGameStore(state => ({
     playerTeam: state.playerTeam,
     tournament: state.tournament,
     inventory: state.inventory,
     dismantleCard: state.dismantleCard,
-    advanceGamePhase: state.advanceGamePhase,
+    startBattle: state.startBattle,
     equipItem: state.equipItem
   }))
 
@@ -83,7 +83,7 @@ export default function UpgradeScene() {
   const nextCard = () => {
     const newIndex = index + 1
     if (newIndex >= pack.length) {
-      advanceGamePhase('BATTLE')
+      startBattle()
     } else {
       setIndex(newIndex)
       setPhase('REVEAL')

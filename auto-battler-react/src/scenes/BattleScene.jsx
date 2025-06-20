@@ -1,28 +1,28 @@
 import React, { useEffect } from 'react'
-import { allPossibleHeroes } from '../data/data.js'
 import Card from '../components/Card.jsx'
 import useBattleLogic from '../hooks/useBattleLogic.js'
 import { useGameStore } from '../store.js'
 
 export default function BattleScene() {
-  const { playerTeam, handleBattleComplete } = useGameStore(state => ({
-    playerTeam: state.playerTeam,
+  const { combatants, startBattle, handleBattleComplete } = useGameStore(state => ({
+    combatants: state.combatants,
+    startBattle: state.startBattle,
     handleBattleComplete: state.handleBattleComplete,
   }))
 
-  const playerHeroes = [playerTeam.hero1, playerTeam.hero2]
-    .map(id => allPossibleHeroes.find(h => h.id === id))
-    .filter(Boolean)
+  useEffect(() => {
+    if (!combatants.length) startBattle()
+  }, [combatants, startBattle])
 
-  const { battleState, battleLog, isBattleOver, winner, nextTurn } =
-    useBattleLogic(playerHeroes)
+  const { battleState, battleLog, isBattleOver, winner, processTurn } =
+    useBattleLogic(combatants)
 
   useEffect(() => {
     if (!isBattleOver) {
-      const timer = setTimeout(nextTurn, 1000)
+      const timer = setTimeout(processTurn, 1000)
       return () => clearTimeout(timer)
     }
-  }, [battleLog, isBattleOver, nextTurn])
+  }, [battleLog, isBattleOver, processTurn])
 
   useEffect(() => {
     if (isBattleOver) {

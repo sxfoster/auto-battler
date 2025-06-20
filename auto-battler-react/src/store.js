@@ -31,7 +31,7 @@ function checkForAndApplyEvolutions(wins, playerTeam) {
 }
 
 export const useGameStore = createWithEqualityFn(
-  set => ({
+  (set, get) => ({
   gamePhase: 'PACK',
   draftStage: 'HERO_1_PACK',
   playerTeam: {
@@ -48,6 +48,7 @@ export const useGameStore = createWithEqualityFn(
   inventory: { shards: 0, rerollTokens: 1 },
   packChoices: [],
   revealedCards: [],
+  combatants: [],
   isSpeedLinesActive: false,
 
   advanceGamePhase: newPhase => set({ gamePhase: newPhase }),
@@ -113,6 +114,93 @@ export const useGameStore = createWithEqualityFn(
     return { playerTeam: team }
   }),
 
+  startBattle: () =>
+    set(state => {
+      const statMap = {
+        HP: 'hp',
+        ATK: 'attack',
+        SPD: 'speed',
+        Block: 'block',
+        Evasion: 'evasion',
+        MagicResist: 'magicResist'
+      }
+
+      function createCombatant(hero, weapon, armor, ability, team, position) {
+        if (!hero) return null
+        const finalStats = {
+          hp: hero.hp,
+          attack: hero.attack,
+          speed: hero.speed,
+          block: 0,
+          evasion: 0,
+          magicResist: 0
+        }
+        if (weapon?.statBonuses) {
+          for (const [stat, value] of Object.entries(weapon.statBonuses)) {
+            const key = statMap[stat] || stat.toLowerCase()
+            finalStats[key] = (finalStats[key] || 0) + value
+          }
+        }
+        if (armor?.statBonuses) {
+          for (const [stat, value] of Object.entries(armor.statBonuses)) {
+            const key = statMap[stat] || stat.toLowerCase()
+            finalStats[key] = (finalStats[key] || 0) + value
+          }
+        }
+        return {
+          id: `${team}-hero-${position}`,
+          heroData: hero,
+          weaponData: weapon,
+          armorData: armor,
+          abilityData: ability,
+          team,
+          position,
+          currentHp: finalStats.hp,
+          maxHp: finalStats.hp,
+          currentEnergy: 0,
+          ...finalStats,
+          statusEffects: []
+        }
+      }
+
+      const team = state.playerTeam
+      const hero1 = allPossibleHeroes.find(h => h.id === team.hero1)
+      const weapon1 = allPossibleWeapons.find(w => w.id === team.weapon1)
+      const armor1 = allPossibleArmors.find(a => a.id === team.armor1)
+      const ability1 = allPossibleAbilities.find(a => a.id === team.ability1)
+      const hero2 = allPossibleHeroes.find(h => h.id === team.hero2)
+      const weapon2 = allPossibleWeapons.find(w => w.id === team.weapon2)
+      const armor2 = allPossibleArmors.find(a => a.id === team.armor2)
+      const ability2 = allPossibleAbilities.find(a => a.id === team.ability2)
+
+      const player1 = createCombatant(hero1, weapon1, armor1, ability1, 'player', 0)
+      const player2 = createCombatant(hero2, weapon2, armor2, ability2, 'player', 1)
+
+      // generate enemy team
+      let enemyRarity = 'Common'
+      if (state.tournament.wins >= 5) enemyRarity = 'Epic'
+      else if (state.tournament.wins >= 2) enemyRarity = 'Rare'
+      else if (state.tournament.wins >= 1) enemyRarity = 'Uncommon'
+
+      const enemyPool = allPossibleHeroes.filter(h => h.rarity === enemyRarity)
+      const enemyHero1 = enemyPool[Math.floor(Math.random() * enemyPool.length)]
+      const remaining = enemyPool.filter(h => h.id !== enemyHero1.id)
+      const enemyHero2 = remaining[Math.floor(Math.random() * remaining.length)]
+      const enemyWeapon1 = allPossibleWeapons[Math.floor(Math.random() * allPossibleWeapons.length)]
+      const enemyArmor1 = allPossibleArmors[Math.floor(Math.random() * allPossibleArmors.length)]
+      const enemyWeapon2 = allPossibleWeapons[Math.floor(Math.random() * allPossibleWeapons.length)]
+      const enemyArmor2 = allPossibleArmors[Math.floor(Math.random() * allPossibleArmors.length)]
+      const enemyAbilityPool1 = allPossibleAbilities.filter(a => a.class === enemyHero1.class)
+      const enemyAbilityPool2 = allPossibleAbilities.filter(a => a.class === enemyHero2.class)
+      const enemyAbility1 = enemyAbilityPool1.length ? enemyAbilityPool1[Math.floor(Math.random() * enemyAbilityPool1.length)] : null
+      const enemyAbility2 = enemyAbilityPool2.length ? enemyAbilityPool2[Math.floor(Math.random() * enemyAbilityPool2.length)] : null
+
+      const enemy1 = createCombatant(enemyHero1, enemyWeapon1, enemyArmor1, enemyAbility1, 'enemy', 0)
+      const enemy2 = createCombatant(enemyHero2, enemyWeapon2, enemyArmor2, enemyAbility2, 'enemy', 1)
+
+      return { combatants: [player1, player2, enemy1, enemy2], gamePhase: 'BATTLE' }
+    }),
+
   openPack: () =>
     set(state => {
       const stage = state.draftStage
@@ -154,49 +242,53 @@ export const useGameStore = createWithEqualityFn(
   startSecondChampionDraft: () =>
     set({ draftStage: 'HERO_2_PACK', gamePhase: 'PACK' }),
 
-  selectDraftCard: card =>
-    set(state => {
-      const team = { ...state.playerTeam }
-      let stage = state.draftStage
-      let phase = 'PACK'
+  selectDraftCard: card => {
+    const state = get()
+    const team = { ...state.playerTeam }
+    let stage = state.draftStage
+    let phase = 'PACK'
 
-      switch (stage) {
-        case 'HERO_1_DRAFT':
-          team.hero1 = card.id
-          stage = 'ABILITY_1_PACK'
-          break
-        case 'ABILITY_1_DRAFT':
-          team.ability1 = card.id
-          stage = 'WEAPON_1_PACK'
-          break
-        case 'WEAPON_1_DRAFT':
-          team.weapon1 = card.id
-          stage = 'ARMOR_1_PACK'
-          break
-        case 'ARMOR_1_DRAFT':
-          team.armor1 = card.id
-          stage = 'CHAMPION_1_COMPLETE'
-          phase = 'RECAP_1'
-          break
-        case 'HERO_2_DRAFT':
-          team.hero2 = card.id
-          stage = 'WEAPON_2_PACK'
-          break
-        case 'WEAPON_2_DRAFT':
-          team.weapon2 = card.id
-          stage = 'COMPLETE'
-          phase = 'BATTLE'
-          break
-        default:
-          break
-      }
+    switch (stage) {
+      case 'HERO_1_DRAFT':
+        team.hero1 = card.id
+        stage = 'ABILITY_1_PACK'
+        break
+      case 'ABILITY_1_DRAFT':
+        team.ability1 = card.id
+        stage = 'WEAPON_1_PACK'
+        break
+      case 'WEAPON_1_DRAFT':
+        team.weapon1 = card.id
+        stage = 'ARMOR_1_PACK'
+        break
+      case 'ARMOR_1_DRAFT':
+        team.armor1 = card.id
+        stage = 'CHAMPION_1_COMPLETE'
+        phase = 'RECAP_1'
+        break
+      case 'HERO_2_DRAFT':
+        team.hero2 = card.id
+        stage = 'WEAPON_2_PACK'
+        break
+      case 'WEAPON_2_DRAFT':
+        team.weapon2 = card.id
+        stage = 'COMPLETE'
+        phase = 'BATTLE'
+        break
+      default:
+        break
+    }
 
-      return {
-        playerTeam: team,
-        draftStage: stage,
-        packChoices: [],
-        revealedCards: [],
-        gamePhase: phase
-      }
+    set({
+      playerTeam: team,
+      draftStage: stage,
+      packChoices: [],
+      revealedCards: [],
+      gamePhase: phase
     })
+
+    if (phase === 'BATTLE') {
+      get().startBattle()
+    }
+  }
 }), shallow)
