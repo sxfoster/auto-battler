@@ -1,0 +1,14 @@
+# Node modules
+node_modules/
+
+# Build directories
+build/
+dist/
+
+# Production
+*.log
+.env
+
+# Misc
+.DS_Store
+coverage/
