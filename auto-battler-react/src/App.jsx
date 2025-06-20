@@ -1,5 +1,6 @@
 import React from 'react'
 import { useGameStore } from './store.js'
+import AnimatedBackground from './components/AnimatedBackground.jsx'
 
 import PackScene from './scenes/PackScene.jsx'
 import RevealScene from './scenes/RevealScene.jsx'
@@ -14,25 +15,40 @@ import './style.css'
 
 export default function App() {
   const gamePhase = useGameStore(state => state.gamePhase)
-
+  let scene = null
   switch (gamePhase) {
     case 'PACK':
-      return <PackScene />
+      scene = <PackScene />
+      break
     case 'REVEAL':
-      return <RevealScene />
+      scene = <RevealScene />
+      break
     case 'DRAFT':
-      return <DraftScene />
+      scene = <DraftScene />
+      break
     case 'WEAPON':
-      return <WeaponScene />
+      scene = <WeaponScene />
+      break
     case 'BATTLE':
-      return <BattleScene />
+      scene = <BattleScene />
+      break
     case 'RECAP_1':
-      return <RecapScene />
+      scene = <RecapScene />
+      break
     case 'UPGRADE':
-      return <UpgradeScene />
+      scene = <UpgradeScene />
+      break
     case 'TOURNAMENT_END':
-      return <TournamentEndScene />
+      scene = <TournamentEndScene />
+      break
     default:
-      return null
+      scene = null
   }
+
+  return (
+    <>
+      <AnimatedBackground isSpeedActive={false} />
+      {scene}
+    </>
+  )
 }

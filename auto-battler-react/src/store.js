@@ -48,8 +48,10 @@ export const useGameStore = createWithEqualityFn(
   inventory: { shards: 0, rerollTokens: 1 },
   packChoices: [],
   revealedCards: [],
+  isSpeedLinesActive: false,
 
   advanceGamePhase: newPhase => set({ gamePhase: newPhase }),
+  setSpeedLines: isActive => set({ isSpeedLinesActive: isActive }),
 
   selectHero: heroId => set(state => {
     const team = { ...state.playerTeam }
