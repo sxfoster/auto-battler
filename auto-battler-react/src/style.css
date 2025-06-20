@@ -1,0 +1,2243 @@
+/* --- Base Styles --- */
+body {
+    font-family: 'Inter', sans-serif;
+    /* background-color: #111827; */
+    color: white;
+    overflow-x: hidden;
+}
+
+
+#background-canvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+    background-color: #111827;
+}
+
+/* This pseudo-element will act as our color overlay */
+#background-canvas::after {
+    content: '';
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    z-index: -1; /* Ensures it's on top of the canvas but behind cards */
+    opacity: 0;
+    transition: opacity 0.5s ease-in-out;
+}
+
+/* Style for a "Holy" or "Buff" ability */
+#background-canvas.holy-mode::after {
+    background-color: rgba(253, 224, 71, 0.2); /* Soft Gold */
+    opacity: 1;
+}
+
+/* Style for a "Chaos" or "Debuff" ability */
+#background-canvas.chaos-mode::after {
+    background-color: rgba(167, 139, 250, 0.2); /* Soft Purple */
+    opacity: 1;
+}
+
+/* --- 2. Speed Lines Background Effect --- */
+#background-canvas.speed-lines-active {
+    /* We will control the speed lines via JavaScript */
+}
+
+.font-cinzel { font-family: 'Cinzel', serif; }
+
+/* --- Scene Containers --- */
+.scene {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    transition: opacity 0.3s ease-out, transform 0.3s ease-out;
+}
+.scene.hidden {
+    opacity: 0;
+    transform: scale(0.95);
+    pointer-events: none;
+    position: absolute;
+    width: 100%;
+    left: 0;
+    top: 0;
+}
+
+/* Generic booster pack style */
+.pack {
+    width: 280px;
+    height: 400px;
+    cursor: pointer;
+    border-radius: 1.25rem;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    position: relative;
+    top: 0;
+    left: 0;
+    overflow: hidden;
+}
+
+.pack:hover {
+    transform: scale(1.05) translateY(-10px);
+}
+
+/* --- HERO PACK --- */
+#hero-pack {
+    background-image: url('../img/character_booster.png');
+    background-size: cover;
+    background-position: center;
+    border: 2px solid rgba(217, 182, 126, 0.5);
+    box-shadow: 0 15px 35px rgba(0,0,0,0.5), inset 0 0 20px rgba(217, 182, 126, 0.2);
+}
+
+/* --- ABILITY PACK --- */
+#ability-pack {
+    width: 320px;
+    height: 400px;
+    background-image: url('../img/ability_booster.png');
+    background-size: cover;
+    background-position: center;
+    border: 2px solid rgba(132, 188, 217, 0.5);
+    box-shadow: 0 15px 35px rgba(0,0,0,0.5), inset 0 0 20px rgba(132, 188, 217, 0.2);
+}
+
+/* --- WEAPON PACK --- */
+#weapon-pack {
+    width: 350px;
+    height: 350px;
+    background-image: url('../img/weapon_booster.png');
+    background-size: cover;
+    background-position: center;
+    border: 2px solid rgba(200, 150, 150, 0.5);
+    box-shadow: 0 15px 35px rgba(0,0,0,0.5), inset 0 0 20px rgba(200, 150, 150, 0.2);
+}
+
+/* --- ARMOR PACK --- */
+#armor-pack {
+    width: 320px;
+    height: 380px;
+    background-image: url('../img/armor_booster.png');
+    background-size: cover;
+    background-position: center;
+    border: 2px solid rgba(190, 190, 190, 0.5);
+    box-shadow: 0 15px 35px rgba(0,0,0,0.5), inset 0 0 20px rgba(190, 190, 190, 0.2);
+}
+
+/* --- Booster Pack Scene --- */
+.booster-pack, .weapon-pack {
+    border-radius: 1rem;
+    border: 3px solid #fde047;
+    cursor: pointer;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    position: relative;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.booster-pack {
+    width: 280px;
+    height: 400px;
+    background: linear-gradient(45deg, #4c1d95, #be185d);
+    box-shadow: 0 0 30px rgba(253, 224, 71, 0.4), inset 0 0 20px rgba(0,0,0,0.5);
+}
+    .weapon-pack {
+    width: 350px;
+    height: 280px;
+    background: linear-gradient(135deg, #422d1a, #854d0e);
+    box-shadow: 0 0 30px rgba(133, 77, 14, 0.6), inset 0 0 20px rgba(0,0,0,0.5);
+}
+
+.booster-pack:hover, .weapon-pack:hover {
+    transform: scale(1.05) translateY(-10px);
+}
+
+/* Pack opening animations */
+.opening {
+    animation: shake-and-glow 0.6s ease-in-out, fade-out 0.3s ease-in 0.6s forwards;
+}
+@keyframes shake-and-glow {
+    0%, 100% { transform: scale(1.0) rotate(0deg); }
+    10%, 30%, 50%, 70%, 90% { transform: scale(1.1) rotate(-2deg); }
+    20%, 40%, 60%, 80% { transform: scale(1.1) rotate(2deg); }
+    50% { box-shadow: 0 0 80px rgba(253, 224, 71, 0.9); }
+}
+@keyframes fade-out {
+    to { transform: scale(1.5); opacity: 0; }
+}
+
+/* --- Draft Scene --- */
+.draft-pool { display: grid; grid-template-columns: repeat(1, 1fr); gap: 2rem; width: 100%; max-width: 1400px; justify-items: center; }
+@media (min-width: 768px) { .draft-pool { grid-template-columns: repeat(2, 1fr); } }
+@media (min-width: 1380px) { .draft-pool { grid-template-columns: repeat(4, 1fr); } }
+.weapon-draft-pool { grid-template-columns: repeat(1, 1fr); }
+@media (min-width: 1024px) { .weapon-draft-pool { grid-template-columns: repeat(3, 1fr); } }
+
+/* --- Detail Card Styles --- */
+.hero-card-container { width: 320px; height: 450px; position: relative; perspective: 1500px; }
+.hero-card {
+    background: radial-gradient(circle at 50% 0%, #2d3748, #111827);
+    box-shadow: inset 0 0 50px -10px rgba(0,0,0,0.7), 0 10px 25px rgba(0,0,0,0.5);
+    transform-style: preserve-3d;
+    cursor: pointer;
+    border: 4px solid transparent;
+    transition: all 0.3s;
+    width: 100%;
+    height: 100%;
+    position: relative;
+    border-radius: 1.25rem;
+    overflow: hidden;
+}
+
+/* Frame layering */
+.card-frame-base,
+.card-frame-inlay {
+    position: absolute;
+    inset: 0;
+    background-size: cover;
+}
+
+.card-frame-base { z-index: 1; background-image: var(--frame-base-image); }
+.card-frame-inlay { z-index: 2; background-image: var(--frame-inlay-image); }
+.hero-title-plate {
+    position: absolute;
+    inset: 0;
+    background-image: var(--title-plate-image);
+    background-size: cover;
+    z-index: 5;
+}
+.hero-card.selected { border-color: #f59e0b; box-shadow: 0 0 25px #f59e0b, 0 10px 30px rgba(0,0,0,0.7); transform: translateY(-5px) scale(1.02); }
+.hero-card.disabled { opacity: 0.5; pointer-events: none; }
+
+button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+.hero-card.common { border-color: #9ca3af; }
+.hero-card.uncommon { border-color: #22c55e; }
+.hero-card.rare { border-color: #f59e0b; }
+.hero-card.epic { border-color: #a78bfa; }
+
+/* -------------------------------------------------------------------------- */
+/* Hero Class Frame Themes                                                    */
+/* -------------------------------------------------------------------------- */
+
+/* Define the variables for each class */
+
+
+/* Remove frame image references to avoid 404 errors */
+.hero-card.raw-power-mage {}
+
+.hero-card.stalwart-defender {}
+
+/* Additional hero class themes can be added here */
+
+/* Rarity glow effects */
+.card-rarity-glow {
+    position: absolute;
+    inset: -5px;
+    z-index: 0;
+    border-radius: inherit;
+    opacity: 0.8;
+    transition: box-shadow 0.3s;
+}
+
+.hero-card.uncommon .card-rarity-glow {
+    box-shadow: 0 0 15px 5px #22c55e;
+}
+
+.hero-card.rare .card-rarity-glow {
+    box-shadow: 0 0 20px 8px #f59e0b;
+}
+
+.hero-card.epic .card-rarity-glow {
+    box-shadow: 0 0 25px 10px #a78bfa;
+}
+.shimmer-effect { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(110deg, rgba(255, 255, 255, 0) 40%, rgba(255, 255, 255, 0.25) 50%, rgba(255, 255, 255, 0) 60%); background-size: 200% 100%; animation: shimmer 4s infinite linear; z-index: 2; pointer-events: none; }
+@keyframes shimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+.hero-art { position: absolute; top: 11%; left: 10%; width: 80%; height: 45%; background-size: cover; background-position: top center; border-radius: 0.75rem; border: 2px solid #71717a; box-shadow: 0 0 10px rgba(0,0,0,0.8) inset; }
+.hero-name { position: absolute; top: 2%; width: 100%; text-align: center; font-size: 1.5rem; font-weight: 700; text-shadow: 2px 2px 4px #000; }
+.hero-stats { position: absolute; bottom: 30%; width: 100%; display: flex; justify-content: space-around; padding: 0 1rem; }
+.stat-block { text-align: center; }
+.stat-value { font-size: 1.25rem; font-weight: 600; }
+.stat-label { font-size: 0.75rem; text-transform: uppercase; opacity: 0.8; padding-left: 0.2rem;}
+.hero-abilities { position: absolute; bottom: 5%; width: 100%; padding: 0 1.5rem; list-style: none; font-size: 0.875rem; }
+.hero-abilities li { position: relative; margin-bottom: 0.25rem; padding: 0.25rem; border-radius: 0.25rem; }
+.tooltip { visibility: hidden; opacity: 0; position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%); background-color: #1f2937; color: white; padding: 0.5rem 0.75rem; border-radius: 0.5rem; border: 1px solid #4b5563; font-size: 0.8rem; width: max-content; max-width: 220px; z-index: 100; transition: opacity 0.3s; pointer-events: none; margin-bottom: 8px; }
+.hero-abilities li:hover .tooltip { visibility: visible; opacity: 1; }
+
+/* --- Confirmation Bar --- */
+.confirmation-bar { position: fixed; bottom: -100px; left: 0; width: 100%; background-color: rgba(0,0,0,0.7); backdrop-filter: blur(5px); padding: 1rem; display: flex; justify-content: center; align-items: center; transition: bottom 0.5s ease-in-out; z-index: 100; }
+.confirmation-bar.visible { bottom: 0; }
+.confirm-button { background-color: #f59e0b; color: #111827; padding: 0.75rem 2rem; border-radius: 0.5rem; font-size: 1.125rem; font-weight: 600; cursor: pointer; transition: background-color 0.2s; }
+.confirm-button:hover { background-color: #fbbf24; }
+.action-btn {
+    padding: 0.75rem 2rem;
+    border-radius: 0.5rem;
+    font-size: 1.125rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+.secondary-button {
+    background-color: transparent;
+    color: #d1d5db;
+    padding: 0.75rem 2rem;
+    border-radius: 0.5rem;
+    font-size: 1.125rem;
+    font-weight: 600;
+    border: 2px solid #6b7280;
+    cursor: pointer;
+    transition: background-color 0.2s, color 0.2s;
+}
+.secondary-button:hover {
+    background-color: #374151;
+    color: white;
+}
+#take-card-btn {
+    background-color: #f59e0b;
+    color: #111827;
+}
+#take-card-btn:hover {
+    background-color: #fbbf24;
+}
+#dismiss-card-btn {
+    background-color: #991b1b;
+    border: 2px solid #b91c1c;
+    color: white;
+}
+#dismiss-card-btn:hover {
+    background-color: #7f1d1d;
+}
+
+/* --- Battle Scene Styles --- */
+#battle-scene-background {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-size: cover;
+    background-position: center;
+    z-index: -1;
+    filter: blur(4px) brightness(0.7);
+}
+
+#environmental-vfx-container {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.env-particle {
+    position: absolute;
+    opacity: 0;
+    background-color: #a16207;
+    width: 10px;
+    height: 5px;
+    border-radius: 50%;
+}
+
+@keyframes wind-gust {
+    0% {
+        transform: translateX(-100px) rotate(0deg);
+        opacity: 1;
+    }
+    100% {
+        transform: translateX(calc(100vw + 100px)) rotate(720deg);
+        opacity: 0;
+    }
+}
+
+.env-particle.wind-gust {
+    animation: wind-gust ease-in forwards;
+}
+.battle-arena { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; width: 100%; max-width: 1200px; padding: 2rem; align-items: center; }
+.team-container { display: flex; flex-direction: column; align-items: center; gap: 2rem; flex-wrap: wrap; }
+
+/* Banner displayed when a team-wide effect occurs */
+.team-banner {
+    position: absolute;
+    top: 50%;
+    left: 10%;
+    width: 80%;
+    background: linear-gradient(to right, rgba(0,0,0,0) 0%, rgba(0,0,0,0.6) 25%, rgba(0,0,0,0.6) 75%, rgba(0,0,0,0) 100%);
+    padding: 0.5rem;
+    text-align: center;
+    font-family: 'Cinzel', serif;
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #fde047;
+    text-shadow: 0 0 10px #000;
+    z-index: 5;
+    pointer-events: none;
+
+    opacity: 0;
+    transform: translateY(-50%) scale(0.8);
+    transition: opacity 0.5s ease-out, transform 0.5s ease-out;
+}
+
+#enemy-team-banner {
+    left: auto;
+    right: 10%;
+}
+
+.team-banner.is-visible {
+    opacity: 1;
+    transform: translateY(-50%) scale(1);
+}
+
+.team-banner.debuff {
+    color: #ef4444;
+}
+.compact-card { width: 150px; height: 210px; border-radius: 0.5rem; background-color: #2d3748; position: relative; overflow: visible; display: flex; flex-direction: column; box-shadow: 0 4px 12px rgba(0,0,0,0.5); transition: transform 0.3s ease; }
+.compact-card.common { border: 2px solid #9ca3af; }
+.compact-card.uncommon { border: 2px solid #22c55e; }
+.compact-card.rare { border: 2px solid #a88532; }
+.compact-card.epic { border: 2px solid #a78bfa; }
+.compact-art { height: 60%; width: 100%; background-size: cover; background-position: center; border-top-left-radius: 0.3rem; border-top-right-radius: 0.3rem; }
+.compact-info { flex-grow: 1; padding: 0.5rem; display: flex; flex-direction: column; justify-content: space-between; }
+.compact-name { font-size: 1rem; font-weight: 700; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.hp-text { font-size: 0.75rem; text-align: center; opacity: 0.8; margin-bottom: 0.25rem; }
+.compact-hp-bar-container {
+    width: 100%;
+    height: 8px;
+    background-color: #1f2937;
+    border-radius: 4px;
+    overflow: hidden;
+    position: relative;
+}
+.compact-hp-bar,
+.compact-hp-bar-damage {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    border-radius: 3px;
+}
+.compact-hp-bar {
+    background-color: #48bb78;
+    transition: width 0.5s ease-out;
+    z-index: 2;
+}
+.compact-hp-bar-damage {
+    background-color: #7f1d1d;
+    width: 100%;
+    z-index: 1;
+}
+.compact-energy-container {
+    position: absolute;
+    bottom: 4px;
+    right: 5px;
+    display: flex;
+    align-items: center;
+    background-color: rgba(13, 20, 39, 0.7);
+    padding: 2px 5px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #fde047;
+}
+.compact-energy-container i {
+    margin-right: 3px;
+    font-size: 0.7rem;
+}
+.compact-card.is-attacking { transform: scale(1.1) translateY(-10px); z-index: 50; }
+.compact-card.is-lunging { transform: scale(1.1) translateY(-15px); z-index: 50; }
+.compact-card.is-active-turn {
+    transform: scale(1.05);
+    box-shadow: 0 0 20px 5px #fde047, 0 0 10px #fff inset;
+    z-index: 50;
+}
+.compact-card.is-taking-damage { animation: shake-horizontal 0.4s ease-in-out; }
+@keyframes shake-horizontal {
+  0%, 100% { transform: translateX(0); }
+  10%, 30%, 50%, 70% { transform: translateX(-8px); }
+  20%, 40%, 60%, 80% { transform: translateX(8px); }
+}
+.compact-card.is-defeated {
+    /* This class will now trigger the animation */
+    animation: defeat-animation 1.5s forwards ease-in-out;
+}
+
+/* Highlighted when hovering corresponding log entry */
+.compact-card.is-log-hovered {
+    transform: scale(1.1);
+    box-shadow: 0 0 25px 8px #3b82f6;
+    z-index: 51;
+}
+
+@keyframes defeat-animation {
+    0% {
+        transform: scale(1);
+        filter: grayscale(0);
+        opacity: 1;
+    }
+    30% {
+        /* Shatter/Shake effect */
+        transform: scale(1.1) rotate(5deg) translateX(-10px);
+        filter: grayscale(80%);
+        opacity: 0.8;
+    }
+    40% {
+        transform: scale(1.05) rotate(-5deg) translateX(10px);
+    }
+    100% {
+        /* Fall off screen */
+        transform: translateY(200%) rotate(20deg) scale(0.5);
+        filter: grayscale(100%);
+        opacity: 0;
+    }
+}
+
+@keyframes critical-health-pulse {
+    0% { box-shadow: 0 0 10px 2px #ef4444, inset 0 0 8px rgba(127, 29, 29, 0.7); }
+    50% { box-shadow: 0 0 18px 5px #f87171, inset 0 0 12px rgba(127, 29, 29, 0.7); }
+    100% { box-shadow: 0 0 10px 2px #ef4444, inset 0 0 8px rgba(127, 29, 29, 0.7); }
+}
+
+.compact-card.is-critical-health {
+    animation: critical-health-pulse 1.5s ease-in-out infinite;
+}
+
+.compact-card.is-critical-health::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background-image: url('https://www.transparenttextures.com/patterns/cracks.png');
+    opacity: 0.4;
+    z-index: 5;
+}
+.combat-text-popup {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    font-family: 'Cinzel', serif;
+    font-size: 2.5rem;
+    font-weight: 700;
+    text-shadow: 1px 1px 3px black;
+    pointer-events: none;
+    z-index: 100;
+    animation: combat-text-float 1.2s ease-out forwards;
+}
+.combat-text-popup.damage { color: #ef4444; }
+.combat-text-popup.heal { color: #22c55e; }
+.combat-text-popup.energy {
+    color: #60a5fa;
+    text-shadow: 1px 1px 3px #1e3a8a;
+}
+.combat-text-popup.block { color: #60a5fa; }
+.combat-text-popup.critical {
+    color: #f97316;
+    font-size: 3.5rem;
+    font-weight: 900;
+}
+.combat-text-popup.overkill {
+    color: #dc2626;
+    font-size: 4rem;
+    animation-duration: 2s;
+}
+
+@keyframes combat-text-float {
+  0% {
+    transform: translate(-50%, -50%) scale(0.5);
+    opacity: 1;
+  }
+  20% {
+    transform: translate(-50%, -100%) scale(1.2);
+  }
+  80% {
+    transform: translate(-50%, -180%) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-50%, -220%) scale(0.8);
+    opacity: 0;
+  }
+}
+
+@keyframes linked-pulse {
+    0% { transform: translate(-50%, -50%) scale(1.1); filter: brightness(1.2); }
+    50% { transform: translate(-50%, -50%) scale(1.3); filter: brightness(1.8); }
+    100% { transform: translate(-50%, -50%) scale(1.1); filter: brightness(1.2); }
+}
+
+.combat-text-popup.log-linked-pulse {
+    animation: linked-pulse 0.3s ease-in-out;
+}
+.status-icon-container { position: absolute; top: -10px; right: -10px; display: flex; gap: 0.25rem; }
+.status-icon { width: 24px; height: 24px; background-color: rgba(0,0,0,0.7); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; border: 1px solid white; }
+
+@keyframes icon-flash {
+    50% { transform: scale(1.5); color: #fef08a; }
+}
+
+.status-icon.synergy-flash {
+    animation: icon-flash 0.6s ease-in-out;
+}
+
+/* Tooltip for status effects */
+.status-tooltip {
+    position: absolute;
+    background-color: rgba(0,0,0,0.85);
+    color: #fff;
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.5rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+    pointer-events: none;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s ease;
+    z-index: 9999;
+    font-size: 0.8rem;
+}
+
+.status-tooltip.visible {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Tooltip for equipped items */
+#item-tooltip {
+    pointer-events: none;
+    position: absolute;
+    top: 50px;
+    left: 100%;
+    margin-left: 1rem;
+    z-index: 100;
+    display: none;
+    padding: 0.75rem;
+    border-radius: 0.5rem;
+    background: #1f2937;
+    border: 1px solid #4b5563;
+    max-width: 20rem; /* Matches Tailwind's max-w-xs */
+    transition: opacity 0.1s ease;
+}
+#item-tooltip.is-visible {
+    display: block;
+}
+
+/* --- Evolution Banner Styles --- */
+#evolution-banner {
+    transition: opacity 0.5s ease-in-out, transform 0.5s ease-in-out;
+    opacity: 0;
+    /* Starts slightly above its final position */
+    transform: translate(-50%, -50px);
+}
+
+#evolution-banner.visible {
+    opacity: 1;
+    /* Moves down to its final position */
+    transform: translate(-50%, 0);
+}
+
+/* Base style for all auras to enable positioning */
+.compact-card.has-aura::after {
+    content: '';
+    position: absolute;
+    top: -5px; left: -5px;
+    right: -5px; bottom: -5px;
+    border-radius: 10px;
+    pointer-events: none;
+    z-index: -1; /* Place it behind the card but in front of the background */
+}
+
+/* Poison Aura - Bubbling Green */
+@keyframes poison-aura-bubble {
+    0% { box-shadow: 0 0 12px 3px #16a34a, inset 0 0 10px #166534; }
+    50% { box-shadow: 0 0 18px 5px #22c55e, inset 0 0 14px #16a34a; }
+    100% { box-shadow: 0 0 12px 3px #16a34a, inset 0 0 10px #166534; }
+}
+.compact-card.aura-poison::after {
+    animation: poison-aura-bubble 2s ease-in-out infinite;
+}
+
+/* Buff Aura - Solid Blue Shield */
+@keyframes buff-aura-pulse {
+    0% { box-shadow: 0 0 12px 3px #2563eb, inset 0 0 10px #1d4ed8; }
+    50% { box-shadow: 0 0 18px 5px #3b82f6, inset 0 0 14px #2563eb; }
+    100% { box-shadow: 0 0 12px 3px #2563eb, inset 0 0 10px #1d4ed8; }
+}
+.compact-card.aura-buff::after {
+    animation: buff-aura-pulse 2.5s ease-in-out infinite;
+}
+
+/* Stun Aura - Pulsing Gold */
+@keyframes stun-aura-pulse {
+    0% { box-shadow: 0 0 8px 2px #facc15, inset 0 0 6px #ca8a04; }
+    50% { box-shadow: 0 0 16px 4px #fde047, inset 0 0 10px #facc15; }
+    100% { box-shadow: 0 0 8px 2px #facc15, inset 0 0 6px #ca8a04; }
+}
+.compact-card.aura-stun::after {
+    animation: stun-aura-pulse 1.5s ease-in-out infinite;
+}
+
+/* Bleed Aura - Dripping Red */
+@keyframes bleed-aura-drip {
+    0% { box-shadow: 0 0 8px 2px #991b1b, inset 0 0 6px #7f1d1d; }
+    50% { box-shadow: 0 0 14px 4px #b91c1c, inset 0 0 10px #991b1b; }
+    100% { box-shadow: 0 0 8px 2px #991b1b, inset 0 0 6px #7f1d1d; }
+}
+.compact-card.aura-bleed::after {
+    animation: bleed-aura-drip 2s ease-in-out infinite;
+}
+
+/* Burn Aura - Fiery Shimmer */
+@keyframes burn-aura-shimmer {
+    0% { box-shadow: 0 0 10px 2px #f97316, inset 0 0 6px #b91c1c; }
+    50% { box-shadow: 0 0 18px 5px #fb923c, inset 0 0 10px #ef4444; }
+    100% { box-shadow: 0 0 10px 2px #f97316, inset 0 0 6px #b91c1c; }
+}
+.compact-card.aura-burn::after {
+    animation: burn-aura-shimmer 1.8s ease-in-out infinite;
+}
+
+/* Slow Aura - Icy Mist */
+@keyframes slow-aura-mist {
+    0% { box-shadow: 0 0 8px 2px #38bdf8, inset 0 0 6px #0ea5e9; }
+    50% { box-shadow: 0 0 14px 4px #7dd3fc, inset 0 0 10px #38bdf8; }
+    100% { box-shadow: 0 0 8px 2px #38bdf8, inset 0 0 6px #0ea5e9; }
+}
+.compact-card.aura-slow::after {
+    animation: slow-aura-mist 2s ease-in-out infinite;
+}
+
+/* Confuse Aura - Swirling Purple */
+@keyframes confuse-aura-swirl {
+    0% { box-shadow: 0 0 8px 2px #c084fc, inset 0 0 6px #9333ea; }
+    50% { box-shadow: 0 0 14px 4px #e879f9, inset 0 0 10px #c084fc; }
+    100% { box-shadow: 0 0 8px 2px #c084fc, inset 0 0 6px #9333ea; }
+}
+.compact-card.aura-confuse::after {
+    animation: confuse-aura-swirl 2.2s ease-in-out infinite;
+}
+
+/* Root Aura - Earthen Tendrils */
+@keyframes root-aura-grow {
+    0% { box-shadow: 0 0 8px 2px #4d7c0f, inset 0 0 6px #365314; }
+    50% { box-shadow: 0 0 14px 4px #65a30d, inset 0 0 10px #4d7c0f; }
+    100% { box-shadow: 0 0 8px 2px #4d7c0f, inset 0 0 6px #365314; }
+}
+.compact-card.aura-root::after {
+    animation: root-aura-grow 2s ease-in-out infinite;
+}
+
+/* Shock Aura - Electric Crackle */
+@keyframes shock-aura-crackle {
+    0% { box-shadow: 0 0 8px 2px #fde047, inset 0 0 6px #2563eb; }
+    50% { box-shadow: 0 0 16px 4px #facc15, inset 0 0 10px #3b82f6; }
+    100% { box-shadow: 0 0 8px 2px #fde047, inset 0 0 6px #2563eb; }
+}
+.compact-card.aura-shock::after {
+    animation: shock-aura-crackle 1.5s ease-in-out infinite;
+}
+
+/* Vulnerable Aura - Cracked Target */
+@keyframes vulnerable-aura-crack {
+    0% { box-shadow: 0 0 8px 2px #dc2626, inset 0 0 6px #991b1b; }
+    50% { box-shadow: 0 0 16px 4px #ef4444, inset 0 0 10px #dc2626; }
+    100% { box-shadow: 0 0 8px 2px #dc2626, inset 0 0 6px #991b1b; }
+}
+.compact-card.aura-vulnerable::after {
+    animation: vulnerable-aura-crack 2s ease-in-out infinite;
+    background-image: url('https://www.transparenttextures.com/patterns/cracks.png');
+}
+
+/* Defense Down Aura - Dull Pulse */
+@keyframes defense-down-aura {
+    0% { box-shadow: 0 0 8px 2px #6b7280, inset 0 0 6px #4b5563; }
+    50% { box-shadow: 0 0 14px 4px #9ca3af, inset 0 0 10px #6b7280; }
+    100% { box-shadow: 0 0 8px 2px #6b7280, inset 0 0 6px #4b5563; }
+}
+.compact-card.aura-defense-down::after {
+    animation: defense-down-aura 2s ease-in-out infinite;
+}
+
+@keyframes charged-aura-crackle {
+    0% { box-shadow: 0 0 10px 2px #3b82f6, 0 0 5px #fff inset; }
+    50% { box-shadow: 0 0 16px 4px #60a5fa, 0 0 8px #fff inset; }
+    100% { box-shadow: 0 0 10px 2px #3b82f6, 0 0 5px #fff inset; }
+}
+
+.compact-card.is-charged::after {
+    animation: charged-aura-crackle 1.5s ease-in-out infinite;
+}
+#battle-log-container {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    z-index: 150;
+}
+
+#battle-log-summary {
+    width: 100%;
+    max-width: 800px;
+    margin: 0 auto 1rem auto;
+    background-color: rgba(0,0,0,0.6);
+    backdrop-filter: blur(4px);
+    padding: 0.75rem;
+    border-radius: 0.5rem;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    text-align: center;
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+#battle-log-summary:hover {
+    background-color: rgba(0,0,0,0.8);
+}
+
+#battle-log-summary i {
+    transition: transform 0.4s ease-in-out;
+}
+
+#battle-log-panel {
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    max-width: 800px;
+    background-color: rgba(17, 24, 39, 0.8);
+    backdrop-filter: blur(8px);
+    border-radius: 0.75rem 0.75rem 0 0;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-bottom: none;
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    overflow-y: hidden;
+    max-height: 0;
+    transition: max-height 0.4s ease-in-out;
+    margin-bottom: -1px;
+}
+
+#battle-log-panel.expanded {
+    max-height: 40vh;
+    overflow-y: auto;
+}
+
+#battle-log-panel.expanded + #battle-log-summary i {
+    transform: rotate(180deg);
+}
+
+#battle-log-filters {
+    display: flex;
+    gap: 0.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    margin-bottom: 1rem;
+}
+
+.filter-btn {
+    background-color: #4b5563;
+    border: 1px solid #6b7280;
+    color: white;
+    padding: 0.25rem 0.75rem;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.filter-btn:hover {
+    background-color: #6b7280;
+}
+
+.filter-btn.active {
+    background-color: #f59e0b;
+    color: #111827;
+    font-weight: 600;
+}
+
+.log-entry.hidden-by-filter {
+    display: none;
+}
+
+.log-entry {
+    padding: 0.4rem 0.6rem;
+    border-radius: 0.25rem;
+    margin-bottom: 0.5rem;
+    animation: log-entry-fade-in 0.4s ease-out;
+    font-size: 0.9rem;
+    flex-shrink: 0;
+}
+
+@keyframes log-entry-fade-in {
+    from {
+        opacity: 0;
+        transform: translateX(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.log-entry.info { color: #9ca3af; }
+.log-entry.damage { color: #f87171; }
+.log-entry.heal { color: #4ade80; }
+.log-entry.energy { color: #60a5fa; }
+.log-entry.ability { color: #fde047; font-weight: 600; background-color: rgba(253, 224, 71, 0.1); }
+.log-entry.ability-cast { color: #fde047; font-weight: 600; background-color: rgba(253, 224, 71, 0.1); }
+.log-entry.ability-result { margin-left: 1rem; position: relative; }
+.log-entry.ability-result::before {
+    content: '↳';
+    position: absolute;
+    left: -0.8rem;
+}
+.log-entry.status { color: #c084fc; }
+.log-entry.round { color: #fff; font-weight: 700; background-color: rgba(255, 255, 255, 0.1); text-align: center; }
+.log-entry.round-summary {
+    background-color: rgba(20, 30, 48, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: #fde047;
+    text-align: center;
+    font-weight: 600;
+    margin-top: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+.log-entry.victory { color: #fde047; font-weight: bold; text-transform: uppercase; }
+.log-entry.defeat { color: #ef4444; font-weight: bold; text-transform: uppercase; }
+
+#screen-flash {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(255, 255, 255, 0.8);
+    z-index: 200;
+    opacity: 0;
+    pointer-events: none;
+}
+#screen-flash.flash {
+    animation: screen-flash-anim 0.4s ease-out;
+}
+@keyframes screen-flash-anim {
+    from { opacity: 1; }
+    to { opacity: 0; }
+}
+
+#speed-cycle-button {
+    position: absolute;
+    top: 1rem;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #4b5563;
+    border: 1px solid #6b7280;
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    z-index: 150;
+    transition: background-color 0.2s;
+}
+#speed-cycle-button:hover {
+    background-color: #6b7280;
+}
+
+#end-screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.7); backdrop-filter: blur(8px); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 50; opacity: 0; transition: opacity 1s ease; pointer-events: none; }
+#end-screen.visible { opacity: 1; pointer-events: all; }
+#end-screen-result-text { font-size: 6rem; font-weight: 700; text-transform: uppercase; }
+#end-screen.victory #end-screen-result-text { color: #fde047; text-shadow: 0 0 20px #f59e0b; }
+#end-screen.defeat #end-screen-result-text { color: #ef4444; text-shadow: 0 0 20px #b91c1c; }
+#play-again-button { margin-top: 2rem; background-color: #fde047; color: #111827; padding: 1rem 3rem; border: none; border-radius: 0.5rem; font-size: 1.5rem; font-weight: 600; cursor: pointer; transition: transform 0.2s; }
+#play-again-button:hover { transform: scale(1.1); }
+#end-screen-results { display: flex; gap: 1rem; margin-top: 2rem; }
+
+/* ==========================================================================
+   Pack Opening & Reveal Scene Styles
+   ========================================================================== */
+
+/* --- Pack Styles from Prototype --- */
+.pack-tear-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; background: rgba(0,0,0,0.5); display: none; }
+
+/* --- Reveal Scene & Animations from Prototype --- */
+#reveal-area { display: flex; justify-content: center; align-items: center; position: relative; }
+.revealed-card {
+    width: 320px; height: 450px;
+    position: absolute;
+    transform-style: preserve-3d;
+    transition: transform 0.6s ease, opacity 0.6s ease;
+    cursor: pointer;
+    border-radius: 1.25rem;
+    background-color: #374151;
+    border: 4px solid #9ca3af;
+    overflow: hidden; /* Ensure artwork respects rounded corners */
+}
+.revealed-card.is-flipping { transform: rotateY(180deg); }
+.revealed-card.is-dismissed { opacity: 0; transform: translateY(200px); pointer-events: none; }
+.revealed-card.pre-reveal-rare { animation: pulse-glow-rare 1s infinite alternate; }
+.revealed-card.pre-reveal-epic { animation: pulse-glow-epic 1s infinite alternate; }
+@keyframes pulse-glow-rare { from { box-shadow: 0 0 10px #f59e0b; } to { box-shadow: 0 0 20px #f59e0b; } }
+@keyframes pulse-glow-epic { from { box-shadow: 0 0 10px #a78bfa; } to { box-shadow: 0 0 25px #a78bfa; } }
+
+/* Card back appearance for unrevealed cards */
+.revealed-card.card-back-unrevealed {
+    background-image: url('../img/card_back.png');
+    background-size: cover;
+    background-position: center;
+    border: 1px solid rgba(255, 255, 255, 0.1); /* Subtle frame to lift the artwork */
+}
+
+/* Maintain glow for rare cards while showing the back */
+.revealed-card.pre-reveal-rare.card-back-unrevealed {
+    box-shadow: 0 0 15px rgba(245, 158, 11, 0.5), inset 0 0 5px rgba(253, 224, 71, 0.3);
+}
+
+.revealed-card.pre-reveal-epic.card-back-unrevealed {
+    box-shadow: 0 0 20px rgba(167, 139, 250, 0.6), inset 0 0 8px rgba(190, 24, 93, 0.4);
+}
+
+/* Remove card back styles when the card is flipping */
+.revealed-card.is-flipping.card-back-unrevealed {
+    background-image: none;
+    border-color: transparent;
+}
+
+/* Ability display on weapon cards */
+.item-ability {
+    position: absolute;
+    bottom: 5%;
+    width: 100%;
+    padding: 0 1.5rem;
+    text-align: center;
+}
+.ability-name {
+    font-weight: 600;
+    font-size: 0.9rem;
+    display: block;
+    margin-bottom: 0.25rem;
+}
+.ability-description {
+    font-size: 0.8rem;
+    opacity: 0.8;
+}
+
+/* Recap Scene Styles */
+#recap-display-area {
+    position: relative;
+    width: 320px;
+    height: 450px;
+}
+#recap-card-viewer .hero-card-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    transition: opacity 0.3s ease-in-out;
+}
+
+/* A class to control visibility */
+#recap-card-viewer .recap-card.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.gear-socket {
+    position: absolute;
+    width: 80px;
+    height: 110px;
+    z-index: 10;
+    transition: transform 0.3s ease;
+}
+
+.gear-socket:hover {
+    transform: scale(1.1);
+    z-index: 20;
+}
+
+/* Position the weapon socket on the right side */
+.recap-weapon-socket {
+    top: 20%;
+    right: -40px;
+    transform: rotate(10deg);
+}
+.recap-weapon-socket:hover {
+    transform: rotate(5deg) scale(1.1);
+}
+
+/* Position the armor socket on the left side */
+.recap-armor-socket {
+    top: 45%;
+    left: -40px;
+    transform: rotate(-10deg);
+}
+.recap-armor-socket:hover {
+    transform: rotate(-5deg) scale(1.1);
+}
+
+/* Style for the mini-card placed inside a socket */
+.gear-socket .hero-card-container {
+    transform: scale(0.9);
+    width: 100%;
+    height: 100%;
+}
+.gear-socket .hero-card {
+    border-width: 2px;
+}
+.gear-socket .hero-name {
+    font-size: 0.75rem;
+}
+.gear-socket .hero-stats,
+.gear-socket .item-ability {
+    display: none;
+}
+
+
+/* Styling for the socket itself */
+.gear-socket {
+    position: absolute;
+    width: 80px;
+    height: 110px;
+    z-index: 10;
+    transition: transform 0.3s ease;
+    border-radius: 0.75rem;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    box-shadow: inset 0 0 10px rgba(0,0,0,0.7);
+    background-size: cover;
+    background-position: center;
+    cursor: pointer;
+}
+
+.gear-socket:hover {
+    transform: scale(1.1);
+    z-index: 20;
+}
+
+/* Position the weapon socket on the right side */
+.recap-weapon-socket {
+    top: 20%;
+    right: -40px;
+    transform: rotate(10deg);
+}
+.recap-weapon-socket:hover {
+    transform: rotate(5deg) scale(1.1);
+}
+
+/* Position the armor socket on the left side */
+.recap-armor-socket {
+    top: 45%;
+    left: -40px;
+    transform: rotate(-10deg);
+}
+.recap-armor-socket:hover {
+    transform: rotate(-5deg) scale(1.1);
+}
+
+/* Styling for the new modal popup (replaces simple tooltip) */
+.gear-socket .socket-modal-popup {
+    visibility: hidden;
+    opacity: 0;
+    position: absolute;
+    bottom: 50%;
+    left: 110%; /* Position it to the right of the socket */
+    z-index: 100;
+    transition: opacity 0.3s, visibility 0.3s;
+    pointer-events: none;
+}
+
+.recap-armor-socket .socket-modal-popup {
+    left: auto;
+    right: 110%; /* Position armor modal to the left */
+}
+
+.gear-socket:hover .socket-modal-popup {
+    visibility: visible;
+    opacity: 1;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Battle Scene Enhancements                                                  */
+/* -------------------------------------------------------------------------- */
+
+.battle-projectile {
+    position: fixed; /* Use fixed positioning for screen-space travel */
+    width: 15px;
+    height: 15px;
+    background-color: #fde047;
+    border-radius: 50%;
+    box-shadow: 0 0 15px 5px rgba(253, 224, 71, 0.7);
+    transition: transform 0.4s cubic-bezier(0.5, 0, 1, 0.5); /* Easing for a sense of speed */
+    z-index: 99;
+    pointer-events: none;
+}
+
+/* Slows down the projectile travel time */
+.battle-projectile.slow-motion {
+    transition-duration: 1.5s !important;
+    transition-timing-function: linear !important; /* Use linear for a classic slo-mo feel */
+}
+
+/* Energy gain particles */
+.energy-particle {
+    position: fixed;
+    width: 10px;
+    height: 10px;
+    background-color: #3b82f6;
+    border-radius: 50%;
+    box-shadow: 0 0 10px 4px rgba(59, 130, 246, 0.7);
+    z-index: 98;
+    pointer-events: none;
+    transition: transform 0.6s cubic-bezier(0.5, 0, 1, 1), opacity 0.6s ease;
+}
+
+.hit-spark {
+    position: fixed;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background-color: #fde047;
+    box-shadow: 0 0 20px 8px #f59e0b;
+    transform: translate(-50%, -50%) scale(0.5);
+    animation: spark-pop 0.3s forwards;
+    pointer-events: none;
+    z-index: 100;
+}
+
+@keyframes spark-pop {
+    from { opacity: 1; transform: translate(-50%, -50%) scale(0.5); }
+    to { opacity: 0; transform: translate(-50%, -50%) scale(1.5); }
+}
+
+.ability-announcer {
+    position: absolute;
+    top: 40%;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+    opacity: 0;
+    z-index: 100;
+}
+
+#announcer-main-text {
+    font-family: 'Cinzel', serif;
+    font-size: 4rem;
+    font-weight: 700;
+    color: #fde047;
+    text-shadow: 0 0 10px #000, 0 0 20px #f59e0b;
+    margin: 0;
+    padding: 0;
+}
+
+#announcer-subtitle {
+    font-family: 'Inter', sans-serif;
+    font-size: 1.25rem;
+    color: #e5e7eb;
+    text-shadow: 1px 1px 2px #000;
+    margin-top: -0.5rem;
+    opacity: 0.9;
+}
+.ability-announcer.show {
+    animation: announce-and-fade 1.5s ease-out forwards;
+}
+
+.ability-announcer.critical {
+    color: #f97316;
+    text-shadow: 0 0 10px #000, 0 0 20px #dc2626;
+}
+
+.ability-announcer.victory {
+    color: #fde047;
+    text-shadow: 0 0 10px #000, 0 0 20px #f59e0b;
+}
+
+.ability-announcer.defeat {
+    color: #ef4444;
+    text-shadow: 0 0 10px #000, 0 0 20px #b91c1c;
+}
+
+#card-announcer-container {
+    position: absolute;
+    inset: 0;
+    z-index: 175;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+    background-color: transparent;
+    transition: background-color 0.3s ease, opacity 0.3s ease;
+    perspective: 1000px;
+}
+
+#card-announcer-container.is-announcing {
+    opacity: 1;
+    pointer-events: auto;
+    background-color: rgba(0, 0, 0, 0.6);
+}
+
+#card-announcer-container .hero-card-container {
+    transform-style: preserve-3d;
+    transition: transform 0.1s linear;
+}
+
+@keyframes fly-in-and-hold {
+    0% {
+        transform: translateY(100vh) scale(0.6) rotateX(-60deg) rotateY(20deg);
+        opacity: 0;
+    }
+    40% {
+        transform: translateY(0) scale(1.05) rotateX(10deg) rotateY(-5deg);
+        opacity: 1;
+    }
+    80% {
+        transform: translateY(0) scale(1) rotateX(0deg) rotateY(0deg);
+        opacity: 1;
+    }
+    100% {
+        transform: translateY(0) scale(0.95);
+        opacity: 0;
+    }
+}
+
+#card-announcer-container.is-announcing .hero-card-container {
+    animation: fly-in-and-hold 1.5s ease-out forwards;
+}
+
+/* --- Word Effect Overlay --- */
+#word-effect-container {
+    position: absolute;
+    inset: 0;
+    z-index: 180;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    pointer-events: none;
+}
+
+.word-effect-text {
+    font-family: 'Cinzel', serif;
+    font-size: 8rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    position: absolute;
+    opacity: 0;
+}
+
+/* --- Modifier Classes --- */
+.critical-text {
+    color: #f97316;
+    text-shadow: 0 0 5px #fff, 0 0 15px #f97316, 0 0 25px #ef4444;
+}
+
+.victory-text {
+    color: #fde047;
+    text-shadow: 0 0 5px #fff, 0 0 20px #fde047, 0 0 35px #f59e0b;
+}
+
+.defeat-text {
+    color: #4b5563;
+    text-shadow: 0 0 10px #000;
+}
+
+/* --- Animation Definitions --- */
+@keyframes smash-and-fade {
+    0% { transform: scale(2.5); opacity: 0; }
+    20% { transform: scale(1); opacity: 1; }
+    25% { transform: scale(1.1) rotate(-2deg); }
+    30% { transform: scale(1) rotate(2deg); }
+    80% { transform: scale(1); opacity: 1; }
+    100% { transform: scale(0.8); opacity: 0; }
+}
+
+@keyframes forge-and-glow {
+    0% { filter: blur(15px); opacity: 0; }
+    40% { filter: blur(0); opacity: 1; text-shadow: 0 0 15px #fff, 0 0 25px #ef4444, 0 0 40px #ef4444; }
+    80% { opacity: 1; text-shadow: 0 0 5px #fff, 0 0 20px #fde047, 0 0 35px #f59e0b; }
+    100% { opacity: 0; }
+}
+
+@keyframes crumble-and-dust {
+    0% { opacity: 0; transform: scale(2); filter: blur(2px); }
+    20% { opacity: 1; transform: scale(1); filter: blur(0); }
+    80% { opacity: 1; transform: scale(1); }
+    100% { opacity: 0; transform: translateY(50px) scale(0.8); filter: blur(4px); }
+}
+
+.word-effect-text.animate-smash {
+    animation: smash-and-fade 1.2s cubic-bezier(0.36, 0.07, 0.19, 0.97) forwards;
+}
+
+.word-effect-text.animate-forge {
+    animation: forge-and-glow 1.8s ease-out forwards;
+}
+
+.word-effect-text.animate-crumble {
+    animation: crumble-and-dust 1.5s ease-out forwards;
+}
+
+/* --- 1. Combo Counter Styles --- */
+.combo-counter {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    font-family: 'Cinzel', serif;
+    font-size: 3rem;
+    font-weight: 900;
+    color: #fff;
+    text-shadow: 0 0 5px #000, 0 0 10px #f59e0b, 0 0 15px #f59e0b;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.3s ease-out, transform 0.3s ease-out;
+}
+.combo-counter.player-side { left: 20%; }
+.combo-counter.enemy-side { right: 20%; }
+
+/* Animation for when the counter appears and updates */
+@keyframes combo-pop-in {
+    0% { transform: translateY(-50%) scale(0.5); }
+    70% { transform: translateY(-50%) scale(1.2); }
+    100% { transform: translateY(-50%) scale(1); }
+}
+.combo-counter.active {
+    opacity: 1;
+    animation: combo-pop-in 0.3s ease-out;
+}
+@keyframes announce-and-fade {
+    0% { transform: translateX(-50%) scale(0.5); opacity: 0; }
+    20% { transform: translateX(-50%) scale(1.1); opacity: 1; }
+    80% { transform: translateX(-50%) scale(1); opacity: 1; }
+    100% { transform: translateX(-50%) scale(1.2); opacity: 0; }
+}
+
+.battle-arena.ability-zoom {
+    animation: zoom-in-out 1s ease;
+}
+
+.battle-arena.critical-shake {
+    animation: screen-shake 0.3s ease;
+}
+
+@keyframes zoom-in-out {
+  50% { transform: scale(1.03); }
+}
+
+/* --- Camera Effects --- */
+@keyframes camera-zoom-in {
+    50% { transform: scale(1.04); }
+}
+
+.battle-arena.camera-zoom {
+    animation: camera-zoom-in 1.2s ease-in-out;
+}
+
+@keyframes camera-pan-to-right {
+    50% { transform: translateX(-15px) scale(1.02); }
+}
+.battle-arena.camera-pan-right {
+    animation: camera-pan-to-right 1s ease-in-out;
+}
+
+@keyframes camera-pan-to-left {
+    50% { transform: translateX(15px) scale(1.02); }
+}
+.battle-arena.camera-pan-left {
+    animation: camera-pan-to-left 1s ease-in-out;
+}
+
+/* Slows down the pan/zoom animation */
+.battle-arena.slow-motion {
+    animation-duration: 2s !important;
+}
+
+@keyframes card-clash-left {
+    50% { transform: translateX(80px) scale(1.1); }
+}
+@keyframes card-clash-right {
+    50% { transform: translateX(-80px) scale(1.1); }
+}
+
+.compact-card.is-clashing-player {
+    animation: card-clash-left 0.8s ease-in-out;
+}
+.compact-card.is-clashing-enemy {
+    animation: card-clash-right 0.8s ease-in-out;
+}
+
+@keyframes screen-shake {
+  0%, 100% { transform: translate(0, 0) rotate(0); }
+  25% { transform: translate(5px, 2px) rotate(0.5deg); }
+  75% { transform: translate(-5px, -2px) rotate(-0.5deg); }
+}
+
+/* Generic container for all visual effects */
+.vfx-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 101;
+    opacity: 0;
+}
+
+/* --- Physical Hit Effect (A sharp starburst) --- */
+.vfx-container.physical-hit {
+    animation: vfx-hit-and-fade 0.4s ease-out forwards;
+}
+.vfx-container.physical-hit::before {
+    content: '★';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 4rem;
+    color: #fff;
+    text-shadow: 0 0 10px #fde047;
+}
+
+/* --- 1. Muzzle Flash / Launch Effect --- */
+.vfx-container.muzzle-flash {
+    animation: vfx-muzzle-flash 0.3s ease-out forwards;
+}
+.vfx-container.muzzle-flash::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    border: 4px solid #fde047;
+    box-shadow: 0 0 15px #fff;
+}
+
+/* --- Healing Effect (A soft, green upwards flow) --- */
+.vfx-container.heal {
+    animation: vfx-heal-and-fade 1s ease-out forwards;
+}
+.vfx-container.heal::before {
+    content: '✚';
+    position: absolute;
+    top: 70%;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 3rem;
+    color: #22c55e;
+    text-shadow: 0 0 10px #fff;
+}
+
+/* --- Defensive Buff Effect (A shimmering shield outline) --- */
+.vfx-container.buff {
+    animation: vfx-buff-and-fade 1.2s ease-out forwards;
+}
+.vfx-container.buff::before {
+    content: '⛨';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 5rem;
+    color: #3b82f6;
+    text-shadow: 0 0 15px #fff;
+}
+
+/* --- Keyframe Animations --- */
+@keyframes vfx-hit-and-fade {
+    0% { transform: scale(0.5); opacity: 1; }
+    100% { transform: scale(1.5); opacity: 0; }
+}
+
+@keyframes vfx-heal-and-fade {
+    0% { transform: translateY(0) scale(0.8); opacity: 1; }
+    100% { transform: translateY(-40px) scale(1.2); opacity: 0; }
+}
+
+@keyframes vfx-buff-and-fade {
+    0% { transform: scale(1.2); opacity: 0; }
+    20% { transform: scale(0.9); opacity: 1; }
+    80% { transform: scale(1.1); opacity: 1; }
+    100% { transform: scale(0.8); opacity: 0; }
+}
+
+@keyframes vfx-muzzle-flash {
+    from { transform: scale(0); opacity: 1; }
+    to { transform: scale(1.5); opacity: 0; }
+}
+
+
+.vfx-clash {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 300px;
+    height: 300px;
+    background: radial-gradient(circle, rgba(253,224,71,0.6) 0%, rgba(253,224,71,0) 70%);
+    border-radius: 50%;
+    animation: vfx-clash-fade-out 0.5s ease-out forwards;
+    z-index: 100;
+}
+
+@keyframes vfx-clash-fade-out {
+    from { transform: translate(-50%, -50%) scale(0.5); opacity: 1; }
+    to { transform: translate(-50%, -50%) scale(1.5); opacity: 0; }
+}
+
+/* --- 1. Team Container Slide-In Animations --- */
+@keyframes slide-in-from-left {
+    from { transform: translateX(-100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+@keyframes slide-in-from-right {
+    from { transform: translateX(100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+
+/* Classes to trigger the animations */
+.slide-in-left {
+    animation: slide-in-from-left 0.8s ease-out forwards;
+}
+.slide-in-right {
+    animation: slide-in-from-right 0.8s ease-out forwards;
+}
+
+/* --- 2. Screen Shake Animation --- */
+@keyframes subtle-screen-shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-3px); }
+    50% { transform: translateX(3px); }
+    75% { transform: translateX(-3px); }
+}
+
+/* Class to trigger the screen shake on the main arena */
+.battle-arena.shake {
+    animation: subtle-screen-shake 0.3s ease-in-out;
+}
+
+/* --- 3. Central Clash VFX --- */
+#battle-clash-vfx {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 300px;
+    height: 300px;
+    transform: translate(-50%, -50%) scale(0);
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255,255,255,0.7) 0%, rgba(253,224,71,0.3) 50%, rgba(253,224,71,0) 70%);
+    opacity: 0;
+    pointer-events: none;
+    z-index: 150;
+}
+
+@keyframes clash-effect {
+    0% { transform: translate(-50%, -50%) scale(0); opacity: 1; }
+    70% { transform: translate(-50%, -50%) scale(1.2); opacity: 0.5; }
+    100% { transform: translate(-50%, -50%) scale(1.5); opacity: 0; }
+}
+
+/* Class to trigger the clash animation */
+#battle-clash-vfx.clash {
+    animation: clash-effect 0.5s ease-out;
+}
+
+/* --- Card Landing & VFX Animations --- */
+
+@keyframes card-slam-down {
+    0% {
+        transform: translateY(-200%) scale(1.2);
+        opacity: 0;
+    }
+    60% {
+        transform: translateY(10px) scale(0.95);
+        opacity: 1;
+    }
+    80% {
+        transform: translateY(-5px) scale(1.02);
+    }
+    100% {
+        transform: translateY(0) scale(1);
+        opacity: 1;
+    }
+}
+
+.compact-card.is-entering {
+    opacity: 0;
+}
+
+.compact-card.is-landing {
+    animation: card-slam-down 0.6s ease-out forwards;
+}
+
+.compact-card .shockwave {
+    position: absolute;
+    bottom: -15px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100px;
+    height: 20px;
+    background: radial-gradient(ellipse at center, rgba(255, 255, 255, 0.4) 0%, rgba(255, 255, 255, 0) 70%);
+    border-radius: 50%;
+    opacity: 0;
+}
+
+@keyframes shockwave-expand {
+    from { transform: translateX(-50%) scale(0); opacity: 1; }
+    to { transform: translateX(-50%) scale(1.5); opacity: 0; }
+}
+
+.compact-card.is-landing .shockwave {
+    animation: shockwave-expand 0.4s ease-out;
+}
+
+@keyframes victory-pose {
+    0% { transform: translateY(0) scale(1); }
+    50% { transform: translateY(-20px) scale(1.1); box-shadow: 0 0 25px 8px #fde047; }
+    100% { transform: translateY(0) scale(1); }
+}
+
+.compact-card.is-victorious {
+    animation: victory-pose 2s ease-in-out infinite 0.5s;
+    z-index: 50;
+}
+
+.compact-card.is-vanquished {
+    filter: saturate(0.2) brightness(0.5);
+    transform: scale(0.95);
+    transition: all 0.5s ease-out;
+}
+
+/* --- New Booster Pack Component Styles --- */
+.package-wrapper { perspective: 1500px; }
+
+.package {
+    width: 320px;
+    height: 450px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    transition: transform 0.05s linear;
+    transform-style: preserve-3d;
+    cursor: pointer;
+}
+
+.image-area {
+    background-color: #4a044e; /* Dark purple foil color */
+    box-shadow: inset 7px 0 15px rgba(0,0,0,0.4), inset -7px 0 15px rgba(0,0,0,0.4);
+    position: relative;
+}
+
+.booster-pack-image {
+    width: 100%;
+    height: auto;
+    display: block;
+    user-select: none;
+}
+
+/* Ensure any artwork inside the booster pack fills the full area */
+#image-area img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+}
+
+.image-area::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at var(--glare-x, 50%) var(--glare-y, 50%), rgba(255,255,255,0.2) 0%, rgba(255,255,255,0) 50%);
+    opacity: var(--glare-opacity, 0);
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+}
+
+.crimp {
+    background: linear-gradient(165deg, #a855f7, #581c87);
+    background-image: linear-gradient(165deg, #a855f7, #581c87),
+        repeating-linear-gradient(90deg, rgba(0,0,0,0.15) 2px, transparent 2px, transparent 6px);
+    box-shadow: inset 2px 0 10px rgba(0,0,0,0.3);
+}
+
+#top-crimp {
+    z-index: 10;
+}
+
+@keyframes tear-off {
+    100% { transform: translateY(-600px) rotate(-45deg); opacity: 0; }
+}
+
+.torn-off {
+    animation: tear-off 0.3s forwards ease-in;
+}
+
+.package.is-open {
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+}
+
+.package.is-open #image-area {
+    border-top: 2px solid transparent;
+    border-image: url("data:image/svg+xml,%3csvg width='100' height='2' preserveAspectRatio='none' viewBox='0 0 100 2' xmlns='http://www.w3.org/2000/svg'%3e%3cpath d='M0 1 L10 1.5 L20 0 L30 1.2 L40 0.5 L50 1.5 L60 0 L70 1.8 L80 0.2 L90 1.5 L100 1' stroke='%233c1a6e' stroke-width='1.5' fill='none' /%3e%3c/svg%3e") 2 stretch;
+    box-shadow: inset 7px 0 15px rgba(0,0,0,0.4), inset -7px 0 15px rgba(0,0,0,0.4), inset 0 5px 10px -3px rgba(0,0,0,0.6);
+}
+
+/* --- Damage over Time Log Entry --- */
+.log-entry.status-damage {
+    color: #c084fc;
+    font-style: italic;
+    background-color: rgba(167, 139, 250, 0.1);
+}
+
+.log-entry.status-damage::before {
+    content: '☣';
+    margin-right: 0.5rem;
+    color: #a855f7;
+}
+
+/* Icon styling for log entries */
+.log-entry-icon {
+    margin-right: 0.75rem;
+    width: 1.25rem;
+    text-align: center;
+    opacity: 0.8;
+}
+
+/* Match icon colors to log entry text colors */
+.log-entry.damage .log-entry-icon,
+.log-entry.status-damage .log-entry-icon {
+    color: #f87171;
+}
+
+.log-entry.heal .log-entry-icon {
+    color: #4ade80;
+}
+.log-entry.energy .log-entry-icon {
+    color: #60a5fa;
+}
+
+.log-entry.ability-cast .log-entry-icon,
+.log-entry.ability-result .log-entry-icon {
+    color: #fde047;
+}
+
+.log-entry.status .log-entry-icon {
+    color: #c084fc;
+}
+
+/* --- Elemental VFX Overlay Styles --- */
+.hero-card .vfx-overlay {
+    position: absolute;
+    inset: 0;
+    border-radius: 1.25rem;
+    opacity: 0.5;
+    pointer-events: none;
+}
+
+@keyframes fire-animation {
+    from { box-shadow: inset 0 0 15px 5px #ff5722; }
+    to { box-shadow: inset 0 0 25px 10px #ffc107; }
+}
+
+.vfx-overlay.vfx-fire {
+    background: linear-gradient(45deg, rgba(255, 87, 34, 0.2), rgba(255, 193, 7, 0.3));
+    animation: fire-animation 1s alternate infinite ease-in-out;
+}
+
+.vfx-overlay.vfx-ice {
+    background: radial-gradient(circle, rgba(3, 169, 244, 0.1), rgba(173, 216, 230, 0.3));
+    box-shadow: inset 0 0 20px 8px #e0f7fa;
+}
+
+/* --- Custom Scrollbar for Battle Log --- */
+
+/* Target the scrollbar within the battle log panel */
+#battle-log-panel::-webkit-scrollbar {
+    width: 10px;
+}
+
+/* Style the track (the background of the scrollbar) */
+#battle-log-panel::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 5px;
+}
+
+/* Style the thumb (the draggable part of the scrollbar) */
+#battle-log-panel::-webkit-scrollbar-thumb {
+    background-color: #4b5563;
+    border-radius: 5px;
+    border: 1px solid #6b7280;
+}
+
+/* Add a hover effect for the thumb */
+#battle-log-panel::-webkit-scrollbar-thumb:hover {
+    background-color: #6b7280;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Upgrade Scene Styles                                                       */
+/* -------------------------------------------------------------------------- */
+
+/* Action button container during card reveal */
+#reveal-actions {
+    position: relative;
+    z-index: 1;
+}
+
+
+
+
+
+
+
+
+/* Visual highlight when a reward card is selected */
+#upgrade-reveal-area .hero-card-container.selected .hero-card {
+    border-color: #fde047;
+    box-shadow: 0 0 25px #f59e0b, 0 10px 30px rgba(0,0,0,0.7);
+    transform: scale(1.05);
+}
+
+.upgrade-scene header {
+    margin-bottom: 18rem;
+}
+
+#upgrade-reveal-area {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+}
+
+#upgrade-team-roster {
+    display: flex;
+    gap: 2rem;
+    justify-content: center;
+}
+
+#reveal-actions {
+    position: relative;
+    z-index: 5;
+}
+
+.champion-display {
+    width: 320px;
+    height: 450px;
+    position: relative;
+}
+
+.equipment-socket {
+    position: absolute;
+    width: 80px;
+    height: 110px;
+    background-size: cover;
+    background-position: center;
+    border-radius: 0.75rem;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    box-shadow: inset 0 0 10px rgba(0,0,0,0.7);
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.equipment-socket.card-pop-out {
+    animation: card-pop-out 0.2s forwards;
+}
+
+.equipment-socket.card-pop-in {
+    animation: card-pop-in 0.2s forwards;
+}
+
+@keyframes card-pop-out {
+    from { opacity: 1; transform: scale(1); }
+    to { opacity: 0; transform: scale(0); }
+}
+
+@keyframes card-pop-in {
+    from { opacity: 0; transform: scale(0.5); }
+    to { opacity: 1; transform: scale(1); }
+}
+
+.equipment-socket:hover {
+    transform: scale(1.05);
+}
+
+.empty-socket {
+    background-color: rgba(255,255,255,0.1);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:#9ca3af;
+    font-size:1.5rem;
+    font-weight:bold;
+}
+
+.weapon-socket {
+    top: 20%;
+    right: -40px;
+    transform: rotate(10deg);
+}
+
+.armor-socket {
+    top: 45%;
+    left: -40px;
+    transform: rotate(-10deg);
+}
+
+.ability-socket {
+    top: -40px;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.targetable {
+    outline: 2px dashed #f59e0b;
+}
+
+/* Upgrade selection highlights */
+.bonus-card.selected {
+    transform: scale(1.05);
+    box-shadow: 0 0 25px #f59e0b;
+    border-color: #fde047;
+}
+
+.equipment-socket.targetable {
+    animation: pulse-yellow 1.5s infinite;
+    filter: drop-shadow(0 0 10px #f59e0b);
+}
+
+@keyframes pulse-yellow {
+    0% { filter: drop-shadow(0 0 8px #f59e0b); }
+    50% { filter: drop-shadow(0 0 15px #fde047); }
+    100% { filter: drop-shadow(0 0 8px #f59e0b); }
+}
+
+.equipment-socket.disabled {
+    filter: grayscale(80%) brightness(0.7);
+    cursor: not-allowed;
+}
+
+/* Modal styles */
+.modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    animation: modal-fade 0.2s forwards;
+    z-index: 50;
+}
+
+.modal-content {
+    background: #1f2937;
+    padding: 1.5rem;
+    border-radius: 0.5rem;
+    animation: modal-scale 0.2s forwards;
+}
+
+.modal.hidden {
+    display: none;
+}
+
+@keyframes modal-fade {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes modal-scale {
+    from { transform: scale(0.8); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+}
+
+/* Add these new rules to the end of style.css */
+
+/* Generic fade transition for our stage containers */
+.upgrade-stage-transition {
+    transition: opacity 0.5s ease-in-out, transform 0.5s ease-in-out;
+}
+
+.upgrade-stage-hidden {
+    opacity: 0;
+    transform: scale(0.95);
+    pointer-events: none;
+    position: absolute;
+}
+
+/* Ensure the roster animates in smoothly */
+#upgrade-team-roster {
+    transition: opacity 0.5s ease-in-out;
+    opacity: 1;
+}
+
+/* Ensure the sockets are clickable */
+.equipment-socket, .champion-display {
+    z-index: 1;
+}
+
+#reveal-actions {
+    position: relative;
+    z-index: 1;
+}
+/* --- Upgrade Scene Card Counter --- */
+#upgrade-card-counter {
+    min-height: 32px; /* Ensures layout doesn't shift */
+}
+
+.card-pip {
+    width: 20px;
+    height: 30px;
+    background-color: rgba(75, 85, 99, 0.5); /* Inactive/Used color */
+    border: 1px solid #6b7280;
+    border-radius: 3px;
+    box-shadow: inset 0 0 5px rgba(0,0,0,0.4);
+    transition: all 0.4s ease-in-out;
+    transform: scale(0.9);
+    opacity: 0.5;
+}
+
+.card-pip.active {
+    background-color: #fde047; /* Glowing color for available cards */
+    border-color: #f59e0b;
+    box-shadow: 0 0 10px #f59e0b;
+    transform: scale(1);
+    opacity: 1;
+}
+
+/* Additional layout adjustments */
+#upgrade-stage-champions {
+    padding-top: 2rem;
+}
+
+#reveal-actions {
+    padding-top: 1rem;
+}
+
+/* Space out champion displays in the upgrade roster */
+#upgrade-team-roster .champion-display {
+    margin-right: 10rem;
+}
+
+/* --- Upgrade Scene Action Buttons --- */
+#take-card-btn {
+    background-color: #f59e0b;
+    color: #111827;
+    font-weight: 600;
+}
+
+#take-card-btn:hover:not(:disabled) {
+    background-color: #fbbf24;
+}
+
+#take-card-btn:disabled {
+    background-color: #4b5563;
+    color: #9ca3af;
+    cursor: not-allowed;
+}
+
+#dismiss-card-btn {
+    background-color: #4b5563;
+    border: 1px solid #6b7280;
+}
+#dismiss-card-btn:hover {
+    background-color: #6b7280;
+}
+
+/* --- Upgrade Scene Champion Highlighting --- */
+.champion-display.is-invalid {
+    filter: grayscale(80%) brightness(0.6);
+    transition: filter 0.3s ease-in-out;
+    pointer-events: none;
+}
+
+.champion-display:not(.is-invalid) {
+    transition: transform 0.2s ease-out;
+}
+
+.champion-display:not(.is-invalid):hover {
+    transform: scale(1.03);
+}
+
+/* --- Upgrade Scene Animations & Holding Slot --- */
+#upgrade-holding-slot {
+    pointer-events: none;
+}
+
+#upgrade-holding-slot .hero-card-container {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0.8);
+}
+
+@keyframes card-select-to-hold {
+    to {
+        transform: translateY(-200px) scale(0.8);
+        opacity: 0.8;
+    }
+}
+
+@keyframes card-equip-to-socket {
+    to {
+        transform: var(--card-equip-transform);
+        opacity: 0.5;
+    }
+}
+
+#upgrade-reveal-area .is-selecting {
+    animation: card-select-to-hold 0.5s ease-in-out forwards;
+}
+
+/* --- New Animation for Equipping Card --- */
+@keyframes fly-down-and-shrink {
+    to {
+        transform: translateY(250px) scale(0);
+        opacity: 0;
+    }
+}
+
+/* --- Debug Menu Styles --- */
+#debug-menu {
+    position: fixed;
+    bottom: 1rem;
+    left: 1rem;
+    background-color: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(4px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 0.5rem;
+    padding: 0.75rem;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.debug-title {
+    color: #fde047;
+    font-family: 'Cinzel', serif;
+    text-align: center;
+    font-size: 1rem;
+    margin-bottom: 0.25rem;
+    border-bottom: 1px solid #4b5563;
+    padding-bottom: 0.25rem;
+}
+
+.debug-btn {
+    background-color: #4b5563;
+    color: white;
+    border: 1px solid #6b7280;
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.debug-btn:hover {
+    background-color: #6b7280;
+}
