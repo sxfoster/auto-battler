@@ -88,5 +88,17 @@ export const useGameStore = create(set => ({
     const shardValues = { Uncommon: 3, Rare: 5, Epic: 10, Common: 1 }
     const gained = shardValues[card.rarity] || 1
     return { inventory: { ...state.inventory, shards: state.inventory.shards + gained } }
+  }),
+
+  equipItem: (slotKey, newId) => set(state => {
+    const team = { ...state.playerTeam }
+    team[slotKey] = newId
+    if (slotKey.startsWith('hero')) {
+      const idx = slotKey.endsWith('1') ? '1' : '2'
+      team[`ability${idx}`] = null
+      team[`weapon${idx}`] = null
+      team[`armor${idx}`] = null
+    }
+    return { playerTeam: team }
   })
 }))
