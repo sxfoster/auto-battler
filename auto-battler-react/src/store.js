@@ -1,4 +1,5 @@
-import { create } from 'zustand'
+import { createWithEqualityFn } from 'zustand/traditional'
+import { shallow } from 'zustand/shallow'
 import {
   allPossibleHeroes,
   allPossibleWeapons,
@@ -29,7 +30,8 @@ function checkForAndApplyEvolutions(wins, playerTeam) {
   return evolved
 }
 
-export const useGameStore = create(set => ({
+export const useGameStore = createWithEqualityFn(
+  set => ({
   gamePhase: 'PACK',
   draftStage: 'HERO_1_PACK',
   playerTeam: {
@@ -183,4 +185,4 @@ export const useGameStore = create(set => ({
         gamePhase: phase
       }
     })
-}))
+}), shallow)
