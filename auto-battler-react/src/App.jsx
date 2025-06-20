@@ -26,7 +26,7 @@ export default function App() {
       return <WeaponScene />
     case 'BATTLE':
       return <BattleScene />
-    case 'RECAP':
+    case 'RECAP_1':
       return <RecapScene />
     case 'UPGRADE':
       return <UpgradeScene />

@@ -149,6 +149,9 @@ export const useGameStore = createWithEqualityFn(
       gamePhase: 'DRAFT'
     })),
 
+  startSecondChampionDraft: () =>
+    set({ draftStage: 'HERO_2_PACK', gamePhase: 'PACK' }),
+
   selectDraftCard: card =>
     set(state => {
       const team = { ...state.playerTeam }
@@ -158,11 +161,20 @@ export const useGameStore = createWithEqualityFn(
       switch (stage) {
         case 'HERO_1_DRAFT':
           team.hero1 = card.id
+          stage = 'ABILITY_1_PACK'
+          break
+        case 'ABILITY_1_DRAFT':
+          team.ability1 = card.id
           stage = 'WEAPON_1_PACK'
           break
         case 'WEAPON_1_DRAFT':
           team.weapon1 = card.id
-          stage = 'HERO_2_PACK'
+          stage = 'ARMOR_1_PACK'
+          break
+        case 'ARMOR_1_DRAFT':
+          team.armor1 = card.id
+          stage = 'CHAMPION_1_COMPLETE'
+          phase = 'RECAP_1'
           break
         case 'HERO_2_DRAFT':
           team.hero2 = card.id
