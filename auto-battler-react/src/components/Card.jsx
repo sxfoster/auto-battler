@@ -1,4 +1,20 @@
 import React, { forwardRef } from 'react'
+import { showStatusTooltip, hideStatusTooltip } from '../statusTooltip.js'
+
+const STATUS_MAP = {
+  Stun: { icon: 'fas fa-star', aura: 'aura-stun', description: 'Skips the next action.' },
+  Poison: { icon: 'fas fa-skull-crossbones', aura: 'aura-poison', description: 'Takes 2 damage per turn.' },
+  Bleed: { icon: 'fas fa-droplet', aura: 'aura-bleed', description: 'Takes damage each turn.' },
+  Burn: { icon: 'fas fa-fire-alt', aura: 'aura-burn', description: 'Suffers fire damage each turn.' },
+  Slow: { icon: 'fas fa-hourglass-half', aura: 'aura-slow', description: 'Speed reduced.' },
+  Confuse: { icon: 'fas fa-question', aura: 'aura-confuse', description: 'May miss actions.' },
+  Root: { icon: 'fas fa-tree', aura: 'aura-root', description: 'Cannot act next turn.' },
+  Shock: { icon: 'fas fa-bolt', aura: 'aura-shock', description: 'Chance to fail actions.' },
+  Vulnerable: { icon: 'fas fa-crosshairs', aura: 'aura-vulnerable', description: 'Takes extra damage.' },
+  'Defense Down': { icon: 'fas fa-shield-slash', aura: 'aura-defense-down', description: 'Defense reduced.' },
+  'Attack Up': { icon: 'fas fa-arrow-up', aura: 'aura-buff', description: 'Attack increased.' },
+  Fortify: { icon: 'fas fa-arrow-up', aura: 'aura-buff', description: 'Defense increased.' }
+}
 
 function getRarityClass(rarity = 'common') {
   return rarity.toLowerCase().replace(/\s+/g, '-')
@@ -27,10 +43,15 @@ const Card = forwardRef(function Card({
     const hpPercent = maxHp ? (currentHp / maxHp) * 100 : 100
     const hpColor = hpPercent > 50 ? '#48bb78' : hpPercent > 20 ? '#f59e0b' : '#ef4444'
 
+    const auraClasses = item.statusEffects?.map(s => STATUS_MAP[s.name]?.aura).filter(Boolean) || []
+    const charged = item.abilityData && item.currentEnergy >= item.abilityData.energyCost
+    const hasAura = auraClasses.length > 0 || charged
+    const auraStr = auraClasses.join(' ')
+
     return (
       <div
         ref={ref}
-        className={`compact-card ${rarityClass} ${isDefeated ? 'is-defeated' : ''} ${isActive ? 'is-active-turn' : ''} ${isTakingDamage ? 'is-taking-damage' : ''} ${isAttacking ? 'is-attacking' : ''}`}
+        className={`compact-card ${rarityClass} ${hasAura ? 'has-aura' : ''} ${auraStr} ${charged ? 'is-charged' : ''} ${isDefeated ? 'is-defeated' : ''} ${isActive ? 'is-active-turn' : ''} ${isTakingDamage ? 'is-taking-damage' : ''} ${isAttacking ? 'is-attacking' : ''}`}
         onClick={onClick ? handleClick : undefined}
       >
         <div className="shockwave" />
@@ -48,11 +69,25 @@ const Card = forwardRef(function Card({
           </div>
         </div>
         <div className="status-icon-container">
-          {item.statusEffects?.map((effect) => (
-            <div key={effect.id || effect.name} className="status-icon" title={effect.name}>
-              {effect.icon ? <i className={effect.icon} /> : effect.label}
-            </div>
-          ))}
+          {item.statusEffects?.map((effect) => {
+            const info = STATUS_MAP[effect.name] || {}
+            return (
+              <div
+                key={effect.id || effect.name}
+                className="status-icon"
+                onMouseEnter={(e) =>
+                  showStatusTooltip({
+                    name: effect.name,
+                    turnsRemaining: effect.turnsRemaining,
+                    description: info.description
+                  }, e.clientX, e.clientY)
+                }
+                onMouseLeave={hideStatusTooltip}
+              >
+                <i className={info.icon || 'fas fa-circle'} />
+              </div>
+            )
+          })}
         </div>
       </div>
     )
@@ -151,6 +186,6 @@ const Card = forwardRef(function Card({
       </div>
     </div>
   )
-}
+})
 
 export default Card
