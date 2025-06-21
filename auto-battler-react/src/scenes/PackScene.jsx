@@ -9,9 +9,12 @@ const boosterPackImages = {
 }
 
 export default function PackScene() {
-  const { openPack, draftStage } = useGameStore(state => ({
+  const { openPack, draftStage, addRandomHero, hero1, hero2 } = useGameStore(state => ({
     openPack: state.openPack,
     draftStage: state.draftStage,
+    addRandomHero: state.addRandomHero,
+    hero1: state.playerTeam.hero1,
+    hero2: state.playerTeam.hero2,
   }))
 
   const [isTearing, setIsTearing] = useState(false)
@@ -108,6 +111,14 @@ export default function PackScene() {
       <p id="pack-scene-instructions" className="text-lg text-gray-400 mt-8">
         Click anywhere on the pack to tear it open.
       </p>
+      <button
+        id="random-hero-button"
+        className="mt-6 text-gray-400 border border-gray-600 rounded-lg px-4 py-2 hover:bg-gray-700 hover:text-white transition-colors"
+        onClick={addRandomHero}
+        disabled={hero1 && hero2}
+      >
+        ... or add a Random Hero
+      </button>
     </div>
   )
 }
