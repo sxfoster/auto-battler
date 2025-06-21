@@ -1161,6 +1161,11 @@ button:disabled {
 /* Battle Scene Enhancements                                                  */
 /* -------------------------------------------------------------------------- */
 
+.battle-scene {
+    position: relative;
+    overflow: hidden;
+}
+
 .battle-projectile {
     position: fixed; /* Use fixed positioning for screen-space travel */
     width: 15px;

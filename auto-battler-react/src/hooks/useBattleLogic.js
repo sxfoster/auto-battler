@@ -28,7 +28,8 @@ function calculateDamage(attacker, target, baseDamage) {
   return dmg;
 }
 
-export default function useBattleLogic(initialCombatants = []) {
+export default function useBattleLogic(initialCombatants = [], eventHandlers = {}) {
+  const { onAttack } = eventHandlers
   const [battleState, setBattleState] = useState(() =>
     initialCombatants.map(c => ({ ...c }))
   );
@@ -47,15 +48,20 @@ export default function useBattleLogic(initialCombatants = []) {
   const removeFromQueue = (id, queue) => queue.filter((q) => q !== id);
 
   const applyDamage = (attacker, target, baseDamage, queue) => {
-    const dmg = calculateDamage(attacker, target, baseDamage);
-    target.currentHp = Math.max(0, target.currentHp - dmg);
-    log(`${attacker.name} hits ${target.name} for ${dmg} damage.`);
+    const dmg = calculateDamage(attacker, target, baseDamage)
+
+    if (onAttack) onAttack(attacker.id, target.id, dmg)
+
+    target.currentHp = Math.max(0, target.currentHp - dmg)
+    const aName = attacker.heroData?.name || attacker.name
+    const tName = target.heroData?.name || target.name
+    log(`${aName} hits ${tName} for ${dmg} damage.`)
     if (target.currentHp <= 0) {
-      log(`${target.name} is defeated.`);
-      queue = removeFromQueue(target.id, queue);
+      log(`${tName} is defeated.`)
+      queue = removeFromQueue(target.id, queue)
     }
-    return queue;
-  };
+    return queue
+  }
 
   const processStatuses = (combatant) => {
     let skip = false;
