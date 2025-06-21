@@ -40,7 +40,7 @@ export default function ChampionDisplay({
         className={`equipment-socket ${className} ${item ? '' : 'empty-socket'} ${isTargetable ? 'targetable' : ''} ${disabled ? 'disabled' : ''}`}
         data-slot={slotKey}
         data-type={type}
-        style={item ? { backgroundImage: `url('${item.art}')` } : undefined}
+        style={item ? { backgroundImage: `url(${item.art})` } : undefined}
         title={item ? `${item.name} - ${item.rarity}` : undefined}
         onClick={handleClick}
         onMouseOver={handleMouseOver}

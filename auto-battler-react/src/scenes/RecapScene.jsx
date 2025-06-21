@@ -19,7 +19,7 @@ export default function RecapScene() {
     <div className="scene flex flex-col items-center gap-6">
       <h2 className="text-2xl font-cinzel">Champion Recap</h2>
       <ChampionDisplay championData={championData} championNum={1} />
-      <button className="mt-4" onClick={startSecondChampionDraft}>
+      <button className="confirm-button mt-4" onClick={startSecondChampionDraft}>
         Continue to Next Draft
       </button>
     </div>
