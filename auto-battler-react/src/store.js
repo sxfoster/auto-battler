@@ -139,6 +139,35 @@ export const useGameStore = createWithEqualityFn(
     return { playerTeam: team }
   }),
 
+  addRandomHero: () =>
+    set(state => {
+      const team = { ...state.playerTeam }
+      let stage = state.draftStage
+      let phase = state.gamePhase
+
+      if (!team.hero1) {
+        const champ = generateRandomChampion()
+        team.hero1 = champ.hero
+        team.ability1 = champ.ability
+        team.weapon1 = champ.weapon
+        team.armor1 = champ.armor
+        stage = 'CHAMPION_1_COMPLETE'
+        phase = 'RECAP_1'
+      } else if (!team.hero2) {
+        const champ = generateRandomChampion()
+        team.hero2 = champ.hero
+        team.ability2 = champ.ability
+        team.weapon2 = champ.weapon
+        team.armor2 = champ.armor
+        stage = 'CHAMPION_2_COMPLETE'
+        phase = 'RECAP_2'
+      } else {
+        return {}
+      }
+
+      return { playerTeam: team, draftStage: stage, gamePhase: phase }
+    }),
+
   debugSkipToBattle: () => {
     const champion1 = generateRandomChampion()
     let champion2 = generateRandomChampion()
