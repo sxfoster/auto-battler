@@ -318,12 +318,21 @@ export const useGameStore = createWithEqualityFn(
         break
       case 'HERO_2_DRAFT':
         team.hero2 = card.id
+        stage = 'ABILITY_2_PACK'
+        break
+      case 'ABILITY_2_DRAFT':
+        team.ability2 = card.id
         stage = 'WEAPON_2_PACK'
         break
       case 'WEAPON_2_DRAFT':
         team.weapon2 = card.id
-        stage = 'COMPLETE'
-        phase = 'BATTLE'
+        stage = 'ARMOR_2_PACK'
+        phase = 'PACK'
+        break
+      case 'ARMOR_2_DRAFT':
+        team.armor2 = card.id
+        stage = 'CHAMPION_2_COMPLETE'
+        phase = 'RECAP_2'
         break
       default:
         break
