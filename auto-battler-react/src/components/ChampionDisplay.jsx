@@ -1,4 +1,5 @@
 import React from 'react'
+import PropTypes from 'prop-types'
 import Card from './Card.jsx'
 import {
   allPossibleHeroes,
@@ -62,4 +63,13 @@ export default function ChampionDisplay({
       {renderSocket(armor, 'armor-socket', `armor${championNum}`)}
     </div>
   )
+}
+
+ChampionDisplay.propTypes = {
+  championData: PropTypes.object,
+  championNum: PropTypes.number,
+  targetType: PropTypes.string,
+  valid: PropTypes.bool,
+  onSelectSlot: PropTypes.func,
+  onHoverSlot: PropTypes.func,
 }

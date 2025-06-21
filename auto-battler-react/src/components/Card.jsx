@@ -1,4 +1,5 @@
 import React, { forwardRef } from 'react'
+import PropTypes from 'prop-types'
 import { showStatusTooltip, hideStatusTooltip } from '../statusTooltip.js'
 
 const STATUS_MAP = {
@@ -187,5 +188,15 @@ const Card = forwardRef(function Card({
     </div>
   )
 })
+
+Card.propTypes = {
+  item: PropTypes.object.isRequired,
+  view: PropTypes.oneOf(['detail', 'compact']),
+  onClick: PropTypes.func,
+  isDefeated: PropTypes.bool,
+  isActive: PropTypes.bool,
+  isTakingDamage: PropTypes.bool,
+  isAttacking: PropTypes.bool,
+}
 
 export default Card

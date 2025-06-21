@@ -6,7 +6,6 @@ import DebugMenu from './components/DebugMenu.jsx'
 import PackScene from './scenes/PackScene.jsx'
 import RevealScene from './scenes/RevealScene.jsx'
 import DraftScene from './scenes/DraftScene.jsx'
-import WeaponScene from './scenes/WeaponScene.jsx'
 import BattleScene from './scenes/BattleScene.jsx'
 import RecapScene from './scenes/RecapScene.jsx'
 import UpgradeScene from './scenes/UpgradeScene.jsx'
@@ -26,9 +25,6 @@ export default function App() {
       break
     case 'DRAFT':
       scene = <DraftScene />
-      break
-    case 'WEAPON':
-      scene = <WeaponScene />
       break
     case 'BATTLE':
       scene = <BattleScene />
