@@ -1,4 +1,49 @@
 import React from 'react'
+import { STATUS_DATA } from '../data/statusEffects.js'
+
+function getAuraClasses(effects = []) {
+  const classes = []
+  effects.forEach(e => {
+    switch (e.name) {
+      case 'Stun':
+        classes.push('aura-stun')
+        break
+      case 'Poison':
+        classes.push('aura-poison')
+        break
+      case 'Bleed':
+        classes.push('aura-bleed')
+        break
+      case 'Burn':
+        classes.push('aura-burn')
+        break
+      case 'Slow':
+        classes.push('aura-slow')
+        break
+      case 'Confuse':
+        classes.push('aura-confuse')
+        break
+      case 'Root':
+        classes.push('aura-root')
+        break
+      case 'Shock':
+        classes.push('aura-shock')
+        break
+      case 'Vulnerable':
+        classes.push('aura-vulnerable')
+        break
+      case 'Defense Down':
+        classes.push('aura-defense-down')
+        break
+      case 'Attack Up':
+      case 'Fortify':
+        classes.push('aura-buff')
+        break
+      default:
+    }
+  })
+  return classes
+}
 
 function getRarityClass(rarity = 'common') {
   return rarity.toLowerCase().replace(/\s+/g, '-')
@@ -8,6 +53,8 @@ export default function Card({
   item,
   view = 'detail',
   onClick,
+  onStatusHover,
+  onStatusOut,
   isDefeated = false,
   isActive = false,
   isTakingDamage = false,
@@ -26,9 +73,12 @@ export default function Card({
     const hpPercent = maxHp ? (currentHp / maxHp) * 100 : 100
     const hpColor = hpPercent > 50 ? '#48bb78' : hpPercent > 20 ? '#f59e0b' : '#ef4444'
 
+    const auraClasses = getAuraClasses(item.statusEffects)
+    const hasAura = auraClasses.length > 0
+
     return (
       <div
-        className={`compact-card ${rarityClass} ${isDefeated ? 'is-defeated' : ''} ${isActive ? 'is-active-turn' : ''} ${isTakingDamage ? 'is-taking-damage' : ''}`}
+        className={`compact-card ${rarityClass} ${isDefeated ? 'is-defeated' : ''} ${isActive ? 'is-active-turn' : ''} ${isTakingDamage ? 'is-taking-damage' : ''} ${hasAura ? 'has-aura' : ''} ${auraClasses.join(' ')}`}
         onClick={onClick ? handleClick : undefined}
       >
         <div className="shockwave" />
@@ -46,11 +96,31 @@ export default function Card({
           </div>
         </div>
         <div className="status-icon-container">
-          {item.statusEffects?.map((effect) => (
-            <div key={effect.id || effect.name} className="status-icon" title={effect.name}>
-              {effect.icon ? <i className={effect.icon} /> : effect.label}
-            </div>
-          ))}
+          {item.statusEffects?.map((effect) => {
+            const data = STATUS_DATA[effect.name] || {}
+            const Icon = () => (data.icon ? <i className={data.icon} /> : data.label)
+            const handleEnter = (e) => {
+              if (onStatusHover)
+                onStatusHover(e, {
+                  name: effect.name,
+                  turns: effect.turnsRemaining,
+                  description: data.description || effect.description || ''
+                })
+            }
+            const handleLeave = () => {
+              if (onStatusOut) onStatusOut()
+            }
+            return (
+              <div
+                key={effect.id || effect.name}
+                className="status-icon"
+                onMouseEnter={handleEnter}
+                onMouseLeave={handleLeave}
+              >
+                <Icon />
+              </div>
+            )
+          })}
         </div>
       </div>
     )

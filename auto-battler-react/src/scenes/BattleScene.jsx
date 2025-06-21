@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import Card from '../components/Card.jsx'
 import useBattleLogic from '../hooks/useBattleLogic.js'
 import { useGameStore } from '../store.js'
@@ -16,6 +16,19 @@ export default function BattleScene() {
 
   const { battleState, battleLog, isBattleOver, winner, processTurn } =
     useBattleLogic(combatants)
+
+  const [tooltip, setTooltip] = useState(null)
+
+  const showTooltip = (e, data) => {
+    const rect = e.currentTarget.getBoundingClientRect()
+    setTooltip({
+      x: rect.left + rect.width / 2,
+      y: rect.top,
+      ...data
+    })
+  }
+
+  const hideTooltip = () => setTooltip(null)
 
   useEffect(() => {
     if (!isBattleOver) {
@@ -38,12 +51,24 @@ export default function BattleScene() {
       <div className="teams flex justify-between mb-4">
         <div className="player-team flex gap-2">
           {playerCards.map(c => (
-            <Card key={c.id} item={c} view="compact" />
+            <Card
+              key={c.id}
+              item={c}
+              view="compact"
+              onStatusHover={showTooltip}
+              onStatusOut={hideTooltip}
+            />
           ))}
         </div>
         <div className="enemy-team flex gap-2">
           {enemyCards.map(c => (
-            <Card key={c.id} item={c} view="compact" />
+            <Card
+              key={c.id}
+              item={c}
+              view="compact"
+              onStatusHover={showTooltip}
+              onStatusOut={hideTooltip}
+            />
           ))}
         </div>
       </div>
@@ -57,6 +82,22 @@ export default function BattleScene() {
           {winner === 'player' ? 'Victory!' : 'Defeat!'}
         </div>
       )}
+      <div
+        className={`status-tooltip ${tooltip ? 'visible' : ''}`}
+        style={tooltip ? { left: tooltip.x + 10, top: tooltip.y + 10 } : {}}
+      >
+        {tooltip && (
+          <>
+            <h4 className="status-tooltip-name">{tooltip.name}</h4>
+            <p className="status-tooltip-duration">
+              Turns remaining: {tooltip.turns}
+            </p>
+            {tooltip.description && (
+              <p className="status-tooltip-description">{tooltip.description}</p>
+            )}
+          </>
+        )}
+      </div>
     </div>
   )
 }
