@@ -1,4 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
+import { allPossibleMinions } from '../data/data.js';
 
 const MAX_ENERGY = 10;
 
@@ -186,6 +187,49 @@ export default function useBattleLogic(initialCombatants = [], eventHandlers = {
                 applyStatus(target, 'Root', 1, log);
               } else if (ability.name === 'Judgment') {
                 applyStatus(target, 'Defense Down', 2, log);
+              }
+            }
+
+            if (ability.summons) {
+              const keys = Array.isArray(ability.summons)
+                ? ability.summons
+                : [ability.summons];
+              const newMinions = [];
+              keys.forEach((key) => {
+                const template = allPossibleMinions[key];
+                if (!template) return;
+                const id = `${attacker.id}-minion-${
+                  Math.random().toString(36).slice(2, 9)
+                }`;
+                const minion = {
+                  id,
+                  heroData: template,
+                  team: attacker.team,
+                  position: state.length,
+                  currentHp: template.hp,
+                  maxHp: template.hp,
+                  currentEnergy: 0,
+                  attack: template.attack,
+                  speed: template.speed,
+                  block: template.block || 0,
+                  evasion: template.evasion || 0,
+                  magicResist: template.magicResist || 0,
+                  statusEffects: [],
+                  isMinion: true,
+                  name: template.name,
+                  art: template.art,
+                  rarity: template.rarity,
+                  abilityData: null,
+                };
+                state.push(minion);
+                newMinions.push(minion);
+                log(`${attacker.name} summons a ${template.name}!`);
+              });
+              if (newMinions.length) {
+                const remaining = queue
+                  .map((id) => state.find((c) => c.id === id))
+                  .filter(Boolean);
+                queue = computeTurnQueue([...remaining, ...newMinions]);
               }
             }
           }
