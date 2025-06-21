@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { useGameStore } from '../store.js'
 
 const boosterPackImages = {
@@ -17,6 +17,12 @@ export default function PackScene() {
   const [isTearing, setIsTearing] = useState(false)
   const [isOpen, setIsOpen] = useState(false)
 
+  // Reset animation state whenever a new draft stage begins
+  useEffect(() => {
+    setIsTearing(false)
+    setIsOpen(false)
+  }, [draftStage])
+
   const packageRef = useRef(null)
   const imageAreaRef = useRef(null)
 
@@ -33,7 +39,7 @@ export default function PackScene() {
   }
 
   const handleMouseMove = e => {
-    if (!packageRef.current) return
+    if (!packageRef.current || isOpen || isTearing) return
     const rect = packageRef.current.getBoundingClientRect()
     const x = e.clientX - rect.left - rect.width / 2
     const y = e.clientY - rect.top - rect.height / 2
@@ -50,10 +56,11 @@ export default function PackScene() {
 
   const handleMouseLeave = () => {
     if (!packageRef.current) return
-    packageRef.current.style.transform = 'rotateX(0deg) rotateY(0deg)'
     if (imageAreaRef.current) {
       imageAreaRef.current.style.setProperty('--glare-opacity', '0')
     }
+    if (isOpen || isTearing) return
+    packageRef.current.style.transform = 'rotateX(0deg) rotateY(0deg)'
   }
 
   const packType = draftStage.split('_')[0].toLowerCase()
