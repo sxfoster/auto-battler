@@ -9,6 +9,7 @@ For details on the current prototype and its user interface, see [hero-game/READ
 - `hero-game/` – Modern prototype with modular JavaScript, scenes and battle logic.
 - `index.html`, `poc.html`, `poc2`, `poc3.html` – Stand‑alone prototypes kept for reference.
 - `docs/` – Game design documents and technical notes.
+- `backend/` – Basic Express server used for local development.
 
 ## Running the Game
 
@@ -28,6 +29,17 @@ npx http-server -p 8000
 ```
 
 Any other static file server will work as long as it serves the repository root.
+
+## Running the Backend
+
+The `backend` directory contains a simple Express server. Start it with:
+
+```bash
+npm install
+npm start
+```
+
+By default it runs on `http://localhost:3000` and prints `Server is running!` to the console.
 
 ## Documentation
 
