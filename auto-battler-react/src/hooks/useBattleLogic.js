@@ -2,10 +2,18 @@ import { useState, useCallback, useEffect } from 'react';
 
 const MAX_ENERGY = 10;
 
+function getEffectiveSpeed(combatant) {
+  let spd = combatant.speed || 0;
+  combatant.statusEffects.forEach((s) => {
+    if (s.name === 'Slow') spd -= 1;
+  });
+  return spd;
+}
+
 function computeTurnQueue(state) {
   return state
     .filter((c) => c.currentHp > 0)
-    .sort((a, b) => b.speed - a.speed)
+    .sort((a, b) => getEffectiveSpeed(b) - getEffectiveSpeed(a))
     .map((c) => c.id);
 }
 
@@ -22,6 +30,7 @@ function calculateDamage(attacker, target, baseDamage) {
 
   let block = target.block || 0;
   if (target.statusEffects.some((s) => s.name === 'Defense Down')) block = Math.max(0, block - 1);
+  if (target.statusEffects.some((s) => s.name === 'Burn')) block = Math.max(0, block - 1);
   dmg = Math.max(1, dmg - block);
 
   if (target.statusEffects.some((s) => s.name === 'Vulnerable')) dmg += 1;
@@ -65,23 +74,43 @@ export default function useBattleLogic(initialCombatants = [], eventHandlers = {
 
   const processStatuses = (combatant) => {
     let skip = false;
+
     combatant.statusEffects.forEach((s) => {
-      if (s.name === 'Poison') {
-        combatant.currentHp = Math.max(0, combatant.currentHp - 2);
-        log(`${combatant.name} suffers 2 poison damage.`);
+      switch (s.name) {
+        case 'Poison':
+          combatant.currentHp = Math.max(0, combatant.currentHp - 2);
+          log(`${combatant.name} suffers 2 poison damage.`);
+          break;
+        case 'Bleed':
+          combatant.currentHp = Math.max(0, combatant.currentHp - 2);
+          log(`${combatant.name} suffers 2 bleed damage.`);
+          break;
+        case 'Burn':
+          combatant.currentHp = Math.max(0, combatant.currentHp - 2);
+          log(`${combatant.name} suffers 2 burn damage.`);
+          break;
+        default:
+          break;
       }
     });
 
-    const stun = combatant.statusEffects.find((s) => s.name === 'Stun');
-    if (stun) {
+    if (combatant.statusEffects.some((s) => s.name === 'Stun')) {
       log(`${combatant.name} is stunned and misses the turn.`);
-      stun.turnsRemaining -= 1;
-      if (stun.turnsRemaining <= 0) combatant.statusEffects = combatant.statusEffects.filter((s) => s !== stun);
+      skip = true;
+    }
+
+    if (combatant.statusEffects.some((s) => s.name === 'Root')) {
+      log(`${combatant.name} is rooted and cannot act.`);
+      skip = true;
+    }
+
+    if (!skip && combatant.statusEffects.some((s) => s.name === 'Confuse') && Math.random() < 0.5) {
+      log(`${combatant.name} is confused and fumbles their turn.`);
       skip = true;
     }
 
     combatant.statusEffects = combatant.statusEffects
-      .map((s) => ({ ...s, turnsRemaining: s.name === 'Stun' ? s.turnsRemaining : s.turnsRemaining - 1 }))
+      .map((s) => ({ ...s, turnsRemaining: s.turnsRemaining - 1 }))
       .filter((s) => s.turnsRemaining > 0);
 
     return skip;
@@ -135,18 +164,29 @@ export default function useBattleLogic(initialCombatants = [], eventHandlers = {
         if (ability && attacker.currentEnergy >= ability.energyCost) {
           usedAbility = true;
           attacker.currentEnergy -= ability.energyCost;
-          log(`${attacker.name} uses ${ability.name}!`);
-          const dmgMatch = ability.effect.match(/(\d+)/);
-          const base = dmgMatch ? parseInt(dmgMatch[1], 10) : attacker.attack;
-          if (ability.target === 'ENEMIES') {
-            targets.forEach((t) => {
-              queue = applyDamage(attacker, t, base, queue);
-            });
+
+          const shocked = attacker.statusEffects.some((s) => s.name === 'Shock') && Math.random() < 0.5;
+          if (shocked) {
+            log(`${attacker.name}'s ability fizzles due to shock!`);
           } else {
-            const target = targets[0];
-            queue = applyDamage(attacker, target, base, queue);
-            if (ability.name === 'Shield Bash') {
-              applyStatus(target, 'Stun', 1, log);
+            log(`${attacker.name} uses ${ability.name}!`);
+            const dmgMatch = ability.effect.match(/(\d+)/);
+            const base = dmgMatch ? parseInt(dmgMatch[1], 10) : attacker.attack;
+            if (ability.target === 'ENEMIES') {
+              targets.forEach((t) => {
+                queue = applyDamage(attacker, t, base, queue);
+                if (ability.name === 'Firestorm') applyStatus(t, 'Burn', 2, log);
+              });
+            } else {
+              const target = targets[0];
+              queue = applyDamage(attacker, target, base, queue);
+              if (ability.name === 'Shield Bash') {
+                applyStatus(target, 'Stun', 1, log);
+              } else if (['Elemental Rift', 'Frozen Grasp', 'Entangle'].includes(ability.name)) {
+                applyStatus(target, 'Root', 1, log);
+              } else if (ability.name === 'Judgment') {
+                applyStatus(target, 'Defense Down', 2, log);
+              }
             }
           }
         }
