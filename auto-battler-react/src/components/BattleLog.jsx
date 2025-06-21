@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import PropTypes from 'prop-types'
 
 function getCategory(type) {
   if (type.includes('damage')) return 'combat'
@@ -100,4 +101,8 @@ export default function BattleLog({ battleLog = [] }) {
       </div>
     </div>
   )
+}
+
+BattleLog.propTypes = {
+  battleLog: PropTypes.array,
 }

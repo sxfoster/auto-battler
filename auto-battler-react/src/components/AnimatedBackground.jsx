@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from 'react'
+import PropTypes from 'prop-types'
 
 export default function AnimatedBackground({ isSpeedActive }) {
   const canvasRef = useRef(null)
@@ -75,4 +76,8 @@ export default function AnimatedBackground({ isSpeedActive }) {
   }, [isSpeedActive])
 
   return <canvas ref={canvasRef} id="background-canvas" />
+}
+
+AnimatedBackground.propTypes = {
+  isSpeedActive: PropTypes.bool,
 }
