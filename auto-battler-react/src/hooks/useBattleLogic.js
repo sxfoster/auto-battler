@@ -171,6 +171,37 @@ export default function useBattleLogic(initialCombatants = [], eventHandlers = {
             log(`${attacker.name}'s ability fizzles due to shock!`);
           } else {
             log(`${attacker.name} uses ${ability.name}!`);
+
+            if (ability.summons) {
+              const summonList = Array.isArray(ability.summons) ? ability.summons : [ability.summons];
+              summonList.forEach((key) => {
+                const minionData = allPossibleMinions[key];
+                if (minionData) {
+                  const id = `${attacker.team}-minion-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
+                  const newUnit = {
+                    id,
+                    heroData: { ...minionData },
+                    weaponData: null,
+                    armorData: null,
+                    abilityData: null,
+                    team: attacker.team,
+                    position: state.filter((c) => c.team === attacker.team).length,
+                    currentHp: minionData.hp,
+                    maxHp: minionData.hp,
+                    attack: minionData.attack,
+                    speed: minionData.speed,
+                    block: 0,
+                    evasion: 0,
+                    magicResist: 0,
+                    currentEnergy: 0,
+                    statusEffects: [],
+                  };
+                  state.push(newUnit);
+                }
+              });
+              queue = computeTurnQueue(state).filter((id) => id !== attacker.id);
+            }
+
             const dmgMatch = ability.effect.match(/(\d+)/);
             const base = dmgMatch ? parseInt(dmgMatch[1], 10) : attacker.attack;
             if (ability.target === 'ENEMIES') {
@@ -178,7 +209,7 @@ export default function useBattleLogic(initialCombatants = [], eventHandlers = {
                 queue = applyDamage(attacker, t, base, queue);
                 if (ability.name === 'Firestorm') applyStatus(t, 'Burn', 2, log);
               });
-            } else {
+            } else if (targets.length) {
               const target = targets[0];
               queue = applyDamage(attacker, target, base, queue);
               if (ability.name === 'Shield Bash') {
