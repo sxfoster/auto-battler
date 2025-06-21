@@ -11,7 +11,11 @@
   <body>
     <canvas id="background-canvas"></canvas>
     <div id="root"></div>
-    <div id="item-tooltip" class="hidden absolute z-50 p-3 rounded-lg bg-gray-900 border border-gray-500 max-w-xs text-sm"></div>
+    <div id="status-tooltip" class="status-tooltip">
+      <h4 class="status-tooltip-name"></h4>
+      <p class="status-tooltip-duration"></p>
+      <p class="status-tooltip-description"></p>
+    </div>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>
