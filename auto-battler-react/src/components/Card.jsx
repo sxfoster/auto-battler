@@ -13,6 +13,9 @@ export default function Card({
   isTakingDamage = false,
 }) {
   const rarityClass = getRarityClass(item?.rarity)
+  const heroClass = item?.class
+    ? item.class.toLowerCase().replace(/\s+/g, '-')
+    : ''
   const handleClick = () => {
     if (onClick) onClick(item)
   }
@@ -28,7 +31,7 @@ export default function Card({
 
     return (
       <div
-        className={`compact-card ${rarityClass} ${isDefeated ? 'is-defeated' : ''} ${isActive ? 'is-active-turn' : ''} ${isTakingDamage ? 'is-taking-damage' : ''}`}
+        className={`compact-card ${rarityClass} ${heroClass} ${isDefeated ? 'is-defeated' : ''} ${isActive ? 'is-active-turn' : ''} ${isTakingDamage ? 'is-taking-damage' : ''}`}
         onClick={onClick ? handleClick : undefined}
       >
         <div className="shockwave" />
@@ -126,7 +129,7 @@ export default function Card({
 
   return (
     <div className="hero-card-container" onClick={onClick ? handleClick : undefined}>
-      <div className={`hero-card ${rarityClass}`}>
+      <div className={`hero-card ${rarityClass} ${heroClass}`}>
         {item.rarity === 'Epic' && <div className="shimmer-effect" />}
         <div className="card-frame-base" />
         <div className="card-frame-inlay" />
