@@ -470,6 +470,9 @@ export class BattleScene {
 
             this._showAbilityCard(ability);
             this._triggerArenaEffect('ability-zoom');
+            // Display a central announcement for high-impact abilities
+            const announcerStyle = (ability.rarity === 'Epic') ? 'critical' : '';
+            this._showBattleAnnouncement(ability.name, announcerStyle, ability.effect || '');
             this._logToBattle(`${attacker.heroData.name} unleashes ${ability.name}!`, 'ability-cast', attacker, 2);
 
             // This is now redundant with the main _showBattleAnnouncement call.
@@ -1236,6 +1239,7 @@ export class BattleScene {
         const style = didPlayerWin ? 'victory-text' : 'defeat-text';
         const anim = didPlayerWin ? 'animate-forge' : 'animate-crumble';
         this._triggerWordEffect(word, style, anim);
+        this._showBattleAnnouncement(word, didPlayerWin ? 'victory' : 'defeat');
 
         this.state.forEach(combatant => {
             if (combatant.team === winningTeam && combatant.currentHp > 0) {
