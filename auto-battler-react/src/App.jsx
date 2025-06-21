@@ -1,6 +1,7 @@
 import React from 'react'
 import { useGameStore } from './store.js'
 import AnimatedBackground from './components/AnimatedBackground.jsx'
+import DebugMenu from './components/DebugMenu.jsx'
 
 import PackScene from './scenes/PackScene.jsx'
 import RevealScene from './scenes/RevealScene.jsx'
@@ -49,6 +50,7 @@ export default function App() {
     <>
       <AnimatedBackground isSpeedActive={false} />
       {scene}
+      {import.meta.env.DEV && <DebugMenu />}
     </>
   )
 }
