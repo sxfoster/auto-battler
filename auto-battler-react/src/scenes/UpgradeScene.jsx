@@ -106,16 +106,61 @@ export default function UpgradeScene() {
     nextCard()
   }
 
+  const showComparisonTooltip = (event, slotKey) => {
+    const tooltip = document.getElementById('item-tooltip')
+    if (!tooltip || !current) return
+    const container = event.currentTarget.closest('.champion-display')
+    if (!container) return
+
+    const newStats = current.statBonuses || {}
+    const equippedId = playerTeam[slotKey]
+    const pool = slotKey.startsWith('weapon') ? allPossibleWeapons : allPossibleArmors
+    const equipped = pool.find(i => i.id === equippedId)
+    const oldStats = equipped?.statBonuses || {}
+
+    let html = `<h4 class="font-bold text-lg font-cinzel text-amber-300 mb-2">${current.name}</h4>`
+    const keys = Array.from(new Set([...Object.keys(newStats), ...Object.keys(oldStats)]))
+    keys.forEach(stat => {
+      const oldVal = oldStats[stat] || 0
+      const newVal = newStats[stat] || 0
+      const diff = newVal - oldVal
+      const diffText = `(${diff > 0 ? '+' : ''}${diff})`
+      const diffColor = diff === 0 ? 'text-gray-400' : diff > 0 ? 'text-green-400' : 'text-red-400'
+      html += `<div class="flex justify-between items-center"><span>${stat}: ${newVal}</span><span class="text-xs ${diffColor}">${diffText} vs. ${oldVal}</span></div>`
+    })
+
+    tooltip.innerHTML = html
+    container.appendChild(tooltip)
+    tooltip.classList.add('is-visible')
+  }
+
+  const hideComparisonTooltip = () => {
+    const tooltip = document.getElementById('item-tooltip')
+    if (tooltip) {
+      tooltip.classList.remove('is-visible')
+    }
+  }
+
+  const handleHover = (e, slotKey) => {
+    if (e) showComparisonTooltip(e, slotKey)
+    else hideComparisonTooltip()
+  }
+
   if (!current) return null
 
   if (phase === 'REVEAL') {
     return (
       <div className="scene">
         <Card item={current} view="detail" />
+        <div id="upgrade-card-counter" className="flex justify-center gap-3 mt-4">
+          {pack.map((_, i) => (
+            <div key={i} className={`card-pip ${i >= index ? 'active' : ''}`} />
+          ))}
+        </div>
         <p className="mt-2">Shards: {inventory.shards}</p>
         <div className="flex gap-4 mt-4">
-          <button onClick={handleDismantle}>Dismantle</button>
-          <button onClick={handleTake}>Take</button>
+          <button className="confirm-button" onClick={handleDismantle}>Dismantle</button>
+          <button className="confirm-button" onClick={handleTake}>Take</button>
         </div>
       </div>
     )
@@ -146,6 +191,7 @@ export default function UpgradeScene() {
               targetType={current.type}
               valid={valid}
               onSelectSlot={handleEquip}
+              onHoverSlot={handleHover}
             />
           )
         })}
