@@ -36,6 +36,9 @@ export default function App() {
     case 'RECAP_1':
       scene = <RecapScene />
       break
+    case 'RECAP_2':
+      scene = <RecapScene />
+      break
     case 'UPGRADE':
       scene = <UpgradeScene />
       break
