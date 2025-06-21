@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react'
 import Card from '../components/Card.jsx'
+import BattleLog from '../components/BattleLog.jsx'
 import useBattleLogic from '../hooks/useBattleLogic.js'
 import { useGameStore } from '../store.js'
 
@@ -115,11 +116,7 @@ export default function BattleScene() {
           ))}
         </div>
       </div>
-      <div className="battle-log text-sm">
-        {battleLog.map((msg, idx) => (
-          <p key={idx}>{msg}</p>
-        ))}
-      </div>
+      <BattleLog battleLog={battleLog} />
       {isBattleOver && (
         <div className="battle-result text-xl text-center mt-4">
           {winner === 'player' ? 'Victory!' : 'Defeat!'}
