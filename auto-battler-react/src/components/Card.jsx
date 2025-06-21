@@ -1,17 +1,18 @@
-import React from 'react'
+import React, { forwardRef } from 'react'
 
 function getRarityClass(rarity = 'common') {
   return rarity.toLowerCase().replace(/\s+/g, '-')
 }
 
-export default function Card({
+const Card = forwardRef(function Card({
   item,
   view = 'detail',
   onClick,
   isDefeated = false,
   isActive = false,
   isTakingDamage = false,
-}) {
+  isAttacking = false,
+}, ref) {
   const rarityClass = getRarityClass(item?.rarity)
   const handleClick = () => {
     if (onClick) onClick(item)
@@ -28,7 +29,8 @@ export default function Card({
 
     return (
       <div
-        className={`compact-card ${rarityClass} ${isDefeated ? 'is-defeated' : ''} ${isActive ? 'is-active-turn' : ''} ${isTakingDamage ? 'is-taking-damage' : ''}`}
+        ref={ref}
+        className={`compact-card ${rarityClass} ${isDefeated ? 'is-defeated' : ''} ${isActive ? 'is-active-turn' : ''} ${isTakingDamage ? 'is-taking-damage' : ''} ${isAttacking ? 'is-attacking' : ''}`}
         onClick={onClick ? handleClick : undefined}
       >
         <div className="shockwave" />
@@ -150,3 +152,5 @@ export default function Card({
     </div>
   )
 }
+
+export default Card
