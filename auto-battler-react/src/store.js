@@ -30,6 +30,31 @@ function checkForAndApplyEvolutions(wins, playerTeam) {
   return evolved
 }
 
+function generateRandomChampion() {
+  const commonHeroes = allPossibleHeroes.filter(h => h.rarity === 'Common')
+  const hero = commonHeroes[Math.floor(Math.random() * commonHeroes.length)]
+
+  const abilityPool = allPossibleAbilities.filter(
+    a => a.class === hero.class && a.rarity === 'Common'
+  )
+  const ability = abilityPool.length
+    ? abilityPool[Math.floor(Math.random() * abilityPool.length)]
+    : null
+
+  const commonWeapons = allPossibleWeapons.filter(w => w.rarity === 'Common')
+  const weapon = commonWeapons[Math.floor(Math.random() * commonWeapons.length)]
+
+  const commonArmors = allPossibleArmors.filter(a => a.rarity === 'Common')
+  const armor = commonArmors[Math.floor(Math.random() * commonArmors.length)]
+
+  return {
+    hero: hero.id,
+    ability: ability ? ability.id : null,
+    weapon: weapon.id,
+    armor: armor.id,
+  }
+}
+
 export const useGameStore = createWithEqualityFn(
   (set, get) => ({
   gamePhase: 'PACK',
@@ -113,6 +138,31 @@ export const useGameStore = createWithEqualityFn(
     }
     return { playerTeam: team }
   }),
+
+  debugSkipToBattle: () => {
+    const champion1 = generateRandomChampion()
+    let champion2 = generateRandomChampion()
+    while (champion2.hero === champion1.hero) {
+      champion2 = generateRandomChampion()
+    }
+
+    set(state => ({
+      playerTeam: {
+        ...state.playerTeam,
+        hero1: champion1.hero,
+        ability1: champion1.ability,
+        weapon1: champion1.weapon,
+        armor1: champion1.armor,
+        hero2: champion2.hero,
+        ability2: champion2.ability,
+        weapon2: champion2.weapon,
+        armor2: champion2.armor,
+      },
+      draftStage: 'COMPLETE',
+    }))
+
+    get().startBattle()
+  },
 
   startBattle: () =>
     set(state => {

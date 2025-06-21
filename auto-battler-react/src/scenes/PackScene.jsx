@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useRef, useState } from 'react'
 import { useGameStore } from '../store.js'
 
 const boosterPackImages = {
@@ -14,21 +14,53 @@ export default function PackScene() {
     draftStage: state.draftStage,
   }))
 
-  const [isOpening, setIsOpening] = useState(false)
+  const [isTearing, setIsTearing] = useState(false)
+  const [isOpen, setIsOpen] = useState(false)
+
+  const packageRef = useRef(null)
+  const imageAreaRef = useRef(null)
 
   const handlePackOpen = () => {
-    if (isOpening) return
-    setIsOpening(true)
+    if (isTearing) return
+    setIsTearing(true)
+  }
+
+  const handleTearEnd = () => {
+    setIsOpen(true)
     setTimeout(() => {
       openPack()
-    }, 1000)
+    }, 100)
+  }
+
+  const handleMouseMove = e => {
+    if (!packageRef.current) return
+    const rect = packageRef.current.getBoundingClientRect()
+    const x = e.clientX - rect.left - rect.width / 2
+    const y = e.clientY - rect.top - rect.height / 2
+    const maxTilt = 10
+    const rotateY = (x / (rect.width / 2)) * maxTilt
+    const rotateX = (y / (rect.height / 2)) * -maxTilt
+    packageRef.current.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg)`
+    if (imageAreaRef.current) {
+      imageAreaRef.current.style.setProperty('--glare-x', `${((e.clientX - rect.left) * 100) / rect.width}%`)
+      imageAreaRef.current.style.setProperty('--glare-y', `${((e.clientY - rect.top) * 100) / rect.height}%`)
+      imageAreaRef.current.style.setProperty('--glare-opacity', '1')
+    }
+  }
+
+  const handleMouseLeave = () => {
+    if (!packageRef.current) return
+    packageRef.current.style.transform = 'rotateX(0deg) rotateY(0deg)'
+    if (imageAreaRef.current) {
+      imageAreaRef.current.style.setProperty('--glare-opacity', '0')
+    }
   }
 
   const packType = draftStage.split('_')[0].toLowerCase()
   const packImage = boosterPackImages[packType] || boosterPackImages.hero
 
   return (
-    <div id="pack-scene" className={`scene ${isOpening ? 'fade-out' : ''}`}>
+    <div id="pack-scene" className="scene">
       <h1
         id="pack-scene-title"
         className="text-5xl font-cinzel tracking-wider mb-8 text-center"
@@ -37,13 +69,21 @@ export default function PackScene() {
       </h1>
 
       <div className="package-wrapper" onClick={handlePackOpen}>
-        <div id="package" className="package flex flex-col rounded-lg">
+        <div
+          id="package"
+          ref={packageRef}
+          className={`package flex flex-col rounded-lg ${isOpen ? 'is-open' : ''}`}
+          onMouseMove={handleMouseMove}
+          onMouseLeave={handleMouseLeave}
+        >
           <div
             id="top-crimp"
-            className={`crimp h-6 rounded-t-lg ${isOpening ? 'torn-off' : ''}`}
+            className={`crimp h-6 rounded-t-lg ${isTearing ? 'torn-off' : ''}`}
+            onAnimationEnd={isTearing ? handleTearEnd : undefined}
           ></div>
           <div
             id="image-area"
+            ref={imageAreaRef}
             className="image-area flex-grow flex items-center justify-center"
           >
             <img
