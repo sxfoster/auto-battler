@@ -77,6 +77,29 @@ function chunkBattleLog(log, chunkSize = 1980) {
 }
 
 client.on(Events.InteractionCreate, async interaction => {
+    if (interaction.isChatInputCommand()) {
+        const command = client.commands.get(interaction.commandName);
+        if (!command) return;
+
+        try {
+            const userId = interaction.user.id;
+            const [rows] = await db.execute('SELECT * FROM users WHERE discord_id = ?', [userId]);
+            if (rows.length === 0) {
+                await db.execute('INSERT INTO users (discord_id, soft_currency, hard_currency, summoning_shards) VALUES (?, 0, 0, 0)', [userId]);
+            }
+            await command.execute(interaction);
+        } catch (error) {
+            console.error('Error executing command:', error);
+            const errEmbed = simple('There was an error executing this command!');
+            if (interaction.replied || interaction.deferred) {
+                await interaction.followUp({ embeds: [errEmbed], ephemeral: true }).catch(() => {});
+            } else {
+                await interaction.reply({ embeds: [errEmbed], ephemeral: true }).catch(() => {});
+            }
+        }
+        return;
+    }
+
     if (!interaction.isButton()) return;
 
     // Acknowledge the interaction immediately.
