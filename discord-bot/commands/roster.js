@@ -1,6 +1,7 @@
 const { SlashCommandBuilder } = require('discord.js');
 const db = require('../util/database');
 const { simple } = require('../src/utils/embedBuilder');
+// Import the static hero data from your game files
 const { allPossibleHeroes } = require('../../backend/game/data');
 
 module.exports = {
@@ -9,19 +10,31 @@ module.exports = {
         .setDescription("View your collected champions."),
     async execute(interaction) {
         try {
-            const [roster] = await db.execute(
-                `SELECT h.name, h.rarity, h.class, uc.level 
-                 FROM user_champions uc 
-                 JOIN heroes h ON uc.base_hero_id = h.id 
-                 WHERE uc.user_id = ? ORDER BY h.rarity DESC, uc.level DESC`,
+            // Step 1: Fetch the list of champions the user owns from the database.
+            const [ownedChampions] = await db.execute(
+                'SELECT base_hero_id, level FROM user_champions WHERE user_id = ? ORDER BY id DESC',
                 [interaction.user.id]
             );
 
-            if (roster.length === 0) {
+            if (ownedChampions.length === 0) {
                 return interaction.reply({ content: 'Your roster is empty. Use `/summon` to recruit some champions!', ephemeral: true });
             }
 
-            const fields = roster.slice(0, 25).map(c => ({
+            // Step 2: Combine the database data with the static hero data from data.js.
+            const rosterDetails = ownedChampions.map(ownedChampion => {
+                const staticData = allPossibleHeroes.find(h => h.id === ownedChampion.base_hero_id);
+                if (!staticData) return null; // Handle cases where a hero might not be found
+
+                return {
+                    name: staticData.name,
+                    rarity: staticData.rarity,
+                    class: staticData.class,
+                    level: ownedChampion.level,
+                };
+            }).filter(Boolean); // Filter out any null results
+
+            // Step 3: Format the combined data into an embed.
+            const fields = rosterDetails.slice(0, 25).map(c => ({ // Discord embeds are limited to 25 fields
                 name: `${c.name} (Lvl ${c.level})`,
                 value: `${c.rarity} ${c.class}`,
                 inline: true,
