@@ -12,6 +12,8 @@ console.log('Registering slash commands:', commandFiles.join(', '));
 
 for (const file of commandFiles) {
     const command = require(`./commands/${file}`);
+    // Log each loaded command so new additions like /summon are visible
+    console.log(`Loading command: ${command.data.name}`);
     commands.push(command.data.toJSON());
 }
 
