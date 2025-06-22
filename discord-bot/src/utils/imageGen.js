@@ -1,45 +1,41 @@
-const { createCanvas, loadImage } = require('canvas');
+const sharp = require('sharp');
+const fs = require('fs');
 const path = require('path');
 
 /**
- * Generate a team image containing up to five hero icons.
- * Each hero should have a corresponding PNG file in the assets directory.
- * @param {string[]} heroes array of hero names without extension
- * @returns {Promise<Buffer>} PNG image buffer
+ * Create a composite image of heroes using Sharp
+ * @param {string[]} heroes
+ * @returns {Promise<Buffer>}
  */
-async function makeTeamImage(heroes = []) {
-  const width = 300;
-  const height = 200;
-  const canvas = createCanvas(width, height);
-  const ctx = canvas.getContext('2d');
-
-  // background
-  ctx.fillStyle = '#111';
-  ctx.fillRect(0, 0, width, height);
-
-  const max = 5;
-  const names = heroes.slice(0, max);
-  const iconSize = 48;
-  const spacing = width / (names.length + 1);
-  const yIcon = 40;
-  for (let i = 0; i < names.length; i++) {
-    const name = names[i];
-    const imgPath = path.join(__dirname, '..', '..', 'assets', `${name}.png`);
-    let img;
-    try {
-      img = await loadImage(imgPath);
-    } catch {
-      continue; // skip missing images
-    }
-    const x = spacing * (i + 1) - iconSize / 2;
-    ctx.drawImage(img, x, yIcon, iconSize, iconSize);
-    ctx.fillStyle = '#fff';
-    ctx.font = '12px sans-serif';
-    ctx.textAlign = 'center';
-    ctx.fillText(name, x + iconSize / 2, yIcon + iconSize + 14);
-  }
-
-  return canvas.toBuffer('image/png');
+async function makeTeamImage(heroes) {
+  const width = 300, height = 200;
+  // Start with a dark background
+  let svgBackground = `<svg width="${width}" height="${height}"><rect width="100%" height="100%" fill="#1f1f1f"/></svg>`;
+  let background = Buffer.from(svgBackground);
+  // Load hero icons as Sharp overlays
+  const composites = heroes.slice(0,5).map((hero, i) => {
+    const iconBuffer = fs.readFileSync(
+      path.resolve(__dirname, '../../assets', `${hero}.png`)
+    );
+    return {
+      input: iconBuffer,
+      top: 10,
+      left: 10 + i * 60,
+      blend: 'over'
+    };
+  });
+  // Add text labels using SVG overlay
+  const textOverlays = heroes.slice(0,5).map((hero, i) => {
+    const x = 10 + i * 60;
+    const y = 70;
+    return `<text x="${x}" y="${y}" fill="#fff" font-size="12">${hero}</text>`;
+  }).join('');
+  const svgText = `<svg width="${width}" height="${height}">${textOverlays}</svg>`;
+  composites.push({ input: Buffer.from(svgText), blend: 'over' });
+  return await sharp(background)
+    .composite(composites)
+    .png()
+    .toBuffer();
 }
 
 module.exports = { makeTeamImage };
