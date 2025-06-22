@@ -1,5 +1,5 @@
-const embedBuilder = require('./embedBuilder');
+const { simple } = require('./embedBuilder');
 
-const confirm = msg => embedBuilder.simple('✅ Success', [{ name: 'Result', value: msg }]);
+const confirm = msg => simple('✅ Success', [{ name: 'Result', value: msg }]);
 
 module.exports = confirm;
