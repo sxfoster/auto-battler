@@ -1,6 +1,6 @@
 const { ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
 const { simple } = require('../src/utils/embedBuilder');
-const { allPossibleHeroes, allPossibleAbilities, allPossibleWeapons } = require('../../backend/game/data');
+const { allPossibleHeroes, allPossibleAbilities, allPossibleWeapons, allPossibleArmors } = require('../../backend/game/data');
 
 async function sendHeroSelection(interaction, session) {
     const shuffledHeroes = [...allPossibleHeroes].sort(() => 0.5 - Math.random());
@@ -53,4 +53,20 @@ async function sendWeaponSelection(interaction, session, chosenHeroName) {
     await interaction.editReply({ content: 'Finally, choose a weapon.', embeds: [embed], components: [actionRow] });
 }
 
-module.exports = { sendHeroSelection, sendAbilitySelection, sendWeaponSelection };
+async function sendArmorSelection(interaction, session, chosenHeroName) {
+    const armorChoices = [...allPossibleArmors].sort(() => 0.5 - Math.random()).slice(0, 4);
+
+    const embed = simple('Armor Selection', [{ name: 'Instructions', value: `Choose armor for your ${chosenHeroName}.` }]);
+    const buttons = armorChoices.map(armor =>
+        new ButtonBuilder()
+            .setCustomId(`${session.id}:pickArmor:${armor.id}`)
+            .setLabel(armor.name)
+            .setStyle(ButtonStyle.Secondary)
+            .setEmoji('🛡️')
+    );
+    const actionRow = new ActionRowBuilder().addComponents(buttons);
+
+    await interaction.editReply({ content: 'Next, select your armor.', embeds: [embed], components: [actionRow] });
+}
+
+module.exports = { sendHeroSelection, sendAbilitySelection, sendWeaponSelection, sendArmorSelection };
