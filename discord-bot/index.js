@@ -2,6 +2,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { Client, Collection, GatewayIntentBits, Events } = require('discord.js');
 require('dotenv').config();
+const db = require('./util/database');
 
 const client = new Client({ intents: [GatewayIntentBits.Guilds] });
 
@@ -20,8 +21,16 @@ for (const file of commandFiles) {
     }
 }
 
-client.once(Events.ClientReady, () => {
+client.once(Events.ClientReady, async () => {
     console.log(`✅ Logged in as ${client.user.tag}! The bot is online.`);
+
+    // Test database connection
+    try {
+        const [rows, fields] = await db.execute('SELECT 1');
+        console.log('✅ Database connection successful.');
+    } catch (error) {
+        console.error('❌ Database connection failed:', error);
+    }
 });
 
 client.on(Events.InteractionCreate, async interaction => {
