@@ -76,6 +76,56 @@ function chunkBattleLog(log, chunkSize = 1980) {
     return chunks;
 }
 
+// Handle slash commands separately from button interactions
+client.on(Events.InteractionCreate, async interaction => {
+    if (!interaction.isChatInputCommand()) return;
+
+    try {
+        const userId = interaction.user.id;
+        const [rows] = await db.execute('SELECT * FROM users WHERE discord_id = ?', [userId]);
+        if (rows.length === 0) {
+            await db.execute('INSERT INTO users (discord_id, summoning_shards) VALUES (?, 0)', [userId]);
+        }
+
+        if (interaction.commandName === 'summon') {
+            const SHARD_COST = 10;
+            const userShards = rows[0] ? rows[0].summoning_shards : 0;
+            if (userShards < SHARD_COST) {
+                return interaction.reply({ content: `You don't have enough summoning shards! You need ${SHARD_COST}.`, ephemeral: true });
+            }
+
+            await db.execute('UPDATE users SET summoning_shards = summoning_shards - ? WHERE discord_id = ?', [SHARD_COST, userId]);
+
+            const roll = Math.random();
+            let rarity = 'Common';
+            if (roll < 0.005) rarity = 'Epic';
+            else if (roll < 0.05) rarity = 'Rare';
+            else if (roll < 0.30) rarity = 'Uncommon';
+
+            const possibleHeroes = allPossibleHeroes.filter(h => h.rarity === rarity);
+            const summonedHero = possibleHeroes[Math.floor(Math.random() * possibleHeroes.length)];
+
+            await db.execute('INSERT INTO user_champions (user_id, base_hero_id) VALUES (?, ?)', [userId, summonedHero.id]);
+
+            const embed = simple(`✨ You Summoned a Champion! ✨`, [
+                { name: summonedHero.name, value: `Rarity: ${summonedHero.rarity}\nClass: ${summonedHero.class}` }
+            ]);
+            await interaction.reply({ embeds: [embed] });
+        } else {
+            const command = client.commands.get(interaction.commandName);
+            if (!command) return;
+            await command.execute(interaction);
+        }
+    } catch (error) {
+        console.error(error);
+        if (interaction.replied || interaction.deferred) {
+            await interaction.followUp({ embeds: [simple('There was an error executing this command!')], ephemeral: true }).catch(() => {});
+        } else {
+            await interaction.reply({ embeds: [simple('There was an error executing this command!')], ephemeral: true }).catch(() => {});
+        }
+    }
+});
+
 client.on(Events.InteractionCreate, async interaction => {
     if (!interaction.isButton()) return;
 
