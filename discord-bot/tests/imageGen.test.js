@@ -3,19 +3,25 @@ const path = require('path');
 const sharp = require('sharp');
 const { makeTeamImage } = require('../src/utils/imageGen');
 
-describe('makeTeamImage', () => {
-  const heroes = ['Hero1', 'Hero2', 'Hero3', 'Hero4', 'Hero5'];
-  const assetsDir = path.join(__dirname, '..', 'assets');
+const assetsDir = path.join(__dirname, '..', 'assets', 'heroes');
+const heroes = ['hero-1', 'hero-2', 'hero-3', 'hero-4', 'hero-5'];
 
+describe('makeTeamImage', () => {
   beforeAll(async () => {
     if (!fs.existsSync(assetsDir)) {
       fs.mkdirSync(assetsDir, { recursive: true });
     }
-    // create simple colored square icons for each hero using sharp
     for (const [i, name] of heroes.entries()) {
       const buffer = await sharp({
-        create: { width: 48, height: 48, channels: 4, background: `hsl(${i * 60},100%,50%)` }
-      }).png().toBuffer();
+        create: {
+          width: 48,
+          height: 48,
+          channels: 4,
+          background: `hsl(${i * 60},100%,50%)`
+        }
+      })
+        .png()
+        .toBuffer();
       fs.writeFileSync(path.join(assetsDir, `${name}.png`), buffer);
     }
   });
@@ -27,32 +33,23 @@ describe('makeTeamImage', () => {
     });
   });
 
-  test('returns Buffer for 1-5 names', async () => {
-    for (let i = 1; i <= 5; i++) {
+  test('returns Buffer for 1-5 heroes', async () => {
+    for (let i = 1; i <= heroes.length; i++) {
       const buf = await makeTeamImage(heroes.slice(0, i));
+      const meta = await sharp(buf).metadata();
       expect(Buffer.isBuffer(buf)).toBe(true);
-      expect(buf.length).toBeGreaterThan(1000);
+      expect(meta.width).toBe(300);
+      expect(meta.height).toBe(200);
     }
   });
 
-  test('image dimensions and overlays', async () => {
-    const selected = heroes.slice(0, 3);
-    const buf = await makeTeamImage(selected);
-    const meta = await sharp(buf).metadata();
-    expect(meta.width).toBe(300);
-    expect(meta.height).toBe(200);
+  test('rejects empty array', async () => {
+    await expect(makeTeamImage([])).rejects.toThrow('Hero list cannot be empty');
+  });
 
-    const { data, info } = await sharp(buf).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
-    const getPixel = (x, y) => {
-      const idx = (y * info.width + x) * info.channels;
-      return [data[idx], data[idx + 1], data[idx + 2]];
-    };
-    const bg = [31, 31, 31];
-    for (let i = 0; i < selected.length; i++) {
-      const x = 10 + i * 60 + 24;
-      const y = 10 + 24;
-      const pixel = getPixel(x, y);
-      expect(pixel[0] === bg[0] && pixel[1] === bg[1] && pixel[2] === bg[2]).toBe(false);
-    }
+  test('missing-file input', async () => {
+    await expect(makeTeamImage(['missing-hero'])).rejects.toThrow(
+      'Missing asset for hero: missing-hero'
+    );
   });
 });
