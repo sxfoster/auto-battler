@@ -75,7 +75,9 @@ client.on(Events.InteractionCreate, async interaction => {
                 await interaction.update({ content: 'Draft canceled.', components: [] });
 
             } else if (action === 'draft') {
-                const [type, gameId, choiceId] = args;
+            // Acknowledge the interaction immediately
+            await interaction.deferUpdate();
+            const [type, gameId, choiceId] = args;
                 // ... (The rest of your draft handling logic remains here) ...
                 const [gameRows] = await db.execute('SELECT * FROM games WHERE id = ?', [gameId]);
                 if (gameRows.length === 0) {
