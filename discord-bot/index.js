@@ -74,7 +74,9 @@ client.on(Events.InteractionCreate, async interaction => {
                 await interaction.update({ embeds: [confirm('Your previous game has been forfeited. Run `/draft` again to start a new one.')], components: [] });
 
             } else if (action === 'cancel') {
-                await interaction.update({ embeds: [confirm('Draft canceled.')], components: [] });
+                // Defer first to avoid InteractionFailed errors if processing takes too long
+                await interaction.deferUpdate();
+                await interaction.editReply({ embeds: [confirm('Draft canceled.')], components: [] });
 
             } else if (action === 'draft') {
                 await interaction.deferUpdate(); // Defer immediately
