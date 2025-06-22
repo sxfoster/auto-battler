@@ -9,6 +9,7 @@ const { createCombatant } = require('../backend/game/utils');
 const { allPossibleHeroes } = require('../backend/game/data');
 const { simple } = require('./src/utils/embedBuilder');
 const confirm = require('./src/utils/confirm');
+const sessionManager = require('./sessionManager');
 
 const client = new Client({ intents: [GatewayIntentBits.Guilds] });
 
@@ -62,54 +63,50 @@ client.on(Events.InteractionCreate, async interaction => {
 
     // Handle Button Clicks
     if (interaction.isButton()) {
-        const [action, ...args] = interaction.customId.split('_');
         const userId = interaction.user.id;
+        const customId = interaction.customId;
+        const isForfeit = customId.startsWith('forfeit_');
+        const isCancel = customId === 'cancel_draft';
+        const [sessionId, action, payload] = customId.split(':');
+        const session = sessionManager.getSession(sessionId);
 
         try {
-            if (action === 'forfeit') {
+            if (isForfeit) {
                 await interaction.deferUpdate();
-                const gameIdToForfeit = args[0];
+                const gameIdToForfeit = customId.split('_')[1];
                 await db.execute("UPDATE games SET status = 'forfeited' WHERE id = ?", [gameIdToForfeit]);
                 await db.execute("UPDATE users SET current_game_id = NULL WHERE discord_id = ?", [userId]);
                 await interaction.update({ embeds: [confirm('Your previous game has been forfeited. Run `/draft` again to start a new one.')], components: [] });
 
-            } else if (action === 'cancel') {
+            } else if (isCancel) {
                 // Defer first to avoid InteractionFailed errors if processing takes too long
                 await interaction.deferUpdate();
                 await interaction.editReply({ embeds: [confirm('Draft canceled.')], components: [] });
+            } else if (session) {
+                await interaction.deferUpdate();
+                const draftState = session.draftState;
 
-            } else if (action === 'draft') {
-                await interaction.deferUpdate(); // Defer immediately
-
-                const [type, gameId, choiceId] = args;
-                const [gameRows] = await db.execute('SELECT * FROM games WHERE id = ?', [gameId]);
-
-                if (gameRows.length === 0) {
-                    return interaction.update({ embeds: [simple('This game no longer exists.')], components: [] });
-                }
-                const game = gameRows[0];
-                const draftState = JSON.parse(game.draft_state);
-
-                // Logic to advance the draft stage
-                if (type === 'hero' && draftState.stage === 'HERO_SELECTION') {
-                    draftState.team.hero = parseInt(choiceId, 10);
+                if (session.step === 'choose-hero' && action === 'pickHero') {
+                    draftState.team.hero = parseInt(payload, 10);
                     draftState.stage = 'ABILITY_SELECTION';
-                    await db.execute('UPDATE games SET draft_state = ? WHERE id = ?', [JSON.stringify(draftState), gameId]);
-                    // NOTE: We pass the interaction to the manager so it can edit the deferred reply
-                    await sendAbilitySelection(interaction, gameId, draftState.team.hero);
+                    session.step = 'choose-ability';
+                    await db.execute('UPDATE games SET draft_state = ? WHERE id = ?', [JSON.stringify(draftState), session.gameId]);
+                    await sendAbilitySelection(interaction, session, draftState.team.hero);
 
-                } else if (type === 'ability' && draftState.stage === 'ABILITY_SELECTION') {
-                    draftState.team.ability = parseInt(choiceId, 10);
+                } else if (session.step === 'choose-ability' && action === 'pickAbility') {
+                    draftState.team.ability = parseInt(payload, 10);
                     draftState.stage = 'WEAPON_SELECTION';
-                    await db.execute('UPDATE games SET draft_state = ? WHERE id = ?', [JSON.stringify(draftState), gameId]);
+                    session.step = 'choose-weapon';
+                    await db.execute('UPDATE games SET draft_state = ? WHERE id = ?', [JSON.stringify(draftState), session.gameId]);
                     const hero = allPossibleHeroes.find(h => h.id === draftState.team.hero);
-                    await sendWeaponSelection(interaction, gameId, hero.name);
+                    await sendWeaponSelection(interaction, session, hero.name);
 
-                } else if (type === 'weapon' && draftState.stage === 'WEAPON_SELECTION') {
-                    draftState.team.weapon = parseInt(choiceId, 10);
+                } else if (session.step === 'choose-weapon' && action === 'pickWeapon') {
+                    draftState.team.weapon = parseInt(payload, 10);
                     draftState.stage = 'DRAFT_COMPLETE';
-                    await db.execute('UPDATE games SET draft_state = ? WHERE id = ?', [JSON.stringify(draftState), gameId]);
-                    await interaction.update({ embeds: [simple('Draft complete! Simulating battle...')], components: [] });
+                    session.step = 'complete';
+                    await db.execute('UPDATE games SET draft_state = ? WHERE id = ?', [JSON.stringify(draftState), session.gameId]);
+                    await interaction.editReply({ embeds: [simple('Draft complete! Simulating battle...')], components: [] });
 
                     const heroName = allPossibleHeroes.find(h => h.id === draftState.team.hero).name;
                     const selectedHeroes = [heroName];
@@ -120,21 +117,21 @@ client.on(Events.InteractionCreate, async interaction => {
                         files: [{ attachment: buffer, name: 'team.png' }]
                     });
 
-                    // --- BATTLE LOGIC ---
-                    const playerData = { discord_id: game.player1_id, hero_id: draftState.team.hero, weapon_id: draftState.team.weapon, ability_id: draftState.team.ability };
+                    const playerData = { discord_id: session.userId, hero_id: draftState.team.hero, weapon_id: draftState.team.weapon, ability_id: draftState.team.ability };
                     const aiData = { discord_id: 'AI', hero_id: 301, weapon_id: 1201, armor_id: null, ability_id: null };
                     const playerCombatant = createCombatant(playerData, 'player', 0);
                     const aiCombatant = createCombatant(aiData, 'enemy', 0);
                     const gameInstance = new GameEngine([playerCombatant, aiCombatant]);
                     const battleLog = gameInstance.runFullGame();
-                    const winnerId = gameInstance.winner === 'player' ? game.player1_id : 'AI';
+                    const winnerId = gameInstance.winner === 'player' ? session.userId : 'AI';
 
-                    await db.execute("UPDATE games SET status = 'complete', winner_id = ? WHERE id = ?", [winnerId, gameId]);
-                    await db.execute("UPDATE users SET current_game_id = NULL WHERE discord_id = ?", [game.player1_id]);
+                    await db.execute("UPDATE games SET status = 'complete', winner_id = ? WHERE id = ?", [winnerId, session.gameId]);
+                    await db.execute("UPDATE users SET current_game_id = NULL WHERE discord_id = ?", [session.userId]);
 
                     const logText = battleLog.join('\n');
-                    const resultMessage = `**Battle Complete!**\n**Winner:** ${winnerId === 'AI' ? 'AI Opponent' : `<@${game.player1_id}>`}\n\n**Final Roster:**\n<@${game.player1_id}>: ${gameInstance.combatants[0].currentHp}/${gameInstance.combatants[0].maxHp} HP\nAI Opponent: ${gameInstance.combatants[1].currentHp}/${gameInstance.combatants[1].maxHp} HP\n\n**Battle Log:**\n\`\`\`\n${logText}\n\`\`\``;
+                    const resultMessage = `**Battle Complete!**\n**Winner:** ${winnerId === 'AI' ? 'AI Opponent' : `<@${session.userId}>`}\n\n**Final Roster:**\n<@${session.userId}>: ${gameInstance.combatants[0].currentHp}/${gameInstance.combatants[0].maxHp} HP\nAI Opponent: ${gameInstance.combatants[1].currentHp}/${gameInstance.combatants[1].maxHp} HP\n\n**Battle Log:**\n\`\`\`\n${logText}\n\`\`\``;
                     await interaction.followUp({ embeds: [simple('Battle Results', [{ name: 'Summary', value: resultMessage }])] });
+                    sessionManager.deleteSession(sessionId);
                 }
             }
         } catch (error) {
