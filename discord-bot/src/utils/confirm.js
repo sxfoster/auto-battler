@@ -1,5 +1,14 @@
 const { simple } = require('./embedBuilder');
 
-const confirm = msg => simple('✅ Success', [{ name: 'Result', value: msg }]);
+
+/**
+ * Returns a success embed with a standardized checkmark
+ * @param {string} message
+ */
+function confirm(message) {
+  return simple('✅ Success', [
+    { name: 'Result', value: message }
+  ]);
+}
 
 module.exports = confirm;
