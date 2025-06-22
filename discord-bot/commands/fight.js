@@ -1,6 +1,8 @@
 const { SlashCommandBuilder, StringSelectMenuBuilder, ActionRowBuilder } = require('discord.js');
 const db = require('../util/database');
 const { simple } = require('../src/utils/embedBuilder');
+// Import the static hero data from your game files
+const { allPossibleHeroes } = require('../../backend/game/data');
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -10,27 +12,30 @@ module.exports = {
         const userId = interaction.user.id;
 
         try {
-            // 1. Fetch the user's roster from the database
-            // Note: We assume the 'heroes' table exists from your data.js file.
-            // You may need to create and populate it if you haven't already.
-            const [roster] = await db.execute(
-                `SELECT uc.id, h.name, h.rarity, h.class, uc.level 
-                 FROM user_champions uc 
-                 JOIN heroes h ON uc.base_hero_id = h.id 
-                 WHERE uc.user_id = ?`,
+            // Step 1: Fetch the user's roster IDs from the database.
+            const [ownedChampions] = await db.execute(
+                'SELECT id, base_hero_id, level FROM user_champions WHERE user_id = ?',
                 [userId]
             );
 
-            if (roster.length < 2) {
+            if (ownedChampions.length < 2) {
                 return interaction.reply({ content: 'You need at least 2 champions in your roster to fight! Use `/summon` to recruit more.', ephemeral: true });
             }
 
-            // 2. Create a selection menu for the user to pick their team
-            const options = roster.map(champion => ({
-                label: `${champion.name} (Lvl ${champion.level})`,
-                description: `${champion.rarity} ${champion.class}`,
-                value: champion.id.toString(),
-            }));
+            // Step 2: Combine DB data with static data from data.js to create select menu options.
+            const options = ownedChampions.map(champion => {
+                const staticData = allPossibleHeroes.find(h => h.id === champion.base_hero_id);
+                // Fallback in case a hero in the DB doesn't exist in the data file
+                const name = staticData ? staticData.name : `Unknown Hero (ID: ${champion.base_hero_id})`;
+                const rarity = staticData ? staticData.rarity : 'Unknown';
+                const heroClass = staticData ? staticData.class : 'Unknown';
+
+                return {
+                    label: `${name} (Lvl ${champion.level})`,
+                    description: `${rarity} ${heroClass}`,
+                    value: champion.id.toString(), // The unique ID from the user_champions table
+                };
+            });
 
             const selectMenu = new StringSelectMenuBuilder()
                 .setCustomId(`fight_team_select`)
