@@ -2,6 +2,7 @@ const { SlashCommandBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } = re
 const db = require('../util/database');
 const { sendHeroSelection } = require('../managers/DraftManager');
 const { simple } = require('../src/utils/embedBuilder');
+const { createSession } = require('../sessionManager');
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -37,8 +38,7 @@ module.exports = {
         }
 
         // If no active game, proceed to create a new one as before
-        const startEmbed = simple('Your draft is starting! Please check your Direct Messages.');
-        await interaction.reply({ embeds: [startEmbed], ephemeral: true });
+        await interaction.deferReply({ ephemeral: true });
 
         const initialDraftState = { stage: 'HERO_SELECTION', team: {} };
         const [newGame] = await db.execute(
@@ -49,8 +49,12 @@ module.exports = {
 
         await db.execute('UPDATE users SET current_game_id = ? WHERE discord_id = ?', [gameId, userId]);
 
+        const session = createSession(userId, { draftState: initialDraftState, gameId });
+
         try {
-            await sendHeroSelection(interaction, gameId);
+            await sendHeroSelection(interaction, session);
+            const msg = await interaction.fetchReply();
+            session.messageId = msg.id;
         } catch (error) {
             console.error(`Could not send DM to ${interaction.user.tag}.`, error);
             await db.execute('DELETE FROM games WHERE id = ?', [gameId]);
