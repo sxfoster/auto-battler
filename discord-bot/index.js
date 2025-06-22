@@ -3,7 +3,7 @@ const path = require('node:path');
 const { Client, Collection, GatewayIntentBits, Events } = require('discord.js');
 require('dotenv').config();
 const db = require('./util/database');
-const { sendAbilitySelection, sendWeaponSelection } = require('./managers/DraftManager');
+const { sendHeroSelection, sendAbilitySelection, sendWeaponSelection, sendArmorSelection } = require('./managers/DraftManager');
 const GameEngine = require('../backend/game/engine');
 const { createCombatant } = require('../backend/game/utils');
 const { allPossibleHeroes } = require('../backend/game/data');
@@ -86,53 +86,77 @@ client.on(Events.InteractionCreate, async interaction => {
                 await interaction.deferUpdate();
                 const draftState = session.draftState;
 
-                if (session.step === 'choose-hero' && action === 'pickHero') {
-                    draftState.team.hero = parseInt(payload, 10);
-                    draftState.stage = 'ABILITY_SELECTION';
-                    session.step = 'choose-ability';
-                    await db.execute('UPDATE games SET draft_state = ? WHERE id = ?', [JSON.stringify(draftState), session.gameId]);
-                    await sendAbilitySelection(interaction, session, draftState.team.hero);
+                const heroKey = !draftState.team.hero1 ? 'hero1' : 'hero2';
+                const weaponKey = `${heroKey}_weapon`;
+                const abilityKey = `${heroKey}_ability`;
+                const armorKey = `${heroKey}_armor`;
 
-                } else if (session.step === 'choose-ability' && action === 'pickAbility') {
-                    draftState.team.ability = parseInt(payload, 10);
-                    draftState.stage = 'WEAPON_SELECTION';
-                    session.step = 'choose-weapon';
-                    await db.execute('UPDATE games SET draft_state = ? WHERE id = ?', [JSON.stringify(draftState), session.gameId]);
-                    const hero = allPossibleHeroes.find(h => h.id === draftState.team.hero);
-                    await sendWeaponSelection(interaction, session, hero.name);
+                switch (action) {
+                    case 'pickHero':
+                        draftState.team[heroKey] = parseInt(payload, 10);
+                        session.step = 'choose-ability';
+                        await sendAbilitySelection(interaction, session, draftState.team[heroKey]);
+                        break;
 
-                } else if (session.step === 'choose-weapon' && action === 'pickWeapon') {
-                    draftState.team.weapon = parseInt(payload, 10);
-                    draftState.stage = 'DRAFT_COMPLETE';
-                    session.step = 'complete';
-                    await db.execute('UPDATE games SET draft_state = ? WHERE id = ?', [JSON.stringify(draftState), session.gameId]);
-                    await interaction.editReply({ embeds: [simple('Draft complete! Simulating battle...')], components: [] });
+                    case 'pickAbility':
+                        draftState.team[abilityKey] = parseInt(payload, 10);
+                        session.step = 'choose-weapon';
+                        const heroForWeapon = allPossibleHeroes.find(h => h.id === draftState.team[heroKey]);
+                        await sendWeaponSelection(interaction, session, heroForWeapon.name);
+                        break;
 
-                    const heroName = allPossibleHeroes.find(h => h.id === draftState.team.hero).name;
-                    const selectedHeroes = [heroName];
-                    const buffer = await require('./src/utils/imageGen').makeTeamImage(selectedHeroes);
-                    const fields = [{ name: 'Heroes', value: selectedHeroes.join(', ') }];
-                    await interaction.followUp({
-                        embeds: [simple('Your Drafted Team', fields)],
-                        files: [{ attachment: buffer, name: 'team.png' }]
-                    });
+                    case 'pickWeapon':
+                        draftState.team[weaponKey] = parseInt(payload, 10);
+                        session.step = 'choose-armor';
+                        const heroForArmor = allPossibleHeroes.find(h => h.id === draftState.team[heroKey]);
+                        await sendArmorSelection(interaction, session, heroForArmor.name);
+                        break;
 
-                    const playerData = { discord_id: session.userId, hero_id: draftState.team.hero, weapon_id: draftState.team.weapon, ability_id: draftState.team.ability };
-                    const aiData = { discord_id: 'AI', hero_id: 301, weapon_id: 1201, armor_id: null, ability_id: null };
-                    const playerCombatant = createCombatant(playerData, 'player', 0);
-                    const aiCombatant = createCombatant(aiData, 'enemy', 0);
-                    const gameInstance = new GameEngine([playerCombatant, aiCombatant]);
-                    const battleLog = gameInstance.runFullGame();
-                    const winnerId = gameInstance.winner === 'player' ? session.userId : 'AI';
+                    case 'pickArmor':
+                        draftState.team[armorKey] = parseInt(payload, 10);
 
-                    await db.execute("UPDATE games SET status = 'complete', winner_id = ? WHERE id = ?", [winnerId, session.gameId]);
-                    await db.execute("UPDATE users SET current_game_id = NULL WHERE discord_id = ?", [session.userId]);
+                        if (heroKey === 'hero1') {
+                            session.step = 'choose-hero';
+                            await interaction.editReply({ content: 'First hero draft complete! Now for the second hero.', components: [] });
+                            await sendHeroSelection(interaction, session);
+                        } else {
+                            session.step = 'complete';
+                            draftState.stage = 'DRAFT_COMPLETE';
+                            await interaction.editReply({ embeds: [simple('Draft complete! Simulating battle...')], components: [] });
 
-                    const logText = battleLog.join('\n');
-                    const resultMessage = `**Battle Complete!**\n**Winner:** ${winnerId === 'AI' ? 'AI Opponent' : `<@${session.userId}>`}\n\n**Final Roster:**\n<@${session.userId}>: ${gameInstance.combatants[0].currentHp}/${gameInstance.combatants[0].maxHp} HP\nAI Opponent: ${gameInstance.combatants[1].currentHp}/${gameInstance.combatants[1].maxHp} HP\n\n**Battle Log:**\n\`\`\`\n${logText}\n\`\`\``;
-                    await interaction.followUp({ embeds: [simple('Battle Results', [{ name: 'Summary', value: resultMessage }])] });
-                    sessionManager.deleteSession(sessionId);
+                            const heroName1 = allPossibleHeroes.find(h => h.id === draftState.team.hero1).name;
+                            const heroName2 = allPossibleHeroes.find(h => h.id === draftState.team.hero2).name;
+                            const selectedHeroes = [heroName1, heroName2];
+                            const buffer = await require('./src/utils/imageGen').makeTeamImage(selectedHeroes);
+                            const fields = [{ name: 'Heroes', value: selectedHeroes.join(', ') }];
+                            await interaction.followUp({
+                                embeds: [simple('Your Drafted Team', fields)],
+                                files: [{ attachment: buffer, name: 'team.png' }]
+                            });
+
+                            const playerData1 = { discord_id: session.userId, hero_id: draftState.team.hero1, weapon_id: draftState.team.hero1_weapon, armor_id: draftState.team.hero1_armor, ability_id: draftState.team.hero1_ability };
+                            const playerData2 = { discord_id: session.userId, hero_id: draftState.team.hero2, weapon_id: draftState.team.hero2_weapon, armor_id: draftState.team.hero2_armor, ability_id: draftState.team.hero2_ability };
+                            const aiData1 = { discord_id: 'AI', hero_id: 301, weapon_id: 1201, armor_id: null, ability_id: null };
+                            const aiData2 = { discord_id: 'AI', hero_id: 401, weapon_id: 1301, armor_id: null, ability_id: null };
+                            const playerCombatant1 = createCombatant(playerData1, 'player', 0);
+                            const playerCombatant2 = createCombatant(playerData2, 'player', 1);
+                            const aiCombatant1 = createCombatant(aiData1, 'enemy', 0);
+                            const aiCombatant2 = createCombatant(aiData2, 'enemy', 1);
+                            const gameInstance = new GameEngine([playerCombatant1, playerCombatant2, aiCombatant1, aiCombatant2]);
+                            const battleLog = gameInstance.runFullGame();
+                            const winnerId = gameInstance.winner === 'player' ? session.userId : 'AI';
+
+                            await db.execute("UPDATE games SET status = 'complete', winner_id = ? WHERE id = ?", [winnerId, session.gameId]);
+                            await db.execute("UPDATE users SET current_game_id = NULL WHERE discord_id = ?", [session.userId]);
+
+                            const logText = battleLog.join('\n');
+                            const resultMessage = `**Battle Complete!**\n**Winner:** ${winnerId === 'AI' ? 'AI Opponent' : `<@${session.userId}>`}\n\n**Final Roster:**\n<@${session.userId}> Hero1: ${gameInstance.combatants[0].currentHp}/${gameInstance.combatants[0].maxHp} HP\n<@${session.userId}> Hero2: ${gameInstance.combatants[1].currentHp}/${gameInstance.combatants[1].maxHp} HP\nAI Opponent Hero1: ${gameInstance.combatants[2].currentHp}/${gameInstance.combatants[2].maxHp} HP\nAI Opponent Hero2: ${gameInstance.combatants[3].currentHp}/${gameInstance.combatants[3].maxHp} HP\n\n**Battle Log:**\n\`\`\`\n${logText}\n\`\`\``;
+                            await interaction.followUp({ embeds: [simple('Battle Results', [{ name: 'Summary', value: resultMessage }])] });
+                            sessionManager.deleteSession(sessionId);
+                        }
+                        break;
                 }
+                await db.execute('UPDATE games SET draft_state = ? WHERE id = ?', [JSON.stringify(draftState), session.gameId]);
             }
         } catch (error) {
             console.error('Error handling button interaction:', error);
