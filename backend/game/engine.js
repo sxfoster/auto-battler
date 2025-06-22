@@ -4,13 +4,14 @@ class GameEngine {
     constructor(combatants) {
         this.combatants = combatants.map(c => ({ ...c }));
         this.turnQueue = [];
-        this.battleLog = []; // This will store our logs
+        this.battleLog = [];
         this.isBattleOver = false;
         this.winner = null;
+        this.roundCounter = 0;
     }
 
     log(message) {
-        this.battleLog.push(message); // Add message to the log array
+        this.battleLog.push(message);
     }
 
     getEffectiveSpeed(combatant) {
@@ -27,18 +28,19 @@ class GameEngine {
 
    applyDamage(attacker, target, baseDamage) {
        target.currentHp = Math.max(0, target.currentHp - baseDamage);
-       this.log(`${attacker.heroData.name} hits ${target.heroData.name} for ${baseDamage} damage.`);
+       this.log(`💥 ${attacker.heroData.name} hits ${target.heroData.name} for ${baseDamage} damage.`);
        if (target.currentHp <= 0) {
-           this.log(`${target.heroData.name} is defeated.`);
+           this.log(`💀 ${target.heroData.name} has been defeated.`);
        }
    }
 
    processStatuses(combatant) {
        let skip = false;
        if (combatant.statusEffects.some(s => s.name === 'Stun')) {
-         this.log(`${combatant.heroData.name} is stunned and misses the turn.`);
+         this.log(`- ${combatant.heroData.name} is stunned and misses the turn.`);
          skip = true;
        }
+       // Future status effect processing (poison, etc.) would go here.
        return skip;
    }
 
@@ -49,7 +51,6 @@ class GameEngine {
        if (!playerAlive || !enemyAlive) {
            this.isBattleOver = true;
            this.winner = playerAlive ? 'player' : 'enemy';
-           this.log(`--- Battle Over! Winner: ${this.winner} ---`);
            return true;
        }
        return false;
@@ -58,17 +59,13 @@ class GameEngine {
    processTurn() {
        if (this.isBattleOver) return;
 
-       if (this.turnQueue.length === 0) {
-           this.turnQueue = this.computeTurnQueue();
-       }
-
        const attacker = this.turnQueue.shift();
        if (!attacker || attacker.currentHp <= 0) {
-            if (!this.checkVictory()) this.processTurn();
+            if (!this.checkVictory() && this.turnQueue.length > 0) this.processTurn();
             return;
        }
 
-       this.log(`\n**Turn: ${attacker.heroData.name}**`);
+       this.log(`\n**> Turn: ${attacker.heroData.name}** (${attacker.currentHp}/${attacker.maxHp} HP)`);
 
        const wasSkipped = this.processStatuses(attacker);
        if (this.checkVictory()) return;
@@ -76,7 +73,7 @@ class GameEngine {
        if (!wasSkipped) {
            const targets = this.combatants.filter(c => c.team !== attacker.team && c.currentHp > 0);
            if (targets.length > 0) {
-               const target = targets[0];
+               const target = targets[0]; // Simple targeting logic
                this.applyDamage(attacker, target, attacker.attack);
            }
        }
@@ -85,14 +82,19 @@ class GameEngine {
    }
 
 
-    runFullGame() {
-        this.log('--- Battle Starting ---');
-        while (!this.isBattleOver) {
-            this.processTurn();
-        }
-        this.log('--- Battle Finished ---');
-        return this.battleLog; // Return the full log
-    }
+   runFullGame() {
+       this.log('⚔️ --- Battle Starting --- ⚔️');
+       while (!this.isBattleOver) {
+           this.roundCounter++;
+           this.log(`\n**--- Round ${this.roundCounter} ---**`);
+           this.turnQueue = this.computeTurnQueue();
+           while(this.turnQueue.length > 0 && !this.isBattleOver){
+               this.processTurn();
+           }
+       }
+       this.log(`\n🏆 --- Battle Finished! --- 🏆`);
+       return this.battleLog;
+   }
 }
 
 module.exports = GameEngine;
