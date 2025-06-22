@@ -6,6 +6,7 @@ CREATE TABLE IF NOT EXISTS games (
     id INT AUTO_INCREMENT PRIMARY KEY,
     player1_id VARCHAR(255) NOT NULL,
     player2_id VARCHAR(255) DEFAULT NULL,
-    status ENUM('pending', 'active') DEFAULT 'pending',
+    winner_id VARCHAR(255) DEFAULT NULL,
+    status ENUM('pending', 'active', 'complete') DEFAULT 'pending',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
