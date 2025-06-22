@@ -45,3 +45,23 @@ By default it runs on `http://localhost:3000` and prints `Server is running!` to
 
 The `docs` directory hosts the game design document, technical overview and other reference material.  See [docs/README.md](docs/README.md) for a full listing.  Developers should read [docs/technical_overview.md](docs/technical_overview.md) for a code walkthrough and [docs/event_schema.md](docs/event_schema.md) for the battle log message format.
 
+
+## Discord Bot
+
+The Discord bot resides in the `discord-bot/` directory and requires a `.env` file for secrets.
+Copy `.env.example` to `.env` and populate the following variables:
+
+- `DISCORD_TOKEN` – your bot token.
+- `APP_ID` and `GUILD_ID` – used when deploying slash commands.
+- `DB_HOST`, `DB_USER`, `DB_PASSWORD`, `DB_DATABASE` – credentials for the MySQL database. `DB_HOST` must be the remote host address provided by GoDaddy.
+
+Install the dependencies and start the bot:
+
+```bash
+cd discord-bot
+npm install
+node index.js
+```
+
+When configured correctly the bot logs a `Database connection successful` message on start.
+
