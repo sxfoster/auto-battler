@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "jest"
+    "test": "jest",
+    "setup-and-start": "npm install && node deploy-commands.js && node index.js"
   },
   "keywords": [],
   "author": "",
