@@ -65,31 +65,33 @@ client.on(Events.InteractionCreate, async interaction => {
 
         try {
             if (action === 'forfeit') {
+                await interaction.deferUpdate();
                 const gameIdToForfeit = args[0];
                 await db.execute("UPDATE games SET status = 'forfeited' WHERE id = ?", [gameIdToForfeit]);
                 await db.execute("UPDATE users SET current_game_id = NULL WHERE discord_id = ?", [userId]);
-
-                await interaction.update({ content: 'Your previous game has been forfeited. Run `/draft` again to start a new one.', components: [] });
+                await interaction.editReply({ content: 'Your previous game has been forfeited. Run `/draft` again to start a new one.', components: [] });
 
             } else if (action === 'cancel') {
                 await interaction.update({ content: 'Draft canceled.', components: [] });
 
             } else if (action === 'draft') {
-            // Acknowledge the interaction immediately
-            await interaction.deferUpdate();
-            const [type, gameId, choiceId] = args;
-                // ... (The rest of your draft handling logic remains here) ...
+                await interaction.deferUpdate(); // Defer immediately
+
+                const [type, gameId, choiceId] = args;
                 const [gameRows] = await db.execute('SELECT * FROM games WHERE id = ?', [gameId]);
+
                 if (gameRows.length === 0) {
-                    return interaction.update({ content: 'This game no longer exists.', components: [] });
+                    return interaction.editReply({ content: 'This game no longer exists.', components: [] });
                 }
                 const game = gameRows[0];
                 const draftState = JSON.parse(game.draft_state);
 
+                // Logic to advance the draft stage
                 if (type === 'hero' && draftState.stage === 'HERO_SELECTION') {
                     draftState.team.hero = parseInt(choiceId, 10);
                     draftState.stage = 'ABILITY_SELECTION';
                     await db.execute('UPDATE games SET draft_state = ? WHERE id = ?', [JSON.stringify(draftState), gameId]);
+                    // NOTE: We pass the interaction to the manager so it can edit the deferred reply
                     await sendAbilitySelection(interaction, gameId, draftState.team.hero);
 
                 } else if (type === 'ability' && draftState.stage === 'ABILITY_SELECTION') {
@@ -103,8 +105,7 @@ client.on(Events.InteractionCreate, async interaction => {
                     draftState.team.weapon = parseInt(choiceId, 10);
                     draftState.stage = 'DRAFT_COMPLETE';
                     await db.execute('UPDATE games SET draft_state = ? WHERE id = ?', [JSON.stringify(draftState), gameId]);
-                    await interaction.update({ content: 'Draft complete! Simulating battle...', components: [] });
-
+                
                     // --- BATTLE LOGIC ---
                     const playerData = { discord_id: game.player1_id, hero_id: draftState.team.hero, weapon_id: draftState.team.weapon, ability_id: draftState.team.ability };
                     const aiData = { discord_id: 'AI', hero_id: 301, weapon_id: 1201, armor_id: null, ability_id: null };
@@ -113,16 +114,23 @@ client.on(Events.InteractionCreate, async interaction => {
                     const gameInstance = new GameEngine([playerCombatant, aiCombatant]);
                     const battleLog = gameInstance.runFullGame();
                     const winnerId = gameInstance.winner === 'player' ? game.player1_id : 'AI';
+
                     await db.execute("UPDATE games SET status = 'complete', winner_id = ? WHERE id = ?", [winnerId, gameId]);
                     await db.execute("UPDATE users SET current_game_id = NULL WHERE discord_id = ?", [game.player1_id]);
+
                     const logText = battleLog.join('\n');
                     const resultMessage = `**Battle Complete!**\n**Winner:** ${winnerId === 'AI' ? 'AI Opponent' : `<@${game.player1_id}>`}\n\n**Final Roster:**\n<@${game.player1_id}>: ${gameInstance.combatants[0].currentHp}/${gameInstance.combatants[0].maxHp} HP\nAI Opponent: ${gameInstance.combatants[1].currentHp}/${gameInstance.combatants[1].maxHp} HP\n\n**Battle Log:**\n\`\`\`\n${logText}\n\`\`\``;
-                    await interaction.followUp({ content: resultMessage });
+                
+                    // Use editReply to update the original DM with the final results
+                    await interaction.editReply({ content: resultMessage, components: [] });
                 }
             }
         } catch (error) {
             console.error('Error handling button interaction:', error);
-            await interaction.update({ content: 'An error occurred while processing your selection.', components: [] }).catch(() => {});
+            // Attempt to follow up with an error message if possible
+            if (!interaction.replied) {
+                await interaction.followUp({ content: 'An error occurred while processing your selection.', ephemeral: true }).catch(err => console.error("Failed to send follow-up error", err));
+            }
         }
     }
 });
