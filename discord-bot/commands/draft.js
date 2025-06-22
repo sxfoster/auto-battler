@@ -1,4 +1,4 @@
-const { SlashCommandBuilder } = require('discord.js');
+const { SlashCommandBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
 const db = require('../util/database');
 const { sendHeroSelection } = require('../managers/DraftManager');
 
@@ -9,11 +9,32 @@ module.exports = {
     async execute(interaction) {
         const userId = interaction.user.id;
 
+        // Check if the user is already in a game
         const [userRows] = await db.execute('SELECT current_game_id FROM users WHERE discord_id = ?', [userId]);
-        if (userRows[0] && userRows[0].current_game_id) {
-            return interaction.reply({ content: 'You are already in a game! Finish or forfeit that one first.', ephemeral: true });
+        const activeGameId = userRows[0] ? userRows[0].current_game_id : null;
+
+        if (activeGameId) {
+            // User is in a game, so offer a choice instead of an error
+            const row = new ActionRowBuilder()
+                .addComponents(
+                    new ButtonBuilder()
+                        .setCustomId(`forfeit_${activeGameId}`)
+                        .setLabel('Forfeit & Start New Draft')
+                        .setStyle(ButtonStyle.Danger),
+                    new ButtonBuilder()
+                        .setCustomId(`cancel_draft`)
+                        .setLabel('Cancel')
+                        .setStyle(ButtonStyle.Secondary)
+                );
+
+            return interaction.reply({
+                content: `You are already in Game #${activeGameId}. Do you want to forfeit that game and start a new one?`,
+                components: [row],
+                ephemeral: true
+            });
         }
 
+        // If no active game, proceed to create a new one as before
         await interaction.reply({ content: 'Your draft is starting! Please check your Direct Messages.', ephemeral: true });
 
         const initialDraftState = { stage: 'HERO_SELECTION', team: {} };
