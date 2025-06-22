@@ -45,7 +45,7 @@ module.exports = {
 
         // 7. Format the final message with the battle log
         const logText = battleLog.join('\\n');
-        const resultMessage = `**Battle Complete!**\\n**Winner:** ${winnerId === 'AI' ? 'AI Opponent' : `<@${userId}>`}\\n\\n**Final Roster:**\\n<@${userId}>: ${gameInstance.combatants[0].currentHp}/${gameInstance.combatants[0].maxHp} HP\\nAI Opponent: ${gameInstance.combatants[1].currentHp}/${gameInstance.combatants[1].maxHp} HP\\n\\n**Battle Log:**\\n```\\n${logText}\\n```;
+        const resultMessage = `**Battle Complete!**\\n**Winner:** ${winnerId === 'AI' ? 'AI Opponent' : `<@${userId}>`}\\n\\n**Final Roster:**\\n<@${userId}>: ${gameInstance.combatants[0].currentHp}/${gameInstance.combatants[0].maxHp} HP\\nAI Opponent: ${gameInstance.combatants[1].currentHp}/${gameInstance.combatants[1].maxHp} HP\\n\\n**Battle Log:**\\n\`\`\`\\n${logText}\\n\`\`\``;
 
         // Send the result
         await interaction.followUp({ content: resultMessage, ephemeral: false });
