@@ -37,13 +37,24 @@ client.on(Events.InteractionCreate, async interaction => {
     if (!interaction.isChatInputCommand()) return;
 
     const command = client.commands.get(interaction.commandName);
-
     if (!command) return;
 
     try {
+        // Find or create user in the database
+        const userId = interaction.user.id;
+        const [rows] = await db.execute('SELECT * FROM users WHERE discord_id = ?', [userId]);
+
+        if (rows.length === 0) {
+            // User does not exist, so insert them
+            await db.execute('INSERT INTO users (discord_id) VALUES (?)', [userId]);
+            console.log(`New user added: ${interaction.user.tag}`);
+        }
+
+        // Now, execute the command
         await command.execute(interaction);
+
     } catch (error) {
-        console.error(error);
+        console.error('Error during interaction or database operation:', error);
         await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
     }
 });
