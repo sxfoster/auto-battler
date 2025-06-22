@@ -7,7 +7,7 @@ const commands = [];
 const commandsPath = path.join(__dirname, 'commands');
 const commandFiles = fs
   .readdirSync(commandsPath)
-  .filter(file => file.endsWith('.js') && file !== 'draft.js');
+  .filter(file => file.endsWith('.js'));
 
 console.log('Registering slash commands:', commandFiles.join(', '));
 

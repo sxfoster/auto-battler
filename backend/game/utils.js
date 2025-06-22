@@ -32,4 +32,25 @@ function createCombatant(playerData, team, position) {
     };
 }
 
-module.exports = { createCombatant };
+function generateRandomChampion() {
+    const commonHeroes = allPossibleHeroes.filter(h => h.rarity === 'Common');
+    const hero = commonHeroes[Math.floor(Math.random() * commonHeroes.length)];
+
+    const abilityPool = allPossibleAbilities.filter(a => a.class === hero.class && a.rarity === 'Common');
+    const ability = abilityPool.length ? abilityPool[Math.floor(Math.random() * abilityPool.length)] : null;
+
+    const commonWeapons = allPossibleWeapons.filter(w => w.rarity === 'Common');
+    const weapon = commonWeapons[Math.floor(Math.random() * commonWeapons.length)];
+
+    const commonArmors = allPossibleArmors.filter(a => a.rarity === 'Common');
+    const armor = commonArmors[Math.floor(Math.random() * commonArmors.length)];
+
+    return {
+        hero_id: hero.id,
+        ability_id: ability ? ability.id : null,
+        weapon_id: weapon.id,
+        armor_id: armor.id,
+    };
+}
+
+module.exports = { createCombatant, generateRandomChampion };
