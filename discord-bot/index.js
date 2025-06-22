@@ -102,6 +102,14 @@ client.on(Events.InteractionCreate, async interaction => {
                         draftState.team[abilityKey] = parseInt(payload, 10);
                         session.step = 'choose-weapon';
                         const heroForWeapon = allPossibleHeroes.find(h => h.id === draftState.team[heroKey]);
+                        if (!heroForWeapon) {
+                            console.error(`Could not find hero with ID: ${draftState.team[heroKey]}`);
+                            await interaction.followUp({
+                                embeds: [simple('Error: Could not find the selected hero data.')],
+                                ephemeral: true,
+                            });
+                            break;
+                        }
                         await sendWeaponSelection(interaction, session, heroForWeapon.name);
                         break;
 
@@ -109,6 +117,14 @@ client.on(Events.InteractionCreate, async interaction => {
                         draftState.team[weaponKey] = parseInt(payload, 10);
                         session.step = 'choose-armor';
                         const heroForArmor = allPossibleHeroes.find(h => h.id === draftState.team[heroKey]);
+                        if (!heroForArmor) {
+                            console.error(`Could not find hero with ID: ${draftState.team[heroKey]}`);
+                            await interaction.followUp({
+                                embeds: [simple('Error: Could not find the selected hero data.')],
+                                ephemeral: true,
+                            });
+                            break;
+                        }
                         await sendArmorSelection(interaction, session, heroForArmor.name);
                         break;
 
@@ -124,8 +140,20 @@ client.on(Events.InteractionCreate, async interaction => {
                             draftState.stage = 'DRAFT_COMPLETE';
                             await interaction.editReply({ embeds: [simple('Draft complete! Simulating battle...')], components: [] });
 
-                            const heroName1 = allPossibleHeroes.find(h => h.id === draftState.team.hero1).name;
-                            const heroName2 = allPossibleHeroes.find(h => h.id === draftState.team.hero2).name;
+                            const heroObj1 = allPossibleHeroes.find(h => h.id === draftState.team.hero1);
+                            const heroObj2 = allPossibleHeroes.find(h => h.id === draftState.team.hero2);
+
+                            if (!heroObj1 || !heroObj2) {
+                                console.error(`Could not find hero data for IDs: ${draftState.team.hero1}, ${draftState.team.hero2}`);
+                                await interaction.followUp({
+                                    embeds: [simple('Error: Could not find the selected hero data.')],
+                                    ephemeral: true,
+                                });
+                                break;
+                            }
+
+                            const heroName1 = heroObj1.name;
+                            const heroName2 = heroObj2.name;
                             const selectedHeroes = [heroName1, heroName2];
                             const buffer = await require('./src/utils/imageGen').makeTeamImage(selectedHeroes);
                             const fields = [{ name: 'Heroes', value: selectedHeroes.join(', ') }];
@@ -158,10 +186,14 @@ client.on(Events.InteractionCreate, async interaction => {
                 }
                 await db.execute('UPDATE games SET draft_state = ? WHERE id = ?', [JSON.stringify(draftState), session.gameId]);
             }
-        } catch (error) {
-            console.error('Error handling button interaction:', error);
-            await interaction.update({ embeds: [simple('An error occurred while processing your selection.')], components: [] }).catch(() => {});
-        }
+            } catch (error) {
+                console.error('Error handling button interaction:', error);
+                await interaction.followUp({
+                    embeds: [simple('An error occurred while processing your selection.')],
+                    components: [],
+                    ephemeral: true,
+                }).catch(() => {});
+            }
     }
 });
 
