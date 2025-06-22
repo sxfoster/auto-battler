@@ -1,24 +1,23 @@
 const fs = require('fs');
 const path = require('path');
-const { createCanvas, loadImage } = require('canvas');
+const sharp = require('sharp');
 const { makeTeamImage } = require('../src/utils/imageGen');
 
 describe('makeTeamImage', () => {
   const heroes = ['Hero1', 'Hero2', 'Hero3', 'Hero4', 'Hero5'];
   const assetsDir = path.join(__dirname, '..', 'assets');
 
-  beforeAll(() => {
+  beforeAll(async () => {
     if (!fs.existsSync(assetsDir)) {
       fs.mkdirSync(assetsDir, { recursive: true });
     }
-    // create simple colored square icons for each hero
-    heroes.forEach((name, i) => {
-      const canvas = createCanvas(48, 48);
-      const ctx = canvas.getContext('2d');
-      ctx.fillStyle = `hsl(${i * 60},100%,50%)`;
-      ctx.fillRect(0, 0, 48, 48);
-      fs.writeFileSync(path.join(assetsDir, `${name}.png`), canvas.toBuffer());
-    });
+    // create simple colored square icons for each hero using sharp
+    for (const [i, name] of heroes.entries()) {
+      const buffer = await sharp({
+        create: { width: 48, height: 48, channels: 4, background: `hsl(${i * 60},100%,50%)` }
+      }).png().toBuffer();
+      fs.writeFileSync(path.join(assetsDir, `${name}.png`), buffer);
+    }
   });
 
   afterAll(() => {
@@ -32,25 +31,28 @@ describe('makeTeamImage', () => {
     for (let i = 1; i <= 5; i++) {
       const buf = await makeTeamImage(heroes.slice(0, i));
       expect(Buffer.isBuffer(buf)).toBe(true);
-      expect(buf.length).toBeGreaterThan(1000); // png should have some size
+      expect(buf.length).toBeGreaterThan(1000);
     }
   });
 
-  test('icons drawn at expected positions', async () => {
-    const buf = await makeTeamImage(heroes.slice(0, 3));
-    const img = await loadImage(buf);
-    const canvas = createCanvas(img.width, img.height);
-    const ctx = canvas.getContext('2d');
-    ctx.drawImage(img, 0, 0);
-    const width = 300;
-    const iconSize = 48;
-    const spacing = width / 4; // for 3 heroes
-    const y = 40 + iconSize / 2;
-    for (let i = 0; i < 3; i++) {
-      const centerX = spacing * (i + 1);
-      const data = ctx.getImageData(centerX, y, 1, 1).data;
-      // background is 17,17,17
-      expect(data[0] === 17 && data[1] === 17 && data[2] === 17).toBe(false);
+  test('image dimensions and overlays', async () => {
+    const selected = heroes.slice(0, 3);
+    const buf = await makeTeamImage(selected);
+    const meta = await sharp(buf).metadata();
+    expect(meta.width).toBe(300);
+    expect(meta.height).toBe(200);
+
+    const { data, info } = await sharp(buf).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+    const getPixel = (x, y) => {
+      const idx = (y * info.width + x) * info.channels;
+      return [data[idx], data[idx + 1], data[idx + 2]];
+    };
+    const bg = [31, 31, 31];
+    for (let i = 0; i < selected.length; i++) {
+      const x = 10 + i * 60 + 24;
+      const y = 10 + 24;
+      const pixel = getPixel(x, y);
+      expect(pixel[0] === bg[0] && pixel[1] === bg[1] && pixel[2] === bg[2]).toBe(false);
     }
   });
 });
