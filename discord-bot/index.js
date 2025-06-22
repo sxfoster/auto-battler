@@ -60,61 +60,67 @@ client.on(Events.InteractionCreate, async interaction => {
 
     // Handle Button Clicks
     if (interaction.isButton()) {
-        const [action, type, gameId, choiceId] = interaction.customId.split('_');
-
-        if (action !== 'draft') return;
+        const [action, ...args] = interaction.customId.split('_');
+        const userId = interaction.user.id;
 
         try {
-            const [gameRows] = await db.execute('SELECT * FROM games WHERE id = ?', [gameId]);
-            if (gameRows.length === 0) {
-                return interaction.update({ content: 'This game no longer exists.', components: [] });
-            }
-            const game = gameRows[0];
-            const draftState = JSON.parse(game.draft_state);
+            if (action === 'forfeit') {
+                const gameIdToForfeit = args[0];
+                await db.execute("UPDATE games SET status = 'forfeited' WHERE id = ?", [gameIdToForfeit]);
+                await db.execute("UPDATE users SET current_game_id = NULL WHERE discord_id = ?", [userId]);
 
-            if (type === 'hero' && draftState.stage === 'HERO_SELECTION') {
-                draftState.team.hero = parseInt(choiceId, 10);
-                draftState.stage = 'ABILITY_SELECTION';
-                await db.execute('UPDATE games SET draft_state = ? WHERE id = ?', [JSON.stringify(draftState), gameId]);
+                await interaction.update({ content: 'Your previous game has been forfeited. Run `/draft` again to start a new one.', components: [] });
 
-                await sendAbilitySelection(interaction, gameId, draftState.team.hero);
+            } else if (action === 'cancel') {
+                await interaction.update({ content: 'Draft canceled.', components: [] });
 
-            } else if (type === 'ability' && draftState.stage === 'ABILITY_SELECTION') {
-                draftState.team.ability = parseInt(choiceId, 10);
-                draftState.stage = 'WEAPON_SELECTION';
-                await db.execute('UPDATE games SET draft_state = ? WHERE id = ?', [JSON.stringify(draftState), gameId]);
+            } else if (action === 'draft') {
+                const [type, gameId, choiceId] = args;
+                // ... (The rest of your draft handling logic remains here) ...
+                const [gameRows] = await db.execute('SELECT * FROM games WHERE id = ?', [gameId]);
+                if (gameRows.length === 0) {
+                    return interaction.update({ content: 'This game no longer exists.', components: [] });
+                }
+                const game = gameRows[0];
+                const draftState = JSON.parse(game.draft_state);
 
-                const hero = allPossibleHeroes.find(h => h.id === draftState.team.hero);
-                await sendWeaponSelection(interaction, gameId, hero.name);
+                if (type === 'hero' && draftState.stage === 'HERO_SELECTION') {
+                    draftState.team.hero = parseInt(choiceId, 10);
+                    draftState.stage = 'ABILITY_SELECTION';
+                    await db.execute('UPDATE games SET draft_state = ? WHERE id = ?', [JSON.stringify(draftState), gameId]);
+                    await sendAbilitySelection(interaction, gameId, draftState.team.hero);
 
-            } else if (type === 'weapon' && draftState.stage === 'WEAPON_SELECTION') {
-                draftState.team.weapon = parseInt(choiceId, 10);
-                draftState.stage = 'DRAFT_COMPLETE';
-                await db.execute('UPDATE games SET draft_state = ? WHERE id = ?', [JSON.stringify(draftState), gameId]);
+                } else if (type === 'ability' && draftState.stage === 'ABILITY_SELECTION') {
+                    draftState.team.ability = parseInt(choiceId, 10);
+                    draftState.stage = 'WEAPON_SELECTION';
+                    await db.execute('UPDATE games SET draft_state = ? WHERE id = ?', [JSON.stringify(draftState), gameId]);
+                    const hero = allPossibleHeroes.find(h => h.id === draftState.team.hero);
+                    await sendWeaponSelection(interaction, gameId, hero.name);
 
-                await interaction.update({ content: 'Draft complete! Simulating battle...', components: [] });
+                } else if (type === 'weapon' && draftState.stage === 'WEAPON_SELECTION') {
+                    draftState.team.weapon = parseInt(choiceId, 10);
+                    draftState.stage = 'DRAFT_COMPLETE';
+                    await db.execute('UPDATE games SET draft_state = ? WHERE id = ?', [JSON.stringify(draftState), gameId]);
+                    await interaction.update({ content: 'Draft complete! Simulating battle...', components: [] });
 
-                const playerData = { discord_id: game.player1_id, hero_id: draftState.team.hero, weapon_id: draftState.team.weapon, ability_id: draftState.team.ability };
-                const aiData = { discord_id: 'AI', hero_id: 301, weapon_id: 1201, armor_id: null, ability_id: null };
-
-                const playerCombatant = createCombatant(playerData, 'player', 0);
-                const aiCombatant = createCombatant(aiData, 'enemy', 0);
-
-                const gameInstance = new GameEngine([playerCombatant, aiCombatant]);
-                const battleLog = gameInstance.runFullGame();
-                const winnerId = gameInstance.winner === 'player' ? game.player1_id : 'AI';
-
-                await db.execute("UPDATE games SET status = 'complete', winner_id = ? WHERE id = ?", [winnerId, gameId]);
-                await db.execute("UPDATE users SET current_game_id = NULL WHERE discord_id = ?", [game.player1_id]);
-
-                const logText = battleLog.join('\n');
-                const resultMessage = `**Battle Complete!**\n**Winner:** ${winnerId === 'AI' ? 'AI Opponent' : `<@${game.player1_id}>`}\n\n**Final Roster:**\n<@${game.player1_id}>: ${gameInstance.combatants[0].currentHp}/${gameInstance.combatants[0].maxHp} HP\nAI Opponent: ${gameInstance.combatants[1].currentHp}/${gameInstance.combatants[1].maxHp} HP\n\n**Battle Log:**\n\`\`\`\n${logText}\n\`\`\``;
-
-                await interaction.followUp({ content: resultMessage });
+                    // --- BATTLE LOGIC ---
+                    const playerData = { discord_id: game.player1_id, hero_id: draftState.team.hero, weapon_id: draftState.team.weapon, ability_id: draftState.team.ability };
+                    const aiData = { discord_id: 'AI', hero_id: 301, weapon_id: 1201, armor_id: null, ability_id: null };
+                    const playerCombatant = createCombatant(playerData, 'player', 0);
+                    const aiCombatant = createCombatant(aiData, 'enemy', 0);
+                    const gameInstance = new GameEngine([playerCombatant, aiCombatant]);
+                    const battleLog = gameInstance.runFullGame();
+                    const winnerId = gameInstance.winner === 'player' ? game.player1_id : 'AI';
+                    await db.execute("UPDATE games SET status = 'complete', winner_id = ? WHERE id = ?", [winnerId, gameId]);
+                    await db.execute("UPDATE users SET current_game_id = NULL WHERE discord_id = ?", [game.player1_id]);
+                    const logText = battleLog.join('\n');
+                    const resultMessage = `**Battle Complete!**\n**Winner:** ${winnerId === 'AI' ? 'AI Opponent' : `<@${game.player1_id}>`}\n\n**Final Roster:**\n<@${game.player1_id}>: ${gameInstance.combatants[0].currentHp}/${gameInstance.combatants[0].maxHp} HP\nAI Opponent: ${gameInstance.combatants[1].currentHp}/${gameInstance.combatants[1].maxHp} HP\n\n**Battle Log:**\n\`\`\`\n${logText}\n\`\`\``;
+                    await interaction.followUp({ content: resultMessage });
+                }
             }
         } catch (error) {
             console.error('Error handling button interaction:', error);
-            await interaction.update({ content: 'An error occurred while processing your selection.', components: [] });
+            await interaction.update({ content: 'An error occurred while processing your selection.', components: [] }).catch(() => {});
         }
     }
 });
