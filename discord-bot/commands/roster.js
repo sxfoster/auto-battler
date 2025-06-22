@@ -4,38 +4,35 @@ const { simple } = require('../src/utils/embedBuilder');
 const { allPossibleHeroes } = require('../../backend/game/data');
 
 module.exports = {
-  data: new SlashCommandBuilder()
-    .setName('roster')
-    .setDescription('View your owned champions'),
-  async execute(interaction) {
-    const userId = interaction.user.id;
-    await interaction.deferReply({ ephemeral: true });
+    data: new SlashCommandBuilder()
+        .setName('roster')
+        .setDescription("View your collected champions."),
+    async execute(interaction) {
+        try {
+            const [roster] = await db.execute(
+                `SELECT h.name, h.rarity, h.class, uc.level 
+                 FROM user_champions uc 
+                 JOIN heroes h ON uc.base_hero_id = h.id 
+                 WHERE uc.user_id = ? ORDER BY h.rarity DESC, uc.level DESC`,
+                [interaction.user.id]
+            );
 
-    const query = `SELECT uc.hero_id FROM user_champions uc
-                   JOIN users u ON uc.user_id = u.id
-                   WHERE u.discord_id = ?`;
-    const [rows] = await db.execute(query, [userId]);
+            if (roster.length === 0) {
+                return interaction.reply({ content: 'Your roster is empty. Use `/summon` to recruit some champions!', ephemeral: true });
+            }
 
-    if (rows.length === 0) {
-      const embed = simple('No Champions Found', [
-        { name: 'Info', value: 'You do not own any champions yet.' }
-      ]);
-      return interaction.editReply({ embeds: [embed] });
+            const fields = roster.slice(0, 25).map(c => ({
+                name: `${c.name} (Lvl ${c.level})`,
+                value: `${c.rarity} ${c.class}`,
+                inline: true,
+            }));
+
+            const embed = simple("Your Champion Roster", fields);
+            await interaction.reply({ embeds: [embed] });
+
+        } catch (error) {
+            console.error("Error in /roster command:", error);
+            await interaction.reply({ content: 'Could not fetch your roster.', ephemeral: true });
+        }
     }
-
-    const heroes = rows.map(r => {
-      const h = allPossibleHeroes.find(x => x.id === r.hero_id);
-      if (!h) return `Unknown (#${r.hero_id})`;
-      return `${h.name} - HP ${h.hp}, ATK ${h.attack}, SPD ${h.speed}`;
-    });
-
-    const limit = 10;
-    const fields = heroes.slice(0, limit).map((text, i) => ({ name: `#${i + 1}`, value: text }));
-    if (heroes.length > limit) {
-      fields.push({ name: 'More', value: `and ${heroes.length - limit} more...` });
-    }
-
-    const embed = simple(`${interaction.user.username}'s Roster`, fields);
-    await interaction.editReply({ embeds: [embed] });
-  }
 };
