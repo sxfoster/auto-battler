@@ -7,6 +7,8 @@ const { sendAbilitySelection, sendWeaponSelection } = require('./managers/DraftM
 const GameEngine = require('../backend/game/engine');
 const { createCombatant } = require('../backend/game/utils');
 const { allPossibleHeroes } = require('../backend/game/data');
+const embedBuilder = require('./src/utils/embedBuilder');
+const confirm = require('./src/utils/confirm');
 
 const client = new Client({ intents: [GatewayIntentBits.Guilds] });
 
@@ -53,7 +55,7 @@ client.on(Events.InteractionCreate, async interaction => {
             await command.execute(interaction);
         } catch (error) {
             console.error(error);
-            await interaction.reply({ content: 'There was an error executing this command!', ephemeral: true });
+            await interaction.reply({ embeds: [embedBuilder.simple('There was an error executing this command!')], ephemeral: true });
         }
         return;
     }
@@ -69,10 +71,10 @@ client.on(Events.InteractionCreate, async interaction => {
                 await db.execute("UPDATE games SET status = 'forfeited' WHERE id = ?", [gameIdToForfeit]);
                 await db.execute("UPDATE users SET current_game_id = NULL WHERE discord_id = ?", [userId]);
 
-                await interaction.update({ content: 'Your previous game has been forfeited. Run `/draft` again to start a new one.', components: [] });
+                await interaction.update({ embeds: [confirm('Your previous game has been forfeited. Run `/draft` again to start a new one.')], components: [] });
 
             } else if (action === 'cancel') {
-                await interaction.update({ content: 'Draft canceled.', components: [] });
+                await interaction.update({ embeds: [confirm('Draft canceled.')], components: [] });
 
             } else if (action === 'draft') {
             // Acknowledge the interaction immediately
@@ -81,7 +83,7 @@ client.on(Events.InteractionCreate, async interaction => {
                 // ... (The rest of your draft handling logic remains here) ...
                 const [gameRows] = await db.execute('SELECT * FROM games WHERE id = ?', [gameId]);
                 if (gameRows.length === 0) {
-                    return interaction.update({ content: 'This game no longer exists.', components: [] });
+                    return interaction.update({ embeds: [embedBuilder.simple('This game no longer exists.')], components: [] });
                 }
                 const game = gameRows[0];
                 const draftState = JSON.parse(game.draft_state);
@@ -103,7 +105,16 @@ client.on(Events.InteractionCreate, async interaction => {
                     draftState.team.weapon = parseInt(choiceId, 10);
                     draftState.stage = 'DRAFT_COMPLETE';
                     await db.execute('UPDATE games SET draft_state = ? WHERE id = ?', [JSON.stringify(draftState), gameId]);
-                    await interaction.update({ content: 'Draft complete! Simulating battle...', components: [] });
+                    await interaction.update({ embeds: [embedBuilder.simple('Draft complete! Simulating battle...')], components: [] });
+
+                    const heroName = allPossibleHeroes.find(h => h.id === draftState.team.hero).name;
+                    const selectedHeroes = [heroName];
+                    const buffer = await require('./src/utils/imageGen').makeTeamImage(selectedHeroes);
+                    const fields = [{ name: 'Heroes', value: selectedHeroes.join(', ') }];
+                    await interaction.followUp({
+                        embeds: [embedBuilder.simple('Your Drafted Team', fields)],
+                        files: [{ attachment: buffer, name: 'team.png' }]
+                    });
 
                     // --- BATTLE LOGIC ---
                     const playerData = { discord_id: game.player1_id, hero_id: draftState.team.hero, weapon_id: draftState.team.weapon, ability_id: draftState.team.ability };
@@ -117,12 +128,12 @@ client.on(Events.InteractionCreate, async interaction => {
                     await db.execute("UPDATE users SET current_game_id = NULL WHERE discord_id = ?", [game.player1_id]);
                     const logText = battleLog.join('\n');
                     const resultMessage = `**Battle Complete!**\n**Winner:** ${winnerId === 'AI' ? 'AI Opponent' : `<@${game.player1_id}>`}\n\n**Final Roster:**\n<@${game.player1_id}>: ${gameInstance.combatants[0].currentHp}/${gameInstance.combatants[0].maxHp} HP\nAI Opponent: ${gameInstance.combatants[1].currentHp}/${gameInstance.combatants[1].maxHp} HP\n\n**Battle Log:**\n\`\`\`\n${logText}\n\`\`\``;
-                    await interaction.followUp({ content: resultMessage });
+                    await interaction.followUp({ embeds: [embedBuilder.simple('Battle Results', [{ name: 'Summary', value: resultMessage }])] });
                 }
             }
         } catch (error) {
             console.error('Error handling button interaction:', error);
-            await interaction.update({ content: 'An error occurred while processing your selection.', components: [] }).catch(() => {});
+            await interaction.update({ embeds: [embedBuilder.simple('An error occurred while processing your selection.')], components: [] }).catch(() => {});
         }
     }
 });

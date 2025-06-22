@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "jest"
   },
   "keywords": [],
   "author": "",
@@ -13,6 +13,10 @@
   "dependencies": {
     "discord.js": "^14.20.0",
     "dotenv": "^16.5.0",
-    "mysql2": "^3.14.1"
+    "mysql2": "^3.14.1",
+    "canvas": "^2.11.2"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0"
   }
 }

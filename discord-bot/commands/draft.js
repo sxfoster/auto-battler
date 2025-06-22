@@ -1,6 +1,7 @@
 const { SlashCommandBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
 const db = require('../util/database');
 const { sendHeroSelection } = require('../managers/DraftManager');
+const embedBuilder = require('../src/utils/embedBuilder');
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -28,14 +29,14 @@ module.exports = {
                 );
 
             return interaction.reply({
-                content: `You are already in Game #${activeGameId}. Do you want to forfeit that game and start a new one?`,
+                embeds: [embedBuilder.simple(`You are already in Game #${activeGameId}. Do you want to forfeit that game and start a new one?`)],
                 components: [row],
                 ephemeral: true
             });
         }
 
         // If no active game, proceed to create a new one as before
-        await interaction.reply({ content: 'Your draft is starting! Please check your Direct Messages.', ephemeral: true });
+        await interaction.reply({ embeds: [embedBuilder.simple('Your draft is starting! Please check your Direct Messages.')], ephemeral: true });
 
         const initialDraftState = { stage: 'HERO_SELECTION', team: {} };
         const [newGame] = await db.execute(
@@ -52,7 +53,7 @@ module.exports = {
             console.error(`Could not send DM to ${interaction.user.tag}.`, error);
             await db.execute('DELETE FROM games WHERE id = ?', [gameId]);
             await db.execute('UPDATE users SET current_game_id = NULL WHERE discord_id = ?', [userId]);
-            await interaction.followUp({ content: "I couldn't send you a DM! Please check your privacy settings.", ephemeral: true });
+            await interaction.followUp({ embeds: [embedBuilder.simple("I couldn't send you a DM! Please check your privacy settings.")], ephemeral: true });
         }
     },
 };
