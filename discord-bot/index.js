@@ -67,31 +67,33 @@ client.on(Events.InteractionCreate, async interaction => {
 
         try {
             if (action === 'forfeit') {
+                await interaction.deferUpdate();
                 const gameIdToForfeit = args[0];
                 await db.execute("UPDATE games SET status = 'forfeited' WHERE id = ?", [gameIdToForfeit]);
                 await db.execute("UPDATE users SET current_game_id = NULL WHERE discord_id = ?", [userId]);
-
                 await interaction.update({ embeds: [confirm('Your previous game has been forfeited. Run `/draft` again to start a new one.')], components: [] });
 
             } else if (action === 'cancel') {
                 await interaction.update({ embeds: [confirm('Draft canceled.')], components: [] });
 
             } else if (action === 'draft') {
-            // Acknowledge the interaction immediately
-            await interaction.deferUpdate();
-            const [type, gameId, choiceId] = args;
-                // ... (The rest of your draft handling logic remains here) ...
+                await interaction.deferUpdate(); // Defer immediately
+
+                const [type, gameId, choiceId] = args;
                 const [gameRows] = await db.execute('SELECT * FROM games WHERE id = ?', [gameId]);
+
                 if (gameRows.length === 0) {
                     return interaction.update({ embeds: [embedBuilder.simple('This game no longer exists.')], components: [] });
                 }
                 const game = gameRows[0];
                 const draftState = JSON.parse(game.draft_state);
 
+                // Logic to advance the draft stage
                 if (type === 'hero' && draftState.stage === 'HERO_SELECTION') {
                     draftState.team.hero = parseInt(choiceId, 10);
                     draftState.stage = 'ABILITY_SELECTION';
                     await db.execute('UPDATE games SET draft_state = ? WHERE id = ?', [JSON.stringify(draftState), gameId]);
+                    // NOTE: We pass the interaction to the manager so it can edit the deferred reply
                     await sendAbilitySelection(interaction, gameId, draftState.team.hero);
 
                 } else if (type === 'ability' && draftState.stage === 'ABILITY_SELECTION') {
@@ -124,8 +126,10 @@ client.on(Events.InteractionCreate, async interaction => {
                     const gameInstance = new GameEngine([playerCombatant, aiCombatant]);
                     const battleLog = gameInstance.runFullGame();
                     const winnerId = gameInstance.winner === 'player' ? game.player1_id : 'AI';
+
                     await db.execute("UPDATE games SET status = 'complete', winner_id = ? WHERE id = ?", [winnerId, gameId]);
                     await db.execute("UPDATE users SET current_game_id = NULL WHERE discord_id = ?", [game.player1_id]);
+
                     const logText = battleLog.join('\n');
                     const resultMessage = `**Battle Complete!**\n**Winner:** ${winnerId === 'AI' ? 'AI Opponent' : `<@${game.player1_id}>`}\n\n**Final Roster:**\n<@${game.player1_id}>: ${gameInstance.combatants[0].currentHp}/${gameInstance.combatants[0].maxHp} HP\nAI Opponent: ${gameInstance.combatants[1].currentHp}/${gameInstance.combatants[1].maxHp} HP\n\n**Battle Log:**\n\`\`\`\n${logText}\n\`\`\``;
                     await interaction.followUp({ embeds: [embedBuilder.simple('Battle Results', [{ name: 'Summary', value: resultMessage }])] });
