@@ -886,10 +886,10 @@ client.on(Events.InteractionCreate, async interaction => {
             // New button to access full deck editor
             components.push(new ActionRowBuilder().addComponents(
                 new ButtonBuilder()
-                    .setCustomId(`edit_champ_deck_${selectedChampionId}`)
+                    .setCustomId(`edit_champion_deck_${selectedChampionId}`)
                     .setLabel('Edit Deck')
                     .setStyle(ButtonStyle.Primary)
-                    .setEmoji('🃏')
+                    .setEmoji('📚')
             ));
 
             const navigationRow = new ActionRowBuilder()
@@ -985,53 +985,11 @@ client.on(Events.InteractionCreate, async interaction => {
         }
 
         // --- Deck Editor Interaction Handlers ---
-        if (interaction.customId.startsWith('edit_champ_deck_')) {
-            const championId = parseInt(interaction.customId.replace('edit_champ_deck_', ''));
+        if (interaction.customId.startsWith('edit_champion_deck_')) {
+            const championId = parseInt(interaction.customId.replace('edit_champion_deck_', ''));
             await interaction.deferUpdate();
             try {
-                const [champRows] = await db.execute(
-                    `SELECT uc.*, h.name, h.class FROM user_champions uc JOIN heroes h ON uc.base_hero_id = h.id WHERE uc.id = ? AND uc.user_id = ?`,
-                    [championId, userId]
-                );
-                const champion = champRows[0];
-                if (!champion) {
-                    await interaction.editReply({ content: 'Champion not found.', components: [] });
-                    return;
-                }
-
-                const [deckRows] = await db.execute(
-                    `SELECT cd.ability_id, a.name FROM champion_decks cd JOIN abilities a ON cd.ability_id = a.id WHERE cd.user_champion_id = ? ORDER BY cd.order_index ASC`,
-                    [championId]
-                );
-                const deck = deckRows.map(r => r.ability_id);
-
-                const [availableAbilities] = await db.execute(
-                    `SELECT ui.item_id, a.name FROM user_inventory ui JOIN abilities a ON ui.item_id = a.id WHERE ui.user_id = ? AND a.class = ? AND ui.quantity > 0`,
-                    [userId, champion.class]
-                );
-
-                activeDeckEdits.set(userId, { championId, deck, champion });
-
-                const embed = buildDeckEditEmbed(champion, deck);
-
-                const addMenu = new StringSelectMenuBuilder()
-                    .setCustomId(`deck_add_${championId}`)
-                    .setPlaceholder('Add Ability')
-                    .addOptions(availableAbilities.map(a => ({ label: a.name, value: String(a.item_id) })).slice(0, 25));
-
-                const removeMenu = new StringSelectMenuBuilder()
-                    .setCustomId(`deck_remove_${championId}`)
-                    .setPlaceholder('Remove Ability')
-                    .addOptions(Array.from(new Set(deck)).map(id => ({ label: allPossibleAbilities.find(ab => ab.id === id)?.name || `ID ${id}`, value: String(id) })).slice(0, 25));
-
-                const controlsRow1 = new ActionRowBuilder().addComponents(addMenu);
-                const controlsRow2 = new ActionRowBuilder().addComponents(removeMenu);
-                const controlsRow3 = new ActionRowBuilder().addComponents(
-                    new ButtonBuilder().setCustomId(`deck_save_${championId}`).setLabel('Save Deck').setStyle(ButtonStyle.Success),
-                    new ButtonBuilder().setCustomId(`deck_cancel_${championId}`).setLabel('Cancel').setStyle(ButtonStyle.Secondary)
-                );
-
-                await interaction.editReply({ embeds: [embed], components: [controlsRow1, controlsRow2, controlsRow3] });
+                await sendDeckEditScreen(interaction, userId, championId);
             } catch (err) {
                 console.error('Error preparing deck editor:', err);
                 await interaction.editReply({ content: 'Failed to open deck editor.', components: [] });
@@ -1713,6 +1671,58 @@ async function finalizeChampionTeam(interaction, userId) {
         });
         activeTutorialDrafts.delete(userId);
     }
+}
+
+/**
+ * Displays the dedicated deck edit screen for a champion.
+ * @param {Interaction} interaction
+ * @param {string} userId
+ * @param {number} championId - The ID of the champion whose deck is being edited.
+ */
+async function sendDeckEditScreen(interaction, userId, championId) {
+    const [champRows] = await db.execute(
+        `SELECT uc.*, h.name, h.class FROM user_champions uc JOIN heroes h ON uc.base_hero_id = h.id WHERE uc.id = ? AND uc.user_id = ?`,
+        [championId, userId]
+    );
+    if (champRows.length === 0) {
+        await interaction.editReply({ content: 'Champion not found or does not belong to you.', components: [] });
+        return;
+    }
+    const champion = champRows[0];
+
+    const [deckRows] = await db.execute(
+        `SELECT cd.ability_id FROM champion_decks cd WHERE cd.user_champion_id = ? ORDER BY cd.order_index ASC`,
+        [championId]
+    );
+    const deck = deckRows.map(r => r.ability_id);
+
+    const [availableAbilities] = await db.execute(
+        `SELECT ui.item_id, a.name FROM user_inventory ui JOIN abilities a ON ui.item_id = a.id WHERE ui.user_id = ? AND a.class = ? AND ui.quantity > 0`,
+        [userId, champion.class]
+    );
+
+    activeDeckEdits.set(userId, { championId, deck, champion });
+
+    const embed = buildDeckEditEmbed(champion, deck);
+
+    const addMenu = new StringSelectMenuBuilder()
+        .setCustomId(`deck_add_${championId}`)
+        .setPlaceholder('Add Ability')
+        .addOptions(availableAbilities.map(a => ({ label: a.name, value: String(a.item_id) })).slice(0, 25));
+
+    const removeMenu = new StringSelectMenuBuilder()
+        .setCustomId(`deck_remove_${championId}`)
+        .setPlaceholder('Remove Ability')
+        .addOptions(Array.from(new Set(deck)).map(id => ({ label: allPossibleAbilities.find(ab => ab.id === id)?.name || `ID ${id}`, value: String(id) })).slice(0, 25));
+
+    const controlsRow1 = new ActionRowBuilder().addComponents(addMenu);
+    const controlsRow2 = new ActionRowBuilder().addComponents(removeMenu);
+    const controlsRow3 = new ActionRowBuilder().addComponents(
+        new ButtonBuilder().setCustomId(`deck_save_${championId}`).setLabel('Save Deck').setStyle(ButtonStyle.Success).setEmoji('💾'),
+        new ButtonBuilder().setCustomId(`deck_cancel_${championId}`).setLabel('Cancel').setStyle(ButtonStyle.Secondary).setEmoji('❌')
+    );
+
+    await interaction.editReply({ embeds: [embed], components: [controlsRow1, controlsRow2, controlsRow3] });
 }
 
 function buildDeckEditEmbed(champion, deck) {
