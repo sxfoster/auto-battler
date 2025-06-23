@@ -48,6 +48,46 @@ client.once(Events.ClientReady, async () => {
 client.on(Events.InteractionCreate, async interaction => {
     // --- Slash Command Handler ---
     if (interaction.isChatInputCommand()) {
+        if (interaction.commandName === 'team' && interaction.options.getSubcommand() === 'set-defense') {
+            try {
+                const userId = interaction.user.id;
+                const [ownedChampions] = await db.execute(
+                    'SELECT id, base_hero_id, level FROM user_champions WHERE user_id = ?',
+                    [userId]
+                );
+                if (ownedChampions.length < 1) {
+                    await interaction.reply({ content: 'You need at least one champion in your roster to set a defense team.', ephemeral: true });
+                    return;
+                }
+
+                const options = ownedChampions.map(champion => {
+                    const staticData = allPossibleHeroes.find(h => h.id === champion.base_hero_id);
+                    const name = staticData ? staticData.name : `Unknown Hero (ID: ${champion.base_hero_id})`;
+                    const rarity = staticData ? staticData.rarity : 'Unknown';
+                    const heroClass = staticData ? staticData.class : 'Unknown';
+                    return {
+                        label: `${name} (Lvl ${champion.level})`,
+                        description: `${rarity} ${heroClass}`,
+                        value: champion.id.toString(),
+                    };
+                });
+
+                const selectMenu = new StringSelectMenuBuilder()
+                    .setCustomId('defense_team_select')
+                    .setPlaceholder('Select your defense team (1 Monster OR 2 Champions)')
+                    .setMinValues(1)
+                    .setMaxValues(2)
+                    .addOptions(options);
+                const row = new ActionRowBuilder().addComponents(selectMenu);
+                await interaction.reply({ content: 'Choose your defense team!', components: [row], ephemeral: true });
+            } catch (error) {
+                console.error('Error preparing defense team selection:', error);
+                if (!interaction.replied) {
+                    await interaction.reply({ content: 'An error occurred while preparing your defense team.', ephemeral: true });
+                }
+            }
+            return;
+        }
         const command = client.commands.get(interaction.commandName);
         if (!command) {
             console.error(`No command matching ${interaction.commandName} was found.`);
@@ -272,6 +312,39 @@ client.on(Events.InteractionCreate, async interaction => {
             } catch (error) {
                 console.error('Error handling fight selection:', error);
                 await interaction.followUp({ content: 'An error occurred while starting the battle.', ephemeral: true }).catch(() => {});
+            }
+        } else if (interaction.customId === 'defense_team_select') {
+            try {
+                const selections = interaction.values;
+
+                const monsterSelectionId = selections.find(id => {
+                    const champ = allPossibleHeroes.find(h => h.id === parseInt(id));
+                    return champ && champ.isMonster;
+                });
+
+                let champion1Id, champion2Id = null;
+
+                if (monsterSelectionId) {
+                    if (selections.length > 1) {
+                        return interaction.update({ content: 'You cannot select a monster and another champion. A monster takes up the whole team.', components: [] });
+                    }
+                    champion1Id = monsterSelectionId;
+                    champion2Id = null;
+                } else {
+                    [champion1Id, champion2Id] = selections;
+                }
+
+                await db.execute(
+                    `INSERT INTO defense_teams (user_id, champion_1_id, champion_2_id)
+                     VALUES (?, ?, ?)
+                     ON DUPLICATE KEY UPDATE champion_1_id = VALUES(champion_1_id), champion_2_id = VALUES(champion_2_id)`,
+                    [interaction.user.id, champion1Id, champion2Id || null]
+                );
+
+                await interaction.update({ content: 'Your defense team has been set!', components: [] });
+            } catch (error) {
+                console.error('Error setting defense team:', error);
+                await interaction.update({ content: 'An error occurred while setting your defense team.', components: [] });
             }
         }
         return;
