@@ -604,7 +604,7 @@ client.on(Events.InteractionCreate, async interaction => {
 
                 if (!isPvP) {
                     const [monsterRows] = await db.execute(
-                        'SELECT id FROM heroes WHERE isMonster = TRUE'
+                        'SELECT id FROM heroes WHERE is_monster = TRUE'
                     );
                     const monsterIds = monsterRows.map(r => r.id);
                     const randIndex1 = Math.floor(Math.random() * monsterIds.length);
