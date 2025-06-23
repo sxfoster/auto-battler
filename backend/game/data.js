@@ -49,6 +49,24 @@ const allPossibleHeroes = [
     { type: 'hero', id: 802, name: 'Beast Tamer', class: 'Wilderness Expert', rarity: 'Uncommon', art: '../img/beast_tamer_card.png', hp: 18, attack: 9, speed: 7, abilities: [] },
     { type: 'hero', id: 803, name: 'Beast Master', class: 'Wilderness Expert', rarity: 'Rare', art: '../img/beast_master_card.png', hp: 24, attack: 12, speed: 7, abilities: [] },
     { type: 'hero', id: 804, name: 'Wild Lord', class: 'Wilderness Expert', rarity: 'Epic', art: '../img/wild_lord_card.png', hp: 30, attack: 15, speed: 7, abilities: [] },
+
+    // 9. Mystic Deceiver (Enchanter)
+    { type: 'hero', id: 901, name: 'Trickster', class: 'Mystic Deceiver', rarity: 'Common', art: '../img/trickster_card.png', hp: 14, attack: 2, speed: 4, abilities: [] },
+    { type: 'hero', id: 902, name: 'Illusionist', class: 'Mystic Deceiver', rarity: 'Uncommon', art: '../img/illusionist_card.png', hp: 19, attack: 3, speed: 4, abilities: [] },
+    { type: 'hero', id: 903, name: 'Mesmerist', class: 'Mystic Deceiver', rarity: 'Rare', art: '../img/mesmerist_card.png', hp: 25, attack: 4, speed: 5, abilities: [] },
+    { type: 'hero', id: 904, name: 'Mind Flayer', class: 'Mystic Deceiver', rarity: 'Epic', art: '../img/mind_flayer_card.png', hp: 32, attack: 5, speed: 5, abilities: [] },
+
+    // 10. Shadow Striker (Rogue)
+    { type: 'hero', id: 1001, name: 'Thug', class: 'Shadow Striker', rarity: 'Common', art: '../img/thug_card.png', hp: 13, attack: 6, speed: 6, abilities: [] },
+    { type: 'hero', id: 1002, name: 'Cutthroat', class: 'Shadow Striker', rarity: 'Uncommon', art: '../img/cutthroat_card.png', hp: 18, attack: 8, speed: 6, abilities: [] },
+    { type: 'hero', id: 1003, name: 'Shade', class: 'Shadow Striker', rarity: 'Rare', art: '../img/shade_card.png', hp: 24, attack: 11, speed: 7, abilities: [] },
+    { type: 'hero', id: 1004, name: 'Nightblade', class: 'Shadow Striker', rarity: 'Epic', art: '../img/nightblade_card.png', hp: 30, attack: 14, speed: 7, abilities: [] },
+
+    // 11. Arcane Savant (Wizard)
+    { type: 'hero', id: 1101, name: 'Apprentice', class: 'Arcane Savant', rarity: 'Common', art: '../img/apprentice_card.png', hp: 13, attack: 3, speed: 4, abilities: [] },
+    { type: 'hero', id: 1102, name: 'Mage', class: 'Arcane Savant', rarity: 'Uncommon', art: '../img/mage_card.png', hp: 18, attack: 4, speed: 4, abilities: [] },
+    { type: 'hero', id: 1103, name: 'Archmage', class: 'Arcane Savant', rarity: 'Rare', art: '../img/archmage_card.png', hp: 24, attack: 5, speed: 5, abilities: [] },
+    { type: 'hero', id: 1104, name: 'Grand Magus', class: 'Arcane Savant', rarity: 'Epic', art: '../img/grand_magus_card.png', hp: 30, attack: 6, speed: 5, abilities: [] },
 ];
 
 const allPossibleMinions = {
@@ -307,6 +325,60 @@ const allPossibleAbilities = [
     { id: 3843, type: 'ability', name: 'Ranger\'s Focus', class: 'Wilderness Expert', rarity: 'Epic', art: 'https://placehold.co/150x126/ef4444/FFFFFF?text=Ability', effect: 'Gain +2 attack and +2 speed for 2 turns.', energyCost: 4, category: 'Defense' },
     // --- Necromancer Abilities ---
     { id: 3911, type: 'ability', name: 'Raise Skeleton', class: 'Necromancer', rarity: 'Common', art: 'https://placehold.co/150x126/ef4444/FFFFFF?text=Ability', effect: 'Summon a Skeleton with 10 HP and 3 Attack.', summons: 'SKELETON', energyCost: 1, category: 'Support' },
+
+    // === Mystic Deceiver (Enchanter) ===
+    // Common
+    { id: 4001, type: 'ability', name: 'Mind Twist', class: 'Mystic Deceiver', rarity: 'Common', art: '...', effect: 'Deal 2 psychic damage.', energyCost: 1, category: 'Offense' },
+    { id: 4002, type: 'ability', name: 'Mirror Image', class: 'Mystic Deceiver', rarity: 'Common', art: '...', effect: 'Gain +1 Evasion for 2 turns.', energyCost: 1, category: 'Defense' },
+    { id: 4003, type: 'ability', name: 'Mind Fog', class: 'Mystic Deceiver', rarity: 'Common', art: '...', effect: 'Apply Confuse to one enemy for 1 turn.', energyCost: 1, category: 'Support' },
+    // Uncommon
+    { id: 4004, type: 'ability', name: 'Illusionary Strike', class: 'Mystic Deceiver', rarity: 'Uncommon', art: '...', effect: 'Deal 3 damage. If the target is Confused, they are also Stunned.', energyCost: 2, category: 'Offense' },
+    { id: 4005, type: 'ability', name: 'Arcane Ward', class: 'Mystic Deceiver', rarity: 'Uncommon', art: '...', effect: 'Block the next incoming magical ability.', energyCost: 2, category: 'Defense' },
+    { id: 4006, type: 'ability', name: 'Charm', class: 'Mystic Deceiver', rarity: 'Uncommon', art: '...', effect: 'An enemy attacks one of its own allies on its next turn.', energyCost: 2, category: 'Support' },
+    // Rare
+    { id: 4007, type: 'ability', name: 'Phantasmal Blades', class: 'Mystic Deceiver', rarity: 'Rare', art: '...', effect: 'Deal 2 damage to all enemies and apply Confuse for 1 turn.', energyCost: 3, category: 'Offense', target: 'ENEMIES' },
+    { id: 4008, type: 'ability', name: 'Warding Sigil', class: 'Mystic Deceiver', rarity: 'Rare', art: '...', effect: 'All allies gain immunity to debuffs for 2 turns.', energyCost: 3, category: 'Defense', target: 'ALLIES' },
+    { id: 4009, type: 'ability', name: 'Dominate Mind', class: 'Mystic Deceiver', rarity: 'Rare', art: '...', effect: 'Force an enemy to perform a basic attack against itself.', energyCost: 3, category: 'Support' },
+    // Epic
+    { id: 4010, type: 'ability', name: 'Mind Shatter', class: 'Mystic Deceiver', rarity: 'Epic', art: '...', effect: 'Deal 5 psychic damage. If the target has a debuff, this damage cannot be blocked.', energyCost: 4, category: 'Offense' },
+    { id: 4011, type: 'ability', name: 'Cloak of Invisibility', class: 'Mystic Deceiver', rarity: 'Epic', art: '...', effect: 'This hero becomes untargetable for 2 turns.', energyCost: 4, category: 'Defense' },
+    { id: 4012, type: 'ability', name: 'Mass Domination', class: 'Mystic Deceiver', rarity: 'Epic', art: '...', effect: 'All enemies have a 50% chance to attack their own allies on their next turn.', energyCost: 4, category: 'Support', target: 'ENEMIES' },
+
+    // === Shadow Striker (Rogue) ===
+    // Common
+    { id: 4101, type: 'ability', name: 'Quick Stab', class: 'Shadow Striker', rarity: 'Common', art: '...', effect: 'Deal 3 piercing damage.', energyCost: 1, category: 'Offense' },
+    { id: 4102, type: 'ability', name: 'Fade', class: 'Shadow Striker', rarity: 'Common', art: '...', effect: 'Gain +1 Evasion for 2 turns.', energyCost: 1, category: 'Defense' },
+    { id: 4103, type: 'ability', name: 'Poisoned Shiv', class: 'Shadow Striker', rarity: 'Common', art: '...', effect: 'Deal 1 damage and apply Poison (1 damage per turn for 2 turns).', energyCost: 1, category: 'Support' },
+    // Uncommon
+    { id: 4104, type: 'ability', name: 'Backstab', class: 'Shadow Striker', rarity: 'Uncommon', art: '...', effect: 'Deal 4 damage. If the target has a debuff, this attack cannot be blocked.', energyCost: 2, category: 'Offense' },
+    { id: 4105, type: 'ability', name: 'Smoke Bomb', class: 'Shadow Striker', rarity: 'Uncommon', art: '...', effect: 'All allies gain +1 Evasion for 1 turn.', energyCost: 2, category: 'Defense', target: 'ALLIES' },
+    { id: 4106, type: 'ability', name: 'Bleeding Strike', class: 'Shadow Striker', rarity: 'Uncommon', art: '...', effect: 'Deal 2 damage and apply Bleed for 2 turns.', energyCost: 2, category: 'Support' },
+    // Rare
+    { id: 4107, type: 'ability', name: 'Flurry of Blades', class: 'Shadow Striker', rarity: 'Rare', art: '...', effect: 'Deal 2 damage to three random enemies.', energyCost: 3, category: 'Offense' },
+    { id: 4108, type: 'ability', name: 'Shadow Step', class: 'Shadow Striker', rarity: 'Rare', art: '...', effect: 'Avoid the next incoming attack completely.', energyCost: 3, category: 'Defense' },
+    { id: 4109, type: 'ability', name: 'Deadly Poison', class: 'Shadow Striker', rarity: 'Rare', art: '...', effect: 'Apply Poison (2 damage per turn for 3 turns) to all enemies.', energyCost: 3, category: 'Support', target: 'ENEMIES' },
+    // Epic
+    { id: 4110, type: 'ability', name: 'Assassinate', class: 'Shadow Striker', rarity: 'Epic', art: '...', effect: 'Deal 7 damage to a single target. If this defeats the target, gain 2 Energy.', energyCost: 4, category: 'Offense' },
+    { id: 4111, type: 'ability', name: 'Cloak of Shadows', class: 'Shadow Striker', rarity: 'Epic', art: '...', effect: 'Become untargetable for 1 turn and gain +2 Attack on your next turn.', energyCost: 4, category: 'Defense' },
+    { id: 4112, type: 'ability', name: 'Shadow Mastery', class: 'Shadow Striker', rarity: 'Epic', art: '...', effect: 'For 2 turns, all of your attacks are guaranteed critical hits.', energyCost: 4, category: 'Support' },
+
+    // === Arcane Savant (Wizard) ===
+    // Common
+    { id: 4201, type: 'ability', name: 'Fireball', class: 'Arcane Savant', rarity: 'Common', art: '...', effect: 'Deal 3 fire damage to a single target.', energyCost: 1, category: 'Offense' },
+    { id: 4202, type: 'ability', name: 'Arcane Shield', class: 'Arcane Savant', rarity: 'Common', art: '...', effect: 'Gain 4 temporary HP that lasts for 2 turns.', energyCost: 1, category: 'Defense' },
+    { id: 4203, type: 'ability', name: 'Ice Lance', class: 'Arcane Savant', rarity: 'Common', art: '...', effect: 'Deal 1 damage and apply Slow for 2 turns.', energyCost: 1, category: 'Support' },
+    // Uncommon
+    { id: 4204, type: 'ability', name: 'Lightning Bolt', class: 'Arcane Savant', rarity: 'Uncommon', art: '...', effect: 'Deal 4 lightning damage. Has a 25% chance to Stun.', energyCost: 2, category: 'Offense' },
+    { id: 4205, type: 'ability', name: 'Counterspell', class: 'Arcane Savant', rarity: 'Uncommon', art: '...', effect: 'If an enemy casts an ability next, interrupt it and deal 2 damage to them.', energyCost: 2, category: 'Defense' },
+    { id: 4206, type: 'ability', name: 'Arcane Focus', class: 'Arcane Savant', rarity: 'Uncommon', art: '...', effect: 'Your next ability costs 1 less Energy and deals +1 damage.', energyCost: 2, category: 'Support' },
+    // Rare
+    { id: 4207, type: 'ability', name: 'Ice Storm', class: 'Arcane Savant', rarity: 'Rare', art: '...', effect: 'Deal 2 ice damage to all enemies and apply Slow for 2 turns.', energyCost: 3, category: 'Offense', target: 'ENEMIES' },
+    { id: 4208, type: 'ability', name: 'Time Warp', class: 'Arcane Savant', rarity: 'Rare', art: '...', effect: 'This hero takes their next turn immediately after this one.', energyCost: 3, category: 'Defense' },
+    { id: 4209, type: 'ability', name: 'Mana Drain', class: 'Arcane Savant', rarity: 'Rare', art: '...', effect: 'Steal 2 Energy from an enemy.', energyCost: 3, category: 'Support' },
+    // Epic
+    { id: 4210, type: 'ability', name: 'Meteor Shower', class: 'Arcane Savant', rarity: 'Epic', art: '...', effect: 'Deal 6 fire damage to all enemies.', energyCost: 4, category: 'Offense', target: 'ENEMIES' },
+    { id: 4211, type: 'ability', name: 'Prismatic Wall', class: 'Arcane Savant', rarity: 'Epic', art: '...', effect: 'All allies take 50% less damage from all sources for 1 turn.', energyCost: 4, category: 'Defense', target: 'ALLIES' },
+    { id: 4212, type: 'ability', name: 'Temporal Mastery', class: 'Arcane Savant', rarity: 'Epic', art: '...', effect: 'For 2 turns, this hero gets an extra action on each of their turns.', energyCost: 4, category: 'Support' },
 ];
 // NOTE: Placeholder art links ('...') and new IDs have been assigned.
 
