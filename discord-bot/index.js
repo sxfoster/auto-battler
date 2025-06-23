@@ -67,6 +67,28 @@ client.on(Events.InteractionCreate, async interaction => {
                     console.error('Autocomplete error:', err);
                 }
             }
+        } else if (interaction.commandName === 'market' && interaction.options.getSubcommand() === 'list') {
+            const focused = interaction.options.getFocused(true);
+            if (focused.name === 'item') {
+                try {
+                    const userId = interaction.user.id;
+                    const [rows] = await db.execute('SELECT item_id FROM user_inventory WHERE user_id = ?', [userId]);
+                    const unique = [...new Set(rows.map(r => r.item_id))];
+                    const suggestions = unique
+                        .map(id => {
+                            const item = allPossibleWeapons.find(w => w.id === id) ||
+                                allPossibleArmors.find(a => a.id === id) ||
+                                allPossibleAbilities.find(ab => ab.id === id);
+                            const name = item ? item.name : `Item ${id}`;
+                            return { name, value: id.toString() };
+                        })
+                        .filter(opt => opt.name.toLowerCase().includes(focused.value.toLowerCase()))
+                        .slice(0, 25);
+                    await interaction.respond(suggestions);
+                } catch (err) {
+                    console.error('Autocomplete error:', err);
+                }
+            }
         }
         return;
     }
@@ -184,6 +206,62 @@ client.on(Events.InteractionCreate, async interaction => {
                 console.error('Error preparing champion management:', err);
                 if (!interaction.replied) {
                     await interaction.reply({ content: 'An error occurred while preparing this menu.', ephemeral: true });
+                }
+            }
+            return;
+        }
+        if (interaction.commandName === 'market') {
+            const sub = interaction.options.getSubcommand();
+            const userId = interaction.user.id;
+            try {
+                if (sub === 'list') {
+                    const itemId = parseInt(interaction.options.getString('item'));
+                    const price = interaction.options.getInteger('price');
+                    const [invRows] = await db.execute('SELECT id FROM user_inventory WHERE user_id = ? AND item_id = ? LIMIT 1', [userId, itemId]);
+                    if (invRows.length === 0) {
+                        await interaction.reply({ content: 'You do not own that item.', ephemeral: true });
+                        return;
+                    }
+
+                    await db.execute('DELETE FROM user_inventory WHERE id = ?', [invRows[0].id]);
+                    await db.execute('INSERT INTO market_listings (seller_id, item_id, price) VALUES (?, ?, ?)', [userId, itemId, price]);
+
+                    const item = allPossibleWeapons.find(w => w.id === itemId) ||
+                        allPossibleArmors.find(a => a.id === itemId) ||
+                        allPossibleAbilities.find(ab => ab.id === itemId);
+                    const name = item ? item.name : `Item ${itemId}`;
+
+                    await interaction.reply({ content: `You listed **${name}** for 🪙 ${price}.`, ephemeral: true });
+                } else if (sub === 'buy') {
+                    const listingId = interaction.options.getInteger('listing_id');
+                    const [[listing]] = await db.execute('SELECT * FROM market_listings WHERE id = ?', [listingId]);
+                    if (!listing) {
+                        await interaction.reply({ content: 'Listing not found.', ephemeral: true });
+                        return;
+                    }
+
+                    const [[buyer]] = await db.execute('SELECT soft_currency FROM users WHERE discord_id = ?', [userId]);
+                    if (!buyer || buyer.soft_currency < listing.price) {
+                        await interaction.reply({ content: 'You do not have enough gold.', ephemeral: true });
+                        return;
+                    }
+
+                    await db.execute('UPDATE users SET soft_currency = soft_currency - ? WHERE discord_id = ?', [listing.price, userId]);
+                    await db.execute('UPDATE users SET soft_currency = soft_currency + ? WHERE discord_id = ?', [listing.price, listing.seller_id]);
+                    await db.execute('INSERT INTO user_inventory (user_id, item_id) VALUES (?, ?)', [userId, listing.item_id]);
+                    await db.execute('DELETE FROM market_listings WHERE id = ?', [listingId]);
+
+                    const item = allPossibleWeapons.find(w => w.id === listing.item_id) ||
+                        allPossibleArmors.find(a => a.id === listing.item_id) ||
+                        allPossibleAbilities.find(ab => ab.id === listing.item_id);
+                    const name = item ? item.name : `Item ${listing.item_id}`;
+
+                    await interaction.reply({ content: `You bought **${name}** for 🪙 ${listing.price}.`, ephemeral: true });
+                }
+            } catch (err) {
+                console.error('Error processing market command:', err);
+                if (!interaction.replied) {
+                    await interaction.reply({ content: 'An error occurred while processing this market command.', ephemeral: true });
                 }
             }
             return;
@@ -340,9 +418,28 @@ client.on(Events.InteractionCreate, async interaction => {
                     break;
                 }
                 case 'town_craft':
-                case 'town_market':
                     await interaction.reply({ content: 'This feature is coming soon!', ephemeral: true });
                     break;
+                case 'town_market': {
+                    await interaction.deferReply({ ephemeral: true });
+                    const [rows] = await db.execute(
+                        'SELECT id, item_id, price FROM market_listings ORDER BY id DESC LIMIT 10'
+                    );
+                    const lines = rows.map(r => {
+                        const item = allPossibleWeapons.find(w => w.id === r.item_id) ||
+                            allPossibleArmors.find(a => a.id === r.item_id) ||
+                            allPossibleAbilities.find(ab => ab.id === r.item_id);
+                        const name = item ? item.name : `Item ${r.item_id}`;
+                        return `[#${r.id}] **${name}** - 🪙 ${r.price}`;
+                    });
+                    const embed = new EmbedBuilder()
+                        .setColor('#29b6f6')
+                        .setTitle('Marketplace Listings')
+                        .setDescription(lines.join('\n') || 'No listings available.')
+                        .addFields({ name: 'Using the Market', value: 'Use `/market list` to sell an item and `/market buy` to purchase one.' });
+                    await interaction.editReply({ embeds: [embed] });
+                    break;
+                }
                 default:
                     break;
             }

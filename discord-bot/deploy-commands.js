@@ -5,7 +5,8 @@ require('dotenv').config();
 
 const commands = [];
 const commandsPath = path.join(__dirname, 'commands');
-// Automatically register all command files in the commands directory
+// Automatically register all command files in the commands directory, including
+// the marketplace command
 const commandFiles = fs
   .readdirSync(commandsPath)
   .filter(file => file.endsWith('.js'));
