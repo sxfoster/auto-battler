@@ -24,6 +24,9 @@ client.commands = new Collection();
 // In-memory map to track active tutorial drafts
 // Key: userId, Value: { currentChampNum: 1, stage: 'hero_selection', champion1: {}, champion2: {} }
 const activeTutorialDrafts = new Map();
+// In-memory map to track active deck edits
+// Key: userId, Value: { championId: number, deck: number[] }
+const activeDeckEdits = new Map();
 
 const commandsPath = path.join(__dirname, 'commands');
 const commandFiles = fs.readdirSync(commandsPath).filter(file => file.endsWith('.js'));
@@ -871,14 +874,23 @@ client.on(Events.InteractionCreate, async interaction => {
                     .addOptions(abilityOptions.slice(0, 25));
                 components.push(new ActionRowBuilder().addComponents(addAbilitySelectMenu));
             } else {
-                 components.push(new ActionRowBuilder().addComponents(
-                        new ButtonBuilder()
-                            .setCustomId('no_abilities_for_deck')
-                            .setLabel('No Abilities Available in Inventory')
-                            .setStyle(ButtonStyle.Secondary)
-                            .setDisabled(true)
-                    ));
+                components.push(new ActionRowBuilder().addComponents(
+                    new ButtonBuilder()
+                        .setCustomId('no_abilities_for_deck')
+                        .setLabel('No Abilities Available in Inventory')
+                        .setStyle(ButtonStyle.Secondary)
+                        .setDisabled(true)
+                ));
             }
+
+            // New button to access full deck editor
+            components.push(new ActionRowBuilder().addComponents(
+                new ButtonBuilder()
+                    .setCustomId(`edit_champ_deck_${selectedChampionId}`)
+                    .setLabel('Edit Deck')
+                    .setStyle(ButtonStyle.Primary)
+                    .setEmoji('🃏')
+            ));
 
             const navigationRow = new ActionRowBuilder()
                 .addComponents(
@@ -969,6 +981,170 @@ client.on(Events.InteractionCreate, async interaction => {
                 console.error('Error adding ability to deck:', error);
                 await interaction.editReply({ content: 'An error occurred while adding the ability to the deck.', components: [] });
             }
+            return;
+        }
+
+        // --- Deck Editor Interaction Handlers ---
+        if (interaction.customId.startsWith('edit_champ_deck_')) {
+            const championId = parseInt(interaction.customId.replace('edit_champ_deck_', ''));
+            await interaction.deferUpdate();
+            try {
+                const [champRows] = await db.execute(
+                    `SELECT uc.*, h.name, h.class FROM user_champions uc JOIN heroes h ON uc.base_hero_id = h.id WHERE uc.id = ? AND uc.user_id = ?`,
+                    [championId, userId]
+                );
+                const champion = champRows[0];
+                if (!champion) {
+                    await interaction.editReply({ content: 'Champion not found.', components: [] });
+                    return;
+                }
+
+                const [deckRows] = await db.execute(
+                    `SELECT cd.ability_id, a.name FROM champion_decks cd JOIN abilities a ON cd.ability_id = a.id WHERE cd.user_champion_id = ? ORDER BY cd.order_index ASC`,
+                    [championId]
+                );
+                const deck = deckRows.map(r => r.ability_id);
+
+                const [availableAbilities] = await db.execute(
+                    `SELECT ui.item_id, a.name FROM user_inventory ui JOIN abilities a ON ui.item_id = a.id WHERE ui.user_id = ? AND a.class = ? AND ui.quantity > 0`,
+                    [userId, champion.class]
+                );
+
+                activeDeckEdits.set(userId, { championId, deck, champion });
+
+                const embed = buildDeckEditEmbed(champion, deck);
+
+                const addMenu = new StringSelectMenuBuilder()
+                    .setCustomId(`deck_add_${championId}`)
+                    .setPlaceholder('Add Ability')
+                    .addOptions(availableAbilities.map(a => ({ label: a.name, value: String(a.item_id) })).slice(0, 25));
+
+                const removeMenu = new StringSelectMenuBuilder()
+                    .setCustomId(`deck_remove_${championId}`)
+                    .setPlaceholder('Remove Ability')
+                    .addOptions(Array.from(new Set(deck)).map(id => ({ label: allPossibleAbilities.find(ab => ab.id === id)?.name || `ID ${id}`, value: String(id) })).slice(0, 25));
+
+                const controlsRow1 = new ActionRowBuilder().addComponents(addMenu);
+                const controlsRow2 = new ActionRowBuilder().addComponents(removeMenu);
+                const controlsRow3 = new ActionRowBuilder().addComponents(
+                    new ButtonBuilder().setCustomId(`deck_save_${championId}`).setLabel('Save Deck').setStyle(ButtonStyle.Success),
+                    new ButtonBuilder().setCustomId(`deck_cancel_${championId}`).setLabel('Cancel').setStyle(ButtonStyle.Secondary)
+                );
+
+                await interaction.editReply({ embeds: [embed], components: [controlsRow1, controlsRow2, controlsRow3] });
+            } catch (err) {
+                console.error('Error preparing deck editor:', err);
+                await interaction.editReply({ content: 'Failed to open deck editor.', components: [] });
+            }
+            return;
+        }
+
+        if (interaction.customId.startsWith('deck_add_')) {
+            await interaction.deferUpdate();
+            const championId = parseInt(interaction.customId.replace('deck_add_', ''));
+            const abilityId = parseInt(interaction.values[0]);
+            const state = activeDeckEdits.get(userId);
+            if (!state || state.championId !== championId) return;
+
+            const count = state.deck.filter(id => id === abilityId).length;
+            const champ = state.champion;
+            if (state.deck.length >= 20 || count >= 2) {
+                const embed = buildDeckEditEmbed(champ, state.deck);
+                await interaction.editReply({ embeds: [embed] });
+                return;
+            }
+            state.deck.push(abilityId);
+            const embed = buildDeckEditEmbed(champ, state.deck);
+            const [availableAbilities] = await db.execute(
+                `SELECT ui.item_id, a.name FROM user_inventory ui JOIN abilities a ON ui.item_id = a.id WHERE ui.user_id = ? AND a.class = ? AND ui.quantity > 0`,
+                [userId, champ.class]
+            );
+            const addMenu = new StringSelectMenuBuilder()
+                .setCustomId(`deck_add_${championId}`)
+                .setPlaceholder('Add Ability')
+                .addOptions(availableAbilities.map(a => ({ label: a.name, value: String(a.item_id) })).slice(0, 25));
+            const removeMenu = new StringSelectMenuBuilder()
+                .setCustomId(`deck_remove_${championId}`)
+                .setPlaceholder('Remove Ability')
+                .addOptions(Array.from(new Set(state.deck)).map(id => ({ label: allPossibleAbilities.find(ab => ab.id === id)?.name || `ID ${id}`, value: String(id) })).slice(0, 25));
+            const controlsRow1 = new ActionRowBuilder().addComponents(addMenu);
+            const controlsRow2 = new ActionRowBuilder().addComponents(removeMenu);
+            const controlsRow3 = new ActionRowBuilder().addComponents(
+                new ButtonBuilder().setCustomId(`deck_save_${championId}`).setLabel('Save Deck').setStyle(ButtonStyle.Success),
+                new ButtonBuilder().setCustomId(`deck_cancel_${championId}`).setLabel('Cancel').setStyle(ButtonStyle.Secondary)
+            );
+            await interaction.editReply({ embeds: [embed], components: [controlsRow1, controlsRow2, controlsRow3] });
+            return;
+        }
+
+        if (interaction.customId.startsWith('deck_remove_')) {
+            await interaction.deferUpdate();
+            const championId = parseInt(interaction.customId.replace('deck_remove_', ''));
+            const abilityId = parseInt(interaction.values[0]);
+            const state = activeDeckEdits.get(userId);
+            if (!state || state.championId !== championId) return;
+            const index = state.deck.indexOf(abilityId);
+            if (index !== -1) state.deck.splice(index, 1);
+            const champ = state.champion;
+            const embed = buildDeckEditEmbed(champ, state.deck);
+            const [availableAbilities] = await db.execute(
+                `SELECT ui.item_id, a.name FROM user_inventory ui JOIN abilities a ON ui.item_id = a.id WHERE ui.user_id = ? AND a.class = ? AND ui.quantity > 0`,
+                [userId, champ.class]
+            );
+            const addMenu = new StringSelectMenuBuilder()
+                .setCustomId(`deck_add_${championId}`)
+                .setPlaceholder('Add Ability')
+                .addOptions(availableAbilities.map(a => ({ label: a.name, value: String(a.item_id) })).slice(0, 25));
+            const removeMenu = new StringSelectMenuBuilder()
+                .setCustomId(`deck_remove_${championId}`)
+                .setPlaceholder('Remove Ability')
+                .addOptions(Array.from(new Set(state.deck)).map(id => ({ label: allPossibleAbilities.find(ab => ab.id === id)?.name || `ID ${id}`, value: String(id) })).slice(0, 25));
+            const controlsRow1 = new ActionRowBuilder().addComponents(addMenu);
+            const controlsRow2 = new ActionRowBuilder().addComponents(removeMenu);
+            const controlsRow3 = new ActionRowBuilder().addComponents(
+                new ButtonBuilder().setCustomId(`deck_save_${championId}`).setLabel('Save Deck').setStyle(ButtonStyle.Success),
+                new ButtonBuilder().setCustomId(`deck_cancel_${championId}`).setLabel('Cancel').setStyle(ButtonStyle.Secondary)
+            );
+            await interaction.editReply({ embeds: [embed], components: [controlsRow1, controlsRow2, controlsRow3] });
+            return;
+        }
+
+        if (interaction.customId.startsWith('deck_save_')) {
+            await interaction.deferUpdate();
+            const championId = parseInt(interaction.customId.replace('deck_save_', ''));
+            const state = activeDeckEdits.get(userId);
+            if (!state || state.championId !== championId) return;
+            try {
+                const connection = await db.getConnection();
+                try {
+                    await connection.beginTransaction();
+                    await connection.execute('DELETE FROM champion_decks WHERE user_champion_id = ?', [championId]);
+                    for (let i = 0; i < state.deck.length; i++) {
+                        await connection.execute(
+                            'INSERT INTO champion_decks (user_champion_id, ability_id, order_index) VALUES (?, ?, ?)',
+                            [championId, state.deck[i], i]
+                        );
+                    }
+                    await connection.commit();
+                } catch (err) {
+                    await connection.rollback();
+                    throw err;
+                } finally {
+                    connection.release();
+                }
+                activeDeckEdits.delete(userId);
+                await interaction.editReply({ embeds: [confirmEmbed('Deck saved!')], components: [] });
+            } catch (err) {
+                console.error('Error saving deck:', err);
+                await interaction.editReply({ content: 'Failed to save deck.', components: [] });
+            }
+            return;
+        }
+
+        if (interaction.customId.startsWith('deck_cancel_')) {
+            await interaction.deferUpdate();
+            activeDeckEdits.delete(userId);
+            await interaction.editReply({ content: 'Deck editing cancelled.', components: [] });
             return;
         }
         if (interaction.customId === 'fight_team_select') {
@@ -1537,6 +1713,25 @@ async function finalizeChampionTeam(interaction, userId) {
         });
         activeTutorialDrafts.delete(userId);
     }
+}
+
+function buildDeckEditEmbed(champion, deck) {
+    const counts = {};
+    for (const id of deck) {
+        counts[id] = (counts[id] || 0) + 1;
+    }
+    const deckList = Object.entries(counts).map(([id, c]) => {
+        const name = allPossibleAbilities.find(ab => ab.id === parseInt(id))?.name || `ID ${id}`;
+        return `${name} (x${c})`;
+    }).join(', ');
+    return new EmbedBuilder()
+        .setColor('#29b6f6')
+        .setTitle(`Editing Deck: ${champion.name}`)
+        .addFields(
+            { name: 'Deck', value: deckList || 'Empty', inline: false },
+            { name: 'Deck Size', value: `${deck.length}/20 cards`, inline: true },
+            { name: 'Rules', value: 'Max 20 cards, 2x per card', inline: true }
+        );
 }
 
 
