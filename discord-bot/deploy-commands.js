@@ -6,9 +6,13 @@ require('dotenv').config();
 const commands = [];
 const commandsPath = path.join(__dirname, 'commands');
 // Automatically register all command files in the commands directory
-const commandFiles = fs
+let commandFiles = fs
   .readdirSync(commandsPath)
   .filter(file => file.endsWith('.js'));
+
+if (!commandFiles.includes('leaderboard.js')) {
+  commandFiles.push('leaderboard.js');
+}
 
 console.log('Registering slash commands:', commandFiles.join(', '));
 

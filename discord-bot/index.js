@@ -287,17 +287,53 @@ client.on(Events.InteractionCreate, async interaction => {
                     playerChampion2_db = p2_rows[0];
                 }
 
-                const aiChampion1 = generateRandomChampion();
-                let aiChampion2 = generateRandomChampion();
-                while (aiChampion2.id === aiChampion1.id) {
+                let isPvP = Math.random() < 0.25;
+                let enemyChampion1_db, enemyChampion2_db, enemyName = 'AI Opponent', enemyId;
+
+                if (isPvP) {
+                    const [oppRows] = await db.execute(
+                        'SELECT user_id FROM defense_teams WHERE user_id <> ? ORDER BY RAND() LIMIT 1',
+                        [interaction.user.id]
+                    );
+                    if (oppRows.length > 0) {
+                        enemyId = oppRows[0].user_id;
+                        const [teamRows] = await db.execute(
+                            'SELECT champion_1_id, champion_2_id FROM defense_teams WHERE user_id = ?',
+                            [enemyId]
+                        );
+                        if (teamRows.length > 0) {
+                            const team = teamRows[0];
+                            const [ec1] = await db.execute('SELECT * FROM user_champions WHERE id = ?', [team.champion_1_id]);
+                            enemyChampion1_db = ec1[0];
+                            if (team.champion_2_id) {
+                                const [ec2] = await db.execute('SELECT * FROM user_champions WHERE id = ?', [team.champion_2_id]);
+                                enemyChampion2_db = ec2[0];
+                            }
+                            enemyName = `<@${enemyId}>`;
+                        } else {
+                            isPvP = false;
+                        }
+                    } else {
+                        isPvP = false;
+                    }
+                }
+
+                let aiChampion1, aiChampion2;
+                if (!isPvP) {
+                    aiChampion1 = generateRandomChampion();
                     aiChampion2 = generateRandomChampion();
+                    while (aiChampion2.id === aiChampion1.id) {
+                        aiChampion2 = generateRandomChampion();
+                    }
                 }
 
                 const combatants = [
                     createCombatant({ hero_id: playerChampion1_db.base_hero_id, weapon_id: playerChampion1_db.equipped_weapon_id, armor_id: playerChampion1_db.equipped_armor_id, ability_id: playerChampion1_db.equipped_ability_id }, 'player', 0),
                     playerChampion2_db ? createCombatant({ hero_id: playerChampion2_db.base_hero_id, weapon_id: playerChampion2_db.equipped_weapon_id, armor_id: playerChampion2_db.equipped_armor_id, ability_id: playerChampion2_db.equipped_ability_id }, 'player', 1) : null,
-                    createCombatant({ hero_id: aiChampion1.id, weapon_id: aiChampion1.weapon, armor_id: aiChampion1.armor, ability_id: aiChampion1.ability }, 'enemy', 0),
-                    createCombatant({ hero_id: aiChampion2.id, weapon_id: aiChampion2.weapon, armor_id: aiChampion2.armor, ability_id: aiChampion2.ability }, 'enemy', 1)
+                    isPvP ? createCombatant({ hero_id: enemyChampion1_db.base_hero_id, weapon_id: enemyChampion1_db.equipped_weapon_id, armor_id: enemyChampion1_db.equipped_armor_id, ability_id: enemyChampion1_db.equipped_ability_id }, 'enemy', 0)
+                          : createCombatant({ hero_id: aiChampion1.id, weapon_id: aiChampion1.weapon, armor_id: aiChampion1.armor, ability_id: aiChampion1.ability }, 'enemy', 0),
+                    isPvP ? (enemyChampion2_db ? createCombatant({ hero_id: enemyChampion2_db.base_hero_id, weapon_id: enemyChampion2_db.equipped_weapon_id, armor_id: enemyChampion2_db.equipped_armor_id, ability_id: enemyChampion2_db.equipped_ability_id }, 'enemy', 1) : null)
+                          : createCombatant({ hero_id: aiChampion2.id, weapon_id: aiChampion2.weapon, armor_id: aiChampion2.armor, ability_id: aiChampion2.ability }, 'enemy', 1)
                 ].filter(Boolean);
 
                 if (combatants.length < 3) {
@@ -306,7 +342,15 @@ client.on(Events.InteractionCreate, async interaction => {
 
                 const gameInstance = new GameEngine(combatants);
                 const battleLog = gameInstance.runFullGame();
-                const winner = gameInstance.winner === 'player' ? interaction.user.username : 'AI Opponent';
+                const winner = gameInstance.winner === 'player' ? interaction.user.username : enemyName;
+
+                if (isPvP) {
+                    const ratingChange = gameInstance.winner === 'player' ? 10 : -10;
+                    await db.execute(
+                        'UPDATE users SET pvp_rating = GREATEST(COALESCE(pvp_rating,0) + ?, 0) WHERE discord_id = ?',
+                        [ratingChange, interaction.user.id]
+                    );
+                }
 
                 await interaction.followUp({ embeds: [simple(`⚔️ Battle Complete! ⚔️`, [{ name: 'Winner', value: winner }])], ephemeral: true });
 
