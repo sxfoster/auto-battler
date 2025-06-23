@@ -25,6 +25,8 @@ const BOOSTER_PACKS = {
     armor_pack: { name: 'Armor Pack', cost: 100, currency: 'soft_currency', type: 'armor_pack', rarity: 'basic' }
 };
 
+const STARTING_GOLD = 400;
+
 
 const client = new Client({ intents: [GatewayIntentBits.Guilds] });
 
@@ -225,21 +227,21 @@ client.on(Events.InteractionCreate, async interaction => {
                 const [[user]] = await db.execute('SELECT tutorial_completed FROM users WHERE discord_id = ?', [userId]);
                 if (user && user.tutorial_completed) {
                     await interaction.reply({
-                        embeds: [simple('Welcome back!', [{ name: 'Journey On!', value: 'You\'ve already completed the champion tutorial. Use `/town` to access game features.' }])],
+                        embeds: [simple('Welcome back!', [{ name: 'Journey On!', value: 'You\'ve already completed your initial training. Use `/town` to access game features.' }])],
                         ephemeral: true
                     });
                     return;
                 }
                 const command = client.commands.get(interaction.commandName);
                 if (command) {
-                    await command.execute(interaction); // Send initial welcome embed
+                    await command.execute(interaction);
                 }
-                // Initialize tutorial state for two champions
                 activeTutorialDrafts.set(userId, {
-                    currentChampNum: 1, // Start with champion 1
-                    stage: 'INITIAL_GREETING',
+                    stage: 'NEW_FLOW_INITIAL_GREETING',
                     champion1: {},
-                    champion2: {}
+                    champion2: {},
+                    receivedWelcomePack: false,
+                    initialGoldGranted: false
                 });
             } catch (error) {
                 console.error('Error checking tutorial status or executing start command:', error);
@@ -468,6 +470,27 @@ client.on(Events.InteractionCreate, async interaction => {
             try {
                 await interaction.deferUpdate();
                 switch (interaction.customId) {
+                    case 'tutorial_start_new_flow':
+                        if (!userDraftState.receivedWelcomePack) {
+                            await sendWelcomePackStep(interaction, userId);
+                            userDraftState.receivedWelcomePack = true;
+                            userDraftState.stage = 'WELCOME_PACK_OPENED';
+                        } else {
+                            await sendInitialGoldAndBoosterStore(interaction, userId);
+                        }
+                        break;
+                    case 'tutorial_open_welcome_pack':
+                        if (userDraftState.stage === 'WELCOME_PACK_OPENED') {
+                            await openWelcomePackAndGrantGold(interaction, userId);
+                            userDraftState.stage = 'GOLD_GRANTED_AND_STORE_OPENED';
+                            userDraftState.initialGoldGranted = true;
+                        } else {
+                            await interaction.editReply({ content: 'You already opened your welcome pack!', components: [] });
+                        }
+                        break;
+                    case 'tutorial_confirm_tutorial_completion':
+                        await finalizeTutorialCompletion(interaction, userId);
+                        break;
                     case 'tutorial_start_draft': // Initial button to start Champion 1 draft
                         userDraftState.stage = 'HERO_SELECTION';
                         await sendHeroSelectionStep(interaction, userId, userDraftState.currentChampNum);
@@ -2083,6 +2106,182 @@ function generateRandomChampion() {
     const weapon = allPossibleWeapons[Math.floor(Math.random() * allPossibleWeapons.length)];
     const armor = allPossibleArmors[Math.floor(Math.random() * allPossibleArmors.length)];
     return { id: hero.id, ability: ability?.id, weapon: weapon.id, armor: armor.id };
+}
+
+// --- NEW TUTORIAL HELPER: Generate a random champion kit (hero + gear) ---
+async function generateRandomChampionKit() {
+    const commonHeroes = allPossibleHeroes.filter(h => h.rarity === 'Common' && !h.is_monster);
+    const hero = commonHeroes[Math.floor(Math.random() * commonHeroes.length)];
+
+    const abilityPool = allPossibleAbilities.filter(a => a.class === hero.class && a.rarity === 'Common');
+    const ability = abilityPool.length ? abilityPool[Math.floor(Math.random() * abilityPool.length)] : null;
+
+    const commonWeapons = allPossibleWeapons.filter(w => w.rarity === 'Common');
+    const weapon = commonWeapons[Math.floor(Math.random() * commonWeapons.length)];
+
+    const commonArmors = allPossibleArmors.filter(a => a.rarity === 'Common');
+    const armor = commonArmors[Math.floor(Math.random() * commonArmors.length)];
+
+    return {
+        heroId: hero.id,
+        abilityId: ability ? ability.id : null,
+        weaponId: weapon.id,
+        armorId: armor.id,
+        heroData: hero,
+        abilityData: ability,
+        weaponData: weapon,
+        armorData: armor
+    };
+}
+
+/**
+ * Sends the initial welcome pack embed.
+ */
+async function sendWelcomePackStep(interaction, userId) {
+    const embed = simple(
+        '📦 Your Welcome Pack Awaits!',
+        [
+            { name: 'Special Delivery!', value: 'As a new adventurer, you receive a complimentary "Heroic Beginnings" Booster Pack. It contains two common champions, ready for battle!' }
+        ]
+    );
+
+    const row = new ActionRowBuilder()
+        .addComponents(
+            new ButtonBuilder()
+                .setCustomId('tutorial_open_welcome_pack')
+                .setLabel('Open "Heroic Beginnings" Pack')
+                .setStyle(ButtonStyle.Primary)
+                .setEmoji('✨')
+        );
+
+    await interaction.editReply({ embeds: [embed], components: [row] });
+}
+
+/**
+ * Opens the welcome pack, grants starting gold, and transitions to the store.
+ */
+async function openWelcomePackAndGrantGold(interaction, userId) {
+    const userDraftState = activeTutorialDrafts.get(userId);
+
+    const champion1Kit = await generateRandomChampionKit();
+    let champion2Kit = await generateRandomChampionKit();
+    while (champion2Kit.heroId === champion1Kit.heroId && allPossibleHeroes.length > 1) {
+        champion2Kit = await generateRandomChampionKit();
+    }
+
+    userDraftState.champion1 = champion1Kit;
+    userDraftState.champion2 = champion2Kit;
+
+    const names = [];
+
+    try {
+        await insertAndDeckChampion(userId, champion1Kit);
+        await insertAndDeckChampion(userId, champion2Kit);
+        names.push(`**${champion1Kit.heroData.name}** (Common) - Equipped`);
+        names.push(`**${champion2Kit.heroData.name}** (Common) - Equipped`);
+    } catch (error) {
+        console.error('Error inserting welcome pack champions:', error);
+        await interaction.editReply({ content: 'Failed to create your starting champions due to a database error. Please try `/start` again.', components: [] });
+        activeTutorialDrafts.delete(userId);
+        return;
+    }
+
+    try {
+        await db.execute(
+            'UPDATE users SET soft_currency = soft_currency + ? WHERE discord_id = ?',
+            [STARTING_GOLD, userId]
+        );
+    } catch (error) {
+        console.error('Error granting initial gold:', error);
+    }
+
+    const resultsEmbed = new EmbedBuilder()
+        .setColor('#84cc16')
+        .setTitle('🎉 Heroic Beginnings Pack Opened! 🎉')
+        .setDescription(`You received two powerful champions and ${STARTING_GOLD} Gold to get started!`)
+        .addFields(
+            { name: 'New Champions:', value: names.join('\n'), inline: false },
+            { name: 'Starting Gold:', value: `🪙 ${STARTING_GOLD}`, inline: true }
+        )
+        .setFooter({ text: 'Time to expand your collection!' })
+        .setTimestamp();
+
+    await interaction.editReply({ embeds: [resultsEmbed] });
+    await sendInitialGoldAndBoosterStore(interaction, userId);
+}
+
+/**
+ * Displays the booster store after granting gold.
+ */
+async function sendInitialGoldAndBoosterStore(interaction, userId) {
+    const storeEmbed = simple(
+        '🛍️ Your First Shopping Spree!',
+        [{ name: 'Available Packs', value: `Use your ${STARTING_GOLD} Gold to buy more packs and strengthen your roster!` }]
+    );
+
+    const components = [];
+    for (const [packId, packInfo] of Object.entries(BOOSTER_PACKS)) {
+        components.push(
+            new ActionRowBuilder()
+                .addComponents(
+                    new ButtonBuilder()
+                        .setCustomId(`buy_pack_${packId}`)
+                        .setLabel(`${packInfo.name} (${packInfo.cost} Gold 🪙)`)
+                        .setStyle(ButtonStyle.Primary)
+                        .setEmoji('🛒')
+                )
+        );
+    }
+
+    const finalizeTutorialRow = new ActionRowBuilder()
+        .addComponents(
+            new ButtonBuilder()
+                .setCustomId('tutorial_confirm_tutorial_completion')
+                .setLabel('Done Training - Begin Dungeon!')
+                .setStyle(ButtonStyle.Success)
+                .setEmoji('✅')
+        );
+
+    components.push(finalizeTutorialRow);
+
+    await interaction.followUp({ embeds: [storeEmbed], components, ephemeral: true });
+}
+
+/**
+ * Marks the tutorial as completed.
+ */
+async function finalizeTutorialCompletion(interaction, userId) {
+    try {
+        await db.execute(
+            'UPDATE users SET tutorial_completed = TRUE WHERE discord_id = ?',
+            [userId]
+        );
+        activeTutorialDrafts.delete(userId);
+
+        const embed = confirmEmbed(
+            'Training Complete!'
+        );
+        embed.addFields({ name: 'Your Adventure Awaits!', value: 'You are now ready to face the dangers of the dungeon. Good luck, adventurer!' });
+
+        const nextStepsRow = new ActionRowBuilder()
+            .addComponents(
+                new ButtonBuilder()
+                    .setCustomId('town_barracks')
+                    .setLabel('View Barracks')
+                    .setStyle(ButtonStyle.Secondary)
+                    .setEmoji('⚔️'),
+                new ButtonBuilder()
+                    .setCustomId('town_dungeon')
+                    .setLabel('Enter Dungeon')
+                    .setStyle(ButtonStyle.Primary)
+                    .setEmoji('🌀')
+            );
+
+        await interaction.editReply({ embeds: [embed], components: [nextStepsRow] });
+    } catch (error) {
+        console.error('Error finalizing tutorial completion:', error);
+        await interaction.editReply({ content: 'Failed to mark tutorial as complete due to an error. Please try again.', components: [] });
+    }
 }
 
 function chunkBattleLog(log, chunkSize = 1980) {
