@@ -1,4 +1,4 @@
-const { SlashCommandBuilder } = require('discord.js');
+const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
 const { simple } = require('../src/utils/embedBuilder');
 const db = require('../util/database');
 const {
@@ -13,9 +13,14 @@ module.exports = {
         .setName('inventory')
         .setDescription('View all cards and items in your collection.'),
     async execute(interaction) {
-        // The interaction has typically already been acknowledged by the
-        // calling context (e.g. a button press). We simply edit the existing
-        // reply rather than deferring again.
+        // Flag to track if this command handled the initial reply/deferral
+        let interactionHandledByThisCommand = false;
+
+        // When invoked directly as a slash command, we must defer the reply.
+        if (interaction.isChatInputCommand()) {
+            await interaction.deferReply({ ephemeral: true });
+            interactionHandledByThisCommand = true;
+        }
 
         const userId = interaction.user.id;
 
@@ -43,7 +48,7 @@ module.exports = {
                 switch (itemCategory) {
                     case 'hero':
                         itemData = allPossibleHeroes.find(h => h.id === row.item_id);
-                        if (itemData && itemData.isMonster) itemCategory = 'monster';
+                        if (itemData && itemData.is_monster) itemCategory = 'monster';
                         break;
                     case 'ability':
                         itemData = allPossibleAbilities.find(a => a.id === row.item_id);
@@ -60,7 +65,7 @@ module.exports = {
                     itemName = itemData.name;
                     itemRarity = itemData.rarity ? ` (${itemData.rarity})` : '';
                 } else if (itemCategory === 'monster') {
-                    itemData = allPossibleHeroes.find(h => h.id === row.item_id && h.isMonster);
+                    itemData = allPossibleHeroes.find(h => h.id === row.item_id && h.is_monster);
                     if (itemData) {
                         itemName = itemData.name;
                         itemRarity = itemData.rarity ? ` (${itemData.rarity})` : '';
@@ -91,10 +96,11 @@ module.exports = {
 
         } catch (error) {
             console.error('Error fetching inventory:', error);
-            if (interaction.replied || interaction.deferred) {
+            // If this command initiated the reply, edit that; otherwise edit the existing interaction
+            if (interactionHandledByThisCommand) {
                 await interaction.editReply({ content: 'Failed to retrieve your inventory due to an error.', components: [] });
             } else {
-                await interaction.reply({ content: 'Failed to retrieve your inventory due to an error.', ephemeral: true });
+                await interaction.editReply({ content: 'Failed to retrieve your inventory due to an error.', components: [] });
             }
         }
     },
