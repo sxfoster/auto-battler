@@ -1,6 +1,6 @@
 const fs = require('node:fs');
 const path = require('node:path');
-const { Client, Collection, GatewayIntentBits, Events, ActionRowBuilder, ButtonBuilder, ButtonStyle, StringSelectMenuBuilder, EmbedBuilder, AttachmentBuilder } = require('discord.js');
+const { Client, Collection, GatewayIntentBits, Events, ActionRowBuilder, ButtonBuilder, ButtonStyle, StringSelectMenuBuilder, EmbedBuilder } = require('discord.js');
 require('dotenv').config();
 const db = require('./util/database');
 const { simple } = require('./src/utils/embedBuilder');
@@ -13,7 +13,6 @@ const { loadAllData, gameData, getHeroes, getHeroById, getMonsters } = require('
 const { createCombatant } = require('../backend/game/utils');
 const GameEngine = require('../backend/game/engine');
 const { getTownMenu } = require('./commands/town.js');
-const { makeTeamImage } = require('./src/utils/imageGen');
 
 
 const client = new Client({ intents: [GatewayIntentBits.Guilds] });
@@ -348,15 +347,12 @@ client.on(Events.InteractionCreate, async interaction => {
                     await db.execute('INSERT INTO user_champions (user_id, base_hero_id) VALUES (?, ?)', [userId, summonedHero.id]);
 
                     const hero = getHeroes().find(h => h.id === summonedHero.id);
-                    const assetName = hero.name.toLowerCase().replace(/\s+/g, '-');
-                    const imageBuffer = await makeTeamImage([assetName]);
-                    const attachment = new AttachmentBuilder(imageBuffer, { name: 'summon.png' });
 
                     const embed = simple('✨ You Summoned a Champion! ✨', [
                         { name: summonedHero.name, value: `Rarity: ${summonedHero.rarity}\nClass: ${summonedHero.class}` }
-                    ]).setImage('attachment://summon.png');
+                    ]).setImage(hero.imageUrl);
 
-                    await interaction.reply({ embeds: [embed], files: [attachment], ephemeral: true });
+                    await interaction.reply({ embeds: [embed], ephemeral: true });
 
                     const disabledRow = new ActionRowBuilder()
                         .addComponents(
@@ -392,15 +388,12 @@ client.on(Events.InteractionCreate, async interaction => {
                     await db.execute('INSERT INTO user_champions (user_id, base_hero_id) VALUES (?, ?)', [userId, summonedMonster.id]);
 
                     const monster = getHeroes().find(h => h.id === summonedMonster.id);
-                    const assetName = monster.name.toLowerCase().replace(/\s+/g, '-');
-                    const imageBuffer = await makeTeamImage([assetName]);
-                    const attachment = new AttachmentBuilder(imageBuffer, { name: 'summon.png' });
 
                     const embed = simple('🔥 A Monster Emerges! 🔥', [
                         { name: summonedMonster.name, value: `Rarity: ${summonedMonster.rarity}\nTrait: ${summonedMonster.trait}` }
-                    ]).setImage('attachment://summon.png');
+                    ]).setImage(monster.imageUrl);
 
-                    await interaction.reply({ embeds: [embed], files: [attachment], ephemeral: true });
+                    await interaction.reply({ embeds: [embed], ephemeral: true });
 
                     const disabledRow = new ActionRowBuilder()
                         .addComponents(
