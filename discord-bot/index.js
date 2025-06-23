@@ -68,6 +68,25 @@ client.on(Events.InteractionCreate, async interaction => {
                 }
             }
         }
+        if (interaction.commandName === 'market' && interaction.options.getSubcommand() === 'list') {
+            const focused = interaction.options.getFocused(true);
+            if (focused.name === 'item') {
+                try {
+                    const userId = interaction.user.id;
+                    const [rows] = await db.execute(
+                        `SELECT i.id, i.name FROM user_inventory ui JOIN items i ON ui.item_id = i.id WHERE ui.user_id = ?`,
+                        [userId]
+                    );
+                    const filtered = rows
+                        .filter(r => r.name.toLowerCase().includes(focused.value.toLowerCase()))
+                        .slice(0, 25)
+                        .map(r => ({ name: r.name, value: r.id.toString() }));
+                    await interaction.respond(filtered);
+                } catch (err) {
+                    console.error('Autocomplete error:', err);
+                }
+            }
+        }
         return;
     }
     // --- Slash Command Handler ---
@@ -184,6 +203,79 @@ client.on(Events.InteractionCreate, async interaction => {
                 console.error('Error preparing champion management:', err);
                 if (!interaction.replied) {
                     await interaction.reply({ content: 'An error occurred while preparing this menu.', ephemeral: true });
+                }
+            }
+            return;
+        }
+        if (interaction.commandName === 'market') {
+            try {
+                const sub = interaction.options.getSubcommand();
+                if (sub === 'list') {
+                    const userId = interaction.user.id;
+                    const itemId = interaction.options.getString('item');
+                    const price = interaction.options.getInteger('price');
+
+                    const [[inv]] = await db.execute(
+                        'SELECT quantity FROM user_inventory WHERE user_id = ? AND item_id = ?',
+                        [userId, itemId]
+                    );
+                    if (!inv || inv.quantity < 1) {
+                        await interaction.reply({ content: 'You do not own that item.', ephemeral: true });
+                        return;
+                    }
+
+                    await db.execute(
+                        'UPDATE user_inventory SET quantity = quantity - 1 WHERE user_id = ? AND item_id = ?',
+                        [userId, itemId]
+                    );
+                    await db.execute(
+                        'DELETE FROM user_inventory WHERE user_id = ? AND item_id = ? AND quantity <= 0',
+                        [userId, itemId]
+                    );
+                    const [res] = await db.execute(
+                        'INSERT INTO market_listings (seller_id, item_id, price) VALUES (?, ?, ?)',
+                        [userId, itemId, price]
+                    );
+                    await interaction.reply({ content: `Listing created with ID ${res.insertId}.`, ephemeral: true });
+                } else if (sub === 'buy') {
+                    const listingId = interaction.options.getInteger('listing_id');
+                    const [[listing]] = await db.execute(
+                        'SELECT ml.*, i.name FROM market_listings ml JOIN items i ON ml.item_id = i.id WHERE ml.id = ?',
+                        [listingId]
+                    );
+                    if (!listing) {
+                        await interaction.reply({ content: 'Listing not found.', ephemeral: true });
+                        return;
+                    }
+                    const buyerId = interaction.user.id;
+                    const [[buyer]] = await db.execute(
+                        'SELECT soft_currency FROM users WHERE discord_id = ?',
+                        [buyerId]
+                    );
+                    if (!buyer || buyer.soft_currency < listing.price) {
+                        await interaction.reply({ content: 'You do not have enough gold.', ephemeral: true });
+                        return;
+                    }
+
+                    await db.execute(
+                        'UPDATE users SET soft_currency = soft_currency - ? WHERE discord_id = ?',
+                        [listing.price, buyerId]
+                    );
+                    await db.execute(
+                        'UPDATE users SET soft_currency = soft_currency + ? WHERE discord_id = ?',
+                        [listing.price, listing.seller_id]
+                    );
+                    await db.execute(
+                        'INSERT INTO user_inventory (user_id, item_id, quantity) VALUES (?, ?, 1) ON DUPLICATE KEY UPDATE quantity = quantity + 1',
+                        [buyerId, listing.item_id]
+                    );
+                    await db.execute('DELETE FROM market_listings WHERE id = ?', [listingId]);
+                    await interaction.reply({ content: `You bought ${listing.name} for ${listing.price} gold.`, ephemeral: true });
+                }
+            } catch (error) {
+                console.error('Error processing market command:', error);
+                if (!interaction.replied) {
+                    await interaction.reply({ content: 'An error occurred while processing this market command.', ephemeral: true });
                 }
             }
             return;
@@ -373,9 +465,20 @@ client.on(Events.InteractionCreate, async interaction => {
                     break;
                 }
                 case 'town_craft':
-                case 'town_market':
                     await interaction.reply({ content: 'This feature is coming soon!', ephemeral: true });
                     break;
+                case 'town_market': {
+                    const [rows] = await db.execute(
+                        `SELECT ml.id, ml.price, i.name FROM market_listings ml JOIN items i ON ml.item_id = i.id ORDER BY ml.id DESC LIMIT 10`
+                    );
+                    const list = rows.map(r => `#${r.id} - ${r.name} : ${r.price} gold`).join('\n') || 'No listings yet.';
+                    const embed = simple('💰 Marketplace', [
+                        { name: 'Recent Listings', value: list },
+                        { name: 'Usage', value: 'List items with `/market list` and buy with `/market buy`.' }
+                    ]);
+                    await interaction.reply({ embeds: [embed], ephemeral: true });
+                    break;
+                }
                 default:
                     break;
             }
