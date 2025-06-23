@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
+const { SlashCommandBuilder } = require('discord.js');
 const { simple } = require('../src/utils/embedBuilder');
 const db = require('../util/database');
 const {
@@ -13,11 +13,9 @@ module.exports = {
         .setName('inventory')
         .setDescription('View all cards and items in your collection.'),
     async execute(interaction) {
-        if (interaction.deferred || interaction.replied) {
-            await interaction.deferUpdate();
-        } else {
-            await interaction.deferReply({ ephemeral: true });
-        }
+        // The interaction has typically already been acknowledged by the
+        // calling context (e.g. a button press). We simply edit the existing
+        // reply rather than deferring again.
 
         const userId = interaction.user.id;
 
@@ -93,7 +91,7 @@ module.exports = {
 
         } catch (error) {
             console.error('Error fetching inventory:', error);
-            if (interaction.deferred || interaction.replied) {
+            if (interaction.replied || interaction.deferred) {
                 await interaction.editReply({ content: 'Failed to retrieve your inventory due to an error.', components: [] });
             } else {
                 await interaction.reply({ content: 'Failed to retrieve your inventory due to an error.', ephemeral: true });
