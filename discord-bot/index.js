@@ -52,6 +52,75 @@ client.once(Events.ClientReady, async () => {
 });
 
 
+// --- NEW HELPER FUNCTION: Calculate effective champion stats and get deck info ---
+/**
+ * Calculates a champion's effective stats and retrieves its deck ability.
+ * @param {object} championDbData - Data from user_champions table (includes equipped IDs).
+ * @returns {object} An object containing effective stats and deck ability name.
+ */
+async function getDetailedChampionInfo(championDbData) {
+    const hero = gameData.heroes.get(championDbData.base_hero_id);
+    const weapon = gameData.weapons.get(championDbData.equipped_weapon_id);
+    const armor = gameData.armors.get(championDbData.equipped_armor_id);
+
+    if (!hero) {
+        return {
+            name: `Unknown Hero (ID: ${championDbData.base_hero_id})`,
+            stats: 'N/A',
+            deck: 'N/A',
+            rarity: 'Unknown',
+            class: 'Unknown',
+            level: championDbData.level
+        };
+    }
+
+    let effectiveHp = hero.hp;
+    let effectiveAttack = hero.attack;
+    let effectiveSpeed = hero.speed;
+    let effectiveBlock = 0;
+    let effectiveMagicResist = 0;
+
+    if (weapon && weapon.statBonuses) {
+        if (weapon.statBonuses.HP) effectiveHp += weapon.statBonuses.HP;
+        if (weapon.statBonuses.ATK) effectiveAttack += weapon.statBonuses.ATK;
+        if (weapon.statBonuses.SPD) effectiveSpeed += weapon.statBonuses.SPD;
+    }
+
+    if (armor && armor.statBonuses) {
+        if (armor.statBonuses.HP) effectiveHp += armor.statBonuses.HP;
+        if (armor.statBonuses.ATK) effectiveAttack += armor.statBonuses.ATK;
+        if (armor.statBonuses.SPD) effectiveSpeed += armor.statBonuses.SPD;
+        if (armor.statBonuses.Block) effectiveBlock += armor.statBonuses.Block;
+        if (armor.statBonuses.MagicResist) effectiveMagicResist += armor.statBonuses.MagicResist;
+    }
+
+    const [deckAbilities] = await db.execute(
+        `SELECT a.name FROM champion_decks cd JOIN abilities a ON cd.ability_id = a.id WHERE cd.user_champion_id = ? ORDER BY cd.order_index ASC LIMIT 1`,
+        [championDbData.id]
+    );
+
+    const deckInfo = deckAbilities.length > 0
+        ? deckAbilities.map(ab => ab.name).join(', ')
+        : 'None (Manage to create a deck)';
+
+    return {
+        id: championDbData.id,
+        name: hero.name,
+        class: hero.class,
+        rarity: hero.rarity,
+        level: championDbData.level,
+        hp: effectiveHp,
+        attack: effectiveAttack,
+        speed: effectiveSpeed,
+        block: effectiveBlock,
+        magicResist: effectiveMagicResist,
+        deck: deckInfo,
+        imageUrl: hero.imageUrl
+    };
+}
+// --- END NEW HELPER FUNCTION ---
+
+
 // Handle slash commands
 client.on(Events.InteractionCreate, async interaction => {
     // --- Autocomplete Handler ---
@@ -208,11 +277,11 @@ client.on(Events.InteractionCreate, async interaction => {
                     const components = [];
                     if (availableAbilityOptions.length > 0) {
                         const deckAbilitySelect = new StringSelectMenuBuilder()
-                            .setCustomId(`add_ability_to_deck_${championId}`)
+                            .setCustomId(`manage_deck_ability_${championId}`)
                             .setPlaceholder('Add an ability to deck (1st slot only)')
                             .setMinValues(1)
                             .setMaxValues(1)
-                            .addOptions(availableAbilityOptions);
+                            .addOptions(availableAbilityOptions.slice(0, 25));
                         components.push(new ActionRowBuilder().addComponents(deckAbilitySelect));
                     } else {
                         components.push(new ActionRowBuilder().addComponents(
@@ -496,13 +565,20 @@ client.on(Events.InteractionCreate, async interaction => {
                     const [userRows] = await db.execute('SELECT soft_currency, hard_currency, summoning_shards, corrupted_lodestones FROM users WHERE discord_id = ?', [userId]);
                     const user = userRows[0] || {};
 
-                    const [roster] = await db.execute(
-                        `SELECT uc.id, h.name, h.rarity, h.class, uc.level
+                    const [rosterDbData] = await db.execute(
+                        `SELECT
+                            uc.id, uc.base_hero_id, uc.level, uc.xp,
+                            uc.equipped_weapon_id, uc.equipped_armor_id, uc.equipped_ability_id
                          FROM user_champions uc
-                         JOIN heroes h ON uc.base_hero_id = h.id
-                         WHERE uc.user_id = ? ORDER BY h.rarity DESC, uc.level DESC LIMIT 25`,
+                         WHERE uc.user_id = ? ORDER BY uc.level DESC, uc.id DESC LIMIT 25`,
                         [userId]
                     );
+
+                    const detailedRosterInfo = [];
+                    for (const champDbData of rosterDbData) {
+                        const info = await getDetailedChampionInfo(champDbData);
+                        detailedRosterInfo.push(info);
+                    }
 
                     const embed = new EmbedBuilder()
                         .setColor('#78716c')
@@ -513,8 +589,13 @@ client.on(Events.InteractionCreate, async interaction => {
                             { name: 'Summoning Shards', value: `✨ ${user.summoning_shards || 0}`, inline: true }
                         );
 
-                    if (roster.length > 0) {
-                        const rosterString = roster.map(c => `**${c.name}** (Lvl ${c.level}) - *${c.rarity} ${c.class}*`).join('\n');
+                    if (detailedRosterInfo.length > 0) {
+                        const rosterString = detailedRosterInfo.map(c =>
+                            `**${c.name}** (Lvl ${c.level}) - *${c.rarity} ${c.class}*\n` +
+                            `  HP: ${c.hp} | ATK: ${c.attack} | SPD: ${c.speed}\n` +
+                            `  Def: ${c.block} Block / ${c.magicResist} Magic Resist\n` +
+                            `  Deck: ${c.deck}`
+                        ).join('\n\n');
                         embed.addFields({ name: 'Champion Roster', value: rosterString });
                     } else {
                         embed.addFields({ name: 'Champion Roster', value: 'Your roster is empty. Visit the Summoning Circle!' });
@@ -575,13 +656,20 @@ client.on(Events.InteractionCreate, async interaction => {
                     const [userRows] = await db.execute('SELECT soft_currency, hard_currency, summoning_shards, corrupted_lodestones FROM users WHERE discord_id = ?', [userId]);
                     const user = userRows[0] || {};
 
-                    const [roster] = await db.execute(
-                        `SELECT h.name, h.rarity, h.class, uc.level
+                    const [rosterDbData] = await db.execute(
+                        `SELECT
+                            uc.id, uc.base_hero_id, uc.level, uc.xp,
+                            uc.equipped_weapon_id, uc.equipped_armor_id, uc.equipped_ability_id
                          FROM user_champions uc
-                         JOIN heroes h ON uc.base_hero_id = h.id
-                         WHERE uc.user_id = ? ORDER BY h.rarity DESC, uc.level DESC LIMIT 25`,
+                         WHERE uc.user_id = ? ORDER BY uc.level DESC, uc.id DESC LIMIT 25`,
                         [userId]
                     );
+
+                    const detailedRosterInfo = [];
+                    for (const champDbData of rosterDbData) {
+                        const info = await getDetailedChampionInfo(champDbData);
+                        detailedRosterInfo.push(info);
+                    }
 
                     const embed = new EmbedBuilder()
                         .setColor('#78716c')
@@ -592,8 +680,13 @@ client.on(Events.InteractionCreate, async interaction => {
                             { name: 'Summoning Shards', value: `✨ ${user.summoning_shards || 0}`, inline: true }
                         );
 
-                    if (roster.length > 0) {
-                        const rosterString = roster.map(c => `**${c.name}** (Lvl ${c.level}) - *${c.rarity} ${c.class}*`).join('\n');
+                    if (detailedRosterInfo.length > 0) {
+                        const rosterString = detailedRosterInfo.map(c =>
+                            `**${c.name}** (Lvl ${c.level}) - *${c.rarity} ${c.class}*\n` +
+                            `  HP: ${c.hp} | ATK: ${c.attack} | SPD: ${c.speed}\n` +
+                            `  Def: ${c.block} Block / ${c.magicResist} Magic Resist\n` +
+                            `  Deck: ${c.deck}`
+                        ).join('\n\n');
                         embed.addFields({ name: 'Champion Roster', value: rosterString });
                     } else {
                         embed.addFields({ name: 'Champion Roster', value: 'Your roster is empty. Visit the Summoning Circle!' });
@@ -747,7 +840,7 @@ client.on(Events.InteractionCreate, async interaction => {
             const components = [];
             if (abilityOptions.length > 0) {
                 const addAbilitySelectMenu = new StringSelectMenuBuilder()
-                    .setCustomId(`add_ability_to_deck_${selectedChampionId}`)
+                    .setCustomId(`manage_deck_ability_${selectedChampionId}`)
                     .setPlaceholder('Add an Ability to Deck (Slot 1)')
                     .addOptions(abilityOptions.slice(0, 25));
                 components.push(new ActionRowBuilder().addComponents(addAbilitySelectMenu));
@@ -770,9 +863,9 @@ client.on(Events.InteractionCreate, async interaction => {
             await interaction.editReply({ embeds: [embed], components: components });
             return;
         }
-        if (interaction.customId.startsWith('add_ability_to_deck_')) {
+        if (interaction.customId.startsWith('manage_deck_ability_')) {
             await interaction.deferUpdate();
-            const championId = parseInt(interaction.customId.replace('add_ability_to_deck_', ''));
+            const championId = parseInt(interaction.customId.replace('manage_deck_ability_', ''));
             const abilityId = parseInt(interaction.values[0]);
 
             try {
@@ -824,7 +917,7 @@ client.on(Events.InteractionCreate, async interaction => {
                 const components = [];
                 if (abilityOptionsAfterEquip.length > 0) {
                     const addAbilitySelectMenu = new StringSelectMenuBuilder()
-                        .setCustomId(`add_ability_to_deck_${championId}`)
+                        .setCustomId(`manage_deck_ability_${championId}`)
                         .setPlaceholder('Add an Ability to Deck (Slot 1)')
                         .addOptions(abilityOptionsAfterEquip.slice(0, 25));
                     components.push(new ActionRowBuilder().addComponents(addAbilitySelectMenu));
@@ -1210,17 +1303,23 @@ async function sendChampionRecapStep(interaction, userId) {
     const weapon = allPossibleWeapons.find(w => w.id === userDraftState.weaponId);
     const armor = allPossibleArmors.find(a => a.id === userDraftState.armorId);
 
-    const effectiveHp = hero.hp + (weapon.statBonuses.HP || 0) + (armor.statBonuses.HP || 0);
-    const effectiveAttack = hero.attack + (weapon.statBonuses.ATK || 0) + (armor.statBonuses.ATK || 0);
-    const effectiveSpeed = hero.speed + (weapon.statBonuses.SPD || 0) + (armor.statBonuses.SPD || 0);
+    const detailedInfo = await getDetailedChampionInfo({
+        id: 'temp',
+        base_hero_id: hero.id,
+        equipped_weapon_id: weapon.id,
+        equipped_armor_id: armor.id,
+        equipped_ability_id: ability.id,
+        level: 1
+    });
 
     const embed = new EmbedBuilder()
         .setColor('#29b6f6')
         .setTitle('Your Champion is Ready!')
-        .setDescription(`**${hero.name}** - the **${hero.class}**`)
-        .setThumbnail(hero.imageUrl || 'https://placehold.co/100x100')
+        .setDescription(`**${detailedInfo.name}** - the **${detailedInfo.class}**`)
+        .setThumbnail(detailedInfo.imageUrl || 'https://placehold.co/100x100')
         .addFields(
-            { name: 'Core Stats', value: `HP: **${effectiveHp}** | ATK: **${effectiveAttack}** | SPD: **${effectiveSpeed}**`, inline: false },
+            { name: 'Core Stats', value: `HP: **${detailedInfo.hp}** | ATK: **${detailedInfo.attack}** | SPD: **${detailedInfo.speed}**`, inline: false },
+            { name: 'Defense', value: `Block: **${detailedInfo.block}** | Magic Resist: **${detailedInfo.magicResist}**`, inline: false },
             { name: 'Equipped Ability', value: `${ability.name} (⚡${ability.energyCost})`, inline: true },
             { name: 'Equipped Weapon', value: weapon.name, inline: true },
             { name: 'Equipped Armor', value: armor.name, inline: true },
@@ -1254,7 +1353,7 @@ async function finalizeChampion(interaction, userId) {
     };
 
     try {
-        await db.execute(
+        const [insertResult] = await db.execute(
             `INSERT INTO user_champions (user_id, base_hero_id, equipped_ability_id, equipped_weapon_id, equipped_armor_id, level, xp)
              VALUES (?, ?, ?, ?, ?, ?, ?)`,
             [
@@ -1267,6 +1366,14 @@ async function finalizeChampion(interaction, userId) {
                 championData.xp
             ]
         );
+        const newChampionId = insertResult.insertId;
+
+        if (championData.equipped_ability_id) {
+            await db.execute(
+                `INSERT INTO champion_decks (user_champion_id, ability_id, order_index) VALUES (?, ?, 0)`,
+                [newChampionId, championData.equipped_ability_id]
+            );
+        }
 
         await db.execute('UPDATE users SET tutorial_completed = TRUE WHERE discord_id = ?', [userId]);
 
