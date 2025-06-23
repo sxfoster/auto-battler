@@ -1430,40 +1430,58 @@ async function sendChampionRecapStep(interaction, userId, champNum) {
  * @returns {Promise<number>} The ID of the newly created user_champion.
  */
 async function insertAndDeckChampion(userId, champData) {
-    console.log(`[DEBUG] Attempting to insert champion for user ${userId} with data:`, champData);
+    let connection;
+    try {
+        console.log(`[DEBUG] Attempting to insert champion for user ${userId} with data:`, champData);
 
-    const [insertResult] = await db.execute(
-        `INSERT INTO user_champions (user_id, base_hero_id, equipped_ability_id, equipped_weapon_id, equipped_armor_id, level, xp)
-         VALUES (?, ?, ?, ?, ?, ?, ?)`,
-        [
-            userId,
-            champData.heroId,
-            champData.abilityId,
-            champData.weaponId,
-            champData.armorId,
-            1,
-            0
-        ]
-    );
-    const newChampionId = insertResult.insertId;
-    console.log(`[DEBUG] Inserted user_champion, new ID: ${newChampionId} for user ${userId}`);
+        connection = await db.getConnection();
+        await connection.beginTransaction();
 
-    if (champData.abilityId) {
-        try {
-            await db.execute(
-                `INSERT INTO champion_decks (user_champion_id, ability_id, order_index) VALUES (?, ?, 0)`,
-                [newChampionId, champData.abilityId, 0]
-            );
-            console.log(`[DEBUG] Successfully inserted champion_decks entry for champion ID: ${newChampionId}`);
-        } catch (deckInsertError) {
-            console.error(`[ERROR] Failed to insert into champion_decks for champ ID ${newChampionId}:`, deckInsertError.message);
-            throw deckInsertError;
+        const [insertResult] = await connection.execute(
+            `INSERT INTO user_champions (user_id, base_hero_id, equipped_ability_id, equipped_weapon_id, equipped_armor_id, level, xp)
+             VALUES (?, ?, ?, ?, ?, ?, ?)`,
+            [
+                userId,
+                champData.heroId,
+                champData.abilityId,
+                champData.weaponId,
+                champData.armorId,
+                1,
+                0
+            ]
+        );
+        const newChampionId = insertResult.insertId;
+        console.log(`[DEBUG] Inserted user_champion, new ID: ${newChampionId} for user ${userId}`);
+
+        if (champData.abilityId) {
+            try {
+                await connection.execute(
+                    `INSERT INTO champion_decks (user_champion_id, ability_id, order_index) VALUES (?, ?, 0)`,
+                    [newChampionId, champData.abilityId, 0]
+                );
+                console.log(`[DEBUG] Successfully inserted champion_decks entry for champion ID: ${newChampionId}`);
+            } catch (deckInsertError) {
+                console.error(`[ERROR] Failed to insert into champion_decks for champ ID ${newChampionId}:`, deckInsertError.message);
+                throw deckInsertError;
+            }
+        } else {
+            console.log(`[DEBUG] No ability selected for champion ID: ${newChampionId}, skipping champion_decks insert.`);
         }
-    } else {
-        console.log(`[DEBUG] No ability selected for champion ID: ${newChampionId}, skipping champion_decks insert.`);
-    }
 
-    return newChampionId;
+        await connection.commit();
+        return newChampionId;
+
+    } catch (error) {
+        if (connection) {
+            console.log(`[DEBUG] Rolling back transaction for user ${userId} due to error.`);
+            await connection.rollback();
+        }
+        throw error;
+    } finally {
+        if (connection) {
+            connection.release();
+        }
+    }
 }
 
 /**
