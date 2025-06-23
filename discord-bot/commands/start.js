@@ -4,20 +4,20 @@ const { simple } = require('../src/utils/embedBuilder');
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('start')
-        .setDescription('Begin your adventure and create your first champion!'),
+        .setDescription('Begin your adventure and create your first champions!'),
     async execute(interaction) {
         const embed = simple(
-            'Welcome, Adventurer! Your Journey Begins!',
+            'Welcome to the Grand Adventure!',
             [
-                { name: 'Embark on a grand quest!', value: 'Before you delve into the dungeons, you\'ll first need a champion. This quick guide will help you assemble your first hero, step-by-step!' }
+                { name: 'Your Journey Begins!', value: 'Prepare to forge your path in a world of mighty heroes and formidable monsters. To begin, let\'s get you equipped with your first champions and some starting resources!' }
             ]
         );
 
         const row = new ActionRowBuilder()
             .addComponents(
                 new ButtonBuilder()
-                    .setCustomId('tutorial_start_draft')
-                    .setLabel('Start Champion Draft')
+                    .setCustomId('tutorial_start_new_flow')
+                    .setLabel('Begin Your Training')
                     .setStyle(ButtonStyle.Primary)
             );
 
