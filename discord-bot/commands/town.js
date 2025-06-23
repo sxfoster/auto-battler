@@ -20,7 +20,7 @@ module.exports = {
         const row2 = new ActionRowBuilder()
             .addComponents(
                 new ButtonBuilder().setCustomId('town_forge').setLabel('The Forge').setStyle(ButtonStyle.Secondary).setEmoji('🔥'),
-                new ButtonBuilder().setCustomId('town_market').setLabel('Marketplace').setStyle(ButtonStyle.Secondary).setEmoji('💰').setDisabled(true)
+                new ButtonBuilder().setCustomId('town_market').setLabel('Marketplace').setStyle(ButtonStyle.Secondary).setEmoji('💰')
             );
 
         const row3 = new ActionRowBuilder()
