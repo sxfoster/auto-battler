@@ -904,6 +904,9 @@ client.on(Events.InteractionCreate, async interaction => {
                             awardedCardsCount = 2;
                             actualItemType = 'armor';
                             break;
+                        default:
+                            await interaction.editReply({ content: 'Internal error: Unknown pack content type.', ephemeral: true });
+                            return;
                     }
                     const awardedCards = getRandomCardsForPack(cardPool, awardedCardsCount, packInfo.rarity);
 
