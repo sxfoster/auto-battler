@@ -339,6 +339,39 @@ client.on(Events.InteractionCreate, async interaction => {
                     await interaction.reply({ content: 'Choose your team for the dungeon fight!', components: [row], ephemeral: true });
                     break;
                 }
+                case 'town_forge': {
+                    const userId = interaction.user.id;
+                    const [recipeRows] = await db.execute(
+                        `SELECT r.id, r.name FROM user_recipes ur JOIN recipes r ON ur.recipe_id = r.id WHERE ur.user_id = ?`,
+                        [userId]
+                    );
+                    const [materialRows] = await db.execute(
+                        `SELECT i.name, ui.quantity FROM user_inventory ui JOIN items i ON ui.item_id = i.id WHERE ui.user_id = ?`,
+                        [userId]
+                    );
+
+                    const recipeList = recipeRows.map(r => r.name).join('\n') || 'None';
+                    const materialList = materialRows.map(m => `${m.name} x${m.quantity}`).join('\n') || 'None';
+
+                    const embed = new EmbedBuilder()
+                        .setColor('#29b6f6')
+                        .setTitle('The Forge')
+                        .addFields(
+                            { name: 'Known Recipes', value: recipeList },
+                            { name: 'Materials', value: materialList }
+                        );
+
+                    const menu = new StringSelectMenuBuilder()
+                        .setCustomId('craft_item_select')
+                        .setPlaceholder('Select a recipe')
+                        .setMinValues(1)
+                        .setMaxValues(1)
+                        .addOptions(recipeRows.map(r => ({ label: r.name, value: r.id.toString() })));
+                    const forgeRow = new ActionRowBuilder().addComponents(menu);
+
+                    await interaction.reply({ embeds: [embed], components: recipeRows.length ? [forgeRow] : [], ephemeral: true });
+                    break;
+                }
                 case 'town_craft':
                 case 'town_market':
                     await interaction.reply({ content: 'This feature is coming soon!', ephemeral: true });
@@ -507,6 +540,39 @@ client.on(Events.InteractionCreate, async interaction => {
             } catch (error) {
                 console.error('Error updating ability:', error);
                 await interaction.update({ content: 'An error occurred while updating equipment.', components: [] });
+            }
+        } else if (interaction.customId === 'craft_item_select') {
+            try {
+                const recipeId = interaction.values[0];
+                const userId = interaction.user.id;
+
+                const [[recipe]] = await db.execute('SELECT id, name, output_item_id FROM recipes WHERE id = ?', [recipeId]);
+                if (!recipe) {
+                    await interaction.update({ content: 'Recipe not found.', components: [] });
+                    return;
+                }
+
+                const [ingredients] = await db.execute('SELECT item_id, quantity FROM recipe_ingredients WHERE recipe_id = ?', [recipeId]);
+
+                for (const ing of ingredients) {
+                    const [[inv]] = await db.execute('SELECT quantity FROM user_inventory WHERE user_id = ? AND item_id = ?', [userId, ing.item_id]);
+                    if (!inv || inv.quantity < ing.quantity) {
+                        await interaction.update({ content: 'You lack the required materials.', components: [] });
+                        return;
+                    }
+                }
+
+                for (const ing of ingredients) {
+                    await db.execute('UPDATE user_inventory SET quantity = quantity - ? WHERE user_id = ? AND item_id = ?', [ing.quantity, userId, ing.item_id]);
+                    await db.execute('DELETE FROM user_inventory WHERE user_id = ? AND item_id = ? AND quantity <= 0', [userId, ing.item_id]);
+                }
+
+                await db.execute('INSERT INTO user_inventory (user_id, item_id, quantity) VALUES (?, ?, 1) ON DUPLICATE KEY UPDATE quantity = quantity + 1', [userId, recipe.output_item_id]);
+
+                await interaction.update({ content: `You successfully crafted ${recipe.name}!`, components: [] });
+            } catch (error) {
+                console.error('Error crafting item:', error);
+                await interaction.update({ content: 'An error occurred while crafting.', components: [] });
             }
         }
         return;
