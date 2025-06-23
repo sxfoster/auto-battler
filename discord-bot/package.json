@@ -4,6 +4,7 @@
   "description": "Auto battler discord bot",
   "main": "index.js",
   "dependencies": {
-    "discord.js": "^14.13.0"
+    "discord.js": "^14.13.0",
+    "mysql2": "^3.6.0"
   }
 }
