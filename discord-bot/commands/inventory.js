@@ -13,22 +13,36 @@ module.exports = {
         .setName('inventory')
         .setDescription('View all cards and items in your collection.'),
     async execute(interaction) {
+        console.log(`[INVENTORY DEBUG] Received interaction for user: ${interaction.user.id}, customId: ${interaction.customId || 'N/A'}, commandName: ${interaction.commandName || 'N/A'}`);
+        console.log(`[INVENTORY DEBUG] Interaction type: ${interaction.type}, isChatInputCommand: ${interaction.isChatInputCommand()}`);
+
         // Flag to track if this command handled the initial reply/deferral
         let interactionHandledByThisCommand = false;
 
         // When invoked directly as a slash command, we must defer the reply.
         if (interaction.isChatInputCommand()) {
-            await interaction.deferReply({ ephemeral: true });
-            interactionHandledByThisCommand = true;
+            try {
+                console.log('[INVENTORY DEBUG] Attempting to deferReply for slash command.');
+                await interaction.deferReply({ ephemeral: true });
+                interactionHandledByThisCommand = true;
+                console.log(`[INVENTORY DEBUG] deferReply successful. interactionHandledByThisCommand: ${interactionHandledByThisCommand}`);
+            } catch (deferError) {
+                console.error('[INVENTORY ERROR] deferReply failed for slash command:', deferError);
+                return;
+            }
+        } else {
+            console.log('[INVENTORY DEBUG] Not a chat input command. Assuming caller handled deferral.');
         }
 
         const userId = interaction.user.id;
+        console.log(`[INVENTORY DEBUG] Fetching inventory for user: ${userId}`);
 
         try {
             const [rows] = await db.execute(
                 `SELECT item_id, quantity, item_type FROM user_inventory WHERE user_id = ?`,
                 [userId]
             );
+            console.log(`[INVENTORY DEBUG] Fetched ${rows.length} inventory rows.`);
 
             const inventory = {
                 hero: [],
@@ -78,6 +92,7 @@ module.exports = {
                     inventory.other.push(`**${itemName}**${itemRarity} x${row.quantity}`);
                 }
             }
+            console.log('[INVENTORY DEBUG] Inventory processed.');
 
             const fields = [];
             if (inventory.hero.length > 0) fields.push({ name: 'Champions (Base)', value: inventory.hero.join('\n'), inline: true });
@@ -90,17 +105,19 @@ module.exports = {
             if (fields.length === 0) {
                 fields.push({ name: 'Your Inventory is Empty!', value: 'Use `/openpack` to acquire new cards!' });
             }
+            console.log('[INVENTORY DEBUG] Embed fields prepared.');
 
             const embed = simple('🎒 Your Collection', fields);
+            console.log('[INVENTORY DEBUG] Attempting to editReply.');
             await interaction.editReply({ embeds: [embed], components: [] });
+            console.log('[INVENTORY DEBUG] editReply successful.');
 
         } catch (error) {
-            console.error('Error fetching inventory:', error);
-            // If this command initiated the reply, edit that; otherwise edit the existing interaction
+            console.error('[INVENTORY ERROR] Error fetching or processing inventory:', error);
             if (interactionHandledByThisCommand) {
-                await interaction.editReply({ content: 'Failed to retrieve your inventory due to an error.', components: [] });
+                await interaction.editReply({ content: 'Failed to retrieve your inventory due to an error. Check bot console for details.', components: [] });
             } else {
-                await interaction.editReply({ content: 'Failed to retrieve your inventory due to an error.', components: [] });
+                await interaction.editReply({ content: 'Failed to retrieve your inventory due to an error. Check bot console for details.', components: [] });
             }
         }
     },
