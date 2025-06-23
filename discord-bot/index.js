@@ -346,11 +346,17 @@ client.on(Events.InteractionCreate, async interaction => {
 
                     await db.execute('INSERT INTO user_champions (user_id, base_hero_id) VALUES (?, ?)', [userId, summonedHero.id]);
 
-                    const hero = getHeroes().find(h => h.id === summonedHero.id);
-
-                    const embed = simple('✨ You Summoned a Champion! ✨', [
-                        { name: summonedHero.name, value: `Rarity: ${summonedHero.rarity}\nClass: ${summonedHero.class}` }
-                    ]).setImage(hero.imageUrl);
+                    const embed = new EmbedBuilder()
+                        .setColor('#29b6f6')
+                        .setTitle(summonedHero.name.toUpperCase())
+                        .setImage(summonedHero.imageUrl)
+                        .addFields(
+                            { name: 'HP', value: `**${summonedHero.hp}**`, inline: true },
+                            { name: 'Attack', value: `**${summonedHero.attack}**`, inline: true },
+                            { name: 'Class', value: summonedHero.class, inline: false }
+                        )
+                        .setFooter({ text: 'Auto-Battler Bot' })
+                        .setTimestamp();
 
                     await interaction.reply({ embeds: [embed], ephemeral: true });
 
@@ -387,11 +393,17 @@ client.on(Events.InteractionCreate, async interaction => {
 
                     await db.execute('INSERT INTO user_champions (user_id, base_hero_id) VALUES (?, ?)', [userId, summonedMonster.id]);
 
-                    const monster = getHeroes().find(h => h.id === summonedMonster.id);
-
-                    const embed = simple('🔥 A Monster Emerges! 🔥', [
-                        { name: summonedMonster.name, value: `Rarity: ${summonedMonster.rarity}\nTrait: ${summonedMonster.trait}` }
-                    ]).setImage(monster.imageUrl);
+                    const embed = new EmbedBuilder()
+                        .setColor('#e11d48')
+                        .setTitle(summonedMonster.name.toUpperCase())
+                        .setImage(summonedMonster.imageUrl)
+                        .addFields(
+                            { name: 'HP', value: `**${summonedMonster.hp}**`, inline: true },
+                            { name: 'Attack', value: `**${summonedMonster.attack}**`, inline: true },
+                            { name: 'Trait', value: summonedMonster.trait, inline: false }
+                        )
+                        .setFooter({ text: 'Auto-Battler Bot' })
+                        .setTimestamp();
 
                     await interaction.reply({ embeds: [embed], ephemeral: true });
 
