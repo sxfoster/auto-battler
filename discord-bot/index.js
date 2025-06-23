@@ -9,7 +9,7 @@ const {
   allPossibleArmors,
   allPossibleAbilities
 } = require('../backend/game/data');
-const { loadHeroes, getHeroes, getHeroById, getMonsters } = require('./util/gameData');
+const { loadAllData, gameData, getHeroes, getHeroById, getMonsters } = require('./util/gameData');
 const { createCombatant } = require('../backend/game/utils');
 const GameEngine = require('../backend/game/engine');
 
@@ -38,7 +38,7 @@ client.once(Events.ClientReady, async () => {
     try {
         const [rows, fields] = await db.execute('SELECT 1');
         console.log('✅ Database connection successful.');
-        await loadHeroes();
+        await loadAllData();
     } catch (error) {
         console.error('❌ Database connection failed:', error);
     }
@@ -432,51 +432,14 @@ client.on(Events.InteractionCreate, async interaction => {
                     break;
                 }
                 case 'town_forge': {
-                    const userId = interaction.user.id;
-                    const [recipeRows] = await db.execute(
-                        `SELECT r.id, r.name FROM user_recipes ur JOIN recipes r ON ur.recipe_id = r.id WHERE ur.user_id = ?`,
-                        [userId]
-                    );
-                    const [materialRows] = await db.execute(
-                        `SELECT i.name, ui.quantity FROM user_inventory ui JOIN items i ON ui.item_id = i.id WHERE ui.user_id = ?`,
-                        [userId]
-                    );
-
-                    const recipeList = recipeRows.map(r => r.name).join('\n') || 'None';
-                    const materialList = materialRows.map(m => `${m.name} x${m.quantity}`).join('\n') || 'None';
-
-                    const embed = new EmbedBuilder()
-                        .setColor('#29b6f6')
-                        .setTitle('The Forge')
-                        .addFields(
-                            { name: 'Known Recipes', value: recipeList },
-                            { name: 'Materials', value: materialList }
-                        );
-
-                    const menu = new StringSelectMenuBuilder()
-                        .setCustomId('craft_item_select')
-                        .setPlaceholder('Select a recipe')
-                        .setMinValues(1)
-                        .setMaxValues(1)
-                        .addOptions(recipeRows.map(r => ({ label: r.name, value: r.id.toString() })));
-                    const forgeRow = new ActionRowBuilder().addComponents(menu);
-
-                    await interaction.reply({ embeds: [embed], components: recipeRows.length ? [forgeRow] : [], ephemeral: true });
+                    await interaction.reply({ content: "The Forge is not yet open. Check back later!", ephemeral: true });
                     break;
                 }
                 case 'town_craft':
                     await interaction.reply({ content: 'This feature is coming soon!', ephemeral: true });
                     break;
                 case 'town_market': {
-                    const [rows] = await db.execute(
-                        `SELECT ml.id, ml.price, i.name FROM market_listings ml JOIN items i ON ml.item_id = i.id ORDER BY ml.id DESC LIMIT 10`
-                    );
-                    const list = rows.map(r => `#${r.id} - ${r.name} : ${r.price} gold`).join('\n') || 'No listings yet.';
-                    const embed = simple('💰 Marketplace', [
-                        { name: 'Recent Listings', value: list },
-                        { name: 'Usage', value: 'List items with `/market list` and buy with `/market buy`.' }
-                    ]);
-                    await interaction.reply({ embeds: [embed], ephemeral: true });
+                    await interaction.reply({ content: "The Marketplace is currently under construction.", ephemeral: true });
                     break;
                 }
                 default:
