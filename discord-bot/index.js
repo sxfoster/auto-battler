@@ -1423,6 +1423,50 @@ async function sendChampionRecapStep(interaction, userId, champNum) {
 }
 
 /**
+ * Helper function to insert a single champion into the database and its equipped ability into champion_decks.
+ * This function is designed to ensure the champion is created before its deck.
+ * @param {string} userId - The Discord ID of the user.
+ * @param {object} champData - Object containing heroId, abilityId, weaponId, armorId.
+ * @returns {Promise<number>} The ID of the newly created user_champion.
+ */
+async function insertAndDeckChampion(userId, champData) {
+    console.log(`[DEBUG] Attempting to insert champion for user ${userId} with data:`, champData);
+
+    const [insertResult] = await db.execute(
+        `INSERT INTO user_champions (user_id, base_hero_id, equipped_ability_id, equipped_weapon_id, equipped_armor_id, level, xp)
+         VALUES (?, ?, ?, ?, ?, ?, ?)`,
+        [
+            userId,
+            champData.heroId,
+            champData.abilityId,
+            champData.weaponId,
+            champData.armorId,
+            1,
+            0
+        ]
+    );
+    const newChampionId = insertResult.insertId;
+    console.log(`[DEBUG] Inserted user_champion, new ID: ${newChampionId} for user ${userId}`);
+
+    if (champData.abilityId) {
+        try {
+            await db.execute(
+                `INSERT INTO champion_decks (user_champion_id, ability_id, order_index) VALUES (?, ?, 0)`,
+                [newChampionId, champData.abilityId, 0]
+            );
+            console.log(`[DEBUG] Successfully inserted champion_decks entry for champion ID: ${newChampionId}`);
+        } catch (deckInsertError) {
+            console.error(`[ERROR] Failed to insert into champion_decks for champ ID ${newChampionId}:`, deckInsertError.message);
+            throw deckInsertError;
+        }
+    } else {
+        console.log(`[DEBUG] No ability selected for champion ID: ${newChampionId}, skipping champion_decks insert.`);
+    }
+
+    return newChampionId;
+}
+
+/**
  * Finalizes both champions and saves them to the database.
  * @param {Interaction} interaction
  * @param {string} userId
@@ -1433,33 +1477,8 @@ async function finalizeChampionTeam(interaction, userId) {
     const champion2Data = userDraftState.champion2;
 
     try {
-        const insertChampion = async (champData) => {
-            const [insertResult] = await db.execute(
-                `INSERT INTO user_champions (user_id, base_hero_id, equipped_ability_id, equipped_weapon_id, equipped_armor_id, level, xp)
-                 VALUES (?, ?, ?, ?, ?, ?, ?)`,
-                [
-                    userId,
-                    champData.heroId,
-                    champData.abilityId,
-                    champData.weaponId,
-                    champData.armorId,
-                    1,
-                    0
-                ]
-            );
-            const newChampionId = insertResult.insertId;
-
-            if (champData.abilityId) {
-                await db.execute(
-                    `INSERT INTO champion_decks (user_champion_id, ability_id, order_index) VALUES (?, ?, 0)`,
-                    [newChampionId, champData.abilityId, 0]
-                );
-            }
-            return newChampionId;
-        };
-
-        await insertChampion(champion1Data);
-        await insertChampion(champion2Data);
+        await insertAndDeckChampion(userId, champion1Data);
+        await insertAndDeckChampion(userId, champion2Data);
 
         await db.execute(
             'UPDATE users SET tutorial_completed = TRUE WHERE discord_id = ?',
