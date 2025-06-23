@@ -1,6 +1,15 @@
 const { Client, GatewayIntentBits, Partials, Collection, Events, ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, SlashCommandBuilder } = require('discord.js');
+const mysql = require('mysql2/promise');
 
 const token = process.env.DISCORD_TOKEN || 'YOUR_BOT_TOKEN';
+
+// Database connection pool for persistent user data
+const db = mysql.createPool({
+    host: process.env.MYSQL_HOST || 'localhost',
+    user: process.env.MYSQL_USER || 'root',
+    password: process.env.MYSQL_PASSWORD || '',
+    database: process.env.MYSQL_DATABASE || 'autobattler'
+});
 
 const client = new Client({
     intents: [GatewayIntentBits.Guilds],
@@ -8,24 +17,6 @@ const client = new Client({
 });
 
 client.commands = new Collection();
-
-// Simple in-memory user data
-const users = new Map(); // key: discordId, value: { soft_currency: 0, hard_currency: 0 }
-const userInventory = new Map(); // key: discordId, value: Map(itemId => quantity)
-
-function getUser(id) {
-    if (!users.has(id)) {
-        users.set(id, { soft_currency: 0, hard_currency: 0 });
-    }
-    return users.get(id);
-}
-
-function addItemToInventory(userId, itemId, itemType) {
-    if (!userInventory.has(userId)) userInventory.set(userId, new Map());
-    const inv = userInventory.get(userId);
-    const key = `${itemType}:${itemId}`;
-    inv.set(key, (inv.get(key) || 0) + 1);
-}
 
 function simple(title, fields) {
     return new EmbedBuilder().setColor('#29b6f6').setTitle(title).addFields(fields);
@@ -149,13 +140,18 @@ client.on(Events.InteractionCreate, async interaction => {
                 return;
             }
 
-            const user = getUser(userId);
-            if (user[packInfo.currency] < packInfo.cost) {
+            const [userRows] = await db.execute(`SELECT ${packInfo.currency} FROM users WHERE discord_id = ?`, [userId]);
+            const user = userRows[0];
+
+            if (!user || user[packInfo.currency] < packInfo.cost) {
                 await interaction.editReply({ content: `You don't have enough ${packInfo.currency === 'soft_currency' ? 'Gold 🪙' : 'Gems 💎'} to buy the ${packInfo.name}! You need ${packInfo.cost}.`, ephemeral: true });
                 return;
             }
 
-            user[packInfo.currency] -= packInfo.cost;
+            await db.execute(
+                `UPDATE users SET ${packInfo.currency} = ${packInfo.currency} - ? WHERE discord_id = ?`,
+                [packInfo.cost, userId]
+            );
 
             let cardPool = [];
             let count = 1;
@@ -187,7 +183,16 @@ client.on(Events.InteractionCreate, async interaction => {
             const cardNames = [];
             for (const card of awardedCards) {
                 cardNames.push(`**${card.name}** (${card.rarity})`);
-                addItemToInventory(userId, card.id, type);
+                try {
+                    await db.execute(
+                        `INSERT INTO user_inventory (user_id, item_id, quantity, item_type)
+                         VALUES (?, ?, 1, ?)
+                         ON DUPLICATE KEY UPDATE quantity = quantity + 1`,
+                        [userId, card.id, type]
+                    );
+                } catch (error) {
+                    console.error(`Error adding card ${card.id} to inventory for user ${userId} during purchase:`, error);
+                }
             }
 
             const resultsEmbed = simple(`🎉 You bought and opened a ${packInfo.name}!`, [
