@@ -922,13 +922,15 @@ client.on(Events.InteractionCreate, async interaction => {
                         }
                     }
 
-                    const resultsEmbed = simple(
-                        `🎉 You bought and opened a ${packInfo.name}!`,
-                        [{ name: 'Cards Received', value: cardNames.join('\n') }]
-                    );
+                    const resultsEmbed = new EmbedBuilder()
+                        .setColor('#FDE047')
+                        .setTitle(`✨ ${packInfo.name} Opened! ✨`)
+                        .setDescription(`You spent ${packInfo.cost} ${packInfo.currency === 'soft_currency' ? 'Gold 🪙' : 'Gems 💎'}.`)
+                        .addFields({ name: 'Cards Received:', value: cardNames.join('\n') || 'No cards received.', inline: false })
+                        .setFooter({ text: 'Your new cards have been added to your collection!' })
+                        .setTimestamp();
 
                     await interaction.editReply({ embeds: [resultsEmbed] });
-                    await interaction.followUp({ embeds: [confirmEmbed('Your new cards have been added to your collection!')], ephemeral: true });
                     break;
                 }
                 case 'back_to_market': {
