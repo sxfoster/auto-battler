@@ -46,6 +46,29 @@ client.once(Events.ClientReady, async () => {
 
 // Handle slash commands
 client.on(Events.InteractionCreate, async interaction => {
+    // --- Autocomplete Handler ---
+    if (interaction.isAutocomplete()) {
+        if (interaction.commandName === 'team' && interaction.options.getSubcommand() === 'manage') {
+            const focused = interaction.options.getFocused(true);
+            if (focused.name === 'champion') {
+                try {
+                    const userId = interaction.user.id;
+                    const [rows] = await db.execute(
+                        `SELECT uc.id, h.name FROM user_champions uc JOIN heroes h ON uc.base_hero_id = h.id WHERE uc.user_id = ?`,
+                        [userId]
+                    );
+                    const filtered = rows
+                        .filter(r => r.name.toLowerCase().includes(focused.value.toLowerCase()))
+                        .slice(0, 25)
+                        .map(r => ({ name: r.name, value: r.id.toString() }));
+                    await interaction.respond(filtered);
+                } catch (err) {
+                    console.error('Autocomplete error:', err);
+                }
+            }
+        }
+        return;
+    }
     // --- Slash Command Handler ---
     if (interaction.isChatInputCommand()) {
         if (interaction.commandName === 'team' && interaction.options.getSubcommand() === 'set-defense') {
@@ -84,6 +107,82 @@ client.on(Events.InteractionCreate, async interaction => {
                 console.error('Error preparing defense team selection:', error);
                 if (!interaction.replied) {
                     await interaction.reply({ content: 'An error occurred while preparing your defense team.', ephemeral: true });
+                }
+            }
+            return;
+        }
+        if (interaction.commandName === 'team' && interaction.options.getSubcommand() === 'manage') {
+            try {
+                const userId = interaction.user.id;
+                const championId = interaction.options.getString('champion');
+                const [rows] = await db.execute(
+                    `SELECT uc.*, h.name FROM user_champions uc JOIN heroes h ON uc.base_hero_id = h.id WHERE uc.id = ? AND uc.user_id = ?`,
+                    [championId, userId]
+                );
+                if (rows.length === 0) {
+                    await interaction.reply({ content: 'Champion not found.', ephemeral: true });
+                    return;
+                }
+                const champ = rows[0];
+
+                const [invRows] = await db.execute('SELECT item_id FROM user_inventory WHERE user_id = ?', [userId]);
+                const weapons = [];
+                const armors = [];
+                const abilities = [];
+                for (const inv of invRows) {
+                    const wid = parseInt(inv.item_id);
+                    const w = allPossibleWeapons.find(x => x.id === wid);
+                    if (w) weapons.push({ label: w.name, value: String(w.id) });
+                    const a = allPossibleArmors.find(x => x.id === wid);
+                    if (a) armors.push({ label: a.name, value: String(a.id) });
+                    const ab = allPossibleAbilities.find(x => x.id === wid);
+                    if (ab) abilities.push({ label: ab.name, value: String(ab.id) });
+                }
+
+                const embed = new EmbedBuilder()
+                    .setColor('#29b6f6')
+                    .setTitle(champ.name)
+                    .addFields(
+                        { name: 'Level', value: String(champ.level), inline: true },
+                        { name: 'XP', value: String(champ.xp || 0), inline: true },
+                        { name: 'Weapon', value: champ.equipped_weapon_id ? (allPossibleWeapons.find(w => w.id === champ.equipped_weapon_id)?.name || `ID ${champ.equipped_weapon_id}`) : 'None', inline: true },
+                        { name: 'Armor', value: champ.equipped_armor_id ? (allPossibleArmors.find(a => a.id === champ.equipped_armor_id)?.name || `ID ${champ.equipped_armor_id}`) : 'None', inline: true },
+                        { name: 'Ability', value: champ.equipped_ability_id ? (allPossibleAbilities.find(ab => ab.id === champ.equipped_ability_id)?.name || `ID ${champ.equipped_ability_id}`) : 'None', inline: true }
+                    );
+
+                const components = [];
+                if (weapons.length) {
+                    const menu = new StringSelectMenuBuilder()
+                        .setCustomId(`equip_weapon_${champ.id}`)
+                        .setPlaceholder('Select Weapon')
+                        .setMinValues(1)
+                        .setMaxValues(1)
+                        .addOptions(weapons);
+                    components.push(new ActionRowBuilder().addComponents(menu));
+                }
+                if (armors.length) {
+                    const menu = new StringSelectMenuBuilder()
+                        .setCustomId(`equip_armor_${champ.id}`)
+                        .setPlaceholder('Select Armor')
+                        .setMinValues(1)
+                        .setMaxValues(1)
+                        .addOptions(armors);
+                    components.push(new ActionRowBuilder().addComponents(menu));
+                }
+                if (abilities.length) {
+                    const menu = new StringSelectMenuBuilder()
+                        .setCustomId(`equip_ability_${champ.id}`)
+                        .setPlaceholder('Select Ability')
+                        .setMinValues(1)
+                        .setMaxValues(1)
+                        .addOptions(abilities);
+                    components.push(new ActionRowBuilder().addComponents(menu));
+                }
+                await interaction.reply({ embeds: [embed], components, ephemeral: true });
+            } catch (err) {
+                console.error('Error preparing champion management:', err);
+                if (!interaction.replied) {
+                    await interaction.reply({ content: 'An error occurred while preparing this menu.', ephemeral: true });
                 }
             }
             return;
@@ -351,6 +450,36 @@ client.on(Events.InteractionCreate, async interaction => {
             } catch (error) {
                 console.error('Error setting defense team:', error);
                 await interaction.update({ content: 'An error occurred while setting your defense team.', components: [] });
+            }
+        } else if (interaction.customId.startsWith('equip_weapon_')) {
+            try {
+                const championId = interaction.customId.replace('equip_weapon_', '');
+                const itemId = interaction.values[0];
+                await db.execute('UPDATE user_champions SET equipped_weapon_id = ? WHERE id = ?', [itemId, championId]);
+                await interaction.update({ content: 'Equipment updated!', components: [] });
+            } catch (error) {
+                console.error('Error updating weapon:', error);
+                await interaction.update({ content: 'An error occurred while updating equipment.', components: [] });
+            }
+        } else if (interaction.customId.startsWith('equip_armor_')) {
+            try {
+                const championId = interaction.customId.replace('equip_armor_', '');
+                const itemId = interaction.values[0];
+                await db.execute('UPDATE user_champions SET equipped_armor_id = ? WHERE id = ?', [itemId, championId]);
+                await interaction.update({ content: 'Equipment updated!', components: [] });
+            } catch (error) {
+                console.error('Error updating armor:', error);
+                await interaction.update({ content: 'An error occurred while updating equipment.', components: [] });
+            }
+        } else if (interaction.customId.startsWith('equip_ability_')) {
+            try {
+                const championId = interaction.customId.replace('equip_ability_', '');
+                const itemId = interaction.values[0];
+                await db.execute('UPDATE user_champions SET equipped_ability_id = ? WHERE id = ?', [itemId, championId]);
+                await interaction.update({ content: 'Equipment updated!', components: [] });
+            } catch (error) {
+                console.error('Error updating ability:', error);
+                await interaction.update({ content: 'An error occurred while updating equipment.', components: [] });
             }
         }
         return;
