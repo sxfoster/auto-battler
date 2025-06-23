@@ -13,7 +13,7 @@ module.exports = {
 
         const row1 = new ActionRowBuilder()
             .addComponents(
-                new ButtonBuilder().setCustomId('town_summon').setLabel('Summoning Circle').setStyle(ButtonStyle.Success).setEmoji('✨'),
+                new ButtonBuilder().setCustomId('town_summon').setLabel('Acquire Units').setStyle(ButtonStyle.Success).setEmoji('✨'),
                 new ButtonBuilder().setCustomId('town_barracks').setLabel('Barracks').setStyle(ButtonStyle.Secondary).setEmoji('⚔️')
             );
 
