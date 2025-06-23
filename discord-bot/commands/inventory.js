@@ -1,4 +1,4 @@
-const { SlashCommandBuilder } = require('discord.js');
+const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
 const { simple } = require('../src/utils/embedBuilder');
 const db = require('../util/database');
 const {
@@ -13,7 +13,11 @@ module.exports = {
         .setName('inventory')
         .setDescription('View all cards and items in your collection.'),
     async execute(interaction) {
-        await interaction.deferReply({ ephemeral: true });
+        if (interaction.deferred || interaction.replied) {
+            await interaction.deferUpdate();
+        } else {
+            await interaction.deferReply({ ephemeral: true });
+        }
 
         const userId = interaction.user.id;
 
@@ -85,11 +89,15 @@ module.exports = {
             }
 
             const embed = simple('🎒 Your Collection', fields);
-            await interaction.editReply({ embeds: [embed] });
+            await interaction.editReply({ embeds: [embed], components: [] });
 
         } catch (error) {
             console.error('Error fetching inventory:', error);
-            await interaction.editReply({ content: 'Failed to retrieve your inventory.', ephemeral: true });
+            if (interaction.deferred || interaction.replied) {
+                await interaction.editReply({ content: 'Failed to retrieve your inventory due to an error.', components: [] });
+            } else {
+                await interaction.reply({ content: 'Failed to retrieve your inventory due to an error.', ephemeral: true });
+            }
         }
     },
 };
