@@ -38,9 +38,9 @@ module.exports = {
             });
 
             const selectMenu = new StringSelectMenuBuilder()
-                .setCustomId(`fight_team_select`)
-                .setPlaceholder('Select 2 champions for your team')
-                .setMinValues(2)
+                .setCustomId('fight_team_select')
+                .setPlaceholder('Select your team (1 Monster OR 2 Champions)')
+                .setMinValues(1)
                 .setMaxValues(2)
                 .addOptions(options);
 

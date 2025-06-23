@@ -71,14 +71,33 @@ client.on(Events.InteractionCreate, async interaction => {
     if (interaction.isStringSelectMenu()) {
         if (interaction.customId === 'fight_team_select') {
             try {
-                await interaction.update({ content: 'Team selected! Preparing the battle...', components: [] });
+                const selections = interaction.values;
 
-                const [player_champion_id_1, player_champion_id_2] = interaction.values;
+                // Check for monster selection
+                const monsterSelectionId = selections.find(id => {
+                    const champ = allPossibleHeroes.find(h => h.id === parseInt(id));
+                    return champ && champ.isMonster;
+                });
 
-                const [p1_rows] = await db.execute('SELECT * FROM user_champions WHERE id = ?', [player_champion_id_1]);
-                const [p2_rows] = await db.execute('SELECT * FROM user_champions WHERE id = ?', [player_champion_id_2]);
-                const playerChampion1_db = p1_rows[0];
-                const playerChampion2_db = p2_rows[0];
+                let playerChampion1_db, playerChampion2_db;
+
+                if (monsterSelectionId) {
+                    if (selections.length > 1) {
+                        return interaction.update({ content: 'You cannot select a monster and another champion. A monster takes up the whole team.', components: [] });
+                    }
+                    const [rows] = await db.execute('SELECT * FROM user_champions WHERE id = ?', [monsterSelectionId]);
+                    playerChampion1_db = rows[0];
+                    playerChampion2_db = null;
+                    await interaction.update({ content: `You have chosen the monster: ${allPossibleHeroes.find(h => h.id === playerChampion1_db.base_hero_id).name}! Preparing the battle...`, components: [] });
+                } else {
+                    await interaction.update({ content: 'Team selected! Preparing the battle...', components: [] });
+
+                    const [player_champion_id_1, player_champion_id_2] = selections;
+                    const [p1_rows] = await db.execute('SELECT * FROM user_champions WHERE id = ?', [player_champion_id_1]);
+                    const [p2_rows] = await db.execute('SELECT * FROM user_champions WHERE id = ?', [player_champion_id_2]);
+                    playerChampion1_db = p1_rows[0];
+                    playerChampion2_db = p2_rows[0];
+                }
 
                 const aiChampion1 = generateRandomChampion();
                 let aiChampion2 = generateRandomChampion();
@@ -88,12 +107,12 @@ client.on(Events.InteractionCreate, async interaction => {
 
                 const combatants = [
                     createCombatant({ hero_id: playerChampion1_db.base_hero_id, weapon_id: playerChampion1_db.equipped_weapon_id, armor_id: playerChampion1_db.equipped_armor_id, ability_id: playerChampion1_db.equipped_ability_id }, 'player', 0),
-                    createCombatant({ hero_id: playerChampion2_db.base_hero_id, weapon_id: playerChampion2_db.equipped_weapon_id, armor_id: playerChampion2_db.equipped_armor_id, ability_id: playerChampion2_db.equipped_ability_id }, 'player', 1),
+                    playerChampion2_db ? createCombatant({ hero_id: playerChampion2_db.base_hero_id, weapon_id: playerChampion2_db.equipped_weapon_id, armor_id: playerChampion2_db.equipped_armor_id, ability_id: playerChampion2_db.equipped_ability_id }, 'player', 1) : null,
                     createCombatant({ hero_id: aiChampion1.id, weapon_id: aiChampion1.weapon, armor_id: aiChampion1.armor, ability_id: aiChampion1.ability }, 'enemy', 0),
                     createCombatant({ hero_id: aiChampion2.id, weapon_id: aiChampion2.weapon, armor_id: aiChampion2.armor, ability_id: aiChampion2.ability }, 'enemy', 1)
                 ].filter(Boolean);
 
-                if (combatants.length < 4) {
+                if (combatants.length < 3) {
                     throw new Error('Failed to create all combatants for the battle. Check if all hero IDs are valid.');
                 }
 
