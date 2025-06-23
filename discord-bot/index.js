@@ -287,17 +287,24 @@ client.on(Events.InteractionCreate, async interaction => {
                     playerChampion2_db = p2_rows[0];
                 }
 
-                const aiChampion1 = generateRandomChampion();
-                let aiChampion2 = generateRandomChampion();
-                while (aiChampion2.id === aiChampion1.id) {
-                    aiChampion2 = generateRandomChampion();
+                // Fetch two random monsters from the heroes table
+                const [monsterRows] = await db.execute(
+                    'SELECT id FROM heroes WHERE isMonster = TRUE'
+                );
+                const monsterIds = monsterRows.map(r => r.id);
+                const randIndex1 = Math.floor(Math.random() * monsterIds.length);
+                let randIndex2 = Math.floor(Math.random() * monsterIds.length);
+                while (randIndex2 === randIndex1 && monsterIds.length > 1) {
+                    randIndex2 = Math.floor(Math.random() * monsterIds.length);
                 }
+                const monsterId1 = monsterIds[randIndex1];
+                const monsterId2 = monsterIds[randIndex2];
 
                 const combatants = [
                     createCombatant({ hero_id: playerChampion1_db.base_hero_id, weapon_id: playerChampion1_db.equipped_weapon_id, armor_id: playerChampion1_db.equipped_armor_id, ability_id: playerChampion1_db.equipped_ability_id }, 'player', 0),
                     playerChampion2_db ? createCombatant({ hero_id: playerChampion2_db.base_hero_id, weapon_id: playerChampion2_db.equipped_weapon_id, armor_id: playerChampion2_db.equipped_armor_id, ability_id: playerChampion2_db.equipped_ability_id }, 'player', 1) : null,
-                    createCombatant({ hero_id: aiChampion1.id, weapon_id: aiChampion1.weapon, armor_id: aiChampion1.armor, ability_id: aiChampion1.ability }, 'enemy', 0),
-                    createCombatant({ hero_id: aiChampion2.id, weapon_id: aiChampion2.weapon, armor_id: aiChampion2.armor, ability_id: aiChampion2.ability }, 'enemy', 1)
+                    createCombatant({ hero_id: monsterId1, weapon_id: null, armor_id: null, ability_id: null }, 'enemy', 0),
+                    createCombatant({ hero_id: monsterId2, weapon_id: null, armor_id: null, ability_id: null }, 'enemy', 1)
                 ].filter(Boolean);
 
                 if (combatants.length < 3) {
@@ -306,9 +313,27 @@ client.on(Events.InteractionCreate, async interaction => {
 
                 const gameInstance = new GameEngine(combatants);
                 const battleLog = gameInstance.runFullGame();
-                const winner = gameInstance.winner === 'player' ? interaction.user.username : 'AI Opponent';
+                const playerWon = gameInstance.winner === 'player';
 
-                await interaction.followUp({ embeds: [simple(`⚔️ Battle Complete! ⚔️`, [{ name: 'Winner', value: winner }])], ephemeral: true });
+                const resultFields = [{ name: 'Winner', value: playerWon ? interaction.user.username : 'Dungeon Monsters' }];
+
+                if (playerWon) {
+                    const xpGain = 25;
+                    const survivors = combatants.filter(c => c.team === 'player' && c.currentHp > 0);
+                    for (const survivor of survivors) {
+                        const champDb = survivor.position === 0 ? playerChampion1_db : playerChampion2_db;
+                        if (champDb) {
+                            await db.execute('UPDATE user_champions SET xp = xp + ? WHERE id = ?', [xpGain, champDb.id]);
+                        }
+                    }
+                    const gold = Math.floor(Math.random() * 51) + 50;
+                    await db.execute('UPDATE users SET soft_currency = soft_currency + ? WHERE discord_id = ?', [gold, interaction.user.id]);
+                    resultFields.push({ name: 'Rewards', value: `${xpGain} XP to surviving champions\n${gold} Gold` });
+                } else {
+                    resultFields.push({ name: 'Defeat', value: 'You were vanquished by the dungeon foes.' });
+                }
+
+                await interaction.followUp({ embeds: [simple('⚔️ Battle Complete! ⚔️', resultFields)], ephemeral: true });
 
                 const logChunks = chunkBattleLog(battleLog);
                 for (const chunk of logChunks) {
