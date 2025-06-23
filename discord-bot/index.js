@@ -16,6 +16,14 @@ const { createCombatant } = require('../backend/game/utils');
 const GameEngine = require('../backend/game/engine');
 const { getTownMenu } = require('./commands/town.js');
 
+// Booster pack definitions for the marketplace
+const BOOSTER_PACKS = {
+    'basic_hero_pack': { name: 'Basic Hero Pack', cost: 100, currency: 'soft_currency', type: 'hero_pack', rarity: 'basic' },
+    'standard_ability_pack': { name: 'Standard Ability Pack', cost: 75, currency: 'soft_currency', type: 'ability_pack', rarity: 'standard' },
+    'premium_weapon_pack': { name: 'Premium Weapon Pack', cost: 150, currency: 'soft_currency', type: 'weapon_pack', rarity: 'premium' },
+    'basic_armor_pack': { name: 'Basic Armor Pack', cost: 80, currency: 'soft_currency', type: 'armor_pack', rarity: 'basic' }
+};
+
 
 const client = new Client({ intents: [GatewayIntentBits.Guilds] });
 
@@ -122,6 +130,46 @@ async function getDetailedChampionInfo(championDbData) {
     };
 }
 // --- END NEW HELPER FUNCTION ---
+
+// Helper for booster packs
+function getRandomCardsForPack(pool, count, packRarity) {
+    let allowedRarities;
+    switch (packRarity) {
+        case 'premium':
+            allowedRarities = ['Uncommon', 'Rare', 'Epic'];
+            break;
+        case 'standard':
+            allowedRarities = ['Common', 'Uncommon', 'Rare'];
+            break;
+        case 'basic':
+        default:
+            allowedRarities = ['Common', 'Uncommon'];
+            break;
+    }
+
+    const filteredPool = pool.filter(item => allowedRarities.includes(item.rarity));
+    const shuffled = [...filteredPool].sort(() => 0.5 - Math.random());
+    const uniqueCards = [];
+    const uniqueIds = new Set();
+
+    for (const card of shuffled) {
+        if (!uniqueIds.has(card.id)) {
+            uniqueCards.push(card);
+            uniqueIds.add(card.id);
+            if (uniqueCards.length >= count) break;
+        }
+    }
+
+    while (uniqueCards.length < count) {
+        const fallback = pool[Math.floor(Math.random() * pool.length)];
+        if (!uniqueIds.has(fallback.id)) {
+            uniqueCards.push(fallback);
+            uniqueIds.add(fallback.id);
+        }
+    }
+
+    return uniqueCards;
+}
 
 
 // Handle slash commands
@@ -754,7 +802,149 @@ client.on(Events.InteractionCreate, async interaction => {
                     await interaction.reply({ content: 'This feature is coming soon!', ephemeral: true });
                     break;
                 case 'town_market': {
-                    await interaction.reply({ content: "The Marketplace is currently under construction.", ephemeral: true });
+                    await interaction.deferUpdate();
+
+                    const marketEmbed = simple(
+                        '💰 The Grand Bazaar',
+                        [{ name: 'Welcome to the Marketplace!', value: 'Here you can buy various goods for your journey.' }]
+                    );
+
+                    const storeButton = new ActionRowBuilder()
+                        .addComponents(
+                            new ButtonBuilder().setCustomId('market_store_view').setLabel('Booster Pack Store').setStyle(ButtonStyle.Primary).setEmoji('📦')
+                        );
+                    const navigationRow = new ActionRowBuilder()
+                        .addComponents(
+                            new ButtonBuilder().setCustomId('back_to_town').setLabel('Back to Town').setStyle(ButtonStyle.Secondary).setEmoji('⬅️')
+                        );
+
+                    await interaction.editReply({ embeds: [marketEmbed], components: [storeButton, navigationRow] });
+                    break;
+                }
+                case 'market_store_view': {
+                    await interaction.deferUpdate();
+
+                    const storeEmbed = simple(
+                        '🛍️ Booster Pack Store',
+                        [{ name: 'Available Packs', value: 'Choose a pack to acquire new cards!' }]
+                    );
+
+                    const components = [];
+                    for (const [packId, packInfo] of Object.entries(BOOSTER_PACKS)) {
+                        components.push(
+                            new ActionRowBuilder()
+                                .addComponents(
+                                    new ButtonBuilder()
+                                        .setCustomId(`buy_pack_${packId}`)
+                                        .setLabel(`${packInfo.name} (${packInfo.cost} ${packInfo.currency === 'soft_currency' ? 'Gold 🪙' : 'Gems 💎'})`)
+                                        .setStyle(ButtonStyle.Primary)
+                                        .setEmoji('🛒')
+                                )
+                        );
+                    }
+
+                    const backButton = new ActionRowBuilder()
+                        .addComponents(
+                            new ButtonBuilder().setCustomId('back_to_market').setLabel('Back to Marketplace').setStyle(ButtonStyle.Secondary).setEmoji('⬅️')
+                        );
+                    components.push(backButton);
+
+                    await interaction.editReply({ embeds: [storeEmbed], components: components });
+                    break;
+                }
+                case (interaction.customId.startsWith('buy_pack_') ? interaction.customId : ''): {
+                    await interaction.deferUpdate();
+                    const packId = interaction.customId.replace('buy_pack_', '');
+                    const packInfo = BOOSTER_PACKS[packId];
+
+                    if (!packInfo) {
+                        await interaction.editReply({ content: 'Invalid pack selected.', ephemeral: true });
+                        return;
+                    }
+
+                    const [userRows] = await db.execute(`SELECT ${packInfo.currency} FROM users WHERE discord_id = ?`, [userId]);
+                    const user = userRows[0];
+
+                    if (!user || user[packInfo.currency] < packInfo.cost) {
+                        await interaction.editReply({
+                            content: `You don't have enough ${packInfo.currency === 'soft_currency' ? 'Gold 🪙' : 'Gems 💎'} to buy the ${packInfo.name}! You need ${packInfo.cost}.`,
+                            ephemeral: true
+                        });
+                        return;
+                    }
+
+                    await db.execute(
+                        `UPDATE users SET ${packInfo.currency} = ${packInfo.currency} - ? WHERE discord_id = ?`,
+                        [packInfo.cost, userId]
+                    );
+
+                    let cardPool = [];
+                    let awardedCardsCount = 0;
+                    let actualItemType = '';
+
+                    switch (packInfo.type) {
+                        case 'hero_pack':
+                            cardPool = allPossibleHeroes.filter(h => !h.isMonster);
+                            awardedCardsCount = 1;
+                            actualItemType = 'hero';
+                            break;
+                        case 'ability_pack':
+                            cardPool = allPossibleAbilities;
+                            awardedCardsCount = 3;
+                            actualItemType = 'ability';
+                            break;
+                        case 'weapon_pack':
+                            cardPool = allPossibleWeapons;
+                            awardedCardsCount = 2;
+                            actualItemType = 'weapon';
+                            break;
+                        case 'armor_pack':
+                            cardPool = allPossibleArmors;
+                            awardedCardsCount = 2;
+                            actualItemType = 'armor';
+                            break;
+                    }
+                    const awardedCards = getRandomCardsForPack(cardPool, awardedCardsCount, packInfo.rarity);
+
+                    const cardNames = [];
+                    for (const card of awardedCards) {
+                        cardNames.push(`**${card.name}** (${card.rarity})`);
+                        try {
+                            await db.execute(
+                                `INSERT INTO user_inventory (user_id, item_id, quantity, item_type)
+                                 VALUES (?, ?, 1, ?)
+                                 ON DUPLICATE KEY UPDATE quantity = quantity + 1`,
+                                [userId, card.id, actualItemType]
+                            );
+                        } catch (error) {
+                            console.error(`Error adding card ${card.id} to inventory for user ${userId} during purchase:`, error);
+                        }
+                    }
+
+                    const resultsEmbed = simple(
+                        `🎉 You bought and opened a ${packInfo.name}!`,
+                        [{ name: 'Cards Received', value: cardNames.join('\n') }]
+                    );
+
+                    await interaction.editReply({ embeds: [resultsEmbed] });
+                    await interaction.followUp({ embeds: [confirmEmbed('Your new cards have been added to your collection!')], ephemeral: true });
+                    break;
+                }
+                case 'back_to_market': {
+                    await interaction.deferUpdate();
+                    const marketEmbed = simple(
+                        '💰 The Grand Bazaar',
+                        [{ name: 'Welcome to the Marketplace!', value: 'Here you can buy various goods for your journey.' }]
+                    );
+                    const storeButton = new ActionRowBuilder()
+                        .addComponents(
+                            new ButtonBuilder().setCustomId('market_store_view').setLabel('Booster Pack Store').setStyle(ButtonStyle.Primary).setEmoji('📦')
+                        );
+                    const navigationRow = new ActionRowBuilder()
+                        .addComponents(
+                            new ButtonBuilder().setCustomId('back_to_town').setLabel('Back to Town').setStyle(ButtonStyle.Secondary).setEmoji('⬅️')
+                        );
+                    await interaction.editReply({ embeds: [marketEmbed], components: [storeButton, navigationRow] });
                     break;
                 }
                 case 'back_to_town': {
