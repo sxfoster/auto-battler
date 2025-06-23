@@ -304,9 +304,17 @@ client.on(Events.InteractionCreate, async interaction => {
         try {
             switch (interaction.customId) {
                 case 'town_summon': {
-                    const summonEmbed = simple('The Summoning Circle', [
-                        { name: 'Choose Your Method', value: 'Use Shards to recruit champions or a Lodestone to unleash a monster.' }
-                    ]);
+                    const [userRows] = await db.execute('SELECT summoning_shards, corrupted_lodestones FROM users WHERE discord_id = ?', [interaction.user.id]);
+                    const user = userRows[0] || { summoning_shards: 0, corrupted_lodestones: 0 };
+
+                    const summonEmbed = simple(
+                        'The Summoning Circle',
+                        [
+                            { name: 'Choose Your Method', value: 'Use Shards to recruit champions or a Lodestone to unleash a monster.' },
+                            { name: 'Your Shards', value: `✨ ${user.summoning_shards}`, inline: true },
+                            { name: 'Your Lodestones', value: `🔥 ${user.corrupted_lodestones}`, inline: true }
+                        ]
+                    );
                     const summonRow = new ActionRowBuilder()
                         .addComponents(
                             new ButtonBuilder().setCustomId('summon_champion').setLabel('Summon Champion (10 Shards)').setStyle(ButtonStyle.Success).setEmoji('✨'),
