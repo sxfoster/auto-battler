@@ -1,6 +1,6 @@
 const fs = require('node:fs');
 const path = require('node:path');
-const { Client, Collection, GatewayIntentBits, Events } = require('discord.js');
+const { Client, Collection, GatewayIntentBits, Events, ActionRowBuilder, ButtonBuilder, ButtonStyle, StringSelectMenuBuilder } = require('discord.js');
 require('dotenv').config();
 const db = require('./util/database');
 const { simple } = require('./src/utils/embedBuilder');
@@ -62,6 +62,141 @@ client.on(Events.InteractionCreate, async interaction => {
                 await interaction.followUp(replyOptions);
             } else {
                 await interaction.reply(replyOptions);
+            }
+        }
+        return;
+    }
+
+    // --- Button Interaction Handler ---
+    if (interaction.isButton()) {
+        try {
+            switch (interaction.customId) {
+                case 'town_summon': {
+                    const summonRow = new ActionRowBuilder().addComponents(
+                        new ButtonBuilder().setCustomId('town_summon_champion').setLabel('Summon Champion (10 Shards)').setStyle(ButtonStyle.Primary),
+                        new ButtonBuilder().setCustomId('town_unleash_monster').setLabel('Unleash Monster (1 Lodestone)').setStyle(ButtonStyle.Danger)
+                    );
+                    await interaction.reply({ content: 'Choose your summoning method:', components: [summonRow], ephemeral: true });
+                    break;
+                }
+                case 'town_summon_champion': {
+                    const userId = interaction.user.id;
+                    const SHARD_COST = 10;
+                    const [userRows] = await db.execute('SELECT summoning_shards FROM users WHERE discord_id = ?', [userId]);
+                    if (userRows.length === 0 || userRows[0].summoning_shards < SHARD_COST) {
+                        await interaction.reply({ content: `You don't have enough summoning shards! You need ${SHARD_COST}.`, ephemeral: true });
+                        break;
+                    }
+
+                    await db.execute('UPDATE users SET summoning_shards = summoning_shards - ? WHERE discord_id = ?', [SHARD_COST, userId]);
+
+                    const roll = Math.random();
+                    let rarity = 'Common';
+                    if (roll < 0.005) rarity = 'Epic';
+                    else if (roll < 0.05) rarity = 'Rare';
+                    else if (roll < 0.30) rarity = 'Uncommon';
+
+                    const possibleHeroes = allPossibleHeroes.filter(h => h.rarity === rarity);
+                    const summonedHero = possibleHeroes[Math.floor(Math.random() * possibleHeroes.length)];
+
+                    await db.execute('INSERT INTO user_champions (user_id, base_hero_id) VALUES (?, ?)', [userId, summonedHero.id]);
+
+                    const embed = simple('✨ You Summoned a Champion! ✨', [
+                        { name: summonedHero.name, value: `Rarity: ${summonedHero.rarity}\nClass: ${summonedHero.class}` }
+                    ]);
+                    await interaction.reply({ embeds: [embed], ephemeral: true });
+                    break;
+                }
+                case 'town_unleash_monster': {
+                    const userId = interaction.user.id;
+                    const LODESTONE_COST = 1;
+                    const userHasStones = true;
+                    if (!userHasStones) {
+                        await interaction.reply({ content: 'You do not have a Corrupted Lodestone to unleash a monster.', ephemeral: true });
+                        break;
+                    }
+
+                    const monsters = allPossibleHeroes.filter(h => h.isMonster);
+                    const summonedMonster = monsters[Math.floor(Math.random() * monsters.length)];
+
+                    await db.execute('INSERT INTO user_champions (user_id, base_hero_id) VALUES (?, ?)', [userId, summonedMonster.id]);
+
+                    const embed = simple('🔥 A Monster Emerges! 🔥', [
+                        { name: summonedMonster.name, value: `Rarity: ${summonedMonster.rarity}\nTrait: ${summonedMonster.trait}` }
+                    ]);
+                    await interaction.reply({ embeds: [embed], ephemeral: true });
+                    break;
+                }
+                case 'town_roster': {
+                    const [ownedChampions] = await db.execute(
+                        'SELECT base_hero_id, level FROM user_champions WHERE user_id = ? ORDER BY id DESC',
+                        [interaction.user.id]
+                    );
+                    if (ownedChampions.length === 0) {
+                        await interaction.reply({ content: 'Your roster is empty. Use `/summon` to recruit some champions!', ephemeral: true });
+                        break;
+                    }
+                    const rosterDetails = ownedChampions.map(ownedChampion => {
+                        const staticData = allPossibleHeroes.find(h => h.id === ownedChampion.base_hero_id);
+                        if (!staticData) return null;
+                        return {
+                            name: staticData.name,
+                            rarity: staticData.rarity,
+                            class: staticData.class,
+                            level: ownedChampion.level,
+                        };
+                    }).filter(Boolean);
+                    const fields = rosterDetails.slice(0, 25).map(c => ({
+                        name: `${c.name} (Lvl ${c.level})`,
+                        value: `${c.rarity} ${c.class}`,
+                        inline: true,
+                    }));
+                    const embed = simple('Your Champion Roster', fields);
+                    await interaction.reply({ embeds: [embed], ephemeral: true });
+                    break;
+                }
+                case 'town_dungeon': {
+                    const userId = interaction.user.id;
+                    const [ownedChampions] = await db.execute(
+                        'SELECT id, base_hero_id, level FROM user_champions WHERE user_id = ?',
+                        [userId]
+                    );
+                    if (ownedChampions.length < 2) {
+                        await interaction.reply({ content: 'You need at least 2 champions in your roster to fight! Use `/summon` to recruit more.', ephemeral: true });
+                        break;
+                    }
+                    const options = ownedChampions.map(champion => {
+                        const staticData = allPossibleHeroes.find(h => h.id === champion.base_hero_id);
+                        const name = staticData ? staticData.name : `Unknown Hero (ID: ${champion.base_hero_id})`;
+                        const rarity = staticData ? staticData.rarity : 'Unknown';
+                        const heroClass = staticData ? staticData.class : 'Unknown';
+                        return {
+                            label: `${name} (Lvl ${champion.level})`,
+                            description: `${rarity} ${heroClass}`,
+                            value: champion.id.toString(),
+                        };
+                    });
+                    const selectMenu = new StringSelectMenuBuilder()
+                        .setCustomId('fight_team_select')
+                        .setPlaceholder('Select your team (1 Monster OR 2 Champions)')
+                        .setMinValues(1)
+                        .setMaxValues(2)
+                        .addOptions(options);
+                    const row = new ActionRowBuilder().addComponents(selectMenu);
+                    await interaction.reply({ content: 'Choose your team for the dungeon fight!', components: [row], ephemeral: true });
+                    break;
+                }
+                case 'town_craft':
+                case 'town_market':
+                    await interaction.reply({ content: 'This feature is coming soon!', ephemeral: true });
+                    break;
+                default:
+                    break;
+            }
+        } catch (err) {
+            console.error('Error handling button interaction:', err);
+            if (!interaction.replied) {
+                await interaction.reply({ content: 'An error occurred while processing this interaction.', ephemeral: true });
             }
         }
         return;
