@@ -603,21 +603,31 @@ client.on(Events.InteractionCreate, async interaction => {
                 }
 
                 if (!isPvP) {
+                    opponentName = 'Dungeon Monsters';
+                    const playerTeamSize = selections.length;
                     const [monsterRows] = await db.execute(
                         'SELECT id FROM heroes WHERE is_monster = TRUE'
                     );
                     const monsterIds = monsterRows.map(r => r.id);
-                    const randIndex1 = Math.floor(Math.random() * monsterIds.length);
-                    let randIndex2 = Math.floor(Math.random() * monsterIds.length);
-                    while (randIndex2 === randIndex1 && monsterIds.length > 1) {
-                        randIndex2 = Math.floor(Math.random() * monsterIds.length);
+
+                    if (playerTeamSize <= 2) {
+                        const monsterId = monsterIds[Math.floor(Math.random() * monsterIds.length)];
+                        combatants.push(
+                            createCombatant({ hero_id: monsterId, weapon_id: null, armor_id: null, ability_id: null }, 'enemy', 0)
+                        );
+                    } else {
+                        const randIndex1 = Math.floor(Math.random() * monsterIds.length);
+                        let randIndex2 = Math.floor(Math.random() * monsterIds.length);
+                        while (randIndex2 === randIndex1 && monsterIds.length > 1) {
+                            randIndex2 = Math.floor(Math.random() * monsterIds.length);
+                        }
+                        const monsterId1 = monsterIds[randIndex1];
+                        const monsterId2 = monsterIds[randIndex2];
+                        combatants.push(
+                            createCombatant({ hero_id: monsterId1, weapon_id: null, armor_id: null, ability_id: null }, 'enemy', 0),
+                            createCombatant({ hero_id: monsterId2, weapon_id: null, armor_id: null, ability_id: null }, 'enemy', 1)
+                        );
                     }
-                    const monsterId1 = monsterIds[randIndex1];
-                    const monsterId2 = monsterIds[randIndex2];
-                    combatants.push(
-                        createCombatant({ hero_id: monsterId1, weapon_id: null, armor_id: null, ability_id: null }, 'enemy', 0),
-                        createCombatant({ hero_id: monsterId2, weapon_id: null, armor_id: null, ability_id: null }, 'enemy', 1)
-                    );
                 }
 
                 const finalCombatants = combatants.filter(Boolean);
