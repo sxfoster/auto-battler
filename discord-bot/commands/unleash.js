@@ -1,7 +1,7 @@
 const { SlashCommandBuilder } = require('discord.js');
 const db = require('../util/database');
 const { simple } = require('../src/utils/embedBuilder');
-const { allPossibleHeroes } = require('../../backend/game/data');
+const { getMonsters } = require('../util/gameData');
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -17,7 +17,7 @@ module.exports = {
             return interaction.reply({ content: 'You do not have a Corrupted Lodestone to unleash a monster.', ephemeral: true });
         }
 
-        const monsters = allPossibleHeroes.filter(h => h.isMonster);
+        const monsters = getMonsters();
         const summonedMonster = monsters[Math.floor(Math.random() * monsters.length)];
 
         await db.execute('INSERT INTO user_champions (user_id, base_hero_id) VALUES (?, ?)', [userId, summonedMonster.id]);
