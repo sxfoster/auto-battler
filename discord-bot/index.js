@@ -930,7 +930,44 @@ client.on(Events.InteractionCreate, async interaction => {
                         .setFooter({ text: 'Your new cards have been added to your collection!' })
                         .setTimestamp();
 
-                    await interaction.editReply({ embeds: [resultsEmbed] });
+                    // --- ADDED 'VIEW INVENTORY' BUTTON ---
+                    const viewInventoryButton = new ActionRowBuilder()
+                        .addComponents(
+                            new ButtonBuilder()
+                                .setCustomId('view_inventory_from_pack')
+                                .setLabel('View Inventory')
+                                .setStyle(ButtonStyle.Secondary)
+                                .setEmoji('🎒')
+                        );
+                    // Build buttons to buy more packs
+                    const packPurchaseButtons = Object.entries(BOOSTER_PACKS).map(([packIdBtn, packInfoBtn]) =>
+                        new ButtonBuilder()
+                            .setCustomId(`buy_pack_${packIdBtn}`)
+                            .setLabel(`${packInfoBtn.name} (${packInfoBtn.cost} ${packInfoBtn.currency === 'soft_currency' ? 'Gold 🪙' : 'Gems 💎'})`)
+                            .setStyle(ButtonStyle.Primary)
+                            .setEmoji('🛒')
+                    );
+                    const packButtonRows = [];
+                    if (packPurchaseButtons.length > 0) {
+                        packButtonRows.push(new ActionRowBuilder().addComponents(packPurchaseButtons));
+                    }
+
+                    const backButton = new ActionRowBuilder()
+                        .addComponents(
+                            new ButtonBuilder().setCustomId('back_to_market').setLabel('Back to Marketplace').setStyle(ButtonStyle.Secondary).setEmoji('⬅️')
+                        );
+
+                    await interaction.editReply({ embeds: [resultsEmbed], components: [viewInventoryButton, ...packButtonRows, backButton] });
+                    break;
+                }
+                case 'view_inventory_from_pack': {
+                    await interaction.deferUpdate();
+                    const inventoryCommand = client.commands.get('inventory');
+                    if (inventoryCommand) {
+                        await inventoryCommand.execute(interaction);
+                    } else {
+                        await interaction.editReply({ content: 'Inventory command not found.', ephemeral: true });
+                    }
                     break;
                 }
                 case 'back_to_market': {
