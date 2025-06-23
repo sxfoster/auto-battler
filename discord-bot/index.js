@@ -72,14 +72,18 @@ client.on(Events.InteractionCreate, async interaction => {
         try {
             switch (interaction.customId) {
                 case 'town_summon': {
-                    const summonRow = new ActionRowBuilder().addComponents(
-                        new ButtonBuilder().setCustomId('town_summon_champion').setLabel('Summon Champion (10 Shards)').setStyle(ButtonStyle.Primary),
-                        new ButtonBuilder().setCustomId('town_unleash_monster').setLabel('Unleash Monster (1 Lodestone)').setStyle(ButtonStyle.Danger)
-                    );
-                    await interaction.reply({ content: 'Choose your summoning method:', components: [summonRow], ephemeral: true });
+                    const summonEmbed = simple('The Summoning Circle', [
+                        { name: 'Choose Your Method', value: 'Use Shards to recruit champions or a Lodestone to unleash a monster.' }
+                    ]);
+                    const summonRow = new ActionRowBuilder()
+                        .addComponents(
+                            new ButtonBuilder().setCustomId('summon_champion').setLabel('Summon Champion (10 Shards)').setStyle(ButtonStyle.Success).setEmoji('✨'),
+                            new ButtonBuilder().setCustomId('unleash_monster').setLabel('Unleash Monster (1 Lodestone)').setStyle(ButtonStyle.Danger).setEmoji('🔥')
+                        );
+                    await interaction.reply({ embeds: [summonEmbed], components: [summonRow], ephemeral: true });
                     break;
                 }
-                case 'town_summon_champion': {
+                case 'summon_champion': {
                     const userId = interaction.user.id;
                     const SHARD_COST = 10;
                     const [userRows] = await db.execute('SELECT summoning_shards FROM users WHERE discord_id = ?', [userId]);
@@ -96,7 +100,7 @@ client.on(Events.InteractionCreate, async interaction => {
                     else if (roll < 0.05) rarity = 'Rare';
                     else if (roll < 0.30) rarity = 'Uncommon';
 
-                    const possibleHeroes = allPossibleHeroes.filter(h => h.rarity === rarity);
+                    const possibleHeroes = allPossibleHeroes.filter(h => h.rarity === rarity && !h.isMonster);
                     const summonedHero = possibleHeroes[Math.floor(Math.random() * possibleHeroes.length)];
 
                     await db.execute('INSERT INTO user_champions (user_id, base_hero_id) VALUES (?, ?)', [userId, summonedHero.id]);
@@ -107,14 +111,16 @@ client.on(Events.InteractionCreate, async interaction => {
                     await interaction.reply({ embeds: [embed], ephemeral: true });
                     break;
                 }
-                case 'town_unleash_monster': {
+                case 'unleash_monster': {
                     const userId = interaction.user.id;
                     const LODESTONE_COST = 1;
-                    const userHasStones = true;
-                    if (!userHasStones) {
+                    const [userRows] = await db.execute('SELECT corrupted_lodestones FROM users WHERE discord_id = ?', [userId]);
+                    if (userRows.length === 0 || userRows[0].corrupted_lodestones < LODESTONE_COST) {
                         await interaction.reply({ content: 'You do not have a Corrupted Lodestone to unleash a monster.', ephemeral: true });
                         break;
                     }
+
+                    await db.execute('UPDATE users SET corrupted_lodestones = corrupted_lodestones - ? WHERE discord_id = ?', [LODESTONE_COST, userId]);
 
                     const monsters = allPossibleHeroes.filter(h => h.isMonster);
                     const summonedMonster = monsters[Math.floor(Math.random() * monsters.length)];
