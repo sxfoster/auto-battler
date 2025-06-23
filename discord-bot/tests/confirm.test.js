@@ -25,7 +25,7 @@ describe('confirm embed', () => {
       editReply: jest.fn().mockResolvedValue(),
       followUp: jest.fn().mockResolvedValue(),
       user: { id: '123' },
-      options: { getString: jest.fn(() => 'hero') }
+      options: { getString: jest.fn((name) => (name === 'type' ? 'hero_pack' : undefined)) }
     };
     await openpack.execute(interaction);
     expect(interaction.deferReply).toHaveBeenCalled();
