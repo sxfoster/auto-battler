@@ -6,3 +6,7 @@ CREATE TABLE IF NOT EXISTS `defense_teams` (
     `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (`user_id`) REFERENCES `users`(`discord_id`)
 );
+
+-- Step 6: Add item_type column for categorizing inventory items
+ALTER TABLE `user_inventory`
+    ADD COLUMN `item_type` VARCHAR(20) DEFAULT NULL AFTER `quantity`;

@@ -1,4 +1,9 @@
 const addcard = require('../commands/addcard');
+
+jest.mock('../util/database', () => ({
+  execute: jest.fn(() => Promise.resolve([]))
+}));
+
 const openpack = require('../commands/openpack');
 
 describe('confirm embed', () => {
@@ -16,11 +21,14 @@ describe('confirm embed', () => {
 
   test('/openpack sequential confirmation', async () => {
     const interaction = {
-      reply: jest.fn().mockResolvedValue(),
-      followUp: jest.fn().mockResolvedValue()
+      deferReply: jest.fn().mockResolvedValue(),
+      editReply: jest.fn().mockResolvedValue(),
+      followUp: jest.fn().mockResolvedValue(),
+      user: { id: '123' },
+      options: { getString: jest.fn(() => 'hero') }
     };
     await openpack.execute(interaction);
-    expect(interaction.reply).toHaveBeenCalled();
+    expect(interaction.deferReply).toHaveBeenCalled();
     const follow = interaction.followUp.mock.calls[0][0];
     expect(follow.embeds[0].data.title).toBe('✅ Success');
   });
