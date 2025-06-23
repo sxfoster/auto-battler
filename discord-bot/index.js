@@ -534,7 +534,7 @@ client.on(Events.InteractionCreate, async interaction => {
 
                     const userId = interaction.user.id;
                     const [ownedChampions] = await db.execute(
-                        'SELECT uc.id, h.name, h.level, h.class, h.rarity FROM user_champions uc JOIN heroes h ON uc.base_hero_id = h.id WHERE uc.user_id = ?',
+                        'SELECT uc.id, h.name, uc.level, h.class, h.rarity FROM user_champions uc JOIN heroes h ON uc.base_hero_id = h.id WHERE uc.user_id = ?',
                         [userId]
                     );
 
