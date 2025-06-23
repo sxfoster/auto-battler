@@ -810,16 +810,31 @@ client.on(Events.InteractionCreate, async interaction => {
                         [{ name: 'Welcome to the Marketplace!', value: 'Here you can buy various goods for your journey.' }]
                     );
 
-                    const storeButton = new ActionRowBuilder()
+                    const storeButtons = new ActionRowBuilder()
                         .addComponents(
-                            new ButtonBuilder().setCustomId('market_store_view').setLabel('Booster Pack Store').setStyle(ButtonStyle.Primary).setEmoji('📦')
+                            new ButtonBuilder().setCustomId('market_store_view').setLabel('Booster Pack Store').setStyle(ButtonStyle.Primary).setEmoji('📦'),
+                            new ButtonBuilder().setCustomId('market_auction_house').setLabel('Auction House').setStyle(ButtonStyle.Secondary).setEmoji('🏛️').setDisabled(true)
                         );
                     const navigationRow = new ActionRowBuilder()
                         .addComponents(
                             new ButtonBuilder().setCustomId('back_to_town').setLabel('Back to Town').setStyle(ButtonStyle.Secondary).setEmoji('⬅️')
                         );
 
-                    await interaction.editReply({ embeds: [marketEmbed], components: [storeButton, navigationRow] });
+                    await interaction.editReply({ embeds: [marketEmbed], components: [storeButtons, navigationRow] });
+                    break;
+                }
+
+                case 'market_auction_house': {
+                    await interaction.deferUpdate();
+                    const embed = simple(
+                        '🏛️ Auction House',
+                        [{ name: 'Coming Soon!', value: 'The Auction House will allow players to list and bid on cards. Stay tuned for this feature!' }]
+                    );
+                    const backButton = new ActionRowBuilder()
+                        .addComponents(
+                            new ButtonBuilder().setCustomId('back_to_market').setLabel('Back to Marketplace').setStyle(ButtonStyle.Secondary).setEmoji('⬅️')
+                        );
+                    await interaction.editReply({ embeds: [embed], components: [backButton] });
                     break;
                 }
                 case 'market_store_view': {
@@ -976,15 +991,16 @@ client.on(Events.InteractionCreate, async interaction => {
                         '💰 The Grand Bazaar',
                         [{ name: 'Welcome to the Marketplace!', value: 'Here you can buy various goods for your journey.' }]
                     );
-                    const storeButton = new ActionRowBuilder()
+                    const storeButtons = new ActionRowBuilder()
                         .addComponents(
-                            new ButtonBuilder().setCustomId('market_store_view').setLabel('Booster Pack Store').setStyle(ButtonStyle.Primary).setEmoji('📦')
+                            new ButtonBuilder().setCustomId('market_store_view').setLabel('Booster Pack Store').setStyle(ButtonStyle.Primary).setEmoji('📦'),
+                            new ButtonBuilder().setCustomId('market_auction_house').setLabel('Auction House').setStyle(ButtonStyle.Secondary).setEmoji('🏛️').setDisabled(true)
                         );
                     const navigationRow = new ActionRowBuilder()
                         .addComponents(
                             new ButtonBuilder().setCustomId('back_to_town').setLabel('Back to Town').setStyle(ButtonStyle.Secondary).setEmoji('⬅️')
                         );
-                    await interaction.editReply({ embeds: [marketEmbed], components: [storeButton, navigationRow] });
+                    await interaction.editReply({ embeds: [marketEmbed], components: [storeButtons, navigationRow] });
                     break;
                 }
                 case 'back_to_town': {
