@@ -18,10 +18,11 @@ const { getTownMenu } = require('./commands/town.js');
 
 // Booster pack definitions for the marketplace
 const BOOSTER_PACKS = {
-    'basic_hero_pack': { name: 'Basic Hero Pack', cost: 100, currency: 'soft_currency', type: 'hero_pack', rarity: 'basic' },
-    'standard_ability_pack': { name: 'Standard Ability Pack', cost: 75, currency: 'soft_currency', type: 'ability_pack', rarity: 'standard' },
-    'premium_weapon_pack': { name: 'Premium Weapon Pack', cost: 150, currency: 'soft_currency', type: 'weapon_pack', rarity: 'premium' },
-    'basic_armor_pack': { name: 'Basic Armor Pack', cost: 80, currency: 'soft_currency', type: 'armor_pack', rarity: 'basic' }
+    // All packs cost 100 Gold but maintain their internal rarity for card generation
+    hero_pack: { name: 'Hero Pack', cost: 100, currency: 'soft_currency', type: 'hero_pack', rarity: 'basic' },
+    ability_pack: { name: 'Ability Pack', cost: 100, currency: 'soft_currency', type: 'ability_pack', rarity: 'standard' },
+    weapon_pack: { name: 'Weapon Pack', cost: 100, currency: 'soft_currency', type: 'weapon_pack', rarity: 'premium' },
+    armor_pack: { name: 'Armor Pack', cost: 100, currency: 'soft_currency', type: 'armor_pack', rarity: 'basic' }
 };
 
 
