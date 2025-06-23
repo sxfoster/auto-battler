@@ -22,7 +22,7 @@ const client = new Client({ intents: [GatewayIntentBits.Guilds] });
 client.commands = new Collection();
 
 // In-memory map to track active tutorial drafts
-// Key: userId, Value: { stage: 'HERO_SELECTION', heroId: null, abilityId: null, weaponId: null, armorId: null }
+// Key: userId, Value: { currentChampNum: 1, stage: 'hero_selection', champion1: {}, champion2: {} }
 const activeTutorialDrafts = new Map();
 
 const commandsPath = path.join(__dirname, 'commands');
@@ -178,11 +178,17 @@ client.on(Events.InteractionCreate, async interaction => {
                     });
                     return;
                 }
-                const command = client.commands.get('start');
+                const command = client.commands.get(interaction.commandName);
                 if (command) {
-                    await command.execute(interaction);
+                    await command.execute(interaction); // Send initial welcome embed
                 }
-                activeTutorialDrafts.set(userId, { stage: 'INITIAL_GREETING' });
+                // Initialize tutorial state for two champions
+                activeTutorialDrafts.set(userId, {
+                    currentChampNum: 1, // Start with champion 1
+                    stage: 'INITIAL_GREETING',
+                    champion1: {},
+                    champion2: {}
+                });
             } catch (error) {
                 console.error('Error checking tutorial status or executing start command:', error);
                 await interaction.reply({ content: 'There was an error starting your adventure!', ephemeral: true });
@@ -410,11 +416,17 @@ client.on(Events.InteractionCreate, async interaction => {
             try {
                 await interaction.deferUpdate();
                 switch (interaction.customId) {
-                    case 'tutorial_start_draft':
-                        await sendHeroSelectionStep(interaction, userId);
+                    case 'tutorial_start_draft': // Initial button to start Champion 1 draft
+                        userDraftState.stage = 'HERO_SELECTION';
+                        await sendHeroSelectionStep(interaction, userId, userDraftState.currentChampNum);
                         break;
-                    case 'tutorial_confirm_champion':
-                        await finalizeChampion(interaction, userId);
+                    case 'tutorial_recap_1_continue':
+                        userDraftState.currentChampNum = 2;
+                        userDraftState.stage = 'HERO_SELECTION';
+                        await sendHeroSelectionStep(interaction, userId, userDraftState.currentChampNum);
+                        break;
+                    case 'tutorial_recap_2_finalize':
+                        await finalizeChampionTeam(interaction, userId);
                         break;
                     case 'tutorial_start_over':
                         activeTutorialDrafts.delete(userId);
@@ -424,9 +436,9 @@ client.on(Events.InteractionCreate, async interaction => {
                         });
                         break;
                     default:
+                        console.log(`Unhandled tutorial interaction: ${interaction.customId}`);
                         await interaction.editReply({ content: 'Something went wrong with the tutorial step. Please try `/start` again.', components: [] });
                         activeTutorialDrafts.delete(userId);
-                        break;
                 }
             } catch (error) {
                 console.error(`Error handling tutorial step ${interaction.customId}:`, error);
@@ -769,30 +781,44 @@ client.on(Events.InteractionCreate, async interaction => {
         if (interaction.customId.startsWith('tutorial_') || userDraftState) {
             try {
                 await interaction.deferUpdate();
+
+                // Determine which champion's data to update based on currentChampNum
+                const currentChampionData = userDraftState.currentChampNum === 1 ? userDraftState.champion1 : userDraftState.champion2;
+                const champNum = userDraftState.currentChampNum;
+
                 switch (interaction.customId) {
-                    case 'tutorial_select_hero':
-                        userDraftState.heroId = parseInt(interaction.values[0]);
-                        await sendAbilitySelectionStep(interaction, userId);
+                    case `tutorial_select_hero_${champNum}`:
+                        currentChampionData.heroId = parseInt(interaction.values[0]);
+                        userDraftState.stage = 'ABILITY_SELECTION';
+                        await sendAbilitySelectionStep(interaction, userId, champNum);
                         break;
-                    case 'tutorial_select_ability':
-                        userDraftState.abilityId = parseInt(interaction.values[0]);
-                        await sendWeaponSelectionStep(interaction, userId);
+                    case `tutorial_select_ability_${champNum}`:
+                        currentChampionData.abilityId = parseInt(interaction.values[0]);
+                        userDraftState.stage = 'WEAPON_SELECTION';
+                        await sendWeaponSelectionStep(interaction, userId, champNum);
                         break;
-                    case 'tutorial_select_weapon':
-                        userDraftState.weaponId = parseInt(interaction.values[0]);
-                        await sendArmorSelectionStep(interaction, userId);
+                    case `tutorial_select_weapon_${champNum}`:
+                        currentChampionData.weaponId = parseInt(interaction.values[0]);
+                        userDraftState.stage = 'ARMOR_SELECTION';
+                        await sendArmorSelectionStep(interaction, userId, champNum);
                         break;
-                    case 'tutorial_select_armor':
-                        userDraftState.armorId = parseInt(interaction.values[0]);
-                        await sendChampionRecapStep(interaction, userId);
+                    case `tutorial_select_armor_${champNum}`:
+                        currentChampionData.armorId = parseInt(interaction.values[0]);
+                        if (userDraftState.currentChampNum === 1) {
+                            userDraftState.stage = 'RECAP_1';
+                            await sendChampionRecapStep(interaction, userId, userDraftState.currentChampNum);
+                        } else {
+                            userDraftState.stage = 'RECAP_2';
+                            await sendChampionRecapStep(interaction, userId, userDraftState.currentChampNum);
+                        }
                         break;
                     default:
+                        console.log(`Unhandled tutorial interaction (select menu): ${interaction.customId}`);
                         await interaction.editReply({ content: 'Something went wrong with the tutorial step. Please try `/start` again.', components: [] });
                         activeTutorialDrafts.delete(userId);
-                        break;
                 }
             } catch (error) {
-                console.error(`Error handling tutorial step ${interaction.customId}:`, error);
+                console.error(`Error handling tutorial select menu ${interaction.customId}:`, error);
                 await interaction.editReply({ content: 'An error occurred during the tutorial. Please try `/start` again.', components: [] });
                 activeTutorialDrafts.delete(userId);
             }
@@ -1190,7 +1216,13 @@ client.on(Events.InteractionCreate, async interaction => {
 });
 
 // --- Tutorial Helper Functions ---
-async function sendHeroSelectionStep(interaction, userId) {
+/**
+ * Sends the hero selection step for the given champion number.
+ * @param {Interaction} interaction
+ * @param {string} userId
+ * @param {number} champNum - 1 or 2
+ */
+async function sendHeroSelectionStep(interaction, userId, champNum) {
     const commonHeroes = allPossibleHeroes.filter(h => h.rarity === 'Common');
     const heroOptions = commonHeroes.map(hero => ({
         label: hero.name,
@@ -1199,15 +1231,15 @@ async function sendHeroSelectionStep(interaction, userId) {
     }));
 
     const selectMenu = new StringSelectMenuBuilder()
-        .setCustomId('tutorial_select_hero')
-        .setPlaceholder('Choose your Hero Class')
+        .setCustomId(`tutorial_select_hero_${champNum}`)
+        .setPlaceholder(`Choose your Hero for Champion ${champNum}`)
         .addOptions(heroOptions.slice(0, 5));
 
     const row = new ActionRowBuilder().addComponents(selectMenu);
 
     await interaction.editReply({
         embeds: [simple(
-            'Step 1: Choose Your Champion\'s Hero',
+            `Step 1: Choose Your Champion ${champNum}'s Hero`,
             [{ name: 'Select Your Core Hero', value: 'Heroes define your champion\'s class and base stats. Choose one to begin shaping your champion!' }]
         )],
         components: [row]
@@ -1215,9 +1247,16 @@ async function sendHeroSelectionStep(interaction, userId) {
     activeTutorialDrafts.get(userId).stage = 'HERO_SELECTION';
 }
 
-async function sendAbilitySelectionStep(interaction, userId) {
+/**
+ * Sends the ability selection step for the given champion number.
+ * @param {Interaction} interaction
+ * @param {string} userId
+ * @param {number} champNum - 1 or 2
+ */
+async function sendAbilitySelectionStep(interaction, userId, champNum) {
     const userDraftState = activeTutorialDrafts.get(userId);
-    const selectedHero = allPossibleHeroes.find(h => h.id === userDraftState.heroId);
+    const championData = champNum === 1 ? userDraftState.champion1 : userDraftState.champion2;
+    const selectedHero = allPossibleHeroes.find(h => h.id === championData.heroId);
     if (!selectedHero) {
         throw new Error('Selected hero not found for ability step.');
     }
@@ -1230,15 +1269,15 @@ async function sendAbilitySelectionStep(interaction, userId) {
     }));
 
     const selectMenu = new StringSelectMenuBuilder()
-        .setCustomId('tutorial_select_ability')
-        .setPlaceholder('Choose a Basic Ability')
+        .setCustomId(`tutorial_select_ability_${champNum}`)
+        .setPlaceholder(`Choose a Basic Ability for Champion ${champNum}`)
         .addOptions(abilityOptions.slice(0, 5));
 
     const row = new ActionRowBuilder().addComponents(selectMenu);
 
     await interaction.editReply({
         embeds: [simple(
-            'Step 2: Choose a Basic Ability',
+            `Step 2: Choose a Basic Ability for Champion ${champNum}`,
             [{ name: 'Equip a Skill', value: 'Abilities are powerful skills your champion can use in battle. Pick one that complements your hero!' }]
         )],
         components: [row]
@@ -1246,7 +1285,13 @@ async function sendAbilitySelectionStep(interaction, userId) {
     userDraftState.stage = 'ABILITY_SELECTION';
 }
 
-async function sendWeaponSelectionStep(interaction, userId) {
+/**
+ * Sends the weapon selection step for the given champion number.
+ * @param {Interaction} interaction
+ * @param {string} userId
+ * @param {number} champNum - 1 or 2
+ */
+async function sendWeaponSelectionStep(interaction, userId, champNum) {
     const commonWeapons = allPossibleWeapons.filter(w => w.rarity === 'Common');
     const weaponOptions = commonWeapons.map(weapon => ({
         label: weapon.name,
@@ -1255,15 +1300,15 @@ async function sendWeaponSelectionStep(interaction, userId) {
     }));
 
     const selectMenu = new StringSelectMenuBuilder()
-        .setCustomId('tutorial_select_weapon')
-        .setPlaceholder('Choose a Basic Weapon')
+        .setCustomId(`tutorial_select_weapon_${champNum}`)
+        .setPlaceholder(`Choose a Basic Weapon for Champion ${champNum}`)
         .addOptions(weaponOptions.slice(0, 5));
 
     const row = new ActionRowBuilder().addComponents(selectMenu);
 
     await interaction.editReply({
         embeds: [simple(
-            'Step 3: Choose a Basic Weapon',
+            `Step 3: Choose a Basic Weapon for Champion ${champNum}`,
             [{ name: 'Arm Your Champion', value: 'Weapons augment your champion\'s attacks and can provide unique effects.' }]
         )],
         components: [row]
@@ -1271,7 +1316,13 @@ async function sendWeaponSelectionStep(interaction, userId) {
     activeTutorialDrafts.get(userId).stage = 'WEAPON_SELECTION';
 }
 
-async function sendArmorSelectionStep(interaction, userId) {
+/**
+ * Sends the armor selection step for the given champion number.
+ * @param {Interaction} interaction
+ * @param {string} userId
+ * @param {number} champNum - 1 or 2
+ */
+async function sendArmorSelectionStep(interaction, userId, champNum) {
     const commonArmors = allPossibleArmors.filter(a => a.rarity === 'Common');
     const armorOptions = commonArmors.map(armor => ({
         label: armor.name,
@@ -1280,15 +1331,15 @@ async function sendArmorSelectionStep(interaction, userId) {
     }));
 
     const selectMenu = new StringSelectMenuBuilder()
-        .setCustomId('tutorial_select_armor')
-        .setPlaceholder('Choose a Basic Armor')
+        .setCustomId(`tutorial_select_armor_${champNum}`)
+        .setPlaceholder(`Choose a Basic Armor for Champion ${champNum}`)
         .addOptions(armorOptions.slice(0, 5));
 
     const row = new ActionRowBuilder().addComponents(selectMenu);
 
     await interaction.editReply({
         embeds: [simple(
-            'Step 4: Choose a Basic Armor',
+            `Step 4: Choose a Basic Armor for Champion ${champNum}`,
             [{ name: 'Protect Your Champion', value: 'Armor provides crucial defense, mitigating incoming damage.' }]
         )],
         components: [row]
@@ -1296,12 +1347,20 @@ async function sendArmorSelectionStep(interaction, userId) {
     activeTutorialDrafts.get(userId).stage = 'ARMOR_SELECTION';
 }
 
-async function sendChampionRecapStep(interaction, userId) {
+/**
+ * Displays the recap for a single champion during the tutorial.
+ * @param {Interaction} interaction
+ * @param {string} userId
+ * @param {number} champNum - The champion number being recapped (1 or 2)
+ */
+async function sendChampionRecapStep(interaction, userId, champNum) {
     const userDraftState = activeTutorialDrafts.get(userId);
-    const hero = allPossibleHeroes.find(h => h.id === userDraftState.heroId);
-    const ability = allPossibleAbilities.find(ab => ab.id === userDraftState.abilityId);
-    const weapon = allPossibleWeapons.find(w => w.id === userDraftState.weaponId);
-    const armor = allPossibleArmors.find(a => a.id === userDraftState.armorId);
+    const championData = champNum === 1 ? userDraftState.champion1 : userDraftState.champion2;
+
+    const hero = allPossibleHeroes.find(h => h.id === championData.heroId);
+    const ability = allPossibleAbilities.find(ab => ab.id === championData.abilityId);
+    const weapon = allPossibleWeapons.find(w => w.id === championData.weaponId);
+    const armor = allPossibleArmors.find(a => a.id === championData.armorId);
 
     const detailedInfo = await getDetailedChampionInfo({
         id: 'temp',
@@ -1314,7 +1373,7 @@ async function sendChampionRecapStep(interaction, userId) {
 
     const embed = new EmbedBuilder()
         .setColor('#29b6f6')
-        .setTitle('Your Champion is Ready!')
+        .setTitle(`Champion ${champNum} Assembled!`)
         .setDescription(`**${detailedInfo.name}** - the **${detailedInfo.class}**`)
         .setThumbnail(detailedInfo.imageUrl || 'https://placehold.co/100x100')
         .addFields(
@@ -1327,74 +1386,116 @@ async function sendChampionRecapStep(interaction, userId) {
             { name: 'Weapon Bonus', value: weapon.ability ? weapon.ability.description : 'None', inline: false },
             { name: 'Armor Bonus', value: armor.ability ? armor.ability.description : 'None', inline: false }
         )
-        .setFooter({ text: 'Confirm your choices or start over!' })
         .setTimestamp();
 
-    const row = new ActionRowBuilder()
+    let buttonLabel = '';
+    let customId = '';
+    let buttonStyle = ButtonStyle.Primary;
+
+    if (champNum === 1) {
+        buttonLabel = 'Draft Second Champion';
+        customId = 'tutorial_recap_1_continue';
+        embed.setFooter({ text: 'Next, you will draft your second champion.' });
+    } else {
+        buttonLabel = 'Finalize Team & Begin Adventure!';
+        customId = 'tutorial_recap_2_finalize';
+        buttonStyle = ButtonStyle.Success;
+        embed.setFooter({ text: 'Your team is complete! Confirm to save them to your roster.' });
+    }
+
+    const actionRow = new ActionRowBuilder()
         .addComponents(
-            new ButtonBuilder().setCustomId('tutorial_confirm_champion').setLabel('Confirm Champion').setStyle(ButtonStyle.Success),
-            new ButtonBuilder().setCustomId('tutorial_start_over').setLabel('Start Over').setStyle(ButtonStyle.Danger)
+            new ButtonBuilder()
+                .setCustomId(customId)
+                .setLabel(buttonLabel)
+                .setStyle(buttonStyle)
         );
 
-    await interaction.editReply({ embeds: [embed], components: [row] });
-    userDraftState.stage = 'CONFIRMATION';
+    const startOverButton = new ActionRowBuilder()
+        .addComponents(
+            new ButtonBuilder()
+                .setCustomId('tutorial_start_over')
+                .setLabel('Start Over')
+                .setStyle(ButtonStyle.Danger)
+        );
+
+    await interaction.editReply({ embeds: [embed], components: [actionRow, startOverButton] });
 }
 
-async function finalizeChampion(interaction, userId) {
+/**
+ * Finalizes both champions and saves them to the database.
+ * @param {Interaction} interaction
+ * @param {string} userId
+ */
+async function finalizeChampionTeam(interaction, userId) {
     const userDraftState = activeTutorialDrafts.get(userId);
-    const championData = {
-        user_id: userId,
-        base_hero_id: userDraftState.heroId,
-        equipped_ability_id: userDraftState.abilityId,
-        equipped_weapon_id: userDraftState.weaponId,
-        equipped_armor_id: userDraftState.armorId,
-        level: 1,
-        xp: 0,
-    };
+    const champion1Data = userDraftState.champion1;
+    const champion2Data = userDraftState.champion2;
 
     try {
-        const [insertResult] = await db.execute(
-            `INSERT INTO user_champions (user_id, base_hero_id, equipped_ability_id, equipped_weapon_id, equipped_armor_id, level, xp)
-             VALUES (?, ?, ?, ?, ?, ?, ?)`,
-            [
-                championData.user_id,
-                championData.base_hero_id,
-                championData.equipped_ability_id,
-                championData.equipped_weapon_id,
-                championData.equipped_armor_id,
-                championData.level,
-                championData.xp
-            ]
-        );
-        const newChampionId = insertResult.insertId;
-
-        if (championData.equipped_ability_id) {
-            await db.execute(
-                `INSERT INTO champion_decks (user_champion_id, ability_id, order_index) VALUES (?, ?, 0)`,
-                [newChampionId, championData.equipped_ability_id]
+        const insertChampion = async (champData) => {
+            const [insertResult] = await db.execute(
+                `INSERT INTO user_champions (user_id, base_hero_id, equipped_ability_id, equipped_weapon_id, equipped_armor_id, level, xp)
+                 VALUES (?, ?, ?, ?, ?, ?, ?)`,
+                [
+                    userId,
+                    champData.heroId,
+                    champData.abilityId,
+                    champData.weaponId,
+                    champData.armorId,
+                    1,
+                    0
+                ]
             );
-        }
+            const newChampionId = insertResult.insertId;
 
-        await db.execute('UPDATE users SET tutorial_completed = TRUE WHERE discord_id = ?', [userId]);
+            if (champData.abilityId) {
+                await db.execute(
+                    `INSERT INTO champion_decks (user_champion_id, ability_id, order_index) VALUES (?, ?, 0)`,
+                    [newChampionId, champData.abilityId, 0]
+                );
+            }
+            return newChampionId;
+        };
+
+        await insertChampion(champion1Data);
+        await insertChampion(champion2Data);
+
+        await db.execute(
+            'UPDATE users SET tutorial_completed = TRUE WHERE discord_id = ?',
+            [userId]
+        );
 
         activeTutorialDrafts.delete(userId);
 
-        const hero = allPossibleHeroes.find(h => h.id === championData.base_hero_id);
+        const hero1 = allPossibleHeroes.find(h => h.id === champion1Data.heroId);
+        const hero2 = allPossibleHeroes.find(h => h.id === champion2Data.heroId);
 
-        const embed = confirmEmbed(`Your first champion, **${hero.name}** has been created and added to your roster!`);
-        embed.setDescription("You're all set! Now you can manage your champions or jump into battle.");
+        const embed = confirmEmbed(
+            `Your team of **${hero1.name}** and **${hero2.name}** has been created and added to your roster!`
+        );
+        embed.setDescription('You\'re all set! Now you can manage your champions or jump into the Dungeon!');
 
         const nextStepsRow = new ActionRowBuilder()
             .addComponents(
-                new ButtonBuilder().setCustomId('town_barracks').setLabel('View Barracks').setStyle(ButtonStyle.Secondary).setEmoji('⚔️'),
-                new ButtonBuilder().setCustomId('town_dungeon').setLabel('Enter Dungeon').setStyle(ButtonStyle.Primary).setEmoji('🌀')
+                new ButtonBuilder()
+                    .setCustomId('town_barracks')
+                    .setLabel('View Barracks')
+                    .setStyle(ButtonStyle.Secondary)
+                    .setEmoji('⚔️'),
+                new ButtonBuilder()
+                    .setCustomId('town_dungeon')
+                    .setLabel('Enter Dungeon')
+                    .setStyle(ButtonStyle.Primary)
+                    .setEmoji('🌀')
             );
 
         await interaction.editReply({ embeds: [embed], components: [nextStepsRow] });
+
     } catch (error) {
-        console.error('Error finalizing champion:', error);
+        console.error('Error finalizing champion team:', error);
         await interaction.editReply({
-            embeds: [simple('Error!', [{ name: 'Failed to create champion', value: 'There was an issue saving your champion. Please try again.' }])],
+            embeds: [simple('Error!', [{ name: 'Failed to create team', value: 'There was an issue saving your champions. Please try again.' }])],
             components: []
         });
         activeTutorialDrafts.delete(userId);
