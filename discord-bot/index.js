@@ -160,82 +160,87 @@ client.on(Events.InteractionCreate, async interaction => {
             }
             return;
         }
-        if (interaction.commandName === 'team' && interaction.options.getSubcommand() === 'manage') {
-            try {
-                const userId = interaction.user.id;
-                const championId = interaction.options.getString('champion');
-                const [rows] = await db.execute(
-                    `SELECT uc.*, h.name FROM user_champions uc JOIN heroes h ON uc.base_hero_id = h.id WHERE uc.id = ? AND uc.user_id = ?`,
-                    [championId, userId]
-                );
-                if (rows.length === 0) {
-                    await interaction.reply({ content: 'Champion not found.', ephemeral: true });
-                    return;
-                }
-                const champ = rows[0];
-
-                const [invRows] = await db.execute('SELECT item_id FROM user_inventory WHERE user_id = ?', [userId]);
-                const weapons = [];
-                const armors = [];
-                const abilities = [];
-                for (const inv of invRows) {
-                    const wid = parseInt(inv.item_id);
-                    const w = allPossibleWeapons.find(x => x.id === wid);
-                    if (w) weapons.push({ label: w.name, value: String(w.id) });
-                    const a = allPossibleArmors.find(x => x.id === wid);
-                    if (a) armors.push({ label: a.name, value: String(a.id) });
-                    const ab = allPossibleAbilities.find(x => x.id === wid);
-                    if (ab) abilities.push({ label: ab.name, value: String(ab.id) });
-                }
-
-                const embed = new EmbedBuilder()
-                    .setColor('#29b6f6')
-                    .setTitle(champ.name)
-                    .addFields(
-                        { name: 'Level', value: String(champ.level), inline: true },
-                        { name: 'XP', value: String(champ.xp || 0), inline: true },
-                        { name: 'Weapon', value: champ.equipped_weapon_id ? (allPossibleWeapons.find(w => w.id === champ.equipped_weapon_id)?.name || `ID ${champ.equipped_weapon_id}`) : 'None', inline: true },
-                        { name: 'Armor', value: champ.equipped_armor_id ? (allPossibleArmors.find(a => a.id === champ.equipped_armor_id)?.name || `ID ${champ.equipped_armor_id}`) : 'None', inline: true },
-                        { name: 'Ability', value: champ.equipped_ability_id ? (allPossibleAbilities.find(ab => ab.id === champ.equipped_ability_id)?.name || `ID ${champ.equipped_ability_id}`) : 'None', inline: true }
+            if (interaction.commandName === 'team' && interaction.options.getSubcommand() === 'manage') {
+                try {
+                    const userId = interaction.user.id;
+                    const championId = interaction.options.getString('champion');
+                    const [rows] = await db.execute(
+                        `SELECT uc.*, h.name, h.class FROM user_champions uc JOIN heroes h ON uc.base_hero_id = h.id WHERE uc.id = ? AND uc.user_id = ?`,
+                        [championId, userId]
                     );
+                    if (rows.length === 0) {
+                        await interaction.reply({ content: 'Champion not found.', ephemeral: true });
+                        return;
+                    }
+                    const champ = rows[0];
 
-                const components = [];
-                if (weapons.length) {
-                    const menu = new StringSelectMenuBuilder()
-                        .setCustomId(`equip_weapon_${champ.id}`)
-                        .setPlaceholder('Select Weapon')
-                        .setMinValues(1)
-                        .setMaxValues(1)
-                        .addOptions(weapons);
-                    components.push(new ActionRowBuilder().addComponents(menu));
+                    // Fetch current deck abilities for this champion
+                    const [deckRows] = await db.execute(
+                        `SELECT cd.ability_id, a.name FROM champion_decks cd JOIN abilities a ON cd.ability_id = a.id WHERE cd.user_champion_id = ? ORDER BY cd.order_index ASC`,
+                        [championId]
+                    );
+                    const currentDeckAbilities = deckRows.map(row => row.name).join(', ') || 'None';
+
+                    // Fetch available ability cards from inventory that match champion's class
+                    const [invAbilityRows] = await db.execute(
+                        `SELECT ui.item_id, a.name FROM user_inventory ui JOIN abilities a ON ui.item_id = a.id WHERE ui.user_id = ? AND a.class = ? AND ui.quantity > 0`,
+                        [userId, champ.class]
+                    );
+                    const availableAbilityOptions = invAbilityRows.map(item => ({
+                        label: item.name,
+                        description: `Ability ID: ${item.item_id}`,
+                        value: String(item.item_id),
+                    }));
+
+                    const embed = new EmbedBuilder()
+                        .setColor('#29b6f6')
+                        .setTitle(`⚙️ Manage ${champ.name}`)
+                        .setThumbnail(getHeroById(champ.base_hero_id).imageUrl || null)
+                        .addFields(
+                            { name: 'Level', value: String(champ.level), inline: true },
+                            { name: 'XP', value: String(champ.xp || 0), inline: true },
+                            { name: 'Equipped Weapon', value: champ.equipped_weapon_id ? (allPossibleWeapons.find(w => w.id === champ.equipped_weapon_id)?.name || `ID ${champ.equipped_weapon_id}`) : 'None', inline: true },
+                            { name: 'Equipped Armor', value: champ.equipped_armor_id ? (allPossibleArmors.find(a => a.id === champ.equipped_armor_id)?.name || `ID ${champ.equipped_armor_id}`) : 'None', inline: true },
+                            { name: 'Equipped Ability (Slot 1)', value: champ.equipped_ability_id ? (allPossibleAbilities.find(ab => ab.id === champ.equipped_ability_id)?.name || `ID ${champ.equipped_ability_id}`) : 'None', inline: true },
+                            { name: 'Deck Abilities', value: currentDeckAbilities, inline: false }
+                        );
+
+                    const components = [];
+                    if (availableAbilityOptions.length > 0) {
+                        const deckAbilitySelect = new StringSelectMenuBuilder()
+                            .setCustomId(`add_ability_to_deck_${championId}`)
+                            .setPlaceholder('Add an ability to deck (1st slot only)')
+                            .setMinValues(1)
+                            .setMaxValues(1)
+                            .addOptions(availableAbilityOptions);
+                        components.push(new ActionRowBuilder().addComponents(deckAbilitySelect));
+                    } else {
+                        components.push(new ActionRowBuilder().addComponents(
+                            new ButtonBuilder()
+                                .setCustomId('no_abilities_available')
+                                .setLabel('No Abilities Available for Deck')
+                                .setStyle(ButtonStyle.Secondary)
+                                .setDisabled(true)
+                        ));
+                    }
+
+                    const navigationRow = new ActionRowBuilder()
+                        .addComponents(
+                            new ButtonBuilder().setCustomId('back_to_barracks_from_champ').setLabel('Back to Roster').setStyle(ButtonStyle.Secondary).setEmoji('⬅️'),
+                            new ButtonBuilder().setCustomId('back_to_town').setLabel('Back to Town').setStyle(ButtonStyle.Secondary).setEmoji('🏠')
+                        );
+                    components.push(navigationRow);
+
+                    await interaction.reply({ embeds: [embed], components, ephemeral: true });
+
+                } catch (err) {
+                    console.error('Error preparing champion management:', err);
+                    if (!interaction.replied) {
+                        await interaction.reply({ content: 'An error occurred while preparing this menu.', ephemeral: true });
+                    }
                 }
-                if (armors.length) {
-                    const menu = new StringSelectMenuBuilder()
-                        .setCustomId(`equip_armor_${champ.id}`)
-                        .setPlaceholder('Select Armor')
-                        .setMinValues(1)
-                        .setMaxValues(1)
-                        .addOptions(armors);
-                    components.push(new ActionRowBuilder().addComponents(menu));
-                }
-                if (abilities.length) {
-                    const menu = new StringSelectMenuBuilder()
-                        .setCustomId(`equip_ability_${champ.id}`)
-                        .setPlaceholder('Select Ability')
-                        .setMinValues(1)
-                        .setMaxValues(1)
-                        .addOptions(abilities);
-                    components.push(new ActionRowBuilder().addComponents(menu));
-                }
-                await interaction.reply({ embeds: [embed], components, ephemeral: true });
-            } catch (err) {
-                console.error('Error preparing champion management:', err);
-                if (!interaction.replied) {
-                    await interaction.reply({ content: 'An error occurred while preparing this menu.', ephemeral: true });
-                }
+                return;
             }
-            return;
-        }
         if (interaction.commandName === 'market') {
             try {
                 const sub = interaction.options.getSubcommand();
@@ -484,7 +489,7 @@ client.on(Events.InteractionCreate, async interaction => {
                     break;
                 }
                 case 'town_barracks': {
-                    await interaction.deferReply({ ephemeral: true });
+                    await interaction.deferUpdate();
 
                     const userId = interaction.user.id;
 
@@ -492,9 +497,9 @@ client.on(Events.InteractionCreate, async interaction => {
                     const user = userRows[0] || {};
 
                     const [roster] = await db.execute(
-                        `SELECT h.name, h.rarity, h.class, uc.level 
-                         FROM user_champions uc 
-                         JOIN heroes h ON uc.base_hero_id = h.id 
+                        `SELECT uc.id, h.name, h.rarity, h.class, uc.level
+                         FROM user_champions uc
+                         JOIN heroes h ON uc.base_hero_id = h.id
                          WHERE uc.user_id = ? ORDER BY h.rarity DESC, uc.level DESC LIMIT 25`,
                         [userId]
                     );
@@ -518,9 +523,87 @@ client.on(Events.InteractionCreate, async interaction => {
                     const navigationRow = new ActionRowBuilder()
                         .addComponents(
                             new ButtonBuilder().setCustomId('back_to_town').setLabel('Back to Town').setStyle(ButtonStyle.Secondary).setEmoji('⬅️'),
-                            new ButtonBuilder().setCustomId('manage_champions').setLabel('Manage Champions').setStyle(ButtonStyle.Primary).setEmoji('⚙️')
+                            new ButtonBuilder().setCustomId('manage_champions_selection').setLabel('Manage Champions').setStyle(ButtonStyle.Primary).setEmoji('⚙️')
                         );
 
+                    await interaction.editReply({ embeds: [embed], components: [navigationRow] });
+                    break;
+                }
+                case 'manage_champions_selection': {
+                    await interaction.deferUpdate();
+
+                    const userId = interaction.user.id;
+                    const [ownedChampions] = await db.execute(
+                        'SELECT uc.id, h.name, h.level, h.class, h.rarity FROM user_champions uc JOIN heroes h ON uc.base_hero_id = h.id WHERE uc.user_id = ?',
+                        [userId]
+                    );
+
+                    if (ownedChampions.length === 0) {
+                        await interaction.editReply({ content: 'You have no champions to manage!', components: [] });
+                        return;
+                    }
+
+                    const championOptions = ownedChampions.map(champ => ({
+                        label: `${champ.name} (Lvl ${champ.level})`,
+                        description: `${champ.rarity} ${champ.class}`,
+                        value: String(champ.id),
+                    }));
+
+                    const selectMenu = new StringSelectMenuBuilder()
+                        .setCustomId('select_champion_to_manage')
+                        .setPlaceholder('Select a Champion to Manage')
+                        .addOptions(championOptions.slice(0, 25));
+
+                    const row = new ActionRowBuilder().addComponents(selectMenu);
+                    const backButton = new ActionRowBuilder()
+                        .addComponents(
+                            new ButtonBuilder().setCustomId('back_to_barracks').setLabel('Back to Barracks').setStyle(ButtonStyle.Secondary).setEmoji('⬅️')
+                        );
+
+
+                    await interaction.editReply({
+                        embeds: [simple('Manage Your Champions', [{ name: 'Choose a Champion', value: 'Select a champion to view their details and modify their deck.' }])],
+                        components: [row, backButton]
+                    });
+                    break;
+                }
+                case 'back_to_barracks_from_champ':
+                case 'back_to_barracks': {
+                    await interaction.deferUpdate();
+
+                    const userId = interaction.user.id;
+                    const [userRows] = await db.execute('SELECT soft_currency, hard_currency, summoning_shards, corrupted_lodestones FROM users WHERE discord_id = ?', [userId]);
+                    const user = userRows[0] || {};
+
+                    const [roster] = await db.execute(
+                        `SELECT h.name, h.rarity, h.class, uc.level
+                         FROM user_champions uc
+                         JOIN heroes h ON uc.base_hero_id = h.id
+                         WHERE uc.user_id = ? ORDER BY h.rarity DESC, uc.level DESC LIMIT 25`,
+                        [userId]
+                    );
+
+                    const embed = new EmbedBuilder()
+                        .setColor('#78716c')
+                        .setTitle(`${interaction.user.username}'s Barracks`)
+                        .addFields(
+                            { name: 'Gold', value: `🪙 ${user.soft_currency || 0}`, inline: true },
+                            { name: 'Gems', value: `💎 ${user.hard_currency || 0}`, inline: true },
+                            { name: 'Summoning Shards', value: `✨ ${user.summoning_shards || 0}`, inline: true }
+                        );
+
+                    if (roster.length > 0) {
+                        const rosterString = roster.map(c => `**${c.name}** (Lvl ${c.level}) - *${c.rarity} ${c.class}*`).join('\n');
+                        embed.addFields({ name: 'Champion Roster', value: rosterString });
+                    } else {
+                        embed.addFields({ name: 'Champion Roster', value: 'Your roster is empty. Visit the Summoning Circle!' });
+                    }
+
+                    const navigationRow = new ActionRowBuilder()
+                        .addComponents(
+                            new ButtonBuilder().setCustomId('back_to_town').setLabel('Back to Town').setStyle(ButtonStyle.Secondary).setEmoji('⬅️'),
+                            new ButtonBuilder().setCustomId('manage_champions_selection').setLabel('Manage Champions').setStyle(ButtonStyle.Primary).setEmoji('⚙️')
+                        );
                     await interaction.editReply({ embeds: [embed], components: [navigationRow] });
                     break;
                 }
@@ -619,6 +702,153 @@ client.on(Events.InteractionCreate, async interaction => {
                 console.error(`Error handling tutorial step ${interaction.customId}:`, error);
                 await interaction.editReply({ content: 'An error occurred during the tutorial. Please try `/start` again.', components: [] });
                 activeTutorialDrafts.delete(userId);
+            }
+            return;
+        }
+        if (interaction.customId === 'select_champion_to_manage') {
+            await interaction.deferUpdate();
+            const selectedChampionId = parseInt(interaction.values[0]);
+
+            const [champRows] = await db.execute(
+                `SELECT uc.*, h.name, h.class FROM user_champions uc JOIN heroes h ON uc.base_hero_id = h.id WHERE uc.id = ? AND uc.user_id = ?`,
+                [selectedChampionId, userId]
+            );
+            if (champRows.length === 0) {
+                await interaction.editReply({ content: 'Champion not found in your roster.', components: [] });
+                return;
+            }
+            const champion = champRows[0];
+
+            const [availableAbilities] = await db.execute(
+                `SELECT ui.item_id, a.name, a.energy_cost, a.effect FROM user_inventory ui JOIN abilities a ON ui.item_id = a.id WHERE ui.user_id = ? AND a.class = ? AND ui.quantity > 0`,
+                [userId, champion.class]
+            );
+            const abilityOptions = availableAbilities.map(ability => ({
+                label: ability.name,
+                description: `⚡ ${ability.energy_cost} | ${ability.effect}`,
+                value: String(ability.item_id),
+            }));
+
+            const [deckRows] = await db.execute(
+                `SELECT cd.ability_id, a.name FROM champion_decks cd JOIN abilities a ON cd.ability_id = a.id WHERE cd.user_champion_id = ? ORDER BY cd.order_index ASC`,
+                [selectedChampionId]
+            );
+            const currentDeckAbilities = deckRows.map(row => row.name).join(', ') || 'None';
+
+            const embed = new EmbedBuilder()
+                .setColor('#29b6f6')
+                .setTitle(`Managing: ${champion.name}`)
+                .setThumbnail(getHeroById(champion.base_hero_id).imageUrl || null)
+                .addFields(
+                    { name: 'Champion Info', value: `Level: ${champion.level} | Class: ${champion.class}`, inline: false },
+                    { name: 'Current Deck Abilities', value: currentDeckAbilities, inline: false }
+                );
+
+            const components = [];
+            if (abilityOptions.length > 0) {
+                const addAbilitySelectMenu = new StringSelectMenuBuilder()
+                    .setCustomId(`add_ability_to_deck_${selectedChampionId}`)
+                    .setPlaceholder('Add an Ability to Deck (Slot 1)')
+                    .addOptions(abilityOptions.slice(0, 25));
+                components.push(new ActionRowBuilder().addComponents(addAbilitySelectMenu));
+            } else {
+                 components.push(new ActionRowBuilder().addComponents(
+                        new ButtonBuilder()
+                            .setCustomId('no_abilities_for_deck')
+                            .setLabel('No Abilities Available in Inventory')
+                            .setStyle(ButtonStyle.Secondary)
+                            .setDisabled(true)
+                    ));
+            }
+
+            const navigationRow = new ActionRowBuilder()
+                .addComponents(
+                    new ButtonBuilder().setCustomId('back_to_barracks_from_champ').setLabel('Back to Roster').setStyle(ButtonStyle.Secondary).setEmoji('⬅️')
+                );
+            components.push(navigationRow);
+
+            await interaction.editReply({ embeds: [embed], components: components });
+            return;
+        }
+        if (interaction.customId.startsWith('add_ability_to_deck_')) {
+            await interaction.deferUpdate();
+            const championId = parseInt(interaction.customId.replace('add_ability_to_deck_', ''));
+            const abilityId = parseInt(interaction.values[0]);
+
+            try {
+                await db.execute(
+                    `DELETE FROM champion_decks WHERE user_champion_id = ? AND order_index = 0`,
+                    [championId]
+                );
+
+                await db.execute(
+                    `INSERT INTO champion_decks (user_champion_id, ability_id, order_index) VALUES (?, ?, ?)`,
+                    [championId, abilityId, 0]
+                );
+
+                const selectedAbility = allPossibleAbilities.find(a => a.id === abilityId);
+
+                const [champRows] = await db.execute(
+                    `SELECT uc.*, h.name, h.class FROM user_champions uc JOIN heroes h ON uc.base_hero_id = h.id WHERE uc.id = ? AND uc.user_id = ?`,
+                    [championId, userId]
+                );
+                const updatedChampion = champRows[0];
+
+                const [deckRows] = await db.execute(
+                    `SELECT cd.ability_id, a.name FROM champion_decks cd JOIN abilities a ON cd.ability_id = a.id WHERE cd.user_champion_id = ? ORDER BY cd.order_index ASC`,
+                    [championId]
+                );
+                const currentDeckAbilities = deckRows.map(row => row.name).join(', ') || 'None';
+
+                const embed = new EmbedBuilder()
+                    .setColor('#29b6f6')
+                    .setTitle(`Managing: ${updatedChampion.name}`)
+                    .setThumbnail(getHeroById(updatedChampion.base_hero_id).imageUrl || null)
+                    .addFields(
+                        { name: 'Champion Info', value: `Level: ${updatedChampion.level} | Class: ${updatedChampion.class}`, inline: false },
+                        { name: 'Current Deck Abilities', value: currentDeckAbilities, inline: false },
+                        { name: 'Equipped Ability (Slot 1)', value: updatedChampion.equipped_ability_id ? (allPossibleAbilities.find(ab => ab.id === updatedChampion.equipped_ability_id)?.name || `ID ${updatedChampion.equipped_ability_id}`) : 'None', inline: true },
+                        { name: 'Deck Update', value: `**${selectedAbility.name}** added to deck!`, inline: false }
+                    );
+
+                const [availableAbilitiesAfterEquip] = await db.execute(
+                    `SELECT ui.item_id, a.name, a.energy_cost, a.effect FROM user_inventory ui JOIN abilities a ON ui.item_id = a.id WHERE ui.user_id = ? AND a.class = ? AND ui.quantity > 0`,
+                    [userId, updatedChampion.class]
+                );
+                const abilityOptionsAfterEquip = availableAbilitiesAfterEquip.map(ability => ({
+                    label: ability.name,
+                    description: `⚡ ${ability.energy_cost} | ${ability.effect}`,
+                    value: String(ability.item_id),
+                }));
+
+                const components = [];
+                if (abilityOptionsAfterEquip.length > 0) {
+                    const addAbilitySelectMenu = new StringSelectMenuBuilder()
+                        .setCustomId(`add_ability_to_deck_${championId}`)
+                        .setPlaceholder('Add an Ability to Deck (Slot 1)')
+                        .addOptions(abilityOptionsAfterEquip.slice(0, 25));
+                    components.push(new ActionRowBuilder().addComponents(addAbilitySelectMenu));
+                } else {
+                     components.push(new ActionRowBuilder().addComponents(
+                            new ButtonBuilder()
+                                .setCustomId('no_abilities_for_deck')
+                                .setLabel('No Abilities Available in Inventory')
+                                .setStyle(ButtonStyle.Secondary)
+                                .setDisabled(true)
+                        ));
+                }
+
+                const navigationRow = new ActionRowBuilder()
+                    .addComponents(
+                        new ButtonBuilder().setCustomId('back_to_barracks_from_champ').setLabel('Back to Roster').setStyle(ButtonStyle.Secondary).setEmoji('⬅️')
+                    );
+                components.push(navigationRow);
+
+                await interaction.editReply({ embeds: [embed], components: components });
+
+            } catch (error) {
+                console.error('Error adding ability to deck:', error);
+                await interaction.editReply({ content: 'An error occurred while adding the ability to the deck.', components: [] });
             }
             return;
         }
