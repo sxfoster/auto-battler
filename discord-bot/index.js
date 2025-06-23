@@ -5,11 +5,11 @@ require('dotenv').config();
 const db = require('./util/database');
 const { simple } = require('./src/utils/embedBuilder');
 const {
-  allPossibleHeroes,
   allPossibleWeapons,
   allPossibleArmors,
   allPossibleAbilities
 } = require('../backend/game/data');
+const { loadHeroes, getHeroes, getHeroById, getMonsters } = require('./util/gameData');
 const { createCombatant } = require('../backend/game/utils');
 const GameEngine = require('../backend/game/engine');
 
@@ -38,6 +38,7 @@ client.once(Events.ClientReady, async () => {
     try {
         const [rows, fields] = await db.execute('SELECT 1');
         console.log('✅ Database connection successful.');
+        await loadHeroes();
     } catch (error) {
         console.error('❌ Database connection failed:', error);
     }
@@ -61,7 +62,7 @@ client.on(Events.InteractionCreate, async interaction => {
                 }
 
                 const options = ownedChampions.map(champion => {
-                    const staticData = allPossibleHeroes.find(h => h.id === champion.base_hero_id);
+                    const staticData = getHeroById(champion.base_hero_id);
                     const name = staticData ? staticData.name : `Unknown Hero (ID: ${champion.base_hero_id})`;
                     const rarity = staticData ? staticData.rarity : 'Unknown';
                     const heroClass = staticData ? staticData.class : 'Unknown';
@@ -140,7 +141,7 @@ client.on(Events.InteractionCreate, async interaction => {
                     else if (roll < 0.05) rarity = 'Rare';
                     else if (roll < 0.30) rarity = 'Uncommon';
 
-                    const possibleHeroes = allPossibleHeroes.filter(h => h.rarity === rarity && !h.isMonster);
+                    const possibleHeroes = getHeroes().filter(h => h.rarity === rarity && !h.is_monster);
                     const summonedHero = possibleHeroes[Math.floor(Math.random() * possibleHeroes.length)];
 
                     await db.execute('INSERT INTO user_champions (user_id, base_hero_id) VALUES (?, ?)', [userId, summonedHero.id]);
@@ -162,7 +163,7 @@ client.on(Events.InteractionCreate, async interaction => {
 
                     await db.execute('UPDATE users SET corrupted_lodestones = corrupted_lodestones - ? WHERE discord_id = ?', [LODESTONE_COST, userId]);
 
-                    const monsters = allPossibleHeroes.filter(h => h.isMonster);
+                    const monsters = getMonsters();
                     const summonedMonster = monsters[Math.floor(Math.random() * monsters.length)];
 
                     await db.execute('INSERT INTO user_champions (user_id, base_hero_id) VALUES (?, ?)', [userId, summonedMonster.id]);
@@ -219,7 +220,7 @@ client.on(Events.InteractionCreate, async interaction => {
                         break;
                     }
                     const options = ownedChampions.map(champion => {
-                        const staticData = allPossibleHeroes.find(h => h.id === champion.base_hero_id);
+                        const staticData = getHeroById(champion.base_hero_id);
                         const name = staticData ? staticData.name : `Unknown Hero (ID: ${champion.base_hero_id})`;
                         const rarity = staticData ? staticData.rarity : 'Unknown';
                         const heroClass = staticData ? staticData.class : 'Unknown';
@@ -263,8 +264,8 @@ client.on(Events.InteractionCreate, async interaction => {
 
                 // Check for monster selection
                 const monsterSelectionId = selections.find(id => {
-                    const champ = allPossibleHeroes.find(h => h.id === parseInt(id));
-                    return champ && champ.isMonster;
+                    const champ = getHeroById(parseInt(id));
+                    return champ && champ.is_monster;
                 });
 
                 let playerChampion1_db, playerChampion2_db;
@@ -276,7 +277,8 @@ client.on(Events.InteractionCreate, async interaction => {
                     const [rows] = await db.execute('SELECT * FROM user_champions WHERE id = ?', [monsterSelectionId]);
                     playerChampion1_db = rows[0];
                     playerChampion2_db = null;
-                    await interaction.update({ content: `You have chosen the monster: ${allPossibleHeroes.find(h => h.id === playerChampion1_db.base_hero_id).name}! Preparing the battle...`, components: [] });
+                    const monsterName = getHeroById(playerChampion1_db.base_hero_id)?.name || 'Unknown Monster';
+                    await interaction.update({ content: `You have chosen the monster: ${monsterName}! Preparing the battle...`, components: [] });
                 } else {
                     await interaction.update({ content: 'Team selected! Preparing the battle...', components: [] });
 
@@ -324,8 +326,8 @@ client.on(Events.InteractionCreate, async interaction => {
                 const selections = interaction.values;
 
                 const monsterSelectionId = selections.find(id => {
-                    const champ = allPossibleHeroes.find(h => h.id === parseInt(id));
-                    return champ && champ.isMonster;
+                    const champ = getHeroById(parseInt(id));
+                    return champ && champ.is_monster;
                 });
 
                 let champion1Id, champion2Id = null;
@@ -359,7 +361,7 @@ client.on(Events.InteractionCreate, async interaction => {
 
 
 function generateRandomChampion() {
-    const commonHeroes = allPossibleHeroes.filter(h => h.rarity === 'Common');
+    const commonHeroes = getHeroes().filter(h => h.rarity === 'Common' && !h.is_monster);
     const hero = commonHeroes[Math.floor(Math.random() * commonHeroes.length)];
     const abilityPool = allPossibleAbilities.filter(a => a.class === hero.class && a.rarity === 'Common');
     const ability = abilityPool.length > 0 ? abilityPool[Math.floor(Math.random() * abilityPool.length)] : null;
