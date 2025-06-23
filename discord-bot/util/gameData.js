@@ -10,7 +10,7 @@ const gameData = {
 async function loadAllData() {
     try {
         // Corrected SQL query with snake_case
-        const [heroes] = await db.execute('SELECT id, name, rarity, class, is_monster, trait FROM heroes');
+        const [heroes] = await db.execute('SELECT id, name, rarity, class, is_monster, trait, hp, attack, speed FROM heroes');
         for (const hero of heroes) {
             gameData.heroes.set(hero.id, hero);
         }
