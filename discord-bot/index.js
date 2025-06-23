@@ -388,39 +388,84 @@ client.on(Events.InteractionCreate, async interaction => {
                     playerChampion2_db = p2_rows[0];
                 }
 
-                // Fetch two random monsters from the heroes table
-                const [monsterRows] = await db.execute(
-                    'SELECT id FROM heroes WHERE isMonster = TRUE'
-                );
-                const monsterIds = monsterRows.map(r => r.id);
-                const randIndex1 = Math.floor(Math.random() * monsterIds.length);
-                let randIndex2 = Math.floor(Math.random() * monsterIds.length);
-                while (randIndex2 === randIndex1 && monsterIds.length > 1) {
-                    randIndex2 = Math.floor(Math.random() * monsterIds.length);
-                }
-                const monsterId1 = monsterIds[randIndex1];
-                const monsterId2 = monsterIds[randIndex2];
-
+                let isPvP = Math.random() < 0.25;
+                let opponentName = 'Dungeon Monsters';
                 const combatants = [
                     createCombatant({ hero_id: playerChampion1_db.base_hero_id, weapon_id: playerChampion1_db.equipped_weapon_id, armor_id: playerChampion1_db.equipped_armor_id, ability_id: playerChampion1_db.equipped_ability_id }, 'player', 0),
                     playerChampion2_db ? createCombatant({ hero_id: playerChampion2_db.base_hero_id, weapon_id: playerChampion2_db.equipped_weapon_id, armor_id: playerChampion2_db.equipped_armor_id, ability_id: playerChampion2_db.equipped_ability_id }, 'player', 1) : null,
-                    createCombatant({ hero_id: monsterId1, weapon_id: null, armor_id: null, ability_id: null }, 'enemy', 0),
-                    createCombatant({ hero_id: monsterId2, weapon_id: null, armor_id: null, ability_id: null }, 'enemy', 1)
-                ].filter(Boolean);
+                ];
 
-                if (combatants.length < 3) {
-                    throw new Error('Failed to create all combatants for the battle. Check if all hero IDs are valid.');
+                if (isPvP) {
+                    const [opponentRows] = await db.execute(
+                        'SELECT user_id FROM defense_teams WHERE user_id != ? ORDER BY RAND() LIMIT 1',
+                        [interaction.user.id]
+                    );
+                    if (opponentRows.length > 0) {
+                        const opponentId = opponentRows[0].user_id;
+                        const [[defTeam]] = await db.execute(
+                            'SELECT champion_1_id, champion_2_id FROM defense_teams WHERE user_id = ?',
+                            [opponentId]
+                        );
+                        const [e1] = await db.execute('SELECT * FROM user_champions WHERE id = ?', [defTeam.champion_1_id]);
+                        const enemy1_db = e1[0];
+                        let enemy2_db = null;
+                        if (defTeam.champion_2_id) {
+                            const [e2] = await db.execute('SELECT * FROM user_champions WHERE id = ?', [defTeam.champion_2_id]);
+                            enemy2_db = e2[0];
+                        }
+
+                        const userObj = await client.users.fetch(opponentId).catch(() => null);
+                        if (userObj) opponentName = userObj.username;
+
+                        combatants.push(
+                            createCombatant({ hero_id: enemy1_db.base_hero_id, weapon_id: enemy1_db.equipped_weapon_id, armor_id: enemy1_db.equipped_armor_id, ability_id: enemy1_db.equipped_ability_id }, 'enemy', 0)
+                        );
+                        if (enemy2_db) {
+                            combatants.push(
+                                createCombatant({ hero_id: enemy2_db.base_hero_id, weapon_id: enemy2_db.equipped_weapon_id, armor_id: enemy2_db.equipped_armor_id, ability_id: enemy2_db.equipped_ability_id }, 'enemy', 1)
+                            );
+                        }
+                    } else {
+                        isPvP = false;
+                    }
                 }
 
-                const gameInstance = new GameEngine(combatants);
+                if (!isPvP) {
+                    const [monsterRows] = await db.execute(
+                        'SELECT id FROM heroes WHERE isMonster = TRUE'
+                    );
+                    const monsterIds = monsterRows.map(r => r.id);
+                    const randIndex1 = Math.floor(Math.random() * monsterIds.length);
+                    let randIndex2 = Math.floor(Math.random() * monsterIds.length);
+                    while (randIndex2 === randIndex1 && monsterIds.length > 1) {
+                        randIndex2 = Math.floor(Math.random() * monsterIds.length);
+                    }
+                    const monsterId1 = monsterIds[randIndex1];
+                    const monsterId2 = monsterIds[randIndex2];
+                    combatants.push(
+                        createCombatant({ hero_id: monsterId1, weapon_id: null, armor_id: null, ability_id: null }, 'enemy', 0),
+                        createCombatant({ hero_id: monsterId2, weapon_id: null, armor_id: null, ability_id: null }, 'enemy', 1)
+                    );
+                }
+
+                const finalCombatants = combatants.filter(Boolean);
+
+                if (finalCombatants.length < 3) {
+                    throw new Error('Failed to create all combatants for the battle. Check if all hero IDs are valid.');
+                }
+                const gameInstance = new GameEngine(finalCombatants);
                 const battleLog = gameInstance.runFullGame();
                 const playerWon = gameInstance.winner === 'player';
 
-                const resultFields = [{ name: 'Winner', value: playerWon ? interaction.user.username : 'Dungeon Monsters' }];
+                const resultFields = [{ name: 'Winner', value: playerWon ? interaction.user.username : opponentName }];
 
-                if (playerWon) {
+                if (isPvP) {
+                    const ratingChange = playerWon ? 10 : -10;
+                    await db.execute('UPDATE users SET pvp_rating = pvp_rating + ? WHERE discord_id = ?', [ratingChange, interaction.user.id]);
+                    resultFields.push({ name: 'Rating Change', value: `${ratingChange > 0 ? '+' : ''}${ratingChange}` });
+                } else if (playerWon) {
                     const xpGain = 25;
-                    const survivors = combatants.filter(c => c.team === 'player' && c.currentHp > 0);
+                    const survivors = finalCombatants.filter(c => c.team === 'player' && c.currentHp > 0);
                     for (const survivor of survivors) {
                         const champDb = survivor.position === 0 ? playerChampion1_db : playerChampion2_db;
                         if (champDb) {
