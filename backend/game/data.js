@@ -67,6 +67,67 @@ const allPossibleHeroes = [
     { type: 'hero', id: 1102, name: 'Mage', class: 'Arcane Savant', rarity: 'Uncommon', art: '../img/mage_card.png', hp: 18, attack: 4, speed: 4, abilities: [] },
     { type: 'hero', id: 1103, name: 'Archmage', class: 'Arcane Savant', rarity: 'Rare', art: '../img/archmage_card.png', hp: 24, attack: 5, speed: 5, abilities: [] },
     { type: 'hero', id: 1104, name: 'Grand Magus', class: 'Arcane Savant', rarity: 'Epic', art: '../img/grand_magus_card.png', hp: 30, attack: 6, speed: 5, abilities: [] },
+
+    // === MONSTER ARCHETYPES ===
+    // Archetype 1: Grave Titan
+    { type: 'hero', id: 2001, name: 'Lesser Grave Titan', class: 'Grave Titan', rarity: 'Common', art: '../img/monsters/grave_titan_1.png', hp: 45, attack: 8, speed: 2, isMonster: true, trait: 'Stonehide: Reduces all incoming physical damage by 2.' },
+    { type: 'hero', id: 2002, name: 'Grave Titan', class: 'Grave Titan', rarity: 'Uncommon', art: '../img/monsters/grave_titan_2.png', hp: 55, attack: 10, speed: 2, isMonster: true, trait: 'Stonehide: Reduces all incoming physical damage by 2.' },
+    { type: 'hero', id: 2003, name: 'Elder Grave Titan', class: 'Grave Titan', rarity: 'Rare', art: '../img/monsters/grave_titan_3.png', hp: 68, attack: 13, speed: 2, isMonster: true, trait: 'Stonehide: Reduces all incoming physical damage by 2.' },
+    { type: 'hero', id: 2004, name: 'World-Shaper Titan', class: 'Grave Titan', rarity: 'Epic', art: '../img/monsters/grave_titan_4.png', hp: 85, attack: 17, speed: 2, isMonster: true, trait: 'Stonehide: Reduces all incoming physical damage by 2.' },
+
+    // Archetype 2: Brute
+    { type: 'hero', id: 2101, name: 'Lesser Brute', class: 'Brute', rarity: 'Common', art: '../img/monsters/brute_1.png', hp: 40, attack: 12, speed: 3, isMonster: true, trait: 'Unstoppable: Cannot be Stunned or Rooted.' },
+    { type: 'hero', id: 2102, name: 'War Brute', class: 'Brute', rarity: 'Uncommon', art: '../img/monsters/brute_2.png', hp: 50, attack: 15, speed: 3, isMonster: true, trait: 'Unstoppable: Cannot be Stunned or Rooted.' },
+    { type: 'hero', id: 2103, name: 'Savage Brute', class: 'Brute', rarity: 'Rare', art: '../img/monsters/brute_3.png', hp: 62, attack: 19, speed: 3, isMonster: true, trait: 'Unstoppable: Cannot be Stunned or Rooted.' },
+    { type: 'hero', id: 2104, name: 'Unchained Behemoth', class: 'Brute', rarity: 'Epic', art: '../img/monsters/brute_4.png', hp: 78, attack: 24, speed: 3, isMonster: true, trait: 'Unstoppable: Cannot be Stunned or Rooted.' },
+
+    // Archetype 3: Frost Revenant
+    { type: 'hero', id: 2201, name: 'Lesser Frost Revenant', class: 'Frost Revenant', rarity: 'Common', art: '../img/monsters/frost_revenant_1.png', hp: 38, attack: 7, speed: 4, isMonster: true, trait: 'Frozen Core: Immune to Slow effects.' },
+    { type: 'hero', id: 2202, name: 'Frost Revenant', class: 'Frost Revenant', rarity: 'Uncommon', art: '../img/monsters/frost_revenant_2.png', hp: 48, attack: 9, speed: 4, isMonster: true, trait: 'Frozen Core: Immune to Slow effects.' },
+    { type: 'hero', id: 2203, name: 'Elder Frost Revenant', class: 'Frost Revenant', rarity: 'Rare', art: '../img/monsters/frost_revenant_3.png', hp: 60, attack: 12, speed: 4, isMonster: true, trait: 'Frozen Core: Immune to Slow effects.' },
+    { type: 'hero', id: 2204, name: 'Glacial Wraith', class: 'Frost Revenant', rarity: 'Epic', art: '../img/monsters/frost_revenant_4.png', hp: 74, attack: 16, speed: 4, isMonster: true, trait: 'Frozen Core: Immune to Slow effects.' },
+
+    // Archetype 4: Blood Witch
+    { type: 'hero', id: 2301, name: 'Novice Blood Witch', class: 'Blood Witch', rarity: 'Common', art: '../img/monsters/blood_witch_1.png', hp: 30, attack: 6, speed: 5, isMonster: true, trait: 'Blood Magic: Heals 1 HP whenever she deals damage.' },
+    { type: 'hero', id: 2302, name: 'Blood Witch', class: 'Blood Witch', rarity: 'Uncommon', art: '../img/monsters/blood_witch_2.png', hp: 40, attack: 8, speed: 5, isMonster: true, trait: 'Blood Magic: Heals 1 HP whenever she deals damage.' },
+    { type: 'hero', id: 2303, name: 'Elder Blood Witch', class: 'Blood Witch', rarity: 'Rare', art: '../img/monsters/blood_witch_3.png', hp: 52, attack: 11, speed: 5, isMonster: true, trait: 'Blood Magic: Heals 1 HP whenever she deals damage.' },
+    { type: 'hero', id: 2304, name: 'Crimson Matriarch', class: 'Blood Witch', rarity: 'Epic', art: '../img/monsters/blood_witch_4.png', hp: 66, attack: 15, speed: 5, isMonster: true, trait: 'Blood Magic: Heals 1 HP whenever she deals damage.' },
+
+    // Archetype 5: Infernal Beast
+    { type: 'hero', id: 2401, name: 'Lesser Infernal Beast', class: 'Infernal Beast', rarity: 'Common', art: '../img/monsters/infernal_beast_1.png', hp: 42, attack: 11, speed: 4, isMonster: true, trait: 'Burning Rage: Deals 1 fire damage to attackers.' },
+    { type: 'hero', id: 2402, name: 'Infernal Beast', class: 'Infernal Beast', rarity: 'Uncommon', art: '../img/monsters/infernal_beast_2.png', hp: 52, attack: 13, speed: 4, isMonster: true, trait: 'Burning Rage: Deals 1 fire damage to attackers.' },
+    { type: 'hero', id: 2403, name: 'Greater Infernal Beast', class: 'Infernal Beast', rarity: 'Rare', art: '../img/monsters/infernal_beast_3.png', hp: 64, attack: 16, speed: 4, isMonster: true, trait: 'Burning Rage: Deals 1 fire damage to attackers.' },
+    { type: 'hero', id: 2404, name: 'Apocalyptic Behemoth', class: 'Infernal Beast', rarity: 'Epic', art: '../img/monsters/infernal_beast_4.png', hp: 78, attack: 20, speed: 4, isMonster: true, trait: 'Burning Rage: Deals 1 fire damage to attackers.' },
+
+    // Archetype 6: Necromancer
+    { type: 'hero', id: 2501, name: 'Apprentice Necromancer', class: 'Necromancer', rarity: 'Common', art: '../img/monsters/necromancer_1.png', hp: 32, attack: 6, speed: 3, isMonster: true, trait: 'Soul Harvest: Gain 1 energy when a minion dies.' },
+    { type: 'hero', id: 2502, name: 'Necromancer', class: 'Necromancer', rarity: 'Uncommon', art: '../img/monsters/necromancer_2.png', hp: 42, attack: 8, speed: 3, isMonster: true, trait: 'Soul Harvest: Gain 1 energy when a minion dies.' },
+    { type: 'hero', id: 2503, name: 'Bone Weaver', class: 'Necromancer', rarity: 'Rare', art: '../img/monsters/necromancer_3.png', hp: 54, attack: 11, speed: 3, isMonster: true, trait: 'Soul Harvest: Gain 1 energy when a minion dies.' },
+    { type: 'hero', id: 2504, name: 'Lich Lord', class: 'Necromancer', rarity: 'Epic', art: '../img/monsters/necromancer_4.png', hp: 68, attack: 15, speed: 3, isMonster: true, trait: 'Soul Harvest: Gain 1 energy when a minion dies.' },
+
+    // Archetype 7: Shadowfiend
+    { type: 'hero', id: 2601, name: 'Lesser Shadowfiend', class: 'Shadowfiend', rarity: 'Common', art: '../img/monsters/shadowfiend_1.png', hp: 35, attack: 10, speed: 6, isMonster: true, trait: 'Shadowstep: Starts with +1 Evasion.' },
+    { type: 'hero', id: 2602, name: 'Shadowfiend', class: 'Shadowfiend', rarity: 'Uncommon', art: '../img/monsters/shadowfiend_2.png', hp: 45, attack: 12, speed: 6, isMonster: true, trait: 'Shadowstep: Starts with +1 Evasion.' },
+    { type: 'hero', id: 2603, name: 'Night Terror', class: 'Shadowfiend', rarity: 'Rare', art: '../img/monsters/shadowfiend_3.png', hp: 57, attack: 15, speed: 6, isMonster: true, trait: 'Shadowstep: Starts with +1 Evasion.' },
+    { type: 'hero', id: 2604, name: 'Umbral Devourer', class: 'Shadowfiend', rarity: 'Epic', art: '../img/monsters/shadowfiend_4.png', hp: 71, attack: 19, speed: 6, isMonster: true, trait: 'Shadowstep: Starts with +1 Evasion.' },
+
+    // Archetype 8: Storm Serpent
+    { type: 'hero', id: 2701, name: 'Young Storm Serpent', class: 'Storm Serpent', rarity: 'Common', art: '../img/monsters/storm_serpent_1.png', hp: 38, attack: 9, speed: 7, isMonster: true, trait: 'Stormborn: Immune to Shock.' },
+    { type: 'hero', id: 2702, name: 'Storm Serpent', class: 'Storm Serpent', rarity: 'Uncommon', art: '../img/monsters/storm_serpent_2.png', hp: 48, attack: 11, speed: 7, isMonster: true, trait: 'Stormborn: Immune to Shock.' },
+    { type: 'hero', id: 2703, name: 'Elder Storm Serpent', class: 'Storm Serpent', rarity: 'Rare', art: '../img/monsters/storm_serpent_3.png', hp: 60, attack: 14, speed: 7, isMonster: true, trait: 'Stormborn: Immune to Shock.' },
+    { type: 'hero', id: 2704, name: 'Tempest Leviathan', class: 'Storm Serpent', rarity: 'Epic', art: '../img/monsters/storm_serpent_4.png', hp: 74, attack: 18, speed: 7, isMonster: true, trait: 'Stormborn: Immune to Shock.' },
+
+    // Archetype 9: Venomspawn
+    { type: 'hero', id: 2801, name: 'Lesser Venomspawn', class: 'Venomspawn', rarity: 'Common', art: '../img/monsters/venomspawn_1.png', hp: 32, attack: 8, speed: 5, isMonster: true, trait: 'Toxic Blood: Poisons melee attackers.' },
+    { type: 'hero', id: 2802, name: 'Venomspawn', class: 'Venomspawn', rarity: 'Uncommon', art: '../img/monsters/venomspawn_2.png', hp: 42, attack: 10, speed: 5, isMonster: true, trait: 'Toxic Blood: Poisons melee attackers.' },
+    { type: 'hero', id: 2803, name: 'Toxic Horror', class: 'Venomspawn', rarity: 'Rare', art: '../img/monsters/venomspawn_3.png', hp: 54, attack: 13, speed: 5, isMonster: true, trait: 'Toxic Blood: Poisons melee attackers.' },
+    { type: 'hero', id: 2804, name: 'Plague Serpent', class: 'Venomspawn', rarity: 'Epic', art: '../img/monsters/venomspawn_4.png', hp: 68, attack: 17, speed: 5, isMonster: true, trait: 'Toxic Blood: Poisons melee attackers.' },
+
+    // Archetype 10: Void Horror
+    { type: 'hero', id: 2901, name: 'Lesser Void Horror', class: 'Void Horror', rarity: 'Common', art: '../img/monsters/void_horror_1.png', hp: 37, attack: 9, speed: 5, isMonster: true, trait: 'Reality Warp: 25% chance to ignore damage.' },
+    { type: 'hero', id: 2902, name: 'Void Horror', class: 'Void Horror', rarity: 'Uncommon', art: '../img/monsters/void_horror_2.png', hp: 47, attack: 11, speed: 5, isMonster: true, trait: 'Reality Warp: 25% chance to ignore damage.' },
+    { type: 'hero', id: 2903, name: 'Eldritch Abomination', class: 'Void Horror', rarity: 'Rare', art: '../img/monsters/void_horror_3.png', hp: 59, attack: 14, speed: 5, isMonster: true, trait: 'Reality Warp: 25% chance to ignore damage.' },
+    { type: 'hero', id: 2904, name: 'Reality Devourer', class: 'Void Horror', rarity: 'Epic', art: '../img/monsters/void_horror_4.png', hp: 73, attack: 18, speed: 5, isMonster: true, trait: 'Reality Warp: 25% chance to ignore damage.' },
 ];
 
 const allPossibleMinions = {
@@ -379,6 +440,16 @@ const allPossibleAbilities = [
     { id: 4210, type: 'ability', name: 'Meteor Shower', class: 'Arcane Savant', rarity: 'Epic', art: '...', effect: 'Deal 6 fire damage to all enemies.', energyCost: 4, category: 'Offense', target: 'ENEMIES' },
     { id: 4211, type: 'ability', name: 'Prismatic Wall', class: 'Arcane Savant', rarity: 'Epic', art: '...', effect: 'All allies take 50% less damage from all sources for 1 turn.', energyCost: 4, category: 'Defense', target: 'ALLIES' },
     { id: 4212, type: 'ability', name: 'Temporal Mastery', class: 'Arcane Savant', rarity: 'Epic', art: '...', effect: 'For 2 turns, this hero gets an extra action on each of their turns.', energyCost: 4, category: 'Support' },
+
+    // === MONSTER ABILITIES ===
+    // Grave Titan Abilities (sample)
+    { id: 5001, type: 'ability', name: 'Crushing Blow', class: 'Grave Titan', rarity: 'Common', art: '...', effect: 'Deal 4 damage to a single target.', energyCost: 1, category: 'Offense' },
+    { id: 5002, type: 'ability', name: 'Stonehide', class: 'Grave Titan', rarity: 'Common', art: '...', effect: 'Reduce all incoming damage by 2 this turn.', energyCost: 1, category: 'Defense' },
+
+    // Brute Abilities (sample)
+    { id: 5101, type: 'ability', name: 'Savage Swipe', class: 'Brute', rarity: 'Common', art: '...', effect: 'Deal 3 damage to two enemies.', energyCost: 1, category: 'Offense' },
+
+    // TODO: Add remaining monster ability definitions
 ];
 // NOTE: Placeholder art links ('...') and new IDs have been assigned.
 

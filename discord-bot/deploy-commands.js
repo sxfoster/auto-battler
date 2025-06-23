@@ -5,6 +5,7 @@ require('dotenv').config();
 
 const commands = [];
 const commandsPath = path.join(__dirname, 'commands');
+// Automatically register all command files, including the new /unleash command
 const commandFiles = fs
   .readdirSync(commandsPath)
   .filter(file => file.endsWith('.js'));
