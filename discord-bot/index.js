@@ -12,6 +12,7 @@ const {
 const { loadAllData, gameData, getHeroes, getHeroById, getMonsters } = require('./util/gameData');
 const { createCombatant } = require('../backend/game/utils');
 const GameEngine = require('../backend/game/engine');
+const { getTownMenu } = require('./commands/town.js');
 
 
 const client = new Client({ intents: [GatewayIntentBits.Guilds] });
@@ -397,7 +398,13 @@ client.on(Events.InteractionCreate, async interaction => {
                         embed.addFields({ name: 'Champion Roster', value: 'Your roster is empty. Visit the Summoning Circle!' });
                     }
 
-                    await interaction.editReply({ embeds: [embed] });
+                    const navigationRow = new ActionRowBuilder()
+                        .addComponents(
+                            new ButtonBuilder().setCustomId('back_to_town').setLabel('Back to Town').setStyle(ButtonStyle.Secondary).setEmoji('⬅️'),
+                            new ButtonBuilder().setCustomId('manage_champions').setLabel('Manage Champions').setStyle(ButtonStyle.Primary).setEmoji('⚙️')
+                        );
+
+                    await interaction.editReply({ embeds: [embed], components: [navigationRow] });
                     break;
                 }
                 case 'town_dungeon': {
@@ -440,6 +447,14 @@ client.on(Events.InteractionCreate, async interaction => {
                     break;
                 case 'town_market': {
                     await interaction.reply({ content: "The Marketplace is currently under construction.", ephemeral: true });
+                    break;
+                }
+                case 'back_to_town': {
+                    await interaction.update(getTownMenu());
+                    break;
+                }
+                case 'manage_champions': {
+                    await interaction.reply({ content: 'Champion management is coming soon!', ephemeral: true });
                     break;
                 }
                 default:
