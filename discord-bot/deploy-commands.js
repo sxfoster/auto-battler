@@ -5,11 +5,10 @@ require('dotenv').config();
 
 const commands = [];
 const commandsPath = path.join(__dirname, 'commands');
-// Automatically register command files, excluding deprecated ones
-const deprecated = ['summon.js', 'roster.js', 'profile.js', 'fight.js'];
+// Automatically register all command files in the commands directory
 const commandFiles = fs
   .readdirSync(commandsPath)
-  .filter(file => file.endsWith('.js') && !deprecated.includes(file));
+  .filter(file => file.endsWith('.js'));
 
 console.log('Registering slash commands:', commandFiles.join(', '));
 

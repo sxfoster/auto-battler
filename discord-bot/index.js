@@ -1,6 +1,6 @@
 const fs = require('node:fs');
 const path = require('node:path');
-const { Client, Collection, GatewayIntentBits, Events, ActionRowBuilder, ButtonBuilder, ButtonStyle, StringSelectMenuBuilder } = require('discord.js');
+const { Client, Collection, GatewayIntentBits, Events, ActionRowBuilder, ButtonBuilder, ButtonStyle, StringSelectMenuBuilder, EmbedBuilder } = require('discord.js');
 require('dotenv').config();
 const db = require('./util/database');
 const { simple } = require('./src/utils/embedBuilder');
@@ -127,32 +127,39 @@ client.on(Events.InteractionCreate, async interaction => {
                     await interaction.reply({ embeds: [embed], ephemeral: true });
                     break;
                 }
-                case 'town_roster': {
-                    const [ownedChampions] = await db.execute(
-                        'SELECT base_hero_id, level FROM user_champions WHERE user_id = ? ORDER BY id DESC',
-                        [interaction.user.id]
+                case 'town_barracks': {
+                    await interaction.deferReply({ ephemeral: true });
+
+                    const userId = interaction.user.id;
+
+                    const [userRows] = await db.execute('SELECT soft_currency, hard_currency, summoning_shards, corrupted_lodestones FROM users WHERE discord_id = ?', [userId]);
+                    const user = userRows[0] || {};
+
+                    const [roster] = await db.execute(
+                        `SELECT h.name, h.rarity, h.class, uc.level 
+                         FROM user_champions uc 
+                         JOIN heroes h ON uc.base_hero_id = h.id 
+                         WHERE uc.user_id = ? ORDER BY h.rarity DESC, uc.level DESC LIMIT 25`,
+                        [userId]
                     );
-                    if (ownedChampions.length === 0) {
-                        await interaction.reply({ content: 'Your roster is empty. Use `/summon` to recruit some champions!', ephemeral: true });
-                        break;
+
+                    const embed = new EmbedBuilder()
+                        .setColor('#78716c')
+                        .setTitle(`${interaction.user.username}'s Barracks`)
+                        .addFields(
+                            { name: 'Gold', value: `🪙 ${user.soft_currency || 0}`, inline: true },
+                            { name: 'Gems', value: `💎 ${user.hard_currency || 0}`, inline: true },
+                            { name: 'Summoning Shards', value: `✨ ${user.summoning_shards || 0}`, inline: true }
+                        );
+
+                    if (roster.length > 0) {
+                        const rosterString = roster.map(c => `**${c.name}** (Lvl ${c.level}) - *${c.rarity} ${c.class}*`).join('\n');
+                        embed.addFields({ name: 'Champion Roster', value: rosterString });
+                    } else {
+                        embed.addFields({ name: 'Champion Roster', value: 'Your roster is empty. Visit the Summoning Circle!' });
                     }
-                    const rosterDetails = ownedChampions.map(ownedChampion => {
-                        const staticData = allPossibleHeroes.find(h => h.id === ownedChampion.base_hero_id);
-                        if (!staticData) return null;
-                        return {
-                            name: staticData.name,
-                            rarity: staticData.rarity,
-                            class: staticData.class,
-                            level: ownedChampion.level,
-                        };
-                    }).filter(Boolean);
-                    const fields = rosterDetails.slice(0, 25).map(c => ({
-                        name: `${c.name} (Lvl ${c.level})`,
-                        value: `${c.rarity} ${c.class}`,
-                        inline: true,
-                    }));
-                    const embed = simple('Your Champion Roster', fields);
-                    await interaction.reply({ embeds: [embed], ephemeral: true });
+
+                    await interaction.editReply({ embeds: [embed] });
                     break;
                 }
                 case 'town_dungeon': {
