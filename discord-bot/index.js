@@ -901,23 +901,24 @@ client.on(Events.InteractionCreate, async interaction => {
                                 .setStyle(ButtonStyle.Secondary)
                                 .setEmoji('🎒')
                         );
-                    // Build buttons to buy more packs
-                    const packPurchaseButtons = Object.entries(BOOSTER_PACKS).map(([packIdBtn, packInfoBtn]) =>
-                        new ButtonBuilder()
-                            .setCustomId(`buy_pack_${packIdBtn}`)
-                            .setLabel(`${packInfoBtn.name} (${packInfoBtn.cost} ${packInfoBtn.currency === 'soft_currency' ? 'Gold 🪙' : 'Gems 💎'})`)
-                            .setStyle(ButtonStyle.Primary)
-                            .setEmoji('🛒')
+                    // Build buttons to buy more packs in a single row
+                    const packPurchaseButtons = new ActionRowBuilder();
+                    Object.entries(BOOSTER_PACKS).forEach(([packIdBtn, packInfoBtn]) =>
+                        packPurchaseButtons.addComponents(
+                            new ButtonBuilder()
+                                .setCustomId(`buy_pack_${packIdBtn}`)
+                                .setLabel(`${packInfoBtn.name} (${packInfoBtn.cost} ${packInfoBtn.currency === 'soft_currency' ? 'Gold 🪙' : 'Gems 💎'})`)
+                                .setStyle(ButtonStyle.Primary)
+                                .setEmoji('🛒')
+                        )
                     );
-                    const packButtonRows = [];
-                    packPurchaseButtons.forEach(button => packButtonRows.push(new ActionRowBuilder().addComponents(button)));
 
                     const backButton = new ActionRowBuilder()
                         .addComponents(
                             new ButtonBuilder().setCustomId('back_to_market').setLabel('Back to Marketplace').setStyle(ButtonStyle.Secondary).setEmoji('⬅️')
                         );
 
-                    await interaction.editReply({ embeds: [resultsEmbed], components: [viewInventoryButton, ...packButtonRows, backButton] });
+                    await interaction.editReply({ embeds: [resultsEmbed], components: [viewInventoryButton, packPurchaseButtons, backButton] });
                     break;
                 }
                 case 'view_inventory_from_pack': {
