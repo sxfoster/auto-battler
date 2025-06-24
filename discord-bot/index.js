@@ -779,18 +779,18 @@ client.on(Events.InteractionCreate, async interaction => {
                         [{ name: 'Available Packs', value: 'Choose a pack to acquire new cards!' }]
                     );
 
+                    const packButtons = Object.entries(BOOSTER_PACKS).map(([packId, packInfo]) =>
+                        new ButtonBuilder()
+                            .setCustomId(`buy_pack_${packId}`)
+                            .setLabel(`${packInfo.name} (${packInfo.cost} ${packInfo.currency === 'soft_currency' ? 'Gold 🪙' : 'Gems 💎'})`)
+                            .setStyle(ButtonStyle.Primary)
+                            .setEmoji('🛒')
+                    );
+
                     const components = [];
-                    for (const [packId, packInfo] of Object.entries(BOOSTER_PACKS)) {
-                        components.push(
-                            new ActionRowBuilder()
-                                .addComponents(
-                                    new ButtonBuilder()
-                                        .setCustomId(`buy_pack_${packId}`)
-                                        .setLabel(`${packInfo.name} (${packInfo.cost} ${packInfo.currency === 'soft_currency' ? 'Gold 🪙' : 'Gems 💎'})`)
-                                        .setStyle(ButtonStyle.Primary)
-                                        .setEmoji('🛒')
-                                )
-                        );
+                    for (let i = 0; i < packButtons.length; i += 5) {
+                        const row = new ActionRowBuilder().addComponents(packButtons.slice(i, i + 5));
+                        components.push(row);
                     }
 
                     const backButton = new ActionRowBuilder()
