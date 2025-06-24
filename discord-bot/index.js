@@ -605,15 +605,15 @@ client.on(Events.InteractionCreate, async interaction => {
                         .addOptions(championOptions.slice(0, 25));
 
                     const row = new ActionRowBuilder().addComponents(selectMenu);
-                    const backButton = new ActionRowBuilder()
+                    const navigationRow = new ActionRowBuilder()
                         .addComponents(
-                            new ButtonBuilder().setCustomId('back_to_barracks').setLabel('Back to Barracks').setStyle(ButtonStyle.Secondary).setEmoji('⬅️')
+                            new ButtonBuilder().setCustomId('back_to_barracks').setLabel('Back to Barracks').setStyle(ButtonStyle.Secondary).setEmoji('⬅️'),
+                            new ButtonBuilder().setCustomId('back_to_town').setLabel('Back to Town').setStyle(ButtonStyle.Secondary).setEmoji('🏠')
                         );
-
 
                     await interaction.editReply({
                         embeds: [simple('Manage Your Champions', [{ name: 'Choose a Champion', value: 'Select a champion to view their details and modify their deck.' }])],
-                        components: [row, backButton]
+                        components: [row, navigationRow]
                     });
                     break;
                 }
@@ -697,7 +697,11 @@ client.on(Events.InteractionCreate, async interaction => {
                         .setMaxValues(2)
                         .addOptions(options);
                     const row = new ActionRowBuilder().addComponents(selectMenu);
-                    await interaction.reply({ content: 'Choose your team for the dungeon fight!', components: [row], ephemeral: true });
+                    const backToTownRow = new ActionRowBuilder()
+                        .addComponents(
+                            new ButtonBuilder().setCustomId('back_to_town').setLabel('Back to Town').setStyle(ButtonStyle.Secondary).setEmoji('⬅️')
+                        );
+                    await interaction.reply({ content: 'Choose your team for the dungeon fight!', components: [row, backToTownRow], ephemeral: true });
                     break;
                 }
                 case 'town_forge': {
@@ -1056,7 +1060,8 @@ client.on(Events.InteractionCreate, async interaction => {
 
             const navigationRow = new ActionRowBuilder()
                 .addComponents(
-                    new ButtonBuilder().setCustomId('back_to_barracks_from_champ').setLabel('Back to Roster').setStyle(ButtonStyle.Secondary).setEmoji('⬅️')
+                    new ButtonBuilder().setCustomId('back_to_barracks_from_champ').setLabel('Back to Roster').setStyle(ButtonStyle.Secondary).setEmoji('⬅️'),
+                    new ButtonBuilder().setCustomId('back_to_town').setLabel('Back to Town').setStyle(ButtonStyle.Secondary).setEmoji('🏠')
                 );
             components.push(navigationRow);
 
