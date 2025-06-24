@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
+const { SlashCommandBuilder, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
 const { simple } = require('../src/utils/embedBuilder');
 const db = require('../util/database');
 const {
@@ -109,7 +109,11 @@ module.exports = {
 
             const embed = simple('🎒 Your Collection', fields);
             console.log('[INVENTORY DEBUG] Attempting to editReply.');
-            await interaction.editReply({ embeds: [embed], components: [] });
+            const navigationRow = new ActionRowBuilder()
+                .addComponents(
+                    new ButtonBuilder().setCustomId('back_to_town').setLabel('Back to Town').setStyle(ButtonStyle.Secondary).setEmoji('🏠')
+                );
+            await interaction.editReply({ embeds: [embed], components: [navigationRow] });
             console.log('[INVENTORY DEBUG] editReply successful.');
 
         } catch (error) {
