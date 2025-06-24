@@ -29,6 +29,12 @@ const BOOSTER_PACKS = {
 
 const STARTING_GOLD = 400;
 
+// XP needed to reach the NEXT level (Level 10 is max)
+const LEVEL_UP_THRESHOLDS = {
+    1: 60, 2: 70, 3: 80, 4: 90, 5: 100,
+    6: 110, 7: 120, 8: 130, 9: 140
+};
+
 
 const client = new Client({ intents: [GatewayIntentBits.Guilds] });
 
@@ -133,6 +139,28 @@ async function getDetailedChampionInfo(championDbData) {
         deck: deckInfo,
         imageUrl: hero.imageUrl
     };
+}
+
+// Helper to apply level up if XP threshold reached
+async function checkAndApplyLevelUp(userId, championId, interaction) {
+    const [rows] = await db.execute('SELECT level, xp FROM user_champions WHERE id = ?', [championId]);
+    if (rows.length === 0) return;
+
+    let { level, xp } = rows[0];
+    const xpNeeded = LEVEL_UP_THRESHOLDS[level];
+
+    if (xpNeeded && xp >= xpNeeded) {
+        const newLevel = level + 1;
+        const remainingXp = xp - xpNeeded;
+        await db.execute('UPDATE user_champions SET level = ?, xp = ? WHERE id = ?', [newLevel, remainingXp, championId]);
+
+        const [[heroRow]] = await db.execute('SELECT base_hero_id FROM user_champions WHERE id = ?', [championId]);
+        const hero = getHeroById(heroRow.base_hero_id);
+        await interaction.followUp({
+            embeds: [simple('🌟 Level Up! 🌟', [{ name: hero.name, value: `has reached Level ${newLevel}!` }])],
+            ephemeral: true
+        });
+    }
 }
 // --- END NEW HELPER FUNCTION ---
 
@@ -1303,11 +1331,26 @@ client.on(Events.InteractionCreate, async interaction => {
                     playerChampion2_db = p2_rows[0];
                 }
 
+                const [deckRows1] = await db.execute(
+                    'SELECT ability_id FROM champion_decks WHERE user_champion_id = ? ORDER BY order_index ASC',
+                    [playerChampion1_db.id]
+                );
+                const deckAbilityIds1 = deckRows1.map(r => r.ability_id);
+
+                let deckAbilityIds2 = [];
+                if (playerChampion2_db) {
+                    const [dr2] = await db.execute(
+                        'SELECT ability_id FROM champion_decks WHERE user_champion_id = ? ORDER BY order_index ASC',
+                        [playerChampion2_db.id]
+                    );
+                    deckAbilityIds2 = dr2.map(r => r.ability_id);
+                }
+
                 let isPvP = Math.random() < 0.25;
                 let opponentName = 'Dungeon Monsters';
                 const combatants = [
-                    createCombatant({ hero_id: playerChampion1_db.base_hero_id, weapon_id: playerChampion1_db.equipped_weapon_id, armor_id: playerChampion1_db.equipped_armor_id, ability_id: playerChampion1_db.equipped_ability_id }, 'player', 0),
-                    playerChampion2_db ? createCombatant({ hero_id: playerChampion2_db.base_hero_id, weapon_id: playerChampion2_db.equipped_weapon_id, armor_id: playerChampion2_db.equipped_armor_id, ability_id: playerChampion2_db.equipped_ability_id }, 'player', 1) : null,
+                    createCombatant({ hero_id: playerChampion1_db.base_hero_id, weapon_id: playerChampion1_db.equipped_weapon_id, armor_id: playerChampion1_db.equipped_armor_id, ability_id: playerChampion1_db.equipped_ability_id, deck: deckAbilityIds1 }, 'player', 0),
+                    playerChampion2_db ? createCombatant({ hero_id: playerChampion2_db.base_hero_id, weapon_id: playerChampion2_db.equipped_weapon_id, armor_id: playerChampion2_db.equipped_armor_id, ability_id: playerChampion2_db.equipped_ability_id, deck: deckAbilityIds2 }, 'player', 1) : null,
                 ];
 
                 if (isPvP) {
@@ -1332,12 +1375,22 @@ client.on(Events.InteractionCreate, async interaction => {
                         const userObj = await client.users.fetch(opponentId).catch(() => null);
                         if (userObj) opponentName = userObj.username;
 
+                        const [ed1] = await db.execute(
+                            'SELECT ability_id FROM champion_decks WHERE user_champion_id = ? ORDER BY order_index ASC',
+                            [enemy1_db.id]
+                        );
+                        const enemyDeck1 = ed1.map(r => r.ability_id);
                         combatants.push(
-                            createCombatant({ hero_id: enemy1_db.base_hero_id, weapon_id: enemy1_db.equipped_weapon_id, armor_id: enemy1_db.equipped_armor_id, ability_id: enemy1_db.equipped_ability_id }, 'enemy', 0)
+                            createCombatant({ hero_id: enemy1_db.base_hero_id, weapon_id: enemy1_db.equipped_weapon_id, armor_id: enemy1_db.equipped_armor_id, ability_id: enemy1_db.equipped_ability_id, deck: enemyDeck1 }, 'enemy', 0)
                         );
                         if (enemy2_db) {
+                            const [ed2] = await db.execute(
+                                'SELECT ability_id FROM champion_decks WHERE user_champion_id = ? ORDER BY order_index ASC',
+                                [enemy2_db.id]
+                            );
+                            const enemyDeck2 = ed2.map(r => r.ability_id);
                             combatants.push(
-                                createCombatant({ hero_id: enemy2_db.base_hero_id, weapon_id: enemy2_db.equipped_weapon_id, armor_id: enemy2_db.equipped_armor_id, ability_id: enemy2_db.equipped_ability_id }, 'enemy', 1)
+                                createCombatant({ hero_id: enemy2_db.base_hero_id, weapon_id: enemy2_db.equipped_weapon_id, armor_id: enemy2_db.equipped_armor_id, ability_id: enemy2_db.equipped_ability_id, deck: enemyDeck2 }, 'enemy', 1)
                             );
                         }
                     } else {
@@ -1395,6 +1448,7 @@ client.on(Events.InteractionCreate, async interaction => {
                         const champDb = survivor.position === 0 ? playerChampion1_db : playerChampion2_db;
                         if (champDb) {
                             await db.execute('UPDATE user_champions SET xp = xp + ? WHERE id = ?', [xpGain, champDb.id]);
+                            await checkAndApplyLevelUp(interaction.user.id, champDb.id, interaction);
                         }
                     }
                     const gold = Math.floor(Math.random() * 51) + 50;
