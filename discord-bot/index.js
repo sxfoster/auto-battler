@@ -22,7 +22,9 @@ const BOOSTER_PACKS = {
     hero_pack: { name: 'Hero Pack', cost: 100, currency: 'soft_currency', type: 'hero_pack', rarity: 'basic' },
     ability_pack: { name: 'Ability Pack', cost: 100, currency: 'soft_currency', type: 'ability_pack', rarity: 'standard' },
     weapon_pack: { name: 'Weapon Pack', cost: 100, currency: 'soft_currency', type: 'weapon_pack', rarity: 'premium' },
-    armor_pack: { name: 'Armor Pack', cost: 100, currency: 'soft_currency', type: 'armor_pack', rarity: 'basic' }
+    armor_pack: { name: 'Armor Pack', cost: 100, currency: 'soft_currency', type: 'armor_pack', rarity: 'basic' },
+    monster_pack: { name: 'Monster Pack', cost: 100, currency: 'soft_currency', type: 'monster_pack', rarity: 'basic' },
+    monster_ability_pack: { name: 'Monster Ability Pack', cost: 100, currency: 'soft_currency', type: 'monster_ability_pack', rarity: 'standard' }
 };
 
 const STARTING_GOLD = 400;
@@ -524,126 +526,6 @@ client.on(Events.InteractionCreate, async interaction => {
         }
         try {
             switch (interaction.customId) {
-                case 'town_summon': {
-                    const [userRows] = await db.execute('SELECT summoning_shards, corrupted_lodestones FROM users WHERE discord_id = ?', [interaction.user.id]);
-                    const user = userRows[0] || { summoning_shards: 0, corrupted_lodestones: 0 };
-
-                    const summonEmbed = simple(
-                        'The Summoning Circle',
-                        [
-                            { name: 'Choose Your Method', value: 'Use Shards to recruit champions or a Lodestone to unleash a monster.' },
-                            { name: 'Your Shards', value: `✨ ${user.summoning_shards}`, inline: true },
-                            { name: 'Your Lodestones', value: `🔥 ${user.corrupted_lodestones}`, inline: true }
-                        ]
-                    );
-                    const summonRow = new ActionRowBuilder()
-                        .addComponents(
-                            new ButtonBuilder().setCustomId('summon_champion').setLabel('Summon Champion (10 Shards)').setStyle(ButtonStyle.Success).setEmoji('✨'),
-                            new ButtonBuilder().setCustomId('unleash_monster').setLabel('Unleash Monster (1 Lodestone)').setStyle(ButtonStyle.Danger).setEmoji('🔥')
-                        );
-                    await interaction.reply({ embeds: [summonEmbed], components: [summonRow], ephemeral: true });
-                    break;
-                }
-                case 'summon_champion': {
-                    const userId = interaction.user.id;
-                    const SHARD_COST = 10;
-                    const [userRows] = await db.execute('SELECT summoning_shards FROM users WHERE discord_id = ?', [userId]);
-                    if (userRows.length === 0 || userRows[0].summoning_shards < SHARD_COST) {
-                        await interaction.reply({ content: `You don't have enough summoning shards! You need ${SHARD_COST}.`, ephemeral: true });
-                        break;
-                    }
-
-                    await db.execute('UPDATE users SET summoning_shards = summoning_shards - ? WHERE discord_id = ?', [SHARD_COST, userId]);
-
-                    const roll = Math.random();
-                    let rarity = 'Common';
-                    if (roll < 0.005) rarity = 'Epic';
-                    else if (roll < 0.05) rarity = 'Rare';
-                    else if (roll < 0.30) rarity = 'Uncommon';
-
-                    const possibleHeroes = getHeroes().filter(h => h.rarity === rarity && !h.is_monster);
-                    const summonedHero = possibleHeroes[Math.floor(Math.random() * possibleHeroes.length)];
-
-                    await db.execute('INSERT INTO user_champions (user_id, base_hero_id) VALUES (?, ?)', [userId, summonedHero.id]);
-
-                    const embed = new EmbedBuilder()
-                        .setColor('#29b6f6')
-                        .setTitle(summonedHero.name.toUpperCase())
-                        .setImage(summonedHero.imageUrl)
-                        .addFields(
-                            { name: 'HP', value: `**${summonedHero.hp}**`, inline: true },
-                            { name: 'Attack', value: `**${summonedHero.attack}**`, inline: true },
-                            { name: 'Class', value: summonedHero.class, inline: false }
-                        )
-                        .setFooter({ text: 'Auto-Battler Bot' })
-                        .setTimestamp();
-
-                    await interaction.reply({ embeds: [embed], ephemeral: true });
-
-                    const disabledRow = new ActionRowBuilder()
-                        .addComponents(
-                            new ButtonBuilder().setCustomId('summon_champion').setLabel('Summon Champion (10 Shards)').setStyle(ButtonStyle.Success).setEmoji('✨').setDisabled(true),
-                            new ButtonBuilder().setCustomId('unleash_monster').setLabel('Unleash Monster (1 Lodestone)').setStyle(ButtonStyle.Danger).setEmoji('🔥').setDisabled(true)
-                        );
-                    await interaction.message.edit({ components: [disabledRow] });
-
-                    const enabledRow = new ActionRowBuilder()
-                        .addComponents(
-                            new ButtonBuilder().setCustomId('summon_champion').setLabel('Summon Champion (10 Shards)').setStyle(ButtonStyle.Success).setEmoji('✨').setDisabled(false),
-                            new ButtonBuilder().setCustomId('unleash_monster').setLabel('Unleash Monster (1 Lodestone)').setStyle(ButtonStyle.Danger).setEmoji('🔥').setDisabled(false)
-                        );
-                    setTimeout(() => {
-                        interaction.message.edit({ components: [enabledRow] }).catch(console.error);
-                    }, 5000);
-                    break;
-                }
-                case 'unleash_monster': {
-                    const userId = interaction.user.id;
-                    const LODESTONE_COST = 1;
-                    const [userRows] = await db.execute('SELECT corrupted_lodestones FROM users WHERE discord_id = ?', [userId]);
-                    if (userRows.length === 0 || userRows[0].corrupted_lodestones < LODESTONE_COST) {
-                        await interaction.reply({ content: 'You do not have a Corrupted Lodestone to unleash a monster.', ephemeral: true });
-                        break;
-                    }
-
-                    await db.execute('UPDATE users SET corrupted_lodestones = corrupted_lodestones - ? WHERE discord_id = ?', [LODESTONE_COST, userId]);
-
-                    const monsters = getMonsters();
-                    const summonedMonster = monsters[Math.floor(Math.random() * monsters.length)];
-
-                    await db.execute('INSERT INTO user_champions (user_id, base_hero_id) VALUES (?, ?)', [userId, summonedMonster.id]);
-
-                    const embed = new EmbedBuilder()
-                        .setColor('#e11d48')
-                        .setTitle(summonedMonster.name.toUpperCase())
-                        .setImage(summonedMonster.imageUrl)
-                        .addFields(
-                            { name: 'HP', value: `**${summonedMonster.hp}**`, inline: true },
-                            { name: 'Attack', value: `**${summonedMonster.attack}**`, inline: true },
-                            { name: 'Trait', value: summonedMonster.trait, inline: false }
-                        )
-                        .setFooter({ text: 'Auto-Battler Bot' })
-                        .setTimestamp();
-
-                    await interaction.reply({ embeds: [embed], ephemeral: true });
-
-                    const disabledRow = new ActionRowBuilder()
-                        .addComponents(
-                            new ButtonBuilder().setCustomId('summon_champion').setLabel('Summon Champion (10 Shards)').setStyle(ButtonStyle.Success).setEmoji('✨').setDisabled(true),
-                            new ButtonBuilder().setCustomId('unleash_monster').setLabel('Unleash Monster (1 Lodestone)').setStyle(ButtonStyle.Danger).setEmoji('🔥').setDisabled(true)
-                        );
-                    await interaction.message.edit({ components: [disabledRow] });
-
-                    const enabledRow = new ActionRowBuilder()
-                        .addComponents(
-                            new ButtonBuilder().setCustomId('summon_champion').setLabel('Summon Champion (10 Shards)').setStyle(ButtonStyle.Success).setEmoji('✨').setDisabled(false),
-                            new ButtonBuilder().setCustomId('unleash_monster').setLabel('Unleash Monster (1 Lodestone)').setStyle(ButtonStyle.Danger).setEmoji('🔥').setDisabled(false)
-                        );
-                    setTimeout(() => {
-                        interaction.message.edit({ components: [enabledRow] }).catch(console.error);
-                    }, 5000);
-                    break;
-                }
                 case 'town_barracks': {
                     await interaction.deferUpdate();
 
@@ -942,6 +824,16 @@ client.on(Events.InteractionCreate, async interaction => {
                             awardedCardsCount = 2;
                             actualItemType = 'armor';
                             break;
+                        case 'monster_pack':
+                            cardPool = allPossibleHeroes.filter(h => h.is_monster);
+                            awardedCardsCount = 1;
+                            actualItemType = 'monster';
+                            break;
+                        case 'monster_ability_pack':
+                            cardPool = allPossibleAbilities.filter(ab => ab.class && ab.class.includes('Monster'));
+                            awardedCardsCount = 2;
+                            actualItemType = 'monster_ability';
+                            break;
                         default:
                             await interaction.editReply({ content: 'Internal error: Unknown pack content type.', ephemeral: true });
                             return;
@@ -989,9 +881,7 @@ client.on(Events.InteractionCreate, async interaction => {
                             .setEmoji('🛒')
                     );
                     const packButtonRows = [];
-                    if (packPurchaseButtons.length > 0) {
-                        packButtonRows.push(new ActionRowBuilder().addComponents(packPurchaseButtons));
-                    }
+                    packPurchaseButtons.forEach(button => packButtonRows.push(new ActionRowBuilder().addComponents(button)));
 
                     const backButton = new ActionRowBuilder()
                         .addComponents(
