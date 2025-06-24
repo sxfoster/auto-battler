@@ -54,37 +54,26 @@ module.exports = {
             };
 
             for (const row of rows) {
-                let itemName = `Unknown Item (ID: ${row.item_id})`;
-                let itemRarity = '';
-                let itemCategory = row.item_type || 'other';
-
                 let itemData = null;
-                switch (itemCategory) {
-                    case 'hero':
-                        itemData = allPossibleHeroes.find(h => h.id === row.item_id);
-                        if (itemData && itemData.is_monster) itemCategory = 'monster';
-                        break;
-                    case 'ability':
-                        itemData = allPossibleAbilities.find(a => a.id === row.item_id);
-                        break;
-                    case 'weapon':
-                        itemData = allPossibleWeapons.find(w => w.id === row.item_id);
-                        break;
-                    case 'armor':
-                        itemData = allPossibleArmors.find(a => a.id === row.item_id);
-                        break;
+                let itemCategory = 'other';
+
+                // Proactively search for the item in our master data lists
+                if (allPossibleHeroes.some(h => h.id === row.item_id)) {
+                    itemData = allPossibleHeroes.find(h => h.id === row.item_id);
+                    itemCategory = itemData.is_monster ? 'monster' : 'hero';
+                } else if (allPossibleAbilities.some(a => a.id === row.item_id)) {
+                    itemData = allPossibleAbilities.find(a => a.id === row.item_id);
+                    itemCategory = 'ability';
+                } else if (allPossibleWeapons.some(w => w.id === row.item_id)) {
+                    itemData = allPossibleWeapons.find(w => w.id === row.item_id);
+                    itemCategory = 'weapon';
+                } else if (allPossibleArmors.some(ar => ar.id === row.item_id)) {
+                    itemData = allPossibleArmors.find(ar => ar.id === row.item_id);
+                    itemCategory = 'armor';
                 }
 
-                if (itemData) {
-                    itemName = itemData.name;
-                    itemRarity = itemData.rarity ? ` (${itemData.rarity})` : '';
-                } else if (itemCategory === 'monster') {
-                    itemData = allPossibleHeroes.find(h => h.id === row.item_id && h.is_monster);
-                    if (itemData) {
-                        itemName = itemData.name;
-                        itemRarity = itemData.rarity ? ` (${itemData.rarity})` : '';
-                    }
-                }
+                const itemName = itemData ? itemData.name : `Unknown Item (ID: ${row.item_id})`;
+                const itemRarity = itemData && itemData.rarity ? ` (${itemData.rarity})` : '';
 
                 if (inventory[itemCategory]) {
                     inventory[itemCategory].push(`**${itemName}**${itemRarity} x${row.quantity}`);
