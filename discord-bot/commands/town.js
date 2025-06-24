@@ -1,11 +1,26 @@
 const { SlashCommandBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder } = require('discord.js');
+const db = require('../util/database');
 
-function getTownMenu() {
+function getTownMenu(showTutorialButton = false) {
     const embed = new EmbedBuilder()
         .setColor('#29b6f6')
         .setTitle('Welcome to the Town Square')
         .setDescription('This is your central hub for all activities. Where would you like to go?')
         .setImage('https://placehold.co/600x200/1e293b/ffffff?text=Town+Square');
+
+    const components = [];
+
+    if (showTutorialButton) {
+        const tutorialRow = new ActionRowBuilder()
+            .addComponents(
+                new ButtonBuilder()
+                    .setCustomId('tutorial_start_new_flow')
+                    .setLabel('Begin Your Training')
+                    .setStyle(ButtonStyle.Success)
+                    .setEmoji('🎓')
+            );
+        components.push(tutorialRow);
+    }
 
     const row1 = new ActionRowBuilder()
         .addComponents(
@@ -23,7 +38,9 @@ function getTownMenu() {
             new ButtonBuilder().setCustomId('town_dungeon').setLabel('Enter the Dungeon Portal').setStyle(ButtonStyle.Primary).setEmoji('🌀')
         );
 
-    return { embeds: [embed], components: [row1, row2, row3], ephemeral: true };
+    components.push(row1, row2, row3);
+
+    return { embeds: [embed], components, ephemeral: true };
 }
 
 module.exports = {
@@ -31,7 +48,17 @@ module.exports = {
         .setName('town')
         .setDescription('Enter the main town square to access all game features.'),
     async execute(interaction) {
-        await interaction.reply(getTownMenu());
+        const userId = interaction.user.id;
+        let showTutorial = false;
+        try {
+            const [[user]] = await db.execute('SELECT tutorial_completed FROM users WHERE discord_id = ?', [userId]);
+            if (!user || !user.tutorial_completed) {
+                showTutorial = true;
+            }
+        } catch (error) {
+            console.error(`Error checking tutorial status for ${userId}:`, error);
+        }
+        await interaction.reply(getTownMenu(showTutorial));
     },
     getTownMenu,
 };
