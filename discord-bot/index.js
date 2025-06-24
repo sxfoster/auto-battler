@@ -617,7 +617,20 @@ client.on(Events.InteractionCreate, async interaction => {
                     );
 
                     if (ownedChampions.length === 0) {
-                        await interaction.editReply({ content: 'You have no champions to manage!', components: [] });
+                        // Create a button to allow the user to go back
+                        const backButton = new ButtonBuilder()
+                            .setCustomId('back_to_barracks')
+                            .setLabel('Back to Barracks')
+                            .setStyle(ButtonStyle.Secondary)
+                            .setEmoji('⬅️');
+
+                        const row = new ActionRowBuilder().addComponents(backButton);
+
+                        // Update the reply to include the button
+                        await interaction.editReply({
+                            content: 'You have no champions to manage!',
+                            components: [row]
+                        });
                         return;
                     }
 
