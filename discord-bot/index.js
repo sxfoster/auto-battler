@@ -18,13 +18,15 @@ const { getTownMenu } = require('./commands/town.js');
 
 // Booster pack definitions for the marketplace
 const BOOSTER_PACKS = {
-    // All packs cost 100 Gold but maintain their internal rarity for card generation
-    hero_pack: { name: 'Hero Pack', cost: 100, currency: 'soft_currency', type: 'hero_pack', rarity: 'basic' },
-    ability_pack: { name: 'Ability Pack', cost: 100, currency: 'soft_currency', type: 'ability_pack', rarity: 'standard' },
-    weapon_pack: { name: 'Weapon Pack', cost: 100, currency: 'soft_currency', type: 'weapon_pack', rarity: 'premium' },
-    armor_pack: { name: 'Armor Pack', cost: 100, currency: 'soft_currency', type: 'armor_pack', rarity: 'basic' },
-    monster_pack: { name: 'Monster Pack', cost: 100, currency: 'soft_currency', type: 'monster_pack', rarity: 'basic' },
-    monster_ability_pack: { name: 'Monster Ability Pack', cost: 100, currency: 'soft_currency', type: 'monster_ability_pack', rarity: 'standard' }
+    // Tavern Packs
+    hero_pack: { name: 'Hero Pack', cost: 100, currency: 'soft_currency', type: 'hero_pack', rarity: 'basic', category: 'tavern' },
+    ability_pack: { name: 'Ability Pack', cost: 100, currency: 'soft_currency', type: 'ability_pack', rarity: 'standard', category: 'tavern' },
+    // Armory Packs
+    weapon_pack: { name: 'Weapon Pack', cost: 100, currency: 'soft_currency', type: 'weapon_pack', rarity: 'premium', category: 'armory' },
+    armor_pack: { name: 'Armor Pack', cost: 100, currency: 'soft_currency', type: 'armor_pack', rarity: 'basic', category: 'armory' },
+    // Altar Packs
+    monster_pack: { name: 'Monster Pack', cost: 100, currency: 'soft_currency', type: 'monster_pack', rarity: 'basic', category: 'altar' },
+    monster_ability_pack: { name: 'Monster Ability Pack', cost: 100, currency: 'soft_currency', type: 'monster_ability_pack', rarity: 'standard', category: 'altar' }
 };
 
 const STARTING_GOLD = 400;
@@ -744,17 +746,18 @@ client.on(Events.InteractionCreate, async interaction => {
                         [{ name: 'Welcome to the Marketplace!', value: 'Here you can buy various goods for your journey.' }]
                     );
 
-                    const storeButtons = new ActionRowBuilder()
+                    const shopButtons = new ActionRowBuilder()
                         .addComponents(
-                            new ButtonBuilder().setCustomId('market_store_view').setLabel('Booster Pack Store').setStyle(ButtonStyle.Primary).setEmoji('📦'),
-                            new ButtonBuilder().setCustomId('market_auction_house').setLabel('Auction House').setStyle(ButtonStyle.Secondary).setEmoji('🏛️').setDisabled(true)
+                            new ButtonBuilder().setCustomId('market_tavern').setLabel('The Tavern').setStyle(ButtonStyle.Primary).setEmoji('🍻'),
+                            new ButtonBuilder().setCustomId('market_armory').setLabel('The Armory').setStyle(ButtonStyle.Secondary).setEmoji('🛡️'),
+                            new ButtonBuilder().setCustomId('market_altar').setLabel('The Altar').setStyle(ButtonStyle.Danger).setEmoji('💀')
                         );
                     const navigationRow = new ActionRowBuilder()
                         .addComponents(
                             new ButtonBuilder().setCustomId('back_to_town').setLabel('Back to Town').setStyle(ButtonStyle.Secondary).setEmoji('⬅️')
                         );
 
-                    await interaction.editReply({ embeds: [marketEmbed], components: [storeButtons, navigationRow] });
+                    await interaction.editReply({ embeds: [marketEmbed], components: [shopButtons, navigationRow] });
                     break;
                 }
 
@@ -771,35 +774,55 @@ client.on(Events.InteractionCreate, async interaction => {
                     await interaction.editReply({ embeds: [embed], components: [backButton] });
                     break;
                 }
-                case 'market_store_view': {
+                case 'market_tavern': {
                     await interaction.deferUpdate();
-
-                    const storeEmbed = simple(
-                        '🛍️ Booster Pack Store',
-                        [{ name: 'Available Packs', value: 'Choose a pack to acquire new cards!' }]
-                    );
-
-                    const packButtons = Object.entries(BOOSTER_PACKS).map(([packId, packInfo]) =>
-                        new ButtonBuilder()
-                            .setCustomId(`buy_pack_${packId}`)
-                            .setLabel(`${packInfo.name} (${packInfo.cost} ${packInfo.currency === 'soft_currency' ? 'Gold 🪙' : 'Gems 💎'})`)
-                            .setStyle(ButtonStyle.Primary)
-                            .setEmoji('🛒')
-                    );
-
-                    const components = [];
-                    for (let i = 0; i < packButtons.length; i += 5) {
-                        const row = new ActionRowBuilder().addComponents(packButtons.slice(i, i + 5));
-                        components.push(row);
-                    }
-
-                    const backButton = new ActionRowBuilder()
-                        .addComponents(
-                            new ButtonBuilder().setCustomId('back_to_market').setLabel('Back to Marketplace').setStyle(ButtonStyle.Secondary).setEmoji('⬅️')
+                    const tavernEmbed = simple('🍻 The Tavern', [{ name: 'Champions & Abilities', value: 'Recruit new heroes and learn new skills.' }]);
+                    const tavernButtons = new ActionRowBuilder();
+                    Object.entries(BOOSTER_PACKS).filter(([, pack]) => pack.category === 'tavern').forEach(([packId, packInfo]) => {
+                        tavernButtons.addComponents(
+                            new ButtonBuilder()
+                                .setCustomId(`buy_pack_${packId}`)
+                                .setLabel(`${packInfo.name} (${packInfo.cost} Gold 🪙)`)
+                                .setStyle(ButtonStyle.Primary)
+                                .setEmoji('🛒')
                         );
-                    components.push(backButton);
-
-                    await interaction.editReply({ embeds: [storeEmbed], components: components });
+                    });
+                    const backButton = new ActionRowBuilder().addComponents(new ButtonBuilder().setCustomId('back_to_market').setLabel('Back to Marketplace').setStyle(ButtonStyle.Secondary).setEmoji('⬅️'));
+                    await interaction.editReply({ embeds: [tavernEmbed], components: [tavernButtons, backButton] });
+                    break;
+                }
+                case 'market_armory': {
+                    await interaction.deferUpdate();
+                    const armoryEmbed = simple('🛡️ The Armory', [{ name: 'Weapons & Armor', value: 'Outfit your champions with the finest gear.' }]);
+                    const armoryButtons = new ActionRowBuilder();
+                    Object.entries(BOOSTER_PACKS).filter(([, pack]) => pack.category === 'armory').forEach(([packId, packInfo]) => {
+                        armoryButtons.addComponents(
+                            new ButtonBuilder()
+                                .setCustomId(`buy_pack_${packId}`)
+                                .setLabel(`${packInfo.name} (${packInfo.cost} Gold 🪙)`)
+                                .setStyle(ButtonStyle.Primary)
+                                .setEmoji('🛒')
+                        );
+                    });
+                    const backButton = new ActionRowBuilder().addComponents(new ButtonBuilder().setCustomId('back_to_market').setLabel('Back to Marketplace').setStyle(ButtonStyle.Secondary).setEmoji('⬅️'));
+                    await interaction.editReply({ embeds: [armoryEmbed], components: [armoryButtons, backButton] });
+                    break;
+                }
+                case 'market_altar': {
+                    await interaction.deferUpdate();
+                    const altarEmbed = simple('💀 The Altar', [{ name: 'Monsters & Powers', value: 'Unleash forbidden powers and monstrous allies.' }]);
+                    const altarButtons = new ActionRowBuilder();
+                    Object.entries(BOOSTER_PACKS).filter(([, pack]) => pack.category === 'altar').forEach(([packId, packInfo]) => {
+                        altarButtons.addComponents(
+                            new ButtonBuilder()
+                                .setCustomId(`buy_pack_${packId}`)
+                                .setLabel(`${packInfo.name} (${packInfo.cost} Gold 🪙)`)
+                                .setStyle(ButtonStyle.Primary)
+                                .setEmoji('🛒')
+                        );
+                    });
+                    const backButton = new ActionRowBuilder().addComponents(new ButtonBuilder().setCustomId('back_to_market').setLabel('Back to Marketplace').setStyle(ButtonStyle.Secondary).setEmoji('⬅️'));
+                    await interaction.editReply({ embeds: [altarEmbed], components: [altarButtons, backButton] });
                     break;
                 }
                 case (interaction.customId.startsWith('buy_pack_') ? interaction.customId : ''): {
@@ -937,16 +960,17 @@ client.on(Events.InteractionCreate, async interaction => {
                         '💰 The Grand Bazaar',
                         [{ name: 'Welcome to the Marketplace!', value: 'Here you can buy various goods for your journey.' }]
                     );
-                    const storeButtons = new ActionRowBuilder()
+                    const shopButtons = new ActionRowBuilder()
                         .addComponents(
-                            new ButtonBuilder().setCustomId('market_store_view').setLabel('Booster Pack Store').setStyle(ButtonStyle.Primary).setEmoji('📦'),
-                            new ButtonBuilder().setCustomId('market_auction_house').setLabel('Auction House').setStyle(ButtonStyle.Secondary).setEmoji('🏛️').setDisabled(true)
+                            new ButtonBuilder().setCustomId('market_tavern').setLabel('The Tavern').setStyle(ButtonStyle.Primary).setEmoji('🍻'),
+                            new ButtonBuilder().setCustomId('market_armory').setLabel('The Armory').setStyle(ButtonStyle.Secondary).setEmoji('🛡️'),
+                            new ButtonBuilder().setCustomId('market_altar').setLabel('The Altar').setStyle(ButtonStyle.Danger).setEmoji('💀')
                         );
                     const navigationRow = new ActionRowBuilder()
                         .addComponents(
                             new ButtonBuilder().setCustomId('back_to_town').setLabel('Back to Town').setStyle(ButtonStyle.Secondary).setEmoji('⬅️')
                         );
-                    await interaction.editReply({ embeds: [marketEmbed], components: [storeButtons, navigationRow] });
+                    await interaction.editReply({ embeds: [marketEmbed], components: [shopButtons, navigationRow] });
                     break;
                 }
                 case 'back_to_town': {
