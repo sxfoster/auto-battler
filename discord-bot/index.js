@@ -2130,18 +2130,19 @@ async function sendInitialGoldAndBoosterStore(interaction, userId) {
         [{ name: 'Available Packs', value: `Use your ${STARTING_GOLD} Gold to buy more packs and strengthen your roster!` }]
     );
 
+    // Build pack purchase buttons grouped into rows of up to 5 to satisfy
+    // Discord's component limits
+    const packButtons = Object.entries(BOOSTER_PACKS).map(([packId, packInfo]) =>
+        new ButtonBuilder()
+            .setCustomId(`buy_pack_${packId}`)
+            .setLabel(`${packInfo.name} (${packInfo.cost} Gold 🪙)`)
+            .setStyle(ButtonStyle.Primary)
+            .setEmoji('🛒')
+    );
+
     const components = [];
-    for (const [packId, packInfo] of Object.entries(BOOSTER_PACKS)) {
-        components.push(
-            new ActionRowBuilder()
-                .addComponents(
-                    new ButtonBuilder()
-                        .setCustomId(`buy_pack_${packId}`)
-                        .setLabel(`${packInfo.name} (${packInfo.cost} Gold 🪙)`)
-                        .setStyle(ButtonStyle.Primary)
-                        .setEmoji('🛒')
-                )
-        );
+    for (let i = 0; i < packButtons.length; i += 5) {
+        components.push(new ActionRowBuilder().addComponents(packButtons.slice(i, i + 5)));
     }
 
     const finalizeTutorialRow = new ActionRowBuilder()
