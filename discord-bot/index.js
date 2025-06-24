@@ -251,34 +251,6 @@ client.on(Events.InteractionCreate, async interaction => {
     }
     // --- Slash Command Handler ---
     if (interaction.isChatInputCommand()) {
-        if (interaction.commandName === 'start') {
-            const userId = interaction.user.id;
-            try {
-                const [[user]] = await db.execute('SELECT tutorial_completed FROM users WHERE discord_id = ?', [userId]);
-                if (user && user.tutorial_completed) {
-                    await interaction.reply({
-                        embeds: [simple('Welcome back!', [{ name: 'Journey On!', value: 'You\'ve already completed your initial training. Use `/town` to access game features.' }])],
-                        ephemeral: true
-                    });
-                    return;
-                }
-                const command = client.commands.get(interaction.commandName);
-                if (command) {
-                    await command.execute(interaction);
-                }
-                activeTutorialDrafts.set(userId, {
-                    stage: 'NEW_FLOW_INITIAL_GREETING',
-                    champion1: {},
-                    champion2: {},
-                    receivedWelcomePack: false,
-                    initialGoldGranted: false
-                });
-            } catch (error) {
-                console.error('Error checking tutorial status or executing start command:', error);
-                await interaction.reply({ content: 'There was an error starting your adventure!', ephemeral: true });
-            }
-            return;
-        }
         if (interaction.commandName === 'team' && interaction.options.getSubcommand() === 'set-defense') {
             try {
                 const userId = interaction.user.id;
@@ -495,12 +467,24 @@ client.on(Events.InteractionCreate, async interaction => {
     // --- Button Interaction Handler ---
     if (interaction.isButton()) {
         const userId = interaction.user.id;
-        const userDraftState = activeTutorialDrafts.get(userId);
+        let userDraftState = activeTutorialDrafts.get(userId);
         if (interaction.customId.startsWith('tutorial_') || userDraftState) {
             try {
                 await interaction.deferUpdate();
                 switch (interaction.customId) {
                     case 'tutorial_start_new_flow':
+                        if (!userDraftState) {
+                            userDraftState = {
+                                stage: 'NEW_FLOW_INITIAL_GREETING',
+                                champion1: {},
+                                champion2: {},
+                                receivedWelcomePack: false,
+                                initialGoldGranted: false,
+                                currentChampNum: 1
+                            };
+                            activeTutorialDrafts.set(userId, userDraftState);
+                        }
+
                         if (!userDraftState.receivedWelcomePack) {
                             await sendWelcomePackStep(interaction, userId);
                             userDraftState.receivedWelcomePack = true;
