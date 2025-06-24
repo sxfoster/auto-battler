@@ -1,5 +1,7 @@
 const { allPossibleMinions } = require('./data');
 
+const MAX_ENERGY = 10;
+
 class GameEngine {
     constructor(combatants) {
         this.combatants = combatants.map(c => ({ ...c }));
@@ -73,10 +75,34 @@ class GameEngine {
        if (!wasSkipped) {
            const targets = this.combatants.filter(c => c.team !== attacker.team && c.currentHp > 0);
            if (targets.length > 0) {
-               const target = targets[0]; // Simple targeting logic
-               this.applyDamage(attacker, target, attacker.attack);
+               const target = targets[0];
+
+               let actionToPerform = 'attack';
+               let abilityToUse = null;
+
+               if (attacker.deck && attacker.deck.length > 0) {
+                   const usableAbilities = attacker.deck
+                       .filter(ab => ab && attacker.currentEnergy >= ab.energyCost)
+                       .sort((a, b) => b.energyCost - a.energyCost);
+
+                   if (usableAbilities.length > 0) {
+                       actionToPerform = 'ability';
+                       abilityToUse = usableAbilities[0];
+                   }
+               }
+
+               if (actionToPerform === 'ability') {
+                   this.log(`${attacker.heroData.name} uses ${abilityToUse.name}!`);
+                   attacker.currentEnergy -= abilityToUse.energyCost;
+                   // TODO: apply ability effect
+               } else {
+                   this.log(`${attacker.heroData.name} performs a basic attack.`);
+                   this.applyDamage(attacker, target, attacker.attack);
+               }
            }
        }
+
+       attacker.currentEnergy = Math.min(MAX_ENERGY, (attacker.currentEnergy || 0) + 1);
 
        if (this.checkVictory()) return;
    }

@@ -6,6 +6,7 @@ function createCombatant(playerData, team, position) {
     const weapon = allPossibleWeapons.find(w => w.id === playerData.weapon_id);
     const armor = allPossibleArmors.find(a => a.id === playerData.armor_id);
     const ability = allPossibleAbilities.find(a => a.id === playerData.ability_id);
+    const deckAbilities = (playerData.deck || []).map(id => allPossibleAbilities.find(a => a.id === id));
 
     if (!hero) return null;
 
@@ -22,6 +23,7 @@ function createCombatant(playerData, team, position) {
         weaponData: weapon,
         armorData: armor,
         abilityData: ability,
+        deck: deckAbilities,
         team: team,
         position: position,
         currentHp: finalStats.hp,
