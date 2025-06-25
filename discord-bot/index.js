@@ -26,21 +26,6 @@ function confirm(text) {
     return new EmbedBuilder().setColor('#66bb6a').setDescription(text);
 }
 
-// Temporary storage for cards from packs waiting to be claimed
-const userTemporaryPacks = new Map();
-
-function sleep(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-}
-
-function generateAsciiCard(name, rarity) {
-    const top = '┌────────────────────┐';
-    const bottom = '└────────────────────┘';
-    const nameLine = `│ ${name.padEnd(18)}│`;
-    const rarityLine = `│ ${rarity.padEnd(18)}│`;
-    return `${top}\n${nameLine}\n${rarityLine}\n${bottom}`;
-}
-
 // Sample card pools
 const allPossibleHeroes = [
     { id: 1, name: 'Recruit', rarity: 'Common', is_monster: false },
@@ -215,79 +200,6 @@ client.on(Events.InteractionCreate, async interaction => {
             ]);
             await interaction.editReply({ embeds: [resultsEmbed] });
             await interaction.followUp({ embeds: [confirm('Your new cards have been added to your collection!')], ephemeral: true });
-            break;
-        }
-
-        case 'open_specific_pack_hero':
-        case 'open_specific_pack_ability':
-        case 'open_specific_pack_weapon':
-        case 'open_specific_pack_armor': {
-            await interaction.deferUpdate();
-            const userId = interaction.user.id;
-            const packType = interaction.customId.replace('open_specific_pack_', '');
-
-            const columnMap = {
-                hero: 'basic_hero_packs',
-                ability: 'standard_ability_packs',
-                weapon: 'premium_weapon_packs',
-                armor: 'basic_armor_packs'
-            };
-
-            const columnName = columnMap[packType];
-            if (!columnName) {
-                await interaction.editReply({ content: 'Invalid pack type.', components: [] });
-                return;
-            }
-
-            await db.execute(`UPDATE users SET ${columnName} = ${columnName} - 1 WHERE discord_id = ? AND ${columnName} > 0`, [userId]);
-
-            let cardPool = [];
-            switch (packType) {
-                case 'hero':
-                    cardPool = allPossibleHeroes.filter(h => !h.is_monster);
-                    break;
-                case 'ability':
-                    cardPool = allPossibleAbilities;
-                    break;
-                case 'weapon':
-                    cardPool = allPossibleWeapons;
-                    break;
-                case 'armor':
-                    cardPool = allPossibleArmors;
-                    break;
-            }
-
-            const cards = getRandomCardsForPack(cardPool, 3, columnName.split('_')[0]);
-            userTemporaryPacks.set(userId, cards);
-
-            await interaction.editReply({ content: `
-\`\`\`
-📦 Pack is sealed...
-\`\`\`
-`, components: [] });
-            await sleep(800);
-            await interaction.editReply({ content: `
-\`\`\`
-💥 Ripping open the pack!
-\`\`\`
-` });
-            await sleep(800);
-            await interaction.editReply({ content: `
-\`\`\`
-✨ Cards are revealing...
-\`\`\`
-` });
-            await sleep(800);
-
-            const asciiCards = cards.map(c => generateAsciiCard(c.name, c.rarity)).join('\n');
-            const chooseRow = new ActionRowBuilder()
-                .addComponents(
-                    new ButtonBuilder().setCustomId('select_card_0_from_pack').setLabel(`Choose ${cards[0].name}`).setStyle(ButtonStyle.Primary),
-                    new ButtonBuilder().setCustomId('select_card_1_from_pack').setLabel(`Choose ${cards[1].name}`).setStyle(ButtonStyle.Primary),
-                    new ButtonBuilder().setCustomId('select_card_2_from_pack').setLabel(`Choose ${cards[2].name}`).setStyle(ButtonStyle.Primary)
-                );
-
-            await interaction.editReply({ content: asciiCards, components: [chooseRow] });
             break;
         }
 
