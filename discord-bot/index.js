@@ -5,8 +5,7 @@ require('dotenv').config();
 const db = require('./util/database');
 const { simple } = require('./src/utils/embedBuilder');
 const confirmEmbed = require('./src/utils/confirm');
-const { generateCardImage } = require('./src/utils/cardRenderer');
-const { generateAsciiCard } = require('./src/utils/asciiCardRenderer');
+const { generateCardImage, generatePackImage, generateSealedBoosterImage } = require('./src/utils/cardRenderer');
 const { setTimeout: sleep } = require('node:timers/promises');
 const {
   allPossibleHeroes,
@@ -826,47 +825,35 @@ client.on(Events.InteractionCreate, async interaction => {
 
                     await db.execute(`UPDATE users SET ${columnName} = ${columnName} - 1 WHERE discord_id = ? AND ${columnName} > 0`, [userId]);
 
-                    let cardPool = [];
-                    switch (packType) {
-                        case 'hero':
-                            cardPool = allPossibleHeroes.filter(h => !h.is_monster);
-                            break;
-                        case 'ability':
-                            cardPool = allPossibleAbilities;
-                            break;
-                        case 'weapon':
-                            cardPool = allPossibleWeapons;
-                            break;
-                        case 'armor':
-                            cardPool = allPossibleArmors;
-                            break;
-                    }
-
-                    const cards = getRandomCardsForPack(cardPool, 3, columnName.split('_')[0]);
+                    const recruitCard = allPossibleHeroes.find(h => h.id === 101);
+                    const cards = [recruitCard, recruitCard, recruitCard];
                     userTemporaryPacks.set(userId, cards);
 
-                    await interaction.editReply({ content: `\`\`\`
-📦 Pack is sealed...
-\`\`\``, components: [] });
-                    await sleep(800);
-                    await interaction.editReply({ content: `\`\`\`
-💥 Ripping open the pack!
-\`\`\`` });
-                    await sleep(800);
-                    await interaction.editReply({ content: `\`\`\`
-✨ Cards are revealing...
-\`\`\`` });
-                    await sleep(800);
+                    const boosterBuffer = await generateSealedBoosterImage();
+                    const openRow = new ActionRowBuilder().addComponents(
+                        new ButtonBuilder().setCustomId('reveal_pack_cards').setLabel('Tear it Open!').setStyle(ButtonStyle.Primary)
+                    );
 
-                    const asciiCards = cards.map(c => generateAsciiCard(c.name, c.rarity)).join('\n');
-                    const chooseRow = new ActionRowBuilder()
-                        .addComponents(
-                            new ButtonBuilder().setCustomId('select_card_0_from_pack').setLabel(`Choose ${cards[0].name}`).setStyle(ButtonStyle.Primary),
-                            new ButtonBuilder().setCustomId('select_card_1_from_pack').setLabel(`Choose ${cards[1].name}`).setStyle(ButtonStyle.Primary),
-                            new ButtonBuilder().setCustomId('select_card_2_from_pack').setLabel(`Choose ${cards[2].name}`).setStyle(ButtonStyle.Primary)
-                        );
-
-                    await interaction.editReply({ content: asciiCards, components: [chooseRow] });
+                    await interaction.editReply({ content: '', files: [{ attachment: boosterBuffer, name: 'booster.png' }], components: [openRow] });
+                    break;
+                }
+                case 'reveal_pack_cards': {
+                    await interaction.deferUpdate();
+                    const userId = interaction.user.id;
+                    const cards = userTemporaryPacks.get(userId);
+                    if (!cards) {
+                        await interaction.editReply({ content: 'No pack data found.', components: [] });
+                        return;
+                    }
+                    await interaction.editReply({ content: 'Ripping open the pack...', components: [] });
+                    await sleep(1200);
+                    const packImage = await generatePackImage(cards);
+                    const chooseRow = new ActionRowBuilder().addComponents(
+                        new ButtonBuilder().setCustomId('select_card_0_from_pack').setLabel(`Choose ${cards[0].name}`).setStyle(ButtonStyle.Primary),
+                        new ButtonBuilder().setCustomId('select_card_1_from_pack').setLabel(`Choose ${cards[1].name}`).setStyle(ButtonStyle.Primary),
+                        new ButtonBuilder().setCustomId('select_card_2_from_pack').setLabel(`Choose ${cards[2].name}`).setStyle(ButtonStyle.Primary)
+                    );
+                    await interaction.editReply({ content: '', files: [{ attachment: packImage, name: 'pack.png' }], components: [chooseRow] });
                     break;
                 }
                 case 'select_card_0_from_pack':
@@ -904,14 +891,14 @@ client.on(Events.InteractionCreate, async interaction => {
                         .setTitle('Your New Card!')
                         .setDescription(`You chose **${chosenCard.name}**! You gained **${totalShardsGained}** shards from the other cards.`)
                         .setFooter({ text: 'Auto-Battler Bot' });
-                    const dmContent = generateAsciiCard(chosenCard.name, chosenCard.rarity);
+                    const cardBuffer = await generateCardImage(chosenCard);
                     try {
-                        await user.send({ content: dmContent, embeds: [dmEmbed] });
+                        await user.send({ embeds: [dmEmbed], files: [{ attachment: cardBuffer, name: `${chosenCard.name}.png` }] });
                     } catch (e) {
                         console.error('Failed to send DM:', e);
                     }
 
-                    await interaction.editReply({ content: 'Selection confirmed! Check your DMs for your new card.', components: [] });
+                    await interaction.editReply({ content: 'Card chosen and added to your inventory!', components: [] });
                     break;
                 }
                 case 'back_to_barracks_from_champ':

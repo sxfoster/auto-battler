@@ -59,4 +59,59 @@ async function generateCardImage(card) {
   return base.composite(composites).png().toBuffer();
 }
 
-module.exports = { generateCardImage };
+/**
+ * Generate a composite image buffer for a pack of cards displayed side-by-side.
+ * @param {object[]} cards Array of card objects
+ * @returns {Promise<Buffer>}
+ */
+async function generatePackImage(cards) {
+  const cardImages = await Promise.all(cards.map(card => generateCardImage(card)));
+  const PADDING = 10;
+  const CARD_WIDTH = 300;
+  const CARD_HEIGHT = 400;
+  const totalWidth = CARD_WIDTH * cardImages.length + PADDING * (cardImages.length + 1);
+
+  const compositeImage = sharp({
+    create: {
+      width: totalWidth,
+      height: CARD_HEIGHT + PADDING * 2,
+      channels: 4,
+      background: { r: 0, g: 0, b: 0, alpha: 0 }
+    }
+  });
+
+  const compositeOps = cardImages.map((img, i) => ({
+    input: img,
+    left: i * CARD_WIDTH + (i + 1) * PADDING,
+    top: PADDING
+  }));
+
+  return compositeImage.composite(compositeOps).png().toBuffer();
+}
+
+/**
+ * Generate a simple sealed booster image so the bot doesn't rely on any static assets.
+ * @returns {Promise<Buffer>}
+ */
+async function generateSealedBoosterImage() {
+  const WIDTH = 300;
+  const HEIGHT = 400;
+  const base = sharp({
+    create: {
+      width: WIDTH,
+      height: HEIGHT,
+      channels: 4,
+      background: { r: 70, g: 60, b: 110, alpha: 1 }
+    }
+  });
+
+  const textSvg = `<svg width="${WIDTH}" height="${HEIGHT}" xmlns="http://www.w3.org/2000/svg">
+    <rect x="0" y="0" width="100%" height="100%" rx="20" ry="20" fill="none" stroke="white" stroke-width="4"/>
+    <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-family="Arial" font-size="36" fill="white">Booster</text>
+    <text x="50%" y="62%" dominant-baseline="middle" text-anchor="middle" font-family="Arial" font-size="28" fill="white">Pack</text>
+  </svg>`;
+
+  return base.composite([{ input: Buffer.from(textSvg) }]).png().toBuffer();
+}
+
+module.exports = { generateCardImage, generatePackImage, generateSealedBoosterImage };
