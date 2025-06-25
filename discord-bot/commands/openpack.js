@@ -82,6 +82,11 @@ const command = {
         );
 
         await interaction.editReply({ embeds: [resultsEmbed] });
+
+        await interaction.followUp({
+            embeds: [confirm('Pack successfully added to your account.')],
+            ephemeral: true
+        });
     },
 };
 
