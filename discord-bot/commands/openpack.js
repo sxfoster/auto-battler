@@ -8,6 +8,7 @@ const {
     allPossibleArmors,
     allPossibleAbilities
 } = require('../../backend/game/data');
+const { getRandomCardsForPack } = require('../util/gameData');
 
 // Booster pack definitions used for consistent display names
 const BOOSTER_PACKS = {
@@ -24,45 +25,6 @@ const PACK_COLUMN_BASE = {
     armor_pack: 'armor_packs'
 };
 
-// Helper to select cards by rarity tier
-function getRandomCardsForPack(pool, count = 3, packRarity = 'basic') {
-    let allowedRarities;
-    switch (packRarity) {
-        case 'premium':
-            allowedRarities = ['Uncommon', 'Rare', 'Epic'];
-            break;
-        case 'standard':
-            allowedRarities = ['Common', 'Uncommon', 'Rare'];
-            break;
-        case 'basic':
-        default:
-            allowedRarities = ['Common', 'Uncommon'];
-            break;
-    }
-
-    const filteredPool = pool.filter(item => allowedRarities.includes(item.rarity));
-    const shuffled = [...filteredPool].sort(() => 0.5 - Math.random());
-    const uniqueCards = [];
-    const uniqueIds = new Set();
-
-    for (const card of shuffled) {
-        if (!uniqueIds.has(card.id)) {
-            uniqueCards.push(card);
-            uniqueIds.add(card.id);
-            if (uniqueCards.length >= count) break;
-        }
-    }
-
-    while (uniqueCards.length < count) {
-        const fallback = pool[Math.floor(Math.random() * pool.length)];
-        if (!uniqueIds.has(fallback.id)) {
-            uniqueCards.push(fallback);
-            uniqueIds.add(fallback.id);
-        }
-    }
-
-    return uniqueCards;
-}
 
 const command = {
     data: new SlashCommandBuilder()
@@ -123,4 +85,4 @@ const command = {
     },
 };
 
-module.exports = { ...command, getRandomCardsForPack };
+module.exports = command;

@@ -50,10 +50,51 @@ function getMonsters() {
     return getHeroes().filter(h => h.is_monster);
 }
 
+// Helper to select cards by rarity tier for booster packs
+function getRandomCardsForPack(pool, count = 3, packRarity = 'basic') {
+    let allowedRarities;
+    switch (packRarity) {
+        case 'premium':
+            allowedRarities = ['Uncommon', 'Rare', 'Epic'];
+            break;
+        case 'standard':
+            allowedRarities = ['Common', 'Uncommon', 'Rare'];
+            break;
+        case 'basic':
+        default:
+            allowedRarities = ['Common', 'Uncommon'];
+            break;
+    }
+
+    const filteredPool = pool.filter(item => allowedRarities.includes(item.rarity));
+    const shuffled = [...filteredPool].sort(() => 0.5 - Math.random());
+    const uniqueCards = [];
+    const uniqueIds = new Set();
+
+    for (const card of shuffled) {
+        if (!uniqueIds.has(card.id)) {
+            uniqueCards.push(card);
+            uniqueIds.add(card.id);
+            if (uniqueCards.length >= count) break;
+        }
+    }
+
+    while (uniqueCards.length < count) {
+        const fallback = pool[Math.floor(Math.random() * pool.length)];
+        if (!uniqueIds.has(fallback.id)) {
+            uniqueCards.push(fallback);
+            uniqueIds.add(fallback.id);
+        }
+    }
+
+    return uniqueCards;
+}
+
 module.exports = {
     gameData,
     loadAllData,
     getHeroes,
     getHeroById,
     getMonsters,
+    getRandomCardsForPack,
 };
