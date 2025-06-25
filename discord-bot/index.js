@@ -845,17 +845,17 @@ client.on(Events.InteractionCreate, async interaction => {
                     const cards = getRandomCardsForPack(cardPool, 3, columnName.split('_')[0]);
                     userTemporaryPacks.set(userId, cards);
 
-                    await interaction.editReply({ content: '```
+                    await interaction.editReply({ content: `\`\`\`
 📦 Pack is sealed...
-```', components: [] });
+\`\`\``, components: [] });
                     await sleep(800);
-                    await interaction.editReply({ content: '```
+                    await interaction.editReply({ content: `\`\`\`
 💥 Ripping open the pack!
-```' });
+\`\`\`` });
                     await sleep(800);
-                    await interaction.editReply({ content: '```
+                    await interaction.editReply({ content: `\`\`\`
 ✨ Cards are revealing...
-```' });
+\`\`\`` });
                     await sleep(800);
 
                     const asciiCards = cards.map(c => generateAsciiCard(c.name, c.rarity)).join('\n');
