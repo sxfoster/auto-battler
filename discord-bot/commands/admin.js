@@ -1,6 +1,8 @@
 const { SlashCommandBuilder, PermissionFlagsBits } = require('discord.js');
 const db = require('../util/database');
 const { simple } = require('../src/utils/embedBuilder');
+const { allPossibleHeroes } = require('../../backend/game/data');
+const { generateCardImage } = require('../src/utils/cardRenderer');
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -19,6 +21,15 @@ module.exports = {
                     option.setName('amount')
                         .setDescription('The amount of gold to grant.')
                         .setRequired(true))
+        )
+        .addSubcommand(subcommand =>
+            subcommand
+                .setName('grant-recruit')
+                .setDescription('Grants a Recruit hero card to a user for testing.')
+                .addUserOption(option =>
+                    option.setName('target')
+                        .setDescription('The user to receive the card. Defaults to yourself.')
+                        .setRequired(false))
         ),
     async execute(interaction) {
         const requiredRoleName = 'Game Master';
@@ -49,6 +60,37 @@ module.exports = {
             } catch (error) {
                 console.error('Error granting gold:', error);
                 await interaction.reply({ content: 'An error occurred while granting gold.', ephemeral: true });
+            }
+        } else if (interaction.options.getSubcommand() === 'grant-recruit') {
+            const targetUser = interaction.options.getUser('target') || interaction.user;
+            const recruit = allPossibleHeroes.find(h => h.id === 101);
+
+            if (!recruit) {
+                return interaction.reply({ content: 'Recruit card data not found.', ephemeral: true });
+            }
+
+            try {
+                await db.execute(
+                    `INSERT INTO user_inventory (user_id, item_id, quantity, item_type)
+                     VALUES (?, 101, 1, 'hero')
+                     ON DUPLICATE KEY UPDATE quantity = quantity + 1`,
+                    [targetUser.id]
+                );
+
+                const imageBuffer = await generateCardImage(recruit);
+                const successEmbed = simple(
+                    '🃏 Recruit Granted',
+                    [{ name: 'Success!', value: `Successfully granted a Recruit card to ${targetUser.username}.` }]
+                );
+
+                await interaction.reply({
+                    embeds: [successEmbed],
+                    files: [{ attachment: imageBuffer, name: 'card.png' }],
+                    ephemeral: true
+                });
+            } catch (error) {
+                console.error('Error granting recruit:', error);
+                await interaction.reply({ content: 'An error occurred while granting the Recruit card.', ephemeral: true });
             }
         }
     },
