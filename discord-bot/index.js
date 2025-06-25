@@ -5,6 +5,7 @@ require('dotenv').config();
 const db = require('./util/database');
 const { simple } = require('./src/utils/embedBuilder');
 const confirmEmbed = require('./src/utils/confirm');
+const { generateCardImage } = require('./src/utils/cardRenderer');
 const {
   allPossibleHeroes,
   allPossibleWeapons,
@@ -359,7 +360,7 @@ async function handleBoosterPurchase(interaction, userId, packId, page = 0) {
 
     await interaction.editReply({ embeds: [resultsEmbed], components: [viewInventoryButton] });
 
-    await interaction.followUp(getMarketplaceMenu(packInfo.category, page));
+    return { awardedCards, packInfo, page };
 }
 
 
@@ -956,7 +957,30 @@ client.on(Events.InteractionCreate, async interaction => {
                 case (interaction.customId.startsWith('buy_pack_') ? interaction.customId : ''): {
                     await interaction.deferUpdate();
                     const packId = interaction.customId.replace('buy_pack_', '');
-                    await handleBoosterPurchase(interaction, userId, packId);
+                    const result = await handleBoosterPurchase(interaction, userId, packId);
+                    if (result) {
+                        for (const card of result.awardedCards) {
+                            try {
+                                const img = await generateCardImage(card);
+                                const embed = new EmbedBuilder().setImage('attachment://card.png');
+                                await interaction.followUp({
+                                    embeds: [embed],
+                                    files: [{ attachment: img, name: 'card.png' }],
+                                    ephemeral: true
+                                });
+                            } catch (err) {
+                                console.error('Error generating card image:', err);
+                            }
+                        }
+                        const backRow = new ActionRowBuilder().addComponents(
+                            new ButtonBuilder()
+                                .setCustomId('back_to_market')
+                                .setLabel('Back to Marketplace')
+                                .setStyle(ButtonStyle.Secondary)
+                                .setEmoji('⬅️')
+                        );
+                        await interaction.followUp({ components: [backRow], ephemeral: true });
+                    }
                     break;
                 }
 
