@@ -8,14 +8,13 @@ const confirmEmbed = require('./src/utils/confirm');
 const { generateCardImage } = require('./src/utils/cardRenderer');
 const { generateAsciiCard } = require('./src/utils/asciiCardRenderer');
 const { setTimeout: sleep } = require('node:timers/promises');
-const { getRandomCardsForPack } = require('./commands/openpack');
 const {
   allPossibleHeroes,
   allPossibleWeapons,
   allPossibleArmors,
   allPossibleAbilities
 } = require('../backend/game/data');
-const { loadAllData, gameData, getHeroes, getHeroById, getMonsters } = require('./util/gameData');
+const { loadAllData, gameData, getHeroes, getHeroById, getMonsters, getRandomCardsForPack } = require('./util/gameData');
 const { createCombatant } = require('../backend/game/utils');
 const GameEngine = require('../backend/game/engine');
 const { getTownMenu } = require('./commands/town.js');
@@ -226,45 +225,6 @@ async function checkAndApplyLevelUp(userId, championId, interaction) {
 }
 // --- END NEW HELPER FUNCTION ---
 
-// Helper for booster packs
-function getRandomCardsForPack(pool, count, packRarity) {
-    let allowedRarities;
-    switch (packRarity) {
-        case 'premium':
-            allowedRarities = ['Uncommon', 'Rare', 'Epic'];
-            break;
-        case 'standard':
-            allowedRarities = ['Common', 'Uncommon', 'Rare'];
-            break;
-        case 'basic':
-        default:
-            allowedRarities = ['Common', 'Uncommon'];
-            break;
-    }
-
-    const filteredPool = pool.filter(item => allowedRarities.includes(item.rarity));
-    const shuffled = [...filteredPool].sort(() => 0.5 - Math.random());
-    const uniqueCards = [];
-    const uniqueIds = new Set();
-
-    for (const card of shuffled) {
-        if (!uniqueIds.has(card.id)) {
-            uniqueCards.push(card);
-            uniqueIds.add(card.id);
-            if (uniqueCards.length >= count) break;
-        }
-    }
-
-    while (uniqueCards.length < count) {
-        const fallback = pool[Math.floor(Math.random() * pool.length)];
-        if (!uniqueIds.has(fallback.id)) {
-            uniqueCards.push(fallback);
-            uniqueIds.add(fallback.id);
-        }
-    }
-
-    return uniqueCards;
-}
 
 async function handleBoosterPurchase(interaction, userId, packId, page = 0) {
     const packInfo = BOOSTER_PACKS[packId];
