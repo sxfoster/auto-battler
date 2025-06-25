@@ -80,14 +80,15 @@ module.exports = {
                 const imageBuffer = await generateCardImage(recruit);
                 const successEmbed = simple(
                     '🃏 Recruit Granted',
-                    [{ name: 'Success!', value: `Successfully granted a Recruit card to ${targetUser.username}.` }]
+                    [{ name: 'New Card', value: `${recruit.name} (${recruit.rarity})` }]
                 );
 
-                await interaction.reply({
+                await targetUser.send({
                     embeds: [successEmbed],
-                    files: [{ attachment: imageBuffer, name: 'card.png' }],
-                    ephemeral: true
+                    files: [{ attachment: imageBuffer, name: 'recruit.png' }]
                 });
+
+                await interaction.reply({ content: "Successfully sent the Recruit card to the user's DMs.", ephemeral: true });
             } catch (error) {
                 console.error('Error granting recruit:', error);
                 await interaction.reply({ content: 'An error occurred while granting the Recruit card.', ephemeral: true });
