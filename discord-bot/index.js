@@ -29,13 +29,207 @@ const BOOSTER_PACKS = {
     monster_ability_pack: { name: 'Monster Ability Pack', cost: 100, currency: 'soft_currency', type: 'monster_ability_pack', rarity: 'standard', category: 'altar' }
 };
 
+const ITEMS_PER_PAGE = 5;
+
 const STARTING_GOLD = 400;
+
+async function getMarketplaceMenu(interaction, category, page = 0) {
+    // 1. Filter Packs
+    const filteredPacks = Object.entries(BOOSTER_PACKS).filter(([, pack]) => pack.category === category);
+
+    // 2. Pagination Logic
+    const startIndex = page * ITEMS_PER_PAGE;
+    const endIndex = startIndex + ITEMS_PER_PAGE;
+    const packsForPage = filteredPacks.slice(startIndex, endIndex);
+
+    // 3. Embed Creation
+    const embed = new EmbedBuilder();
+    let title = "💰 The Grand Bazaar";
+    if (category === 'tavern') {
+        title = "🍻 The Tavern";
+    } else if (category === 'armory') {
+        title = "🛡️ The Armory";
+    } else if (category === 'altar') {
+        title = "💀 The Altar";
+    }
+    embed.setTitle(title).setDescription(`Page ${page + 1}`);
+
+    // 4. Category Filter Buttons
+    const categoryFilterRow = new ActionRowBuilder()
+        .addComponents(
+            new ButtonBuilder()
+                .setCustomId(`market_category_tavern_0`)
+                .setLabel("Tavern")
+                .setStyle(ButtonStyle.Primary)
+                .setEmoji('🍻')
+                .setDisabled(category === 'tavern'),
+            new ButtonBuilder()
+                .setCustomId(`market_category_armory_0`)
+                .setLabel("Armory")
+                .setStyle(ButtonStyle.Secondary)
+                .setEmoji('🛡️')
+                .setDisabled(category === 'armory'),
+            new ButtonBuilder()
+                .setCustomId(`market_category_altar_0`)
+                .setLabel("Altar")
+                .setStyle(ButtonStyle.Danger)
+                .setEmoji('💀')
+                .setDisabled(category === 'altar')
+        );
+
+    // 5. StringSelectMenu for Packs
+    const packSelectRow = new ActionRowBuilder();
+    const packSelectMenu = new StringSelectMenuBuilder()
+        .setCustomId('market_pack_select') // Generic ID as discussed
+        .setPlaceholder('Select a pack to purchase...');
+
+    if (packsForPage.length === 0) {
+        packSelectMenu.addOptions({
+            label: "No items on this page",
+            value: "no_items",
+            description: "There are no packs to display for this category or page.",
+        }).setDisabled(true);
+    } else {
+        packsForPage.forEach(([packId, packInfo]) => {
+            packSelectMenu.addOptions({
+                label: `${packInfo.name} (${packInfo.cost} Gold 🪙)`, // Assuming soft_currency is Gold
+                value: `buy_pack_${packId}`,
+                description: `Cost: ${packInfo.cost} ${packInfo.currency === 'hard_currency' ? 'Gems 💎' : 'Gold 🪙'}`
+            });
+        });
+    }
+    packSelectRow.addComponents(packSelectMenu);
+
+    // 6. Pagination Buttons
+    const paginationRow = new ActionRowBuilder()
+        .addComponents(
+            new ButtonBuilder()
+                .setCustomId(`market_page_prev_${category}_${page - 1}`)
+                .setLabel("Previous")
+                .setStyle(ButtonStyle.Secondary)
+                .setEmoji('⬅️')
+                .setDisabled(page === 0),
+            new ButtonBuilder()
+                .setCustomId(`market_page_next_${category}_${page + 1}`)
+                .setLabel("Next")
+                .setStyle(ButtonStyle.Secondary)
+                .setEmoji('➡️')
+                .setDisabled(endIndex >= filteredPacks.length)
+        );
+
+    // 7. Navigation Row
+    const navigationRow = new ActionRowBuilder()
+        .addComponents(
+            new ButtonBuilder()
+                .setCustomId('back_to_town')
+                .setLabel("Back to Town")
+                .setStyle(ButtonStyle.Secondary)
+                .setEmoji('🏠')
+        );
+
+    // 8. Return Value
+    return { embeds: [embed], components: [categoryFilterRow, packSelectRow, paginationRow, navigationRow] };
+}
 
 // XP needed to reach the NEXT level (Level 10 is max)
 const LEVEL_UP_THRESHOLDS = {
     1: 60, 2: 70, 3: 80, 4: 90, 5: 100,
     6: 110, 7: 120, 8: 130, 9: 140
 };
+
+// --- Helper Function for Executing Pack Purchase ---
+async function executePurchaseAndGetResults(interaction, packIdToBuy, userId) {
+    const packInfo = BOOSTER_PACKS[packIdToBuy];
+
+    if (!packInfo) {
+        await interaction.reply({ content: 'Invalid pack selected.', ephemeral: true });
+        return { success: false };
+    }
+
+    const [userRows] = await db.execute(`SELECT ${packInfo.currency} FROM users WHERE discord_id = ?`, [userId]);
+    const user = userRows[0];
+
+    if (!user || user[packInfo.currency] < packInfo.cost) {
+        await interaction.reply({
+            content: `You don't have enough ${packInfo.currency === 'soft_currency' ? 'Gold 🪙' : 'Gems 💎'} to buy the ${packInfo.name}! You need ${packInfo.cost}.`,
+            ephemeral: true
+        });
+        return { success: false };
+    }
+
+    await db.execute(
+        `UPDATE users SET ${packInfo.currency} = ${packInfo.currency} - ? WHERE discord_id = ?`,
+        [packInfo.cost, userId]
+    );
+
+    let cardPool = [];
+    let awardedCardsCount = 0;
+    let actualItemType = '';
+
+    switch (packInfo.type) {
+        case 'hero_pack':
+            cardPool = allPossibleHeroes.filter(h => !h.isMonster);
+            awardedCardsCount = 1;
+            actualItemType = 'hero';
+            break;
+        case 'ability_pack':
+            cardPool = allPossibleAbilities;
+            awardedCardsCount = 3;
+            actualItemType = 'ability';
+            break;
+        case 'weapon_pack':
+            cardPool = allPossibleWeapons;
+            awardedCardsCount = 2;
+            actualItemType = 'weapon';
+            break;
+        case 'armor_pack':
+            cardPool = allPossibleArmors;
+            awardedCardsCount = 2;
+            actualItemType = 'armor';
+            break;
+        case 'monster_pack':
+            cardPool = allPossibleHeroes.filter(h => h.is_monster); // Corrected: is_monster
+            awardedCardsCount = 1;
+            actualItemType = 'monster'; // Consider a more generic 'hero' type if monsters are in user_champions
+            break;
+        case 'monster_ability_pack':
+            cardPool = allPossibleAbilities.filter(ab => ab.class && ab.class.includes('Monster'));
+            awardedCardsCount = 2;
+            actualItemType = 'monster_ability'; // Consider a more generic 'ability' type
+            break;
+        default:
+            console.error(`Unknown pack content type: ${packInfo.type} for packId ${packIdToBuy}`);
+            await interaction.reply({ content: 'Internal error: Unknown pack content type.', ephemeral: true });
+            return { success: false };
+    }
+    const awardedCards = getRandomCardsForPack(cardPool, awardedCardsCount, packInfo.rarity);
+
+    const cardNames = [];
+    for (const card of awardedCards) {
+        cardNames.push(`**${card.name}** (${card.rarity})`);
+        try {
+            await db.execute(
+                `INSERT INTO user_inventory (user_id, item_id, quantity, item_type)
+                 VALUES (?, ?, 1, ?)
+                 ON DUPLICATE KEY UPDATE quantity = quantity + 1`,
+                [userId, card.id, actualItemType]
+            );
+        } catch (error) {
+            console.error(`Error adding card ${card.id} to inventory for user ${userId} during purchase:`, error);
+            // Decide if this is a critical failure. For now, continue awarding other cards.
+        }
+    }
+
+    const resultsEmbed = new EmbedBuilder()
+        .setColor('#FDE047')
+        .setTitle(`✨ ${packInfo.name} Opened! ✨`)
+        .setDescription(`You spent ${packInfo.cost} ${packInfo.currency === 'soft_currency' ? 'Gold 🪙' : 'Gems 💎'}.`)
+        .addFields({ name: 'Cards Received:', value: cardNames.join('\n') || 'No cards received (this is an error).', inline: false })
+        .setFooter({ text: 'Your new cards have been added to your collection!' })
+        .setTimestamp();
+
+    return { resultsEmbed, packInfo, success: true };
+}
 
 
 const client = new Client({ intents: [GatewayIntentBits.Guilds] });
@@ -468,11 +662,13 @@ client.on(Events.InteractionCreate, async interaction => {
 
     // --- Button Interaction Handler ---
     if (interaction.isButton()) {
-        const userId = interaction.user.id;
-        let userDraftState = activeTutorialDrafts.get(userId);
+        const userId = interaction.user.id; // Keep userId accessible for other handlers
+        let userDraftState = activeTutorialDrafts.get(userId); // Keep userDraftState for tutorial
+
+        // Handle tutorial buttons first, as they have a specific state machine
         if (interaction.customId.startsWith('tutorial_') || userDraftState) {
             try {
-                await interaction.deferUpdate();
+                await interaction.deferUpdate(); // Common defer update
                 switch (interaction.customId) {
                     case 'tutorial_start_new_flow':
                         if (!userDraftState) {
@@ -536,9 +732,30 @@ client.on(Events.InteractionCreate, async interaction => {
                 await interaction.editReply({ content: 'An error occurred during the tutorial. Please try `/start` again.', components: [] });
                 activeTutorialDrafts.delete(userId);
             }
+            return; // Important: Tutorial interactions should not fall through
+        }
+
+        // Marketplace category and pagination handlers
+        if (interaction.customId.startsWith('market_category_')) {
+            await interaction.deferUpdate();
+            const parts = interaction.customId.split('_'); // market_category_NAME_PAGE
+            const category = parts[2];
+            const page = parseInt(parts[3], 10); // Always specify radix for parseInt
+            await interaction.editReply(await getMarketplaceMenu(interaction, category, page));
+            return;
+        } else if (interaction.customId.startsWith('market_page_')) {
+            await interaction.deferUpdate();
+            const parts = interaction.customId.split('_'); // market_page_ACTION_NAME_PAGE
+            // const action = parts[2]; // 'prev' or 'next'
+            const category = parts[3];
+            const page = parseInt(parts[4], 10); // Always specify radix for parseInt
+            await interaction.editReply(await getMarketplaceMenu(interaction, category, page));
             return;
         }
+
+        // Existing general button handlers
         try {
+            // Note: userId is already defined above if needed by other handlers
             switch (interaction.customId) {
                 case 'town_barracks': {
                     await interaction.deferUpdate();
@@ -740,24 +957,8 @@ client.on(Events.InteractionCreate, async interaction => {
                     break;
                 case 'town_market': {
                     await interaction.deferUpdate();
-
-                    const marketEmbed = simple(
-                        '💰 The Grand Bazaar',
-                        [{ name: 'Welcome to the Marketplace!', value: 'Here you can buy various goods for your journey.' }]
-                    );
-
-                    const shopButtons = new ActionRowBuilder()
-                        .addComponents(
-                            new ButtonBuilder().setCustomId('market_tavern').setLabel('The Tavern').setStyle(ButtonStyle.Primary).setEmoji('🍻'),
-                            new ButtonBuilder().setCustomId('market_armory').setLabel('The Armory').setStyle(ButtonStyle.Secondary).setEmoji('🛡️'),
-                            new ButtonBuilder().setCustomId('market_altar').setLabel('The Altar').setStyle(ButtonStyle.Danger).setEmoji('💀')
-                        );
-                    const navigationRow = new ActionRowBuilder()
-                        .addComponents(
-                            new ButtonBuilder().setCustomId('back_to_town').setLabel('Back to Town').setStyle(ButtonStyle.Secondary).setEmoji('⬅️')
-                        );
-
-                    await interaction.editReply({ embeds: [marketEmbed], components: [shopButtons, navigationRow] });
+                    // Directly show the Tavern category, page 0 as the default marketplace view
+                    await interaction.editReply(await getMarketplaceMenu(interaction, 'tavern', 0));
                     break;
                 }
 
@@ -776,147 +977,38 @@ client.on(Events.InteractionCreate, async interaction => {
                 }
                 case 'market_tavern': {
                     await interaction.deferUpdate();
-                    const tavernEmbed = simple('🍻 The Tavern', [{ name: 'Champions & Abilities', value: 'Recruit new heroes and learn new skills.' }]);
-                    const tavernButtons = new ActionRowBuilder();
-                    Object.entries(BOOSTER_PACKS).filter(([, pack]) => pack.category === 'tavern').forEach(([packId, packInfo]) => {
-                        tavernButtons.addComponents(
-                            new ButtonBuilder()
-                                .setCustomId(`buy_pack_${packId}`)
-                                .setLabel(`${packInfo.name} (${packInfo.cost} Gold 🪙)`)
-                                .setStyle(ButtonStyle.Primary)
-                                .setEmoji('🛒')
-                        );
-                    });
-                    const backButton = new ActionRowBuilder().addComponents(new ButtonBuilder().setCustomId('back_to_market').setLabel('Back to Marketplace').setStyle(ButtonStyle.Secondary).setEmoji('⬅️'));
-                    await interaction.editReply({ embeds: [tavernEmbed], components: [tavernButtons, backButton] });
+                    await interaction.editReply(await getMarketplaceMenu(interaction, 'tavern', 0));
                     break;
                 }
                 case 'market_armory': {
                     await interaction.deferUpdate();
-                    const armoryEmbed = simple('🛡️ The Armory', [{ name: 'Weapons & Armor', value: 'Outfit your champions with the finest gear.' }]);
-                    const armoryButtons = new ActionRowBuilder();
-                    Object.entries(BOOSTER_PACKS).filter(([, pack]) => pack.category === 'armory').forEach(([packId, packInfo]) => {
-                        armoryButtons.addComponents(
-                            new ButtonBuilder()
-                                .setCustomId(`buy_pack_${packId}`)
-                                .setLabel(`${packInfo.name} (${packInfo.cost} Gold 🪙)`)
-                                .setStyle(ButtonStyle.Primary)
-                                .setEmoji('🛒')
-                        );
-                    });
-                    const backButton = new ActionRowBuilder().addComponents(new ButtonBuilder().setCustomId('back_to_market').setLabel('Back to Marketplace').setStyle(ButtonStyle.Secondary).setEmoji('⬅️'));
-                    await interaction.editReply({ embeds: [armoryEmbed], components: [armoryButtons, backButton] });
+                    await interaction.editReply(await getMarketplaceMenu(interaction, 'armory', 0));
                     break;
                 }
                 case 'market_altar': {
                     await interaction.deferUpdate();
-                    const altarEmbed = simple('💀 The Altar', [{ name: 'Monsters & Powers', value: 'Unleash forbidden powers and monstrous allies.' }]);
-                    const altarButtons = new ActionRowBuilder();
-                    Object.entries(BOOSTER_PACKS).filter(([, pack]) => pack.category === 'altar').forEach(([packId, packInfo]) => {
-                        altarButtons.addComponents(
-                            new ButtonBuilder()
-                                .setCustomId(`buy_pack_${packId}`)
-                                .setLabel(`${packInfo.name} (${packInfo.cost} Gold 🪙)`)
-                                .setStyle(ButtonStyle.Primary)
-                                .setEmoji('🛒')
-                        );
-                    });
-                    const backButton = new ActionRowBuilder().addComponents(new ButtonBuilder().setCustomId('back_to_market').setLabel('Back to Marketplace').setStyle(ButtonStyle.Secondary).setEmoji('⬅️'));
-                    await interaction.editReply({ embeds: [altarEmbed], components: [altarButtons, backButton] });
+                    await interaction.editReply(await getMarketplaceMenu(interaction, 'altar', 0));
                     break;
                 }
                 case (interaction.customId.startsWith('buy_pack_') ? interaction.customId : ''): {
+                    // This button handler might become less used if all purchases go via select menu,
+                    // but refactoring it ensures consistency.
                     await interaction.deferUpdate();
                     const packId = interaction.customId.replace('buy_pack_', '');
-                    const packInfo = BOOSTER_PACKS[packId];
+                    // userId is defined at the top of isButton()
+                    const purchaseOutcome = await executePurchaseAndGetResults(interaction, packId, userId);
 
-                    if (!packInfo) {
-                        await interaction.editReply({ content: 'Invalid pack selected.', ephemeral: true });
+                    if (!purchaseOutcome.success) {
+                        // executePurchaseAndGetResults already handled ephemeral error reply
+                        // If deferUpdate was used, and no follow-up is made, interaction might hang.
+                        // However, common errors (no gold, invalid pack) in executePurchaseAndGetResults use interaction.reply.
+                        // If executePurchaseAndGetResults used deferUpdate internally for some reason, this would need adjustment.
+                        // For now, assume executePurchaseAndGetResults sends its own specific error replies.
                         return;
                     }
 
-                    const [userRows] = await db.execute(`SELECT ${packInfo.currency} FROM users WHERE discord_id = ?`, [userId]);
-                    const user = userRows[0];
-
-                    if (!user || user[packInfo.currency] < packInfo.cost) {
-                        await interaction.editReply({
-                            content: `You don't have enough ${packInfo.currency === 'soft_currency' ? 'Gold 🪙' : 'Gems 💎'} to buy the ${packInfo.name}! You need ${packInfo.cost}.`,
-                            ephemeral: true
-                        });
-                        return;
-                    }
-
-                    await db.execute(
-                        `UPDATE users SET ${packInfo.currency} = ${packInfo.currency} - ? WHERE discord_id = ?`,
-                        [packInfo.cost, userId]
-                    );
-
-                    let cardPool = [];
-                    let awardedCardsCount = 0;
-                    let actualItemType = '';
-
-                    switch (packInfo.type) {
-                        case 'hero_pack':
-                            cardPool = allPossibleHeroes.filter(h => !h.isMonster);
-                            awardedCardsCount = 1;
-                            actualItemType = 'hero';
-                            break;
-                        case 'ability_pack':
-                            cardPool = allPossibleAbilities;
-                            awardedCardsCount = 3;
-                            actualItemType = 'ability';
-                            break;
-                        case 'weapon_pack':
-                            cardPool = allPossibleWeapons;
-                            awardedCardsCount = 2;
-                            actualItemType = 'weapon';
-                            break;
-                        case 'armor_pack':
-                            cardPool = allPossibleArmors;
-                            awardedCardsCount = 2;
-                            actualItemType = 'armor';
-                            break;
-                        case 'monster_pack':
-                            cardPool = allPossibleHeroes.filter(h => h.is_monster);
-                            awardedCardsCount = 1;
-                            actualItemType = 'monster';
-                            break;
-                        case 'monster_ability_pack':
-                            cardPool = allPossibleAbilities.filter(ab => ab.class && ab.class.includes('Monster'));
-                            awardedCardsCount = 2;
-                            actualItemType = 'monster_ability';
-                            break;
-                        default:
-                            await interaction.editReply({ content: 'Internal error: Unknown pack content type.', ephemeral: true });
-                            return;
-                    }
-                    const awardedCards = getRandomCardsForPack(cardPool, awardedCardsCount, packInfo.rarity);
-
-                    const cardNames = [];
-                    for (const card of awardedCards) {
-                        cardNames.push(`**${card.name}** (${card.rarity})`);
-                        try {
-                            await db.execute(
-                                `INSERT INTO user_inventory (user_id, item_id, quantity, item_type)
-                                 VALUES (?, ?, 1, ?)
-                                 ON DUPLICATE KEY UPDATE quantity = quantity + 1`,
-                                [userId, card.id, actualItemType]
-                            );
-                        } catch (error) {
-                            console.error(`Error adding card ${card.id} to inventory for user ${userId} during purchase:`, error);
-                        }
-                    }
-
-                    const resultsEmbed = new EmbedBuilder()
-                        .setColor('#FDE047')
-                        .setTitle(`✨ ${packInfo.name} Opened! ✨`)
-                        .setDescription(`You spent ${packInfo.cost} ${packInfo.currency === 'soft_currency' ? 'Gold 🪙' : 'Gems 💎'}.`)
-                        .addFields({ name: 'Cards Received:', value: cardNames.join('\n') || 'No cards received.', inline: false })
-                        .setFooter({ text: 'Your new cards have been added to your collection!' })
-                        .setTimestamp();
-
-                    // --- ADDED 'VIEW INVENTORY' BUTTON ---
-                    const viewInventoryButton = new ActionRowBuilder()
+                    const marketplaceMenuPayload = await getMarketplaceMenu(interaction, purchaseOutcome.packInfo.category, 0);
+                    const viewInventoryRow = new ActionRowBuilder()
                         .addComponents(
                             new ButtonBuilder()
                                 .setCustomId('view_inventory_from_pack')
@@ -924,24 +1016,8 @@ client.on(Events.InteractionCreate, async interaction => {
                                 .setStyle(ButtonStyle.Secondary)
                                 .setEmoji('🎒')
                         );
-                    // Build buttons to buy more packs in a single row
-                    const packPurchaseButtons = new ActionRowBuilder();
-                    Object.entries(BOOSTER_PACKS).forEach(([packIdBtn, packInfoBtn]) =>
-                        packPurchaseButtons.addComponents(
-                            new ButtonBuilder()
-                                .setCustomId(`buy_pack_${packIdBtn}`)
-                                .setLabel(`${packInfoBtn.name} (${packInfoBtn.cost} ${packInfoBtn.currency === 'soft_currency' ? 'Gold 🪙' : 'Gems 💎'})`)
-                                .setStyle(ButtonStyle.Primary)
-                                .setEmoji('🛒')
-                        )
-                    );
-
-                    const backButton = new ActionRowBuilder()
-                        .addComponents(
-                            new ButtonBuilder().setCustomId('back_to_market').setLabel('Back to Marketplace').setStyle(ButtonStyle.Secondary).setEmoji('⬅️')
-                        );
-
-                    await interaction.editReply({ embeds: [resultsEmbed], components: [viewInventoryButton, packPurchaseButtons, backButton] });
+                    const finalComponents = [viewInventoryRow, ...marketplaceMenuPayload.components];
+                    await interaction.editReply({ embeds: [purchaseOutcome.resultsEmbed], components: finalComponents });
                     break;
                 }
                 case 'view_inventory_from_pack': {
@@ -1043,6 +1119,33 @@ client.on(Events.InteractionCreate, async interaction => {
             }
             return;
         }
+
+        if (interaction.customId === 'market_pack_select') {
+            await interaction.deferUpdate();
+            const selectedOptionValue = interaction.values[0]; // This is 'buy_pack_{packId}'
+            const packIdToBuy = selectedOptionValue.replace('buy_pack_', '');
+            // userId is defined at the top of isStringSelectMenu()
+            const purchaseOutcome = await executePurchaseAndGetResults(interaction, packIdToBuy, userId);
+
+            if (!purchaseOutcome.success) {
+                // executePurchaseAndGetResults handled the error reply
+                return;
+            }
+
+            const marketplaceMenuPayload = await getMarketplaceMenu(interaction, purchaseOutcome.packInfo.category, 0);
+            const viewInventoryRow = new ActionRowBuilder()
+                .addComponents(
+                    new ButtonBuilder()
+                        .setCustomId('view_inventory_from_pack')
+                        .setLabel('View Inventory')
+                        .setStyle(ButtonStyle.Secondary)
+                        .setEmoji('🎒')
+                );
+            const finalComponents = [viewInventoryRow, ...marketplaceMenuPayload.components];
+            await interaction.editReply({ embeds: [purchaseOutcome.resultsEmbed], components: finalComponents });
+            return; // Explicitly return after handling
+        }
+
         if (interaction.customId === 'select_champion_to_manage') {
             await interaction.deferUpdate();
             const selectedChampionId = parseInt(interaction.values[0]);
