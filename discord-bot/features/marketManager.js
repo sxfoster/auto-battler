@@ -1,6 +1,8 @@
 const { ActionRowBuilder, ButtonBuilder, ButtonStyle, StringSelectMenuBuilder, EmbedBuilder } = require('discord.js');
+const { setTimeout: sleep } = require('node:timers/promises');
 const db = require('../util/database');
 const { simple } = require('../src/utils/embedBuilder');
+const { generateCardImage } = require('../src/utils/cardRenderer');
 const { allPossibleHeroes, allPossibleWeapons, allPossibleArmors, allPossibleAbilities } = require('../../backend/game/data');
 const { getRandomCardsForPack } = require('../util/gameData');
 
@@ -138,7 +140,17 @@ async function handleBoosterPurchase(interaction, userId, packId, page = 0) {
         new ButtonBuilder().setCustomId('view_inventory_from_pack').setLabel('View Inventory').setStyle(ButtonStyle.Secondary).setEmoji('🎒')
     );
     await interaction.editReply({ embeds: [resultsEmbed], components: [viewInventoryButton] });
-    await interaction.followUp(getMarketplaceMenu(packInfo.category, page));
+
+    for (const card of awardedCards) {
+        const cardBuffer = await generateCardImage(card);
+        const embed = new EmbedBuilder()
+            .setColor('#FDE047')
+            .setTitle('✨ You pulled a new card! ✨')
+            .addFields({ name: 'Name', value: card.name, inline: true }, { name: 'Rarity', value: card.rarity, inline: true })
+            .setTimestamp();
+        await interaction.user.send({ embeds: [embed], files: [{ attachment: cardBuffer, name: `${card.name}.png` }] });
+        await sleep(500);
+    }
 }
 
 module.exports = { BOOSTER_PACKS, getMarketplaceMenu, handleBoosterPurchase };
