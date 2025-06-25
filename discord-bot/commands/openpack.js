@@ -17,6 +17,13 @@ const BOOSTER_PACKS = {
     armor_pack: { name: 'Armor Pack', rarity: 'basic' }
 };
 
+const PACK_COLUMN_BASE = {
+    hero_pack: 'hero_packs',
+    ability_pack: 'ability_packs',
+    weapon_pack: 'weapon_packs',
+    armor_pack: 'armor_packs'
+};
+
 // Helper to select cards by rarity tier
 function getRandomCardsForPack(pool, count = 3, packRarity = 'basic') {
     let allowedRarities;
@@ -57,7 +64,7 @@ function getRandomCardsForPack(pool, count = 3, packRarity = 'basic') {
     return uniqueCards;
 }
 
-module.exports = {
+const command = {
     data: new SlashCommandBuilder()
         .setName('openpack')
         .setDescription('Open a booster pack of a specific type.')
@@ -87,66 +94,33 @@ module.exports = {
         const packTypeRaw = interaction.options.getString('type');
         const packRarity = interaction.options.getString('rarity') || BOOSTER_PACKS[packTypeRaw].rarity;
 
-        let cardPool = [];
-        let awardedCardsCount = 0;
-        let actualItemType = '';
-
-        switch (packTypeRaw) {
-            case 'hero_pack':
-                cardPool = allPossibleHeroes.filter(h => !h.is_monster);
-                awardedCardsCount = 1;
-                actualItemType = 'hero';
-                break;
-            case 'ability_pack':
-                cardPool = allPossibleAbilities;
-                awardedCardsCount = 3;
-                actualItemType = 'ability';
-                break;
-            case 'weapon_pack':
-                cardPool = allPossibleWeapons;
-                awardedCardsCount = 2;
-                actualItemType = 'weapon';
-                break;
-            case 'armor_pack':
-                cardPool = allPossibleArmors;
-                awardedCardsCount = 2;
-                actualItemType = 'armor';
-                break;
-            default:
-                await interaction.editReply({ content: 'Invalid pack type selected.', ephemeral: true });
-                return;
-        }
-
-        const awardedCards = getRandomCardsForPack(cardPool, awardedCardsCount, packRarity);
-
-        if (awardedCards.length === 0) {
-            await interaction.editReply({ content: `Could not generate cards for ${packTypeRaw}. The card pool might be empty for selected rarity.`, ephemeral: true });
+        const columnBase = PACK_COLUMN_BASE[packTypeRaw];
+        if (!columnBase) {
+            await interaction.editReply({ content: 'Invalid pack type selected.', ephemeral: true });
             return;
         }
 
-        const cardNames = [];
-        for (const card of awardedCards) {
-            cardNames.push(`**${card.name}** (${card.rarity})`);
-            try {
-                await db.execute(
-                    `INSERT INTO user_inventory (user_id, item_id, quantity, item_type)
-                     VALUES (?, ?, 1, ?)
-                     ON DUPLICATE KEY UPDATE quantity = quantity + 1`,
-                    [userId, card.id, actualItemType]
-                );
-            } catch (error) {
-                console.error(`Error adding card ${card.id} to inventory for user ${userId}:`, error);
-            }
+        const columnName = `${packRarity}_${columnBase}`;
+        try {
+            await db.execute(
+                `UPDATE users SET ${columnName} = COALESCE(${columnName}, 0) + 1 WHERE discord_id = ?`,
+                [userId]
+            );
+        } catch (err) {
+            console.error('Error updating pack count:', err);
+            await interaction.editReply({ content: 'Failed to add pack to your account.', ephemeral: true });
+            return;
         }
 
         const packDisplayName = BOOSTER_PACKS[packTypeRaw].name;
 
         const resultsEmbed = simple(
-            `📦 ${packDisplayName} Opened!`,
-            [{ name: 'Cards Received', value: cardNames.join('\n') }]
+            `📦 ${packDisplayName} Received!`,
+            [{ name: 'Result', value: 'You received one pack.' }]
         );
 
         await interaction.editReply({ embeds: [resultsEmbed] });
-        await interaction.followUp({ embeds: [confirm('Your new cards have been added to your collection!')], ephemeral: true });
     },
 };
+
+module.exports = { ...command, getRandomCardsForPack };

@@ -6,7 +6,9 @@ const db = require('./util/database');
 const { simple } = require('./src/utils/embedBuilder');
 const confirmEmbed = require('./src/utils/confirm');
 const { generateCardImage } = require('./src/utils/cardRenderer');
+const { generateAsciiCard } = require('./src/utils/asciiCardRenderer');
 const { setTimeout: sleep } = require('node:timers/promises');
+const { getRandomCardsForPack } = require('./commands/openpack');
 const {
   allPossibleHeroes,
   allPossibleWeapons,
@@ -104,6 +106,8 @@ const activeTutorialDrafts = new Map();
 // In-memory map to track active deck edits
 // Key: userId, Value: { championId: number, deck: number[] }
 const activeDeckEdits = new Map();
+// Temporary storage for opened packs awaiting card selection
+const userTemporaryPacks = new Map();
 
 const commandsPath = path.join(__dirname, 'commands');
 const commandFiles = fs.readdirSync(commandsPath).filter(file => file.endsWith('.js'));
@@ -745,7 +749,8 @@ client.on(Events.InteractionCreate, async interaction => {
                     const navigationRow = new ActionRowBuilder()
                         .addComponents(
                             new ButtonBuilder().setCustomId('back_to_town').setLabel('Back to Town').setStyle(ButtonStyle.Secondary).setEmoji('⬅️'),
-                            new ButtonBuilder().setCustomId('manage_champions_selection').setLabel('Manage Champions').setStyle(ButtonStyle.Primary).setEmoji('⚙️')
+                            new ButtonBuilder().setCustomId('manage_champions_selection').setLabel('Manage Champions').setStyle(ButtonStyle.Primary).setEmoji('⚙️'),
+                            new ButtonBuilder().setCustomId('show_packs_to_open').setLabel('Open Booster Packs 📦').setStyle(ButtonStyle.Success)
                         );
 
                     await interaction.editReply({ embeds: [embed], components: [navigationRow] });
@@ -802,6 +807,153 @@ client.on(Events.InteractionCreate, async interaction => {
                     });
                     break;
                 }
+                case 'show_packs_to_open': {
+                    await interaction.deferUpdate();
+                    const userId = interaction.user.id;
+                    const [rows] = await db.execute(
+                        'SELECT basic_hero_packs, standard_ability_packs, premium_weapon_packs, basic_armor_packs FROM users WHERE discord_id = ?',
+                        [userId]
+                    );
+                    const packs = rows[0] || {};
+
+                    const embed = new EmbedBuilder()
+                        .setColor('#f97316')
+                        .setTitle('Your Booster Packs')
+                        .setDescription(`Hero Packs: ${packs.basic_hero_packs || 0}\nAbility Packs: ${packs.standard_ability_packs || 0}\nWeapon Packs: ${packs.premium_weapon_packs || 0}\nArmor Packs: ${packs.basic_armor_packs || 0}`);
+
+                    const buttons = [];
+                    if (packs.basic_hero_packs > 0) {
+                        buttons.push(new ButtonBuilder().setCustomId('open_specific_pack_hero').setLabel('Open Hero Pack').setStyle(ButtonStyle.Primary));
+                    }
+                    if (packs.standard_ability_packs > 0) {
+                        buttons.push(new ButtonBuilder().setCustomId('open_specific_pack_ability').setLabel('Open Ability Pack').setStyle(ButtonStyle.Primary));
+                    }
+                    if (packs.premium_weapon_packs > 0) {
+                        buttons.push(new ButtonBuilder().setCustomId('open_specific_pack_weapon').setLabel('Open Weapon Pack').setStyle(ButtonStyle.Primary));
+                    }
+                    if (packs.basic_armor_packs > 0) {
+                        buttons.push(new ButtonBuilder().setCustomId('open_specific_pack_armor').setLabel('Open Armor Pack').setStyle(ButtonStyle.Primary));
+                    }
+
+                    const packRow = new ActionRowBuilder().addComponents(buttons);
+                    const navRow = new ActionRowBuilder().addComponents(
+                        new ButtonBuilder().setCustomId('back_to_barracks').setLabel('Back to Barracks').setStyle(ButtonStyle.Secondary)
+                    );
+
+                    await interaction.editReply({ embeds: [embed], components: [packRow, navRow] });
+                    break;
+                }
+                case 'open_specific_pack_hero':
+                case 'open_specific_pack_ability':
+                case 'open_specific_pack_weapon':
+                case 'open_specific_pack_armor': {
+                    await interaction.deferUpdate();
+                    const userId = interaction.user.id;
+                    const packType = interaction.customId.replace('open_specific_pack_', '');
+
+                    const columnMap = {
+                        hero: 'basic_hero_packs',
+                        ability: 'standard_ability_packs',
+                        weapon: 'premium_weapon_packs',
+                        armor: 'basic_armor_packs'
+                    };
+
+                    const columnName = columnMap[packType];
+                    if (!columnName) {
+                        await interaction.editReply({ content: 'Invalid pack type.', components: [] });
+                        return;
+                    }
+
+                    await db.execute(`UPDATE users SET ${columnName} = ${columnName} - 1 WHERE discord_id = ? AND ${columnName} > 0`, [userId]);
+
+                    let cardPool = [];
+                    switch (packType) {
+                        case 'hero':
+                            cardPool = allPossibleHeroes.filter(h => !h.is_monster);
+                            break;
+                        case 'ability':
+                            cardPool = allPossibleAbilities;
+                            break;
+                        case 'weapon':
+                            cardPool = allPossibleWeapons;
+                            break;
+                        case 'armor':
+                            cardPool = allPossibleArmors;
+                            break;
+                    }
+
+                    const cards = getRandomCardsForPack(cardPool, 3, columnName.split('_')[0]);
+                    userTemporaryPacks.set(userId, cards);
+
+                    await interaction.editReply({ content: '```
+📦 Pack is sealed...
+```', components: [] });
+                    await sleep(800);
+                    await interaction.editReply({ content: '```
+💥 Ripping open the pack!
+```' });
+                    await sleep(800);
+                    await interaction.editReply({ content: '```
+✨ Cards are revealing...
+```' });
+                    await sleep(800);
+
+                    const asciiCards = cards.map(c => generateAsciiCard(c.name, c.rarity)).join('\n');
+                    const chooseRow = new ActionRowBuilder()
+                        .addComponents(
+                            new ButtonBuilder().setCustomId('select_card_0_from_pack').setLabel(`Choose ${cards[0].name}`).setStyle(ButtonStyle.Primary),
+                            new ButtonBuilder().setCustomId('select_card_1_from_pack').setLabel(`Choose ${cards[1].name}`).setStyle(ButtonStyle.Primary),
+                            new ButtonBuilder().setCustomId('select_card_2_from_pack').setLabel(`Choose ${cards[2].name}`).setStyle(ButtonStyle.Primary)
+                        );
+
+                    await interaction.editReply({ content: asciiCards, components: [chooseRow] });
+                    break;
+                }
+                case 'select_card_0_from_pack':
+                case 'select_card_1_from_pack':
+                case 'select_card_2_from_pack': {
+                    await interaction.deferUpdate();
+                    const userId = interaction.user.id;
+                    const cards = userTemporaryPacks.get(userId);
+                    if (!cards) {
+                        await interaction.editReply({ content: 'No pack data found.', components: [] });
+                        return;
+                    }
+                    const index = parseInt(interaction.customId.replace('select_card_', '').replace('_from_pack', ''));
+                    const chosenCard = cards[index];
+                    const unchosen = cards.filter((_, i) => i !== index);
+
+                    try {
+                        await db.execute(
+                            `INSERT INTO user_inventory (user_id, item_id, quantity, item_type) VALUES (?, ?, 1, ?) ON DUPLICATE KEY UPDATE quantity = quantity + 1`,
+                            [userId, chosenCard.id, chosenCard.type]
+                        );
+                    } catch (err) {
+                        console.error('Error saving chosen card:', err);
+                    }
+
+                    const rarityShards = { Common: 1, Uncommon: 3, Rare: 5, Epic: 10 };
+                    const totalShardsGained = unchosen.reduce((sum, c) => sum + (rarityShards[c.rarity] || 0), 0);
+                    await db.execute('UPDATE users SET summoning_shards = summoning_shards + ? WHERE discord_id = ?', [totalShardsGained, userId]);
+
+                    userTemporaryPacks.delete(userId);
+
+                    const user = await client.users.fetch(userId);
+                    const dmEmbed = new EmbedBuilder()
+                        .setColor('#84cc16')
+                        .setTitle('Your New Card!')
+                        .setDescription(`You chose **${chosenCard.name}**! You gained **${totalShardsGained}** shards from the other cards.`)
+                        .setFooter({ text: 'Auto-Battler Bot' });
+                    const dmContent = generateAsciiCard(chosenCard.name, chosenCard.rarity);
+                    try {
+                        await user.send({ content: dmContent, embeds: [dmEmbed] });
+                    } catch (e) {
+                        console.error('Failed to send DM:', e);
+                    }
+
+                    await interaction.editReply({ content: 'Selection confirmed! Check your DMs for your new card.', components: [] });
+                    break;
+                }
                 case 'back_to_barracks_from_champ':
                 case 'back_to_barracks': {
                     await interaction.deferUpdate();
@@ -849,7 +1001,8 @@ client.on(Events.InteractionCreate, async interaction => {
                     const navigationRow = new ActionRowBuilder()
                         .addComponents(
                             new ButtonBuilder().setCustomId('back_to_town').setLabel('Back to Town').setStyle(ButtonStyle.Secondary).setEmoji('⬅️'),
-                            new ButtonBuilder().setCustomId('manage_champions_selection').setLabel('Manage Champions').setStyle(ButtonStyle.Primary).setEmoji('⚙️')
+                            new ButtonBuilder().setCustomId('manage_champions_selection').setLabel('Manage Champions').setStyle(ButtonStyle.Primary).setEmoji('⚙️'),
+                            new ButtonBuilder().setCustomId('show_packs_to_open').setLabel('Open Booster Packs 📦').setStyle(ButtonStyle.Success)
                         );
                     await interaction.editReply({ embeds: [embed], components: [navigationRow] });
                     break;
