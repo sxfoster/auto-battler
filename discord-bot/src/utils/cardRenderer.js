@@ -27,8 +27,8 @@ async function generateCardImage(card) {
     `${(card.class || 'generic').toLowerCase().replace(/\s+/g, '-')}.png`
   );
 
-  const base = sharp(framePath).resize(300, 400);
-  const composites = [];
+  // Start with the rarity frame as the base image
+  let base = sharp(framePath).resize(300, 400);
 
   let artToUse = null;
   try {
@@ -44,7 +44,8 @@ async function generateCardImage(card) {
   }
 
   if (artToUse) {
-    composites.push({ input: artToUse, top: 50, left: 25 });
+    // Place character art above the frame but below the stats text
+    base = base.composite([{ input: artToUse, top: 50, left: 25 }]);
   }
 
   const textSvg = `<svg width="300" height="400" xmlns="http://www.w3.org/2000/svg">
@@ -53,12 +54,13 @@ async function generateCardImage(card) {
     .stats { fill: white; font-size: 16px; font-family: Arial, Helvetica, sans-serif; text-anchor: middle; }
   </style>
   <text x="150" y="340" class="name">${card.name}</text>
-  <text x="150" y="365" class="stats">HP: ${card.hp}  ATK: ${card.attack}  SPD: ${card.speed}</text>
+  <text x="150" y="381" class="stats">HP: ${card.hp}  ATK: ${card.attack}  SPD: ${card.speed}</text>
 </svg>`;
 
-  composites.push({ input: Buffer.from(textSvg) });
+  // Removed rarity label overlay
+  // base = base.composite([{ input: Buffer.from(raritySvg) }]);
 
-  return base.composite(composites).png().toBuffer();
+  return base.composite([{ input: Buffer.from(textSvg) }]).png().toBuffer();
 }
 
 /**
