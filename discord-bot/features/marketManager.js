@@ -78,6 +78,16 @@ async function handleBoosterPurchase(interaction, userId, packId, page = 0) {
         [packInfo.cost, userId]
     );
 
+    if (packInfo.currency === 'soft_currency') {
+        try {
+            const [rows] = await db.execute('SELECT soft_currency FROM users WHERE discord_id = ?', [userId]);
+            const gold = rows[0]?.soft_currency;
+            await interaction.user.send(`\uD83D\uDCB0 Debug: Your new gold balance is ${gold}`);
+        } catch (err) {
+            console.error('Failed to DM updated gold balance:', err);
+        }
+    }
+
     let cardPool = [];
     let awardedCardsCount = 0;
     let actualItemType = '';
@@ -118,8 +128,19 @@ async function handleBoosterPurchase(interaction, userId, packId, page = 0) {
     }
     const awardedCards = getRandomCardsForPack(cardPool, awardedCardsCount, packInfo.rarity);
     const cardNames = [];
+    const announcementsChannel = interaction.client.channels.cache.get(process.env.ANNOUNCEMENT_CHANNEL_ID);
     for (const card of awardedCards) {
         cardNames.push(`**${card.name}** (${card.rarity})`);
+        let alreadyOwned = false;
+        try {
+            const [ownedRows] = await db.execute(
+                'SELECT 1 FROM user_inventory WHERE user_id = ? AND item_id = ?',
+                [userId, card.id]
+            );
+            alreadyOwned = ownedRows.length > 0;
+        } catch (error) {
+            console.error('Error checking existing card ownership:', error);
+        }
         try {
             await db.execute(
                 `INSERT INTO user_inventory (user_id, item_id, quantity, item_type) VALUES (?, ?, 1, ?) ON DUPLICATE KEY UPDATE quantity = quantity + 1`,
@@ -127,6 +148,13 @@ async function handleBoosterPurchase(interaction, userId, packId, page = 0) {
             );
         } catch (error) {
             console.error(`Error adding card ${card.id} to inventory for user ${userId} during purchase:`, error);
+        }
+        if (!alreadyOwned && announcementsChannel) {
+            try {
+                await announcementsChannel.send(`\uD83D\uDCE3 **${interaction.user.username}** has obtained a new card: **${card.name}** (${card.rarity})!`);
+            } catch (err) {
+                console.error('Failed to announce new card:', err);
+            }
         }
     }
     const resultsEmbed = new EmbedBuilder()
