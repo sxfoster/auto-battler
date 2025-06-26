@@ -1,31 +1,19 @@
 const { REST, Routes } = require('discord.js');
-const fs = require('node:fs');
 const path = require('node:path');
 require('dotenv').config();
 
 const commands = [];
 const commandDirs = [
-  path.join(__dirname, 'commands'),
-  path.join(__dirname, 'src/commands')
+  path.join(__dirname, 'commands/ping.js'),
+  path.join(__dirname, 'src/commands/game.js')
 ];
 
-// Automatically register all command files in the command directories,
-// including newly added ones like /leaderboard, /market and /begin
-const commandFiles = commandDirs
-  .filter(dir => fs.existsSync(dir))
-  .flatMap(dir =>
-    fs.readdirSync(dir)
-      .filter(file => file.endsWith('.js'))
-      .map(file => path.join(dir, file))
-  );
+console.log('Registering slash commands:', commandDirs.map(f => path.basename(f)).join(', '));
 
-console.log('Registering slash commands:', commandFiles.map(f => path.basename(f)).join(', '));
-
-for (const filePath of commandFiles) {
-    const command = require(filePath);
-    // Log each loaded command so new additions like /summon are visible
-    console.log(`Loading command: ${command.data.name}`);
-    commands.push(command.data.toJSON());
+for (const filePath of commandDirs) {
+  const command = require(filePath);
+  console.log(`Loading command: ${command.data.name}`);
+  commands.push(command.data.toJSON());
 }
 
 const rest = new REST({ version: '10' }).setToken(process.env.DISCORD_TOKEN);
@@ -36,7 +24,7 @@ const rest = new REST({ version: '10' }).setToken(process.env.DISCORD_TOKEN);
 
     const data = await rest.put(
       Routes.applicationGuildCommands(process.env.APP_ID, process.env.GUILD_ID),
-      { body: commands },
+      { body: commands }
     );
 
     console.log(`Successfully reloaded ${data.length} application (/) commands.`);
