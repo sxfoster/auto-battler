@@ -94,7 +94,52 @@ class GameEngine {
                if (actionToPerform === 'ability') {
                    this.log(`${attacker.heroData.name} uses ${abilityToUse.name}!`);
                    attacker.currentEnergy -= abilityToUse.energyCost;
-                   // TODO: apply ability effect
+
+                   // Parse damage from effect text or fall back to attack value
+                   const dmgMatch = abilityToUse.effect && abilityToUse.effect.match(/(\d+)/);
+                   const base = dmgMatch ? parseInt(dmgMatch[1], 10) : attacker.attack;
+
+                   // Handle summoning of minions
+                   if (abilityToUse.summons) {
+                       const keys = Array.isArray(abilityToUse.summons) ? abilityToUse.summons : [abilityToUse.summons];
+                       keys.forEach(key => {
+                           const template = allPossibleMinions[key];
+                           if (!template) return;
+                           const minion = {
+                               id: `${attacker.id}-minion-${Math.random().toString(36).slice(2,8)}`,
+                               heroData: { ...template },
+                               weaponData: null,
+                               armorData: null,
+                               abilityData: null,
+                               team: attacker.team,
+                               position: this.combatants.filter(c => c.team === attacker.team).length,
+                               currentHp: template.hp,
+                               maxHp: template.hp,
+                               attack: template.attack,
+                               speed: template.speed,
+                               currentEnergy: 0,
+                               statusEffects: [],
+                               isMinion: true
+                           };
+                           this.combatants.push(minion);
+                           this.log(`🔹 ${attacker.heroData.name} summons a ${template.name}!`);
+                       });
+                       // Recompute queue so new units can act
+                       this.turnQueue = this.computeTurnQueue();
+                   }
+
+                   // Determine targets
+                   const abilityTargets = abilityToUse.target === 'ENEMIES'
+                       ? this.combatants.filter(c => c.team !== attacker.team && c.currentHp > 0)
+                       : [target];
+
+                   abilityTargets.forEach(t => {
+                       this.applyDamage(attacker, t, base);
+                       if (abilityToUse.name === 'Shield Bash') {
+                           t.statusEffects.push({ name: 'Stun' });
+                           this.log(`💫 ${t.heroData.name} is stunned!`);
+                       }
+                   });
                } else {
                    this.log(`${attacker.heroData.name} performs a basic attack.`);
                    this.applyDamage(attacker, target, attacker.attack);
