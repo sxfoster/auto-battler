@@ -1,4 +1,5 @@
 const { EmbedBuilder } = require('discord.js');
+const { generateCardImage } = require('./cardRenderer');
 
 /**
  * Build a standard embed with brand styling.
@@ -25,4 +26,22 @@ function simple(title, fields = [], thumbnailUrl) {
   return embed;
 }
 
-module.exports = { simple };
+/**
+ * Send a DM containing a single card image with standardized embed styling.
+ * @param {import('discord.js').User} user
+ * @param {object} card
+ */
+async function sendCardDM(user, card) {
+  const cardBuffer = await generateCardImage(card);
+  const embed = new EmbedBuilder()
+    .setColor('#FDE047')
+    .setTitle('✨ You pulled a new card! ✨')
+    .addFields(
+      { name: 'Name', value: card.name, inline: true },
+      { name: 'Rarity', value: card.rarity, inline: true }
+    )
+    .setTimestamp();
+  await user.send({ embeds: [embed], files: [{ attachment: cardBuffer, name: `${card.name}.png` }] });
+}
+
+module.exports = { simple, sendCardDM };

@@ -1,8 +1,7 @@
 const { ActionRowBuilder, ButtonBuilder, ButtonStyle, StringSelectMenuBuilder, EmbedBuilder } = require('discord.js');
 const { setTimeout: sleep } = require('node:timers/promises');
 const db = require('../util/database');
-const { simple } = require('../src/utils/embedBuilder');
-const { generateCardImage } = require('../src/utils/cardRenderer');
+const { simple, sendCardDM } = require('../src/utils/embedBuilder');
 const { allPossibleHeroes, allPossibleWeapons, allPossibleArmors, allPossibleAbilities } = require('../../backend/game/data');
 const { getRandomCardsForPack } = require('../util/gameData');
 
@@ -162,14 +161,8 @@ async function handleBoosterPurchase(interaction, userId, packId, page = 0) {
     await interaction.editReply({ embeds: [resultsEmbed], components: [viewInventoryButton] });
 
     for (const card of awardedCards) {
-        const cardBuffer = await generateCardImage(card);
         console.log(`DMing card ${card.name} to user ${interaction.user.username} (${interaction.user.id})`);
-        const embed = new EmbedBuilder()
-            .setColor('#FDE047')
-            .setTitle('✨ You pulled a new card! ✨')
-            .addFields({ name: 'Name', value: card.name, inline: true }, { name: 'Rarity', value: card.rarity, inline: true })
-            .setTimestamp();
-        await interaction.user.send({ embeds: [embed], files: [{ attachment: cardBuffer, name: `${card.name}.png` }] });
+        await sendCardDM(interaction.user, card);
         await sleep(500);
     }
 }
