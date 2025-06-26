@@ -8,6 +8,8 @@ const sharp = require('sharp');
  * @returns {Promise<Buffer>}
  */
 async function generateCardImage(card) {
+  // This function generates a card image based on the provided card data.
+  // It returns a PNG buffer representing the card.
   const assetsBase = path.join(__dirname, '..', '..', 'assets');
   const framePath = path.join(
     assetsBase,
@@ -17,7 +19,7 @@ async function generateCardImage(card) {
   const heroArtPath = path.join(
     assetsBase,
     'heroes',
-    `${card.name.toLowerCase().replace(/\s+/g, '_')}_card.png`
+    `${card.name.toLowerCase().replace(/\s+/g, '_')}.png`
   );
   const classIconPath = path.join(
     assetsBase,
@@ -42,7 +44,7 @@ async function generateCardImage(card) {
   }
 
   if (artToUse) {
-    composites.push({ input: artToUse });
+    composites.push({ input: artToUse, top: 50, left: 25 });
   }
 
   const textSvg = `<svg width="300" height="400" xmlns="http://www.w3.org/2000/svg">
@@ -66,15 +68,16 @@ async function generateCardImage(card) {
  */
 async function generatePackImage(cards) {
   const cardImages = await Promise.all(cards.map(card => generateCardImage(card)));
-  const PADDING = 10;
+  const PADDING = 15;
   const CARD_WIDTH = 300;
   const CARD_HEIGHT = 400;
-  const totalWidth = CARD_WIDTH * cardImages.length + PADDING * (cardImages.length + 1);
+  const totalWidth = (CARD_WIDTH * cardImages.length) + (PADDING * (cardImages.length + 1));
+  const totalHeight = CARD_HEIGHT + (PADDING * 2);
 
   const compositeImage = sharp({
     create: {
       width: totalWidth,
-      height: CARD_HEIGHT + PADDING * 2,
+      height: totalHeight,
       channels: 4,
       background: { r: 0, g: 0, b: 0, alpha: 0 }
     }
