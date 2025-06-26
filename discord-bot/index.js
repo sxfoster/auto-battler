@@ -837,6 +837,12 @@ client.on(Events.InteractionCreate, async interaction => {
             await marketManager.handleBoosterPurchase(interaction, userId, packId, page);
             return;
         }
+        if (interaction.customId === 'begin_class_select') {
+            await interaction.deferUpdate();
+            const chosen = interaction.values[0];
+            await require('./features/beginManager').handleClassSelected(interaction, userId, chosen);
+            return;
+        }
         if (interaction.customId.startsWith('tutorial_') || userDraftState) {
             try {
                 await interaction.deferUpdate();
