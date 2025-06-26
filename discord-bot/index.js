@@ -1,3 +1,4 @@
+const { InteractionResponseFlags } = require('discord-api-types/v10');
 const fs = require('node:fs');
 const path = require('node:path');
 const { Client, Collection, GatewayIntentBits, Events, ActionRowBuilder, ButtonBuilder, ButtonStyle, StringSelectMenuBuilder, EmbedBuilder } = require('discord.js');
@@ -158,7 +159,7 @@ async function checkAndApplyLevelUp(userId, championId, interaction) {
         const hero = getHeroById(heroRow.base_hero_id);
         await interaction.followUp({
             embeds: [simple('🌟 Level Up! 🌟', [{ name: hero.name, value: `has reached Level ${newLevel}!` }])],
-            ephemeral: true
+            flags: [InteractionResponseFlags.EPHEMERAL]
         });
     }
 }
@@ -221,7 +222,7 @@ client.on(Events.InteractionCreate, async interaction => {
                     [userId]
                 );
                 if (ownedChampions.length < 1) {
-                    await interaction.reply({ content: 'You need at least one champion in your roster to set a defense team.', ephemeral: true });
+                    await interaction.reply({ content: 'You need at least one champion in your roster to set a defense team.', flags: [InteractionResponseFlags.EPHEMERAL] });
                     return;
                 }
 
@@ -244,11 +245,11 @@ client.on(Events.InteractionCreate, async interaction => {
                     .setMaxValues(2)
                     .addOptions(options);
                 const row = new ActionRowBuilder().addComponents(selectMenu);
-                await interaction.reply({ content: 'Choose your defense team!', components: [row], ephemeral: true });
+                await interaction.reply({ content: 'Choose your defense team!', components: [row], flags: [InteractionResponseFlags.EPHEMERAL] });
             } catch (error) {
                 console.error('Error preparing defense team selection:', error);
                 if (!interaction.replied) {
-                    await interaction.reply({ content: 'An error occurred while preparing your defense team.', ephemeral: true });
+                    await interaction.reply({ content: 'An error occurred while preparing your defense team.', flags: [InteractionResponseFlags.EPHEMERAL] });
                 }
             }
             return;
@@ -262,7 +263,7 @@ client.on(Events.InteractionCreate, async interaction => {
                         [championId, userId]
                     );
                     if (rows.length === 0) {
-                        await interaction.reply({ content: 'Champion not found.', ephemeral: true });
+                        await interaction.reply({ content: 'Champion not found.', flags: [InteractionResponseFlags.EPHEMERAL] });
                         return;
                     }
                     const champ = rows[0];
@@ -324,12 +325,12 @@ client.on(Events.InteractionCreate, async interaction => {
                         );
                     components.push(navigationRow);
 
-                    await interaction.reply({ embeds: [embed], components, ephemeral: true });
+                    await interaction.reply({ embeds: [embed], components, flags: [InteractionResponseFlags.EPHEMERAL] });
 
                 } catch (err) {
                     console.error('Error preparing champion management:', err);
                     if (!interaction.replied) {
-                        await interaction.reply({ content: 'An error occurred while preparing this menu.', ephemeral: true });
+                        await interaction.reply({ content: 'An error occurred while preparing this menu.', flags: [InteractionResponseFlags.EPHEMERAL] });
                     }
                 }
                 return;
@@ -343,7 +344,7 @@ client.on(Events.InteractionCreate, async interaction => {
             await command.execute(interaction);
         } catch (error) {
             console.error(`Error executing ${interaction.commandName}`, error);
-            const replyOptions = { content: 'There was an error executing this command!', ephemeral: true };
+            const replyOptions = { content: 'There was an error executing this command!', flags: [InteractionResponseFlags.EPHEMERAL] };
             if (interaction.replied || interaction.deferred) {
                 await interaction.followUp(replyOptions);
             } else {
@@ -734,7 +735,7 @@ client.on(Events.InteractionCreate, async interaction => {
                         [userId]
                     );
                     if (ownedChampions.length < 2) {
-                        await interaction.reply({ content: 'You need at least 2 champions in your roster to fight! Use `/summon` to recruit more.', ephemeral: true });
+                        await interaction.reply({ content: 'You need at least 2 champions in your roster to fight! Use `/summon` to recruit more.', flags: [InteractionResponseFlags.EPHEMERAL] });
                         break;
                     }
                     const options = ownedChampions.map(champion => {
@@ -759,15 +760,15 @@ client.on(Events.InteractionCreate, async interaction => {
                         .addComponents(
                             new ButtonBuilder().setCustomId('back_to_town').setLabel('Back to Town').setStyle(ButtonStyle.Secondary).setEmoji('⬅️')
                         );
-                    await interaction.reply({ content: 'Choose your team for the dungeon fight!', components: [row, backToTownRow], ephemeral: true });
+                    await interaction.reply({ content: 'Choose your team for the dungeon fight!', components: [row, backToTownRow], flags: [InteractionResponseFlags.EPHEMERAL] });
                     break;
                 }
                 case 'town_forge': {
-                    await interaction.reply({ content: "The Forge is not yet open. Check back later!", ephemeral: true });
+                    await interaction.reply({ content: "The Forge is not yet open. Check back later!", flags: [InteractionResponseFlags.EPHEMERAL] });
                     break;
                 }
                 case 'town_craft':
-                    await interaction.reply({ content: 'This feature is coming soon!', ephemeral: true });
+                    await interaction.reply({ content: 'This feature is coming soon!', flags: [InteractionResponseFlags.EPHEMERAL] });
                     break;
                 case 'town_market': {
                     await interaction.deferUpdate();
@@ -799,7 +800,7 @@ client.on(Events.InteractionCreate, async interaction => {
                     if (inventoryCommand) {
                         await inventoryCommand.execute(interaction);
                     } else {
-                        await interaction.editReply({ content: 'Inventory command not found.', ephemeral: true });
+                        await interaction.editReply({ content: 'Inventory command not found.', flags: [InteractionResponseFlags.EPHEMERAL] });
                     }
                     break;
                 }
@@ -808,7 +809,7 @@ client.on(Events.InteractionCreate, async interaction => {
                     break;
                 }
                 case 'manage_champions': {
-                    await interaction.reply({ content: 'Champion management is coming soon!', ephemeral: true });
+                    await interaction.reply({ content: 'Champion management is coming soon!', flags: [InteractionResponseFlags.EPHEMERAL] });
                     break;
                 }
                 default:
@@ -817,7 +818,7 @@ client.on(Events.InteractionCreate, async interaction => {
         } catch (err) {
             console.error('Error handling button interaction:', err);
             if (!interaction.replied) {
-                await interaction.reply({ content: 'An error occurred while processing this interaction.', ephemeral: true });
+                await interaction.reply({ content: 'An error occurred while processing this interaction.', flags: [InteractionResponseFlags.EPHEMERAL] });
             }
         }
         return;
@@ -1064,11 +1065,11 @@ client.on(Events.InteractionCreate, async interaction => {
             const countInDeck = state.deck.filter(id => id === abilityId).length;
 
             if (state.deck.length >= 20) {
-                await interaction.followUp({ content: 'Your deck is full (20/20 cards). Remove a card to add another.', ephemeral: true });
+                await interaction.followUp({ content: 'Your deck is full (20/20 cards). Remove a card to add another.', flags: [InteractionResponseFlags.EPHEMERAL] });
                 return;
             }
             if (countInDeck >= 2) {
-                await interaction.followUp({ content: 'You can only have a maximum of 2 copies of the same card.', ephemeral: true });
+                await interaction.followUp({ content: 'You can only have a maximum of 2 copies of the same card.', flags: [InteractionResponseFlags.EPHEMERAL] });
                 return;
             }
 
@@ -1288,16 +1289,16 @@ client.on(Events.InteractionCreate, async interaction => {
                     resultFields.push({ name: 'Defeat', value: 'You were vanquished by the dungeon foes.' });
                 }
 
-                await interaction.followUp({ embeds: [simple('⚔️ Battle Complete! ⚔️', resultFields)], ephemeral: true });
+                await interaction.followUp({ embeds: [simple('⚔️ Battle Complete! ⚔️', resultFields)], flags: [InteractionResponseFlags.EPHEMERAL] });
 
                 const logChunks = chunkBattleLog(battleLog);
                 for (const chunk of logChunks) {
-                    await interaction.followUp({ content: `\`\`\`${chunk}\`\`\``, ephemeral: true });
+                    await interaction.followUp({ content: `\`\`\`${chunk}\`\`\``, flags: [InteractionResponseFlags.EPHEMERAL] });
                 }
 
             } catch (error) {
                 console.error('Error handling fight selection:', error);
-                await interaction.followUp({ content: 'An error occurred while starting the battle.', ephemeral: true }).catch(() => {});
+                await interaction.followUp({ content: 'An error occurred while starting the battle.', flags: [InteractionResponseFlags.EPHEMERAL] }).catch(() => {});
             }
         } else if (interaction.customId === 'defense_team_select') {
             try {
@@ -1845,7 +1846,7 @@ async function sendDeckEditScreen(interaction, userId, championId, isUpdate = fa
     } catch (error) {
         console.error(`[CRITICAL ERROR] sendDeckEditScreen failed for championId ${championId}:`, error);
         if (!interaction.replied && !interaction.deferred) {
-            await interaction.reply({ content: 'Failed to open deck editor due to an unexpected error.', ephemeral: true });
+            await interaction.reply({ content: 'Failed to open deck editor due to an unexpected error.', flags: [InteractionResponseFlags.EPHEMERAL] });
         } else {
             await interaction.editReply({ content: 'Failed to open deck editor due to an unexpected error. Check bot console for details.', components: [] });
         }
@@ -2019,7 +2020,7 @@ async function sendInitialGoldAndBoosterStore(interaction, userId) {
 
     components.push(finalizeTutorialRow);
 
-    await interaction.followUp({ embeds: [storeEmbed], components, ephemeral: true });
+    await interaction.followUp({ embeds: [storeEmbed], components, flags: [InteractionResponseFlags.EPHEMERAL] });
 }
 
 /**

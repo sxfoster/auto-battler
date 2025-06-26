@@ -1,3 +1,4 @@
+const { InteractionResponseFlags } = require('discord-api-types/v10');
 const { SlashCommandBuilder } = require('discord.js');
 const db = require('../util/database');
 const { simple } = require('../src/utils/embedBuilder');
@@ -24,10 +25,10 @@ module.exports = {
             const embed = simple('🏆 PvP Leaderboard', [
                 { name: 'Top Players', value: lines.join('\n') || 'No data' }
             ]);
-            await interaction.reply({ embeds: [embed], ephemeral: true });
+            await interaction.reply({ embeds: [embed], flags: [InteractionResponseFlags.EPHEMERAL] });
         } catch (err) {
             console.error('Error fetching leaderboard:', err);
-            await interaction.reply({ content: 'Failed to fetch leaderboard.', ephemeral: true });
+            await interaction.reply({ content: 'Failed to fetch leaderboard.', flags: [InteractionResponseFlags.EPHEMERAL] });
         }
     }
 };

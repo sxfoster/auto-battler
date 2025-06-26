@@ -1,3 +1,4 @@
+const { InteractionResponseFlags } = require('discord-api-types/v10');
 const { SlashCommandBuilder } = require('discord.js');
 const { simple } = require('../src/utils/embedBuilder');
 const confirm = require('../src/utils/confirm');
@@ -50,7 +51,7 @@ const command = {
                     { name: 'Premium', value: 'premium' }
                 )),
     async execute(interaction) {
-        await interaction.deferReply({ ephemeral: true });
+        await interaction.deferReply({ flags: [InteractionResponseFlags.EPHEMERAL] });
 
         const userId = interaction.user.id;
         const packTypeRaw = interaction.options.getString('type');
@@ -58,7 +59,7 @@ const command = {
 
         const columnBase = PACK_COLUMN_BASE[packTypeRaw];
         if (!columnBase) {
-            await interaction.editReply({ content: 'Invalid pack type selected.', ephemeral: true });
+            await interaction.editReply({ content: 'Invalid pack type selected.', flags: [InteractionResponseFlags.EPHEMERAL] });
             return;
         }
 
@@ -70,7 +71,7 @@ const command = {
             );
         } catch (err) {
             console.error('Error updating pack count:', err);
-            await interaction.editReply({ content: 'Failed to add pack to your account.', ephemeral: true });
+            await interaction.editReply({ content: 'Failed to add pack to your account.', flags: [InteractionResponseFlags.EPHEMERAL] });
             return;
         }
 
@@ -85,7 +86,7 @@ const command = {
 
         await interaction.followUp({
             embeds: [confirm('Pack successfully added to your account.')],
-            ephemeral: true
+            flags: [InteractionResponseFlags.EPHEMERAL]
         });
     },
 };

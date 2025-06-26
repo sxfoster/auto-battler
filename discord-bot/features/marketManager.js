@@ -1,3 +1,4 @@
+const { InteractionResponseFlags } = require('discord-api-types/v10');
 const { ActionRowBuilder, ButtonBuilder, ButtonStyle, StringSelectMenuBuilder, EmbedBuilder } = require('discord.js');
 const { setTimeout: sleep } = require('node:timers/promises');
 const db = require('../util/database');
@@ -10,7 +11,7 @@ const { BOOSTER_PACKS } = require('../src/boosterConfig');
 async function handleBoosterPurchase(interaction, userId, packId, page = 0) {
     const packInfo = BOOSTER_PACKS[packId];
     if (!packInfo) {
-        await interaction.editReply({ content: 'Invalid pack selected.', ephemeral: true });
+        await interaction.editReply({ content: 'Invalid pack selected.', flags: [InteractionResponseFlags.EPHEMERAL] });
         return;
     }
     const [userRows] = await db.execute(`SELECT ${packInfo.currency} FROM users WHERE discord_id = ?`, [userId]);
@@ -18,7 +19,7 @@ async function handleBoosterPurchase(interaction, userId, packId, page = 0) {
     if (!user || user[packInfo.currency] < packInfo.cost) {
         await interaction.editReply({
             content: `You don't have enough ${packInfo.currency === 'soft_currency' ? 'Gold 🪙' : 'Gems 💎'} to buy the ${packInfo.name}! You need ${packInfo.cost}.`,
-            ephemeral: true
+            flags: [InteractionResponseFlags.EPHEMERAL]
         });
         return;
     }
@@ -74,7 +75,7 @@ async function handleBoosterPurchase(interaction, userId, packId, page = 0) {
             actualItemType = 'monster_ability';
             break;
         default:
-            await interaction.editReply({ content: 'Internal error: Unknown pack content type.', ephemeral: true });
+            await interaction.editReply({ content: 'Internal error: Unknown pack content type.', flags: [InteractionResponseFlags.EPHEMERAL] });
             return;
     }
     const awardedCards = getRandomCardsForPack(cardPool, awardedCardsCount, packInfo.rarity);
