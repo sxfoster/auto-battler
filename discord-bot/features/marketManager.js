@@ -162,13 +162,24 @@ async function handleBoosterPurchase(interaction, userId, packId, page = 0) {
     await interaction.editReply({ embeds: [resultsEmbed], components: [viewInventoryButton] });
 
     for (const card of awardedCards) {
-        const cardBuffer = await generateCardImage(card);
+        let cardBuffer;
+        try {
+            cardBuffer = await generateCardImage(card);
+        } catch (err) {
+            console.error('Failed to generate card image:', err);
+        }
         const embed = new EmbedBuilder()
             .setColor('#FDE047')
             .setTitle('✨ You pulled a new card! ✨')
             .addFields({ name: 'Name', value: card.name, inline: true }, { name: 'Rarity', value: card.rarity, inline: true })
             .setTimestamp();
-        await interaction.user.send({ embeds: [embed], files: [{ attachment: cardBuffer, name: `${card.name}.png` }] });
+        const messageOptions = { embeds: [embed] };
+        if (cardBuffer) {
+            messageOptions.files = [{ attachment: cardBuffer, name: `${card.name}.png` }];
+        } else {
+            messageOptions.content = 'Card image unavailable.';
+        }
+        await interaction.user.send(messageOptions);
         await sleep(500);
     }
 }

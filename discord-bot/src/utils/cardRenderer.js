@@ -16,6 +16,12 @@ async function generateCardImage(card) {
     'frames',
     `frame-${(card.rarity || 'common').toLowerCase()}.png`
   );
+  try {
+    await fs.access(framePath);
+  } catch (err) {
+    console.error(`Missing frame image at ${framePath}`, err);
+    throw new Error('frame-not-found');
+  }
   const heroArtPath = path.join(
     assetsBase,
     'heroes',
