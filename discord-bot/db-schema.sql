@@ -1,21 +1,40 @@
--- Schema for the Discord bot database
-
--- Games table
-CREATE TABLE IF NOT EXISTS games (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    player1_id VARCHAR(255) NOT NULL,
-    player2_id VARCHAR(255) DEFAULT NULL,
-    winner_id VARCHAR(255) DEFAULT NULL,
-    status ENUM('pending', 'active', 'complete') DEFAULT 'pending',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
+-- Minimal schema for the Discord bot
 
 -- Users table
 CREATE TABLE IF NOT EXISTS users (
     id INT AUTO_INCREMENT PRIMARY KEY,
     discord_id VARCHAR(255) NOT NULL UNIQUE,
-    current_game_id INT DEFAULT NULL,
-    tutorial_completed BOOL DEFAULT FALSE,
-    starter_class VARCHAR(50),
-    FOREIGN KEY (current_game_id) REFERENCES games(id) ON DELETE SET NULL
+    class VARCHAR(50) DEFAULT NULL
+);
+
+-- Champions owned by users
+CREATE TABLE IF NOT EXISTS user_champions (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    base_hero_id INT NOT NULL,
+    equipped_ability_id INT DEFAULT NULL,
+    equipped_weapon_id INT DEFAULT NULL,
+    equipped_armor_id INT DEFAULT NULL,
+    level INT DEFAULT 1,
+    xp INT DEFAULT 0,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+-- Ability deck for each champion
+CREATE TABLE IF NOT EXISTS champion_decks (
+    user_champion_id INT NOT NULL,
+    ability_id INT NOT NULL,
+    order_index INT NOT NULL,
+    PRIMARY KEY (user_champion_id, order_index),
+    FOREIGN KEY (user_champion_id) REFERENCES user_champions(id) ON DELETE CASCADE
+);
+
+-- Items owned by users
+CREATE TABLE IF NOT EXISTS user_inventory (
+    user_id INT NOT NULL,
+    item_id INT NOT NULL,
+    quantity INT DEFAULT 1,
+    item_type VARCHAR(20) DEFAULT NULL,
+    PRIMARY KEY (user_id, item_id),
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
