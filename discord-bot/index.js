@@ -19,6 +19,7 @@ const { loadAllData, gameData, getHeroes, getHeroById, getMonsters, getRandomCar
 const { createCombatant } = require('../backend/game/utils');
 const GameEngine = require('../backend/game/engine');
 const { getTownMenu } = require('./commands/town.js');
+const marketManager = require('./features/marketManager');
 
 // Booster pack definitions for the marketplace
 const BOOSTER_PACKS = {
@@ -229,107 +230,6 @@ async function checkAndApplyLevelUp(userId, championId, interaction) {
 // --- END NEW HELPER FUNCTION ---
 
 
-async function handleBoosterPurchase(interaction, userId, packId, page = 0) {
-    const packInfo = BOOSTER_PACKS[packId];
-    if (!packInfo) {
-        await interaction.editReply({ content: 'Invalid pack selected.', ephemeral: true });
-        return;
-    }
-
-    const [userRows] = await db.execute(`SELECT ${packInfo.currency} FROM users WHERE discord_id = ?`, [userId]);
-    const user = userRows[0];
-
-    if (!user || user[packInfo.currency] < packInfo.cost) {
-        await interaction.editReply({
-            content: `You don't have enough ${packInfo.currency === 'soft_currency' ? 'Gold 🪙' : 'Gems 💎'} to buy the ${packInfo.name}! You need ${packInfo.cost}.`,
-            ephemeral: true
-        });
-        return;
-    }
-
-    await db.execute(
-        `UPDATE users SET ${packInfo.currency} = ${packInfo.currency} - ? WHERE discord_id = ?`,
-        [packInfo.cost, userId]
-    );
-
-    let cardPool = [];
-    let awardedCardsCount = 0;
-    let actualItemType = '';
-
-    switch (packInfo.type) {
-        case 'hero_pack':
-            cardPool = allPossibleHeroes.filter(h => !h.is_monster);
-            awardedCardsCount = 1;
-            actualItemType = 'hero';
-            break;
-        case 'ability_pack':
-            cardPool = allPossibleAbilities;
-            awardedCardsCount = 3;
-            actualItemType = 'ability';
-            break;
-        case 'weapon_pack':
-            cardPool = allPossibleWeapons;
-            awardedCardsCount = 2;
-            actualItemType = 'weapon';
-            break;
-        case 'armor_pack':
-            cardPool = allPossibleArmors;
-            awardedCardsCount = 2;
-            actualItemType = 'armor';
-            break;
-        case 'monster_pack':
-            cardPool = allPossibleHeroes.filter(h => h.is_monster);
-            awardedCardsCount = 1;
-            actualItemType = 'monster';
-            break;
-        case 'monster_ability_pack':
-            cardPool = allPossibleAbilities.filter(ab => ab.class && ab.class.includes('Monster'));
-            awardedCardsCount = 2;
-            actualItemType = 'monster_ability';
-            break;
-        default:
-            await interaction.editReply({ content: 'Internal error: Unknown pack content type.', ephemeral: true });
-            return;
-    }
-
-    const awardedCards = getRandomCardsForPack(cardPool, awardedCardsCount, packInfo.rarity);
-
-    const cardNames = [];
-    for (const card of awardedCards) {
-        cardNames.push(`**${card.name}** (${card.rarity})`);
-        try {
-            await db.execute(
-                `INSERT INTO user_inventory (user_id, item_id, quantity, item_type)
-                 VALUES (?, ?, 1, ?)
-                 ON DUPLICATE KEY UPDATE quantity = quantity + 1`,
-                [userId, card.id, actualItemType]
-            );
-        } catch (error) {
-            console.error(`Error adding card ${card.id} to inventory for user ${userId} during purchase:`, error);
-        }
-    }
-
-    const resultsEmbed = new EmbedBuilder()
-        .setColor('#FDE047')
-        .setTitle(`✨ ${packInfo.name} Opened! ✨`)
-        .setDescription(`You spent ${packInfo.cost} ${packInfo.currency === 'soft_currency' ? 'Gold 🪙' : 'Gems 💎'}.`)
-        .addFields({ name: 'Cards Received:', value: cardNames.join('\n') || 'No cards received.', inline: false })
-        .setFooter({ text: 'Your new cards have been added to your collection!' })
-        .setTimestamp();
-
-    const viewInventoryButton = new ActionRowBuilder()
-        .addComponents(
-            new ButtonBuilder()
-                .setCustomId('view_inventory_from_pack')
-                .setLabel('View Inventory')
-                .setStyle(ButtonStyle.Secondary)
-                .setEmoji('🎒')
-        );
-
-    await interaction.editReply({ embeds: [resultsEmbed], components: [viewInventoryButton] });
-
-    await interaction.followUp(getMarketplaceMenu(packInfo.category, page));
-}
 
 
 // Handle slash commands
@@ -1062,94 +962,7 @@ client.on(Events.InteractionCreate, async interaction => {
                 case (interaction.customId.startsWith('buy_pack_') ? interaction.customId : ''): {
                     await interaction.deferUpdate();
                     const packId = interaction.customId.replace('buy_pack_', '');
-                    const packInfo = BOOSTER_PACKS[packId];
-                    if (!packInfo) {
-                        await interaction.editReply({ content: 'Invalid pack selected.', ephemeral: true });
-                        break;
-                    }
-
-                    const [userRows] = await db.execute(`SELECT ${packInfo.currency} FROM users WHERE discord_id = ?`, [userId]);
-                    const user = userRows[0];
-                    if (!user || user[packInfo.currency] < packInfo.cost) {
-                        await interaction.editReply({
-                            content: `You don't have enough ${packInfo.currency === 'soft_currency' ? 'Gold 🪙' : 'Gems 💎'} to buy the ${packInfo.name}! You need ${packInfo.cost}.`,
-                            ephemeral: true
-                        });
-                        break;
-                    }
-
-                    await db.execute(
-                        `UPDATE users SET ${packInfo.currency} = ${packInfo.currency} - ? WHERE discord_id = ?`,
-                        [packInfo.cost, userId]
-                    );
-
-                    let cardPool = [];
-                    let awardedCardsCount = 0;
-                    let actualItemType = '';
-
-                    switch (packInfo.type) {
-                        case 'hero_pack':
-                            cardPool = allPossibleHeroes.filter(h => !h.is_monster);
-                            awardedCardsCount = 1;
-                            actualItemType = 'hero';
-                            break;
-                        case 'ability_pack':
-                            cardPool = allPossibleAbilities;
-                            awardedCardsCount = 3;
-                            actualItemType = 'ability';
-                            break;
-                        case 'weapon_pack':
-                            cardPool = allPossibleWeapons;
-                            awardedCardsCount = 2;
-                            actualItemType = 'weapon';
-                            break;
-                        case 'armor_pack':
-                            cardPool = allPossibleArmors;
-                            awardedCardsCount = 2;
-                            actualItemType = 'armor';
-                            break;
-                        case 'monster_pack':
-                            cardPool = allPossibleHeroes.filter(h => h.is_monster);
-                            awardedCardsCount = 1;
-                            actualItemType = 'monster';
-                            break;
-                        case 'monster_ability_pack':
-                            cardPool = allPossibleAbilities.filter(ab => ab.class && ab.class.includes('Monster'));
-                            awardedCardsCount = 2;
-                            actualItemType = 'monster_ability';
-                            break;
-                        default:
-                            await interaction.editReply({ content: 'Internal error: Unknown pack content type.', ephemeral: true });
-                            break;
-                    }
-
-                    const awardedCards = getRandomCardsForPack(cardPool, awardedCardsCount, packInfo.rarity);
-
-                    for (const card of awardedCards) {
-                        try {
-                            await db.execute(
-                                `INSERT INTO user_inventory (user_id, item_id, quantity, item_type)
-                 VALUES (?, ?, 1, ?)
-                 ON DUPLICATE KEY UPDATE quantity = quantity + 1`,
-                                [userId, card.id, actualItemType]
-                            );
-                        } catch (error) {
-                            console.error(`Error adding card ${card.id} to inventory for user ${userId} during purchase:`, error);
-                        }
-                    }
-
-                    await interaction.editReply({ content: 'Your pack is being opened... Check your DMs for your new cards!', components: [] });
-
-                    for (const card of awardedCards) {
-                        const cardBuffer = await generateCardImage(card);
-                        const embed = new EmbedBuilder()
-                            .setColor('#FDE047')
-                            .setTitle('✨ You pulled a new card! ✨')
-                            .addFields({ name: 'Name', value: card.name, inline: true }, { name: 'Rarity', value: card.rarity, inline: true })
-                            .setTimestamp();
-                        await interaction.user.send({ embeds: [embed], files: [{ attachment: cardBuffer, name: `${card.name}.png` }] });
-                        await sleep(500);
-                    }
+                    await marketManager.handleBoosterPurchase(interaction, userId, packId, 0);
                     break;
                 }
 
@@ -1212,7 +1025,7 @@ client.on(Events.InteractionCreate, async interaction => {
             const category = parts[3];
             const page = parseInt(parts[4], 10) || 0;
             const packId = interaction.values[0];
-            await handleBoosterPurchase(interaction, userId, packId, page);
+            await marketManager.handleBoosterPurchase(interaction, userId, packId, page);
             return;
         }
         if (interaction.customId.startsWith('tutorial_') || userDraftState) {
