@@ -2,7 +2,6 @@ const marketManager = require('../features/marketManager');
 
 jest.mock('../features/marketManager', () => ({
   handleBoosterPurchase: jest.fn(),
-  getMarketplaceMenu: jest.fn(),
 }));
 
 jest.mock('../features/tutorialManager', () => ({
