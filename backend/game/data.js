@@ -449,7 +449,52 @@ const allPossibleAbilities = [
     // Brute Abilities (sample)
     { id: 5101, type: 'ability', name: 'Savage Swipe', class: 'Brute', rarity: 'Common', art: '...', imageUrl: 'https://placehold.co/300x400/1e293b/ffffff?text=Savage%20Swipe', effect: 'Deal 3 damage to two enemies.', energyCost: 1, category: 'Offense' },
 
-    // TODO: Add remaining monster ability definitions
+    // Grave Titan additional abilities
+    { id: 5003, type: 'ability', name: 'Titanic Slam', class: 'Grave Titan', rarity: 'Common', art: '...', imageUrl: 'https://placehold.co/300x400/1e293b/ffffff?text=Titanic%20Slam', effect: 'Deal 2 damage and Stun the target if they acted this turn.', energyCost: 1, category: 'Offense' },
+
+    // Brute abilities
+    { id: 5102, type: 'ability', name: 'Thick Hide', class: 'Brute', rarity: 'Common', art: '...', imageUrl: 'https://placehold.co/300x400/1e293b/ffffff?text=Thick%20Hide', effect: 'Gain +2 Defense this turn.', energyCost: 1, category: 'Defense' },
+    { id: 5103, type: 'ability', name: 'Bonecrusher Slam', class: 'Brute', rarity: 'Common', art: '...', imageUrl: 'https://placehold.co/300x400/1e293b/ffffff?text=Bonecrusher%20Slam', effect: 'Deal 3 damage and Stun for 1 turn.', energyCost: 1, category: 'Offense' },
+
+    // Frost Revenant abilities
+    { id: 5201, type: 'ability', name: 'Icy Touch', class: 'Frost Revenant', rarity: 'Common', art: '...', imageUrl: 'https://placehold.co/300x400/1e293b/ffffff?text=Icy%20Touch', effect: 'Deal 2 damage and apply Slow for 1 turn.', energyCost: 1, category: 'Offense' },
+    { id: 5202, type: 'ability', name: 'Ice Barrier', class: 'Frost Revenant', rarity: 'Common', art: '...', imageUrl: 'https://placehold.co/300x400/1e293b/ffffff?text=Ice%20Barrier', effect: 'Reduce incoming damage by 2 this turn.', energyCost: 1, category: 'Defense' },
+    { id: 5203, type: 'ability', name: 'Hail Shard', class: 'Frost Revenant', rarity: 'Common', art: '...', imageUrl: 'https://placehold.co/300x400/1e293b/ffffff?text=Hail%20Shard', effect: 'Deal 1 damage to all enemies and Slow them for 1 turn.', energyCost: 1, category: 'Support', target: 'ENEMIES' },
+
+    // Blood Witch abilities
+    { id: 5301, type: 'ability', name: 'Blood Leech', class: 'Blood Witch', rarity: 'Common', art: '...', imageUrl: 'https://placehold.co/300x400/1e293b/ffffff?text=Blood%20Leech', effect: 'Deal 2 damage and heal 2 HP.', energyCost: 1, category: 'Offense' },
+    { id: 5302, type: 'ability', name: 'Blood Mist', class: 'Blood Witch', rarity: 'Common', art: '...', imageUrl: 'https://placehold.co/300x400/1e293b/ffffff?text=Blood%20Mist', effect: 'Fear an enemy and gain +1 Evasion this turn.', energyCost: 1, category: 'Defense' },
+    { id: 5303, type: 'ability', name: 'Hex', class: 'Blood Witch', rarity: 'Common', art: '...', imageUrl: 'https://placehold.co/300x400/1e293b/ffffff?text=Hex', effect: 'Apply -1 Attack to an enemy for 2 turns.', energyCost: 1, category: 'Support' },
+
+    // Infernal Beast abilities
+    { id: 5401, type: 'ability', name: 'Fiery Bite', class: 'Infernal Beast', rarity: 'Common', art: '...', imageUrl: 'https://placehold.co/300x400/1e293b/ffffff?text=Fiery%20Bite', effect: 'Deal 3 damage. If the target is Burning, deal +1 damage.', energyCost: 1, category: 'Offense' },
+    { id: 5402, type: 'ability', name: 'Molten Scales', class: 'Infernal Beast', rarity: 'Common', art: '...', imageUrl: 'https://placehold.co/300x400/1e293b/ffffff?text=Molten%20Scales', effect: 'Reflect 1 damage to attackers this turn.', energyCost: 1, category: 'Defense' },
+    { id: 5403, type: 'ability', name: 'Lava Breath', class: 'Infernal Beast', rarity: 'Common', art: '...', imageUrl: 'https://placehold.co/300x400/1e293b/ffffff?text=Lava%20Breath', effect: 'Deal 1 fire damage to all enemies and apply Burn for 1 turn.', energyCost: 1, category: 'Support', target: 'ENEMIES' },
+
+    // Necromancer abilities
+    { id: 5501, type: 'ability', name: 'Bone Spear', class: 'Necromancer', rarity: 'Common', art: '...', imageUrl: 'https://placehold.co/300x400/1e293b/ffffff?text=Bone%20Spear', effect: 'Deal 3 damage to a single enemy.', energyCost: 1, category: 'Offense' },
+    { id: 5502, type: 'ability', name: "Lich's Shield", class: 'Necromancer', rarity: 'Common', art: '...', imageUrl: 'https://placehold.co/300x400/1e293b/ffffff?text=Lich%27s%20Shield', effect: 'Block the next attack against you or an ally.', energyCost: 1, category: 'Defense' },
+    { id: 5503, type: 'ability', name: 'Raise Skeleton', class: 'Necromancer', rarity: 'Common', art: '...', imageUrl: 'https://placehold.co/300x400/1e293b/ffffff?text=Raise%20Skeleton', effect: 'Summon a Skeleton minion.', energyCost: 1, category: 'Support' },
+
+    // Shadowfiend abilities
+    { id: 5601, type: 'ability', name: 'Shadow Slash', class: 'Shadowfiend', rarity: 'Common', art: '...', imageUrl: 'https://placehold.co/300x400/1e293b/ffffff?text=Shadow%20Slash', effect: 'Deal 3 damage. If you have Evasion, deal +1 damage.', energyCost: 1, category: 'Offense' },
+    { id: 5602, type: 'ability', name: 'Fade Into Shadows', class: 'Shadowfiend', rarity: 'Common', art: '...', imageUrl: 'https://placehold.co/300x400/1e293b/ffffff?text=Fade%20Into%20Shadows', effect: 'Gain +2 Evasion for 1 turn.', energyCost: 1, category: 'Defense' },
+    { id: 5603, type: 'ability', name: 'Venom Shank', class: 'Shadowfiend', rarity: 'Common', art: '...', imageUrl: 'https://placehold.co/300x400/1e293b/ffffff?text=Venom%20Shank', effect: 'Deal 1 damage and apply Poison for 2 turns.', energyCost: 1, category: 'Support' },
+
+    // Storm Serpent abilities
+    { id: 5701, type: 'ability', name: 'Lightning Bite', class: 'Storm Serpent', rarity: 'Common', art: '...', imageUrl: 'https://placehold.co/300x400/1e293b/ffffff?text=Lightning%20Bite', effect: 'Deal 3 lightning damage and apply Shock.', energyCost: 1, category: 'Offense' },
+    { id: 5702, type: 'ability', name: 'Electric Veil', class: 'Storm Serpent', rarity: 'Common', art: '...', imageUrl: 'https://placehold.co/300x400/1e293b/ffffff?text=Electric%20Veil', effect: 'Reduce damage by 1 this turn and Shock attackers.', energyCost: 1, category: 'Defense' },
+    { id: 5703, type: 'ability', name: 'Storm Surge', class: 'Storm Serpent', rarity: 'Common', art: '...', imageUrl: 'https://placehold.co/300x400/1e293b/ffffff?text=Storm%20Surge', effect: 'Gain +1 Speed and +1 Attack for 1 turn.', energyCost: 1, category: 'Support' },
+
+    // Venomspawn abilities
+    { id: 5801, type: 'ability', name: 'Venomous Strike', class: 'Venomspawn', rarity: 'Common', art: '...', imageUrl: 'https://placehold.co/300x400/1e293b/ffffff?text=Venomous%20Strike', effect: 'Deal 1 damage and apply Poison for 2 turns.', energyCost: 1, category: 'Offense' },
+    { id: 5802, type: 'ability', name: 'Acid Spit', class: 'Venomspawn', rarity: 'Common', art: '...', imageUrl: 'https://placehold.co/300x400/1e293b/ffffff?text=Acid%20Spit', effect: 'Deal 1 damage and reduce target\u2019s Defense by 1 for 2 turns.', energyCost: 1, category: 'Defense' },
+    { id: 5803, type: 'ability', name: 'Lurking Poison', class: 'Venomspawn', rarity: 'Common', art: '...', imageUrl: 'https://placehold.co/300x400/1e293b/ffffff?text=Lurking%20Poison', effect: 'Apply Poison (1 damage per turn for 3 turns).', energyCost: 1, category: 'Support' },
+
+    // Void Horror abilities
+    { id: 5901, type: 'ability', name: 'Warping Claws', class: 'Void Horror', rarity: 'Common', art: '...', imageUrl: 'https://placehold.co/300x400/1e293b/ffffff?text=Warping%20Claws', effect: 'Deal 2 damage and the target discards 1 card at random.', energyCost: 1, category: 'Offense' },
+    { id: 5902, type: 'ability', name: 'Reality Tear', class: 'Void Horror', rarity: 'Common', art: '...', imageUrl: 'https://placehold.co/300x400/1e293b/ffffff?text=Reality%20Tear', effect: 'Deal 3 damage and apply Fear for 1 turn.', energyCost: 1, category: 'Defense' },
+    { id: 5903, type: 'ability', name: 'Void Pulse', class: 'Void Horror', rarity: 'Common', art: '...', imageUrl: 'https://placehold.co/300x400/1e293b/ffffff?text=Void%20Pulse', effect: 'Steal 1 Energy from an enemy.', energyCost: 1, category: 'Support' },
 ];
 // NOTE: Placeholder art links ('...') and new IDs have been assigned.
 
