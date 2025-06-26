@@ -74,7 +74,9 @@ async function handleBoosterPurchase(interaction, userId, packId, page = 0) {
         try {
             const [rows] = await db.execute('SELECT soft_currency FROM users WHERE discord_id = ?', [userId]);
             const gold = rows[0]?.soft_currency;
+            console.log(`Attempting to DM user ${userId} new gold balance: ${gold}`);
             await interaction.user.send(`\uD83D\uDCB0 Debug: Your new gold balance is ${gold}`);
+            console.log(`Successfully DM'd user ${userId} updated gold balance.`);
         } catch (err) {
             console.error('Failed to DM updated gold balance:', err);
         }
@@ -149,6 +151,7 @@ async function handleBoosterPurchase(interaction, userId, packId, page = 0) {
             }
         }
     }
+    console.log(`User ${userId} opened pack ${packId} (${packInfo.type}) and drew ${awardedCards.map(c => c.name).join(', ')}`);
     const resultsEmbed = new EmbedBuilder()
         .setColor('#FDE047')
         .setTitle(`✨ ${packInfo.name} Opened! ✨`)
