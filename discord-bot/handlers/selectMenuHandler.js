@@ -1,5 +1,6 @@
 const tutorialManager = require('../features/tutorialManager');
 const marketManager = require('../features/marketManager');
+const beginManager = require('../features/beginManager');
 
 module.exports = async (interaction) => {
     const { customId, values } = interaction;
@@ -11,6 +12,12 @@ module.exports = async (interaction) => {
         const page = parseInt(parts[4], 10) || 0;
         const packId = values[0];
         await marketManager.handleBoosterPurchase(interaction, userId, packId, page);
+        return;
+    }
+    if (customId === 'begin_class_select') {
+        await interaction.deferUpdate();
+        const chosen = values[0];
+        await beginManager.handleClassSelected(interaction, userId, chosen);
         return;
     }
     if (customId.startsWith('tutorial_select_')) {
