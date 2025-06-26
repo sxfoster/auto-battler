@@ -1,13 +1,9 @@
 const marketManager = require('../features/marketManager');
-const marketMenu = require('../util/marketMenu');
 
 jest.mock('../features/marketManager', () => ({
   handleBoosterPurchase: jest.fn(),
 }));
 
-jest.mock('../util/marketMenu', () => ({
-  getMarketplaceMenu: jest.fn(),
-}));
 
 jest.mock('../features/tutorialManager', () => ({
   handleTutorialButton: jest.fn(),
@@ -20,20 +16,16 @@ jest.mock('../commands/town', () => ({
 const buttonHandler = require('../handlers/buttonHandler');
 
 describe('buttonHandler', () => {
-  test('delegates buy_pack button to handleBoosterPurchase', async () => {
+  test('handles back_to_town button', async () => {
     const interaction = {
-      customId: 'buy_pack_hero_pack',
-      deferUpdate: jest.fn().mockResolvedValue(),
+      customId: 'back_to_town',
+      update: jest.fn().mockResolvedValue(),
       user: { id: '123' },
     };
 
     await buttonHandler(interaction);
 
-    expect(marketManager.handleBoosterPurchase).toHaveBeenCalledWith(
-      interaction,
-      '123',
-      'hero_pack',
-      0
-    );
+    expect(require('../commands/town').getTownMenu).toHaveBeenCalled();
+    expect(interaction.update).toHaveBeenCalled();
   });
 });

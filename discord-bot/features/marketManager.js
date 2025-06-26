@@ -7,7 +7,6 @@ const { allPossibleHeroes, allPossibleWeapons, allPossibleArmors, allPossibleAbi
 const { getRandomCardsForPack } = require('../util/gameData');
 
 const { BOOSTER_PACKS } = require('../src/boosterConfig');
-const { getMarketplaceMenu } = require('../util/marketMenu');
 
 async function handleBoosterPurchase(interaction, userId, packId, page = 0) {
     const packInfo = BOOSTER_PACKS[packId];
@@ -147,4 +146,4 @@ async function handleBoosterPurchase(interaction, userId, packId, page = 0) {
     }
 }
 
-module.exports = { BOOSTER_PACKS, getMarketplaceMenu, handleBoosterPurchase };
+module.exports = { BOOSTER_PACKS, handleBoosterPurchase };
