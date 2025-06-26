@@ -785,6 +785,7 @@ client.on(Events.InteractionCreate, async interaction => {
                         .setDescription(`You chose **${chosenCard.name}**! You gained **${totalShardsGained}** shards from the other cards.`)
                         .setFooter({ text: 'Auto-Battler Bot' });
                     const cardBuffer = await generateCardImage(chosenCard);
+                    console.log(`DMing chosen card ${chosenCard.name} to user ${user.username} (${userId})`);
                     try {
                         await user.send({ embeds: [dmEmbed], files: [{ attachment: cardBuffer, name: `${chosenCard.name}.png` }] });
                     } catch (e) {

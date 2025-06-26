@@ -27,18 +27,26 @@ async function generateCardImage(card) {
     `${(card.class || 'generic').toLowerCase().replace(/\s+/g, '-')}.png`
   );
 
+  console.log(
+    `Generating card image for ${card.name} - frame: ${framePath}, hero: ${heroArtPath}, class: ${classIconPath}`
+  );
+
   // Start with the rarity frame as the base image
   let base = sharp(framePath).resize(300, 400);
 
   let artToUse = null;
   try {
     await fs.access(heroArtPath);
+    console.log(`Using hero art for ${card.name}: ${heroArtPath}`);
     artToUse = heroArtPath;
   } catch {
+    console.log(`Hero art not found at ${heroArtPath}`);
     try {
       await fs.access(classIconPath);
+      console.log(`Using class icon for ${card.name}: ${classIconPath}`);
       artToUse = classIconPath;
     } catch {
+      console.log(`Class icon not found at ${classIconPath}`);
       artToUse = null;
     }
   }
@@ -46,6 +54,8 @@ async function generateCardImage(card) {
   if (artToUse) {
     // Place character art above the frame but below the stats text
     base = base.composite([{ input: artToUse, top: 50, left: 25 }]);
+  } else {
+    console.log(`No art asset found for ${card.name}`);
   }
 
   const textSvg = `<svg width="300" height="400" xmlns="http://www.w3.org/2000/svg">
