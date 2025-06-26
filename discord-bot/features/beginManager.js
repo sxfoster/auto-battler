@@ -1,6 +1,7 @@
 const { MessageFlags } = require('discord.js');
 const { ActionRowBuilder, StringSelectMenuBuilder, EmbedBuilder } = require('discord.js');
 const db = require('../util/database');
+const { startEquipFlow } = require('./equipManager');
 
 // In-memory map storing chosen class keyed by discord_id
 const userClassChoices = new Map();
@@ -39,6 +40,12 @@ async function handleClassSelected(interaction, userId, chosenClass) {
         .setDescription("You'll receive your starter ability cards soon.");
 
     await interaction.editReply({ embeds: [embed], components: [] });
+
+    try {
+        await startEquipFlow(interaction, userId);
+    } catch (err) {
+        console.error('Failed to start equip flow:', err);
+    }
 }
 
 module.exports = {
