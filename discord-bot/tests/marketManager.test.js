@@ -1,4 +1,5 @@
 const marketManager = require('../features/marketManager');
+const { BOOSTER_PACKS } = require('../src/boosterConfig');
 const db = require('../util/database');
 const gameData = require('../util/gameData');
 
@@ -41,7 +42,8 @@ describe('handleBoosterPurchase', () => {
       client: { channels: { cache: { get: jest.fn(() => ({ send: channelSend })) } } }
     };
 
-    await marketManager.handleBoosterPurchase(interaction, '123', 'hero_pack', 0);
+    const firstPack = Object.keys(BOOSTER_PACKS)[0];
+    await marketManager.handleBoosterPurchase(interaction, '123', firstPack, 0);
 
     expect(interaction.user.send).toHaveBeenCalledWith('💰 Debug: Your new gold balance is 50');
     expect(channelSend).toHaveBeenCalledWith('📣 **Tester** has obtained a new card: **Test Card** (Common)!');
