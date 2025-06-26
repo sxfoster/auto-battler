@@ -22,7 +22,6 @@ const { getTownMenu } = require('./commands/town.js');
 const marketManager = require('./features/marketManager');
 
 const { BOOSTER_PACKS } = require('./src/boosterConfig');
-const { getMarketplaceMenu } = require('./util/marketMenu');
 
 const STARTING_GOLD = 400;
 
@@ -793,48 +792,6 @@ client.on(Events.InteractionCreate, async interaction => {
                     break;
                 }
 
-                case 'market_auction_house': {
-                    await interaction.deferUpdate();
-                    const embed = simple(
-                        '🏛️ Auction House',
-                        [{ name: 'Coming Soon!', value: 'The Auction House will allow players to list and bid on cards. Stay tuned for this feature!' }]
-                    );
-                    const backButton = new ActionRowBuilder()
-                        .addComponents(
-                            new ButtonBuilder().setCustomId('back_to_market').setLabel('Back to Marketplace').setStyle(ButtonStyle.Secondary).setEmoji('⬅️')
-                        );
-                    await interaction.editReply({ embeds: [embed], components: [backButton] });
-                    break;
-                }
-                case 'market_tavern': {
-                    await interaction.deferUpdate();
-                    await interaction.editReply(getMarketplaceMenu('tavern'));
-                    break;
-                }
-                case 'market_armory': {
-                    await interaction.deferUpdate();
-                    await interaction.editReply(getMarketplaceMenu('armory'));
-                    break;
-                }
-                case 'market_altar': {
-                    await interaction.deferUpdate();
-                    await interaction.editReply(getMarketplaceMenu('altar'));
-                    break;
-                }
-                case (interaction.customId.startsWith('market_page_prev_') ? interaction.customId : (interaction.customId.startsWith('market_page_next_') ? interaction.customId : '')): {
-                    await interaction.deferUpdate();
-                    const parts = interaction.customId.split('_');
-                    const category = parts[3];
-                    const page = parseInt(parts[4], 10) || 0;
-                    await interaction.editReply(getMarketplaceMenu(category, page));
-                    break;
-                }
-                case (interaction.customId.startsWith('buy_pack_') ? interaction.customId : ''): {
-                    await interaction.deferUpdate();
-                    const packId = interaction.customId.replace('buy_pack_', '');
-                    await marketManager.handleBoosterPurchase(interaction, userId, packId, 0);
-                    break;
-                }
 
                 case 'view_inventory_from_pack': {
                     await interaction.deferUpdate();
@@ -844,25 +801,6 @@ client.on(Events.InteractionCreate, async interaction => {
                     } else {
                         await interaction.editReply({ content: 'Inventory command not found.', ephemeral: true });
                     }
-                    break;
-                }
-                case 'back_to_market': {
-                    await interaction.deferUpdate();
-                    const marketEmbed = simple(
-                        '💰 The Grand Bazaar',
-                        [{ name: 'Welcome to the Marketplace!', value: 'Here you can buy various goods for your journey.' }]
-                    );
-                    const shopButtons = new ActionRowBuilder()
-                        .addComponents(
-                            new ButtonBuilder().setCustomId('market_tavern').setLabel('The Tavern').setStyle(ButtonStyle.Primary).setEmoji('🍻'),
-                            new ButtonBuilder().setCustomId('market_armory').setLabel('The Armory').setStyle(ButtonStyle.Secondary).setEmoji('🛡️'),
-                            new ButtonBuilder().setCustomId('market_altar').setLabel('The Altar').setStyle(ButtonStyle.Danger).setEmoji('💀')
-                        );
-                    const navigationRow = new ActionRowBuilder()
-                        .addComponents(
-                            new ButtonBuilder().setCustomId('back_to_town').setLabel('Back to Town').setStyle(ButtonStyle.Secondary).setEmoji('⬅️')
-                        );
-                    await interaction.editReply({ embeds: [marketEmbed], components: [shopButtons, navigationRow] });
                     break;
                 }
                 case 'back_to_town': {
