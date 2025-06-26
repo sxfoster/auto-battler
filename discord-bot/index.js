@@ -38,7 +38,7 @@ const client = new Client({ intents: [GatewayIntentBits.Guilds] });
 client.commands = new Collection();
 
 // In-memory map to track active tutorial drafts
-// Key: userId, Value: { currentChampNum: 1, stage: 'hero_selection', champion1: {}, champion2: {} }
+// Key: userId, Value: { stage: 'hero_selection', champion1: {} }
 const activeTutorialDrafts = new Map();
 // In-memory map to track active deck edits
 // Key: userId, Value: { championId: number, deck: number[] }
@@ -172,25 +172,7 @@ async function checkAndApplyLevelUp(userId, championId, interaction) {
 client.on(Events.InteractionCreate, async interaction => {
     // --- Autocomplete Handler ---
     if (interaction.isAutocomplete()) {
-        if (interaction.commandName === 'team' && interaction.options.getSubcommand() === 'manage') {
-            const focused = interaction.options.getFocused(true);
-            if (focused.name === 'champion') {
-                try {
-                    const userId = interaction.user.id;
-                    const [rows] = await db.execute(
-                        `SELECT uc.id, h.name FROM user_champions uc JOIN heroes h ON uc.base_hero_id = h.id WHERE uc.user_id = ?`,
-                        [userId]
-                    );
-                    const filtered = rows
-                        .filter(r => r.name.toLowerCase().includes(focused.value.toLowerCase()))
-                        .slice(0, 25)
-                        .map(r => ({ name: r.name, value: r.id.toString() }));
-                    await interaction.respond(filtered);
-                } catch (err) {
-                    console.error('Autocomplete error:', err);
-                }
-            }
-        }
+        // team management autocomplete removed
         if (interaction.commandName === 'market' && interaction.options.getSubcommand() === 'list') {
             const focused = interaction.options.getFocused(true);
             if (focused.name === 'item') {
@@ -214,127 +196,7 @@ client.on(Events.InteractionCreate, async interaction => {
     }
     // --- Slash Command Handler ---
     if (interaction.isChatInputCommand()) {
-        if (interaction.commandName === 'team' && interaction.options.getSubcommand() === 'set-defense') {
-            try {
-                const userId = interaction.user.id;
-                const [ownedChampions] = await db.execute(
-                    'SELECT id, base_hero_id, level FROM user_champions WHERE user_id = ?',
-                    [userId]
-                );
-                if (ownedChampions.length < 1) {
-                    await interaction.reply({ content: 'You need at least one champion in your roster to set a defense team.', flags: [MessageFlags.Ephemeral] });
-                    return;
-                }
-
-                const options = ownedChampions.map(champion => {
-                    const staticData = getHeroById(champion.base_hero_id);
-                    const name = staticData ? staticData.name : `Unknown Hero (ID: ${champion.base_hero_id})`;
-                    const rarity = staticData ? staticData.rarity : 'Unknown';
-                    const heroClass = staticData ? staticData.class : 'Unknown';
-                    return {
-                        label: `${name} (Lvl ${champion.level})`,
-                        description: `${rarity} ${heroClass}`,
-                        value: champion.id.toString(),
-                    };
-                });
-
-                const selectMenu = new StringSelectMenuBuilder()
-                    .setCustomId('defense_team_select')
-                    .setPlaceholder('Select your defense team (1 Monster OR 2 Champions)')
-                    .setMinValues(1)
-                    .setMaxValues(2)
-                    .addOptions(options);
-                const row = new ActionRowBuilder().addComponents(selectMenu);
-                await interaction.reply({ content: 'Choose your defense team!', components: [row], flags: [MessageFlags.Ephemeral] });
-            } catch (error) {
-                console.error('Error preparing defense team selection:', error);
-                if (!interaction.replied) {
-                    await interaction.reply({ content: 'An error occurred while preparing your defense team.', flags: [MessageFlags.Ephemeral] });
-                }
-            }
-            return;
-        }
-            if (interaction.commandName === 'team' && interaction.options.getSubcommand() === 'manage') {
-                try {
-                    const userId = interaction.user.id;
-                    const championId = interaction.options.getString('champion');
-                    const [rows] = await db.execute(
-                        `SELECT uc.*, h.name, h.class FROM user_champions uc JOIN heroes h ON uc.base_hero_id = h.id WHERE uc.id = ? AND uc.user_id = ?`,
-                        [championId, userId]
-                    );
-                    if (rows.length === 0) {
-                        await interaction.reply({ content: 'Champion not found.', flags: [MessageFlags.Ephemeral] });
-                        return;
-                    }
-                    const champ = rows[0];
-
-                    // Fetch current deck abilities for this champion
-                    const [deckRows] = await db.execute(
-                        `SELECT cd.ability_id, a.name FROM champion_decks cd JOIN abilities a ON cd.ability_id = a.id WHERE cd.user_champion_id = ? ORDER BY cd.order_index ASC`,
-                        [championId]
-                    );
-                    const currentDeckAbilities = deckRows.map(row => row.name).join(', ') || 'None';
-
-                    // Fetch available ability cards from inventory that match champion's class
-                    const [invAbilityRows] = await db.execute(
-                        `SELECT ui.item_id, a.name FROM user_inventory ui JOIN abilities a ON ui.item_id = a.id WHERE ui.user_id = ? AND a.class = ? AND ui.quantity > 0`,
-                        [userId, champ.class]
-                    );
-                    const availableAbilityOptions = invAbilityRows.map(item => ({
-                        label: item.name,
-                        description: `Ability ID: ${item.item_id}`,
-                        value: String(item.item_id),
-                    }));
-
-                    const embed = new EmbedBuilder()
-                        .setColor('#29b6f6')
-                        .setTitle(`⚙️ Manage ${champ.name}`)
-                        .setThumbnail(getHeroById(champ.base_hero_id).imageUrl || null)
-                        .addFields(
-                            { name: 'Level', value: String(champ.level), inline: true },
-                            { name: 'XP', value: String(champ.xp || 0), inline: true },
-                            { name: 'Equipped Weapon', value: champ.equipped_weapon_id ? (allPossibleWeapons.find(w => w.id === champ.equipped_weapon_id)?.name || `ID ${champ.equipped_weapon_id}`) : 'None', inline: true },
-                            { name: 'Equipped Armor', value: champ.equipped_armor_id ? (allPossibleArmors.find(a => a.id === champ.equipped_armor_id)?.name || `ID ${champ.equipped_armor_id}`) : 'None', inline: true },
-                            { name: 'Equipped Ability (Slot 1)', value: champ.equipped_ability_id ? (allPossibleAbilities.find(ab => ab.id === champ.equipped_ability_id)?.name || `ID ${champ.equipped_ability_id}`) : 'None', inline: true },
-                            { name: 'Deck Abilities', value: currentDeckAbilities, inline: false }
-                        );
-
-                    const components = [];
-                    if (availableAbilityOptions.length > 0) {
-                        const deckAbilitySelect = new StringSelectMenuBuilder()
-                            .setCustomId(`manage_deck_ability_${championId}`)
-                            .setPlaceholder('Add an ability to deck (1st slot only)')
-                            .setMinValues(1)
-                            .setMaxValues(1)
-                            .addOptions(availableAbilityOptions.slice(0, 25));
-                        components.push(new ActionRowBuilder().addComponents(deckAbilitySelect));
-                    } else {
-                        components.push(new ActionRowBuilder().addComponents(
-                            new ButtonBuilder()
-                                .setCustomId('no_abilities_available')
-                                .setLabel('No Abilities Available for Deck')
-                                .setStyle(ButtonStyle.Secondary)
-                                .setDisabled(true)
-                        ));
-                    }
-
-                    const navigationRow = new ActionRowBuilder()
-                        .addComponents(
-                            new ButtonBuilder().setCustomId('back_to_barracks_from_champ').setLabel('Back to Roster').setStyle(ButtonStyle.Secondary).setEmoji('⬅️'),
-                            new ButtonBuilder().setCustomId('back_to_town').setLabel('Back to Town').setStyle(ButtonStyle.Secondary).setEmoji('🏠')
-                        );
-                    components.push(navigationRow);
-
-                    await interaction.reply({ embeds: [embed], components, flags: [MessageFlags.Ephemeral] });
-
-                } catch (err) {
-                    console.error('Error preparing champion management:', err);
-                    if (!interaction.replied) {
-                        await interaction.reply({ content: 'An error occurred while preparing this menu.', flags: [MessageFlags.Ephemeral] });
-                    }
-                }
-                return;
-            }
+        // team slash commands removed
         const command = client.commands.get(interaction.commandName);
         if (!command) {
             console.error(`No command matching ${interaction.commandName} was found.`);
@@ -367,10 +229,8 @@ client.on(Events.InteractionCreate, async interaction => {
                             userDraftState = {
                                 stage: 'NEW_FLOW_INITIAL_GREETING',
                                 champion1: {},
-                                champion2: {},
                                 receivedWelcomePack: false,
-                                initialGoldGranted: false,
-                                currentChampNum: 1
+                                initialGoldGranted: false
                             };
                             activeTutorialDrafts.set(userId, userDraftState);
                         }
@@ -395,16 +255,11 @@ client.on(Events.InteractionCreate, async interaction => {
                     case 'tutorial_confirm_tutorial_completion':
                         await finalizeTutorialCompletion(interaction, userId);
                         break;
-                    case 'tutorial_start_draft': // Initial button to start Champion 1 draft
+                    case 'tutorial_start_draft': // Begin champion draft
                         userDraftState.stage = 'HERO_SELECTION';
-                        await sendHeroSelectionStep(interaction, userId, userDraftState.currentChampNum);
+                        await sendHeroSelectionStep(interaction, userId, 1);
                         break;
-                    case 'tutorial_recap_1_continue':
-                        userDraftState.currentChampNum = 2;
-                        userDraftState.stage = 'HERO_SELECTION';
-                        await sendHeroSelectionStep(interaction, userId, userDraftState.currentChampNum);
-                        break;
-                    case 'tutorial_recap_2_finalize':
+                    case 'tutorial_recap_finalize':
                         await finalizeChampionTeam(interaction, userId);
                         break;
                     case 'tutorial_start_over':
@@ -847,9 +702,8 @@ client.on(Events.InteractionCreate, async interaction => {
             try {
                 await interaction.deferUpdate();
 
-                // Determine which champion's data to update based on currentChampNum
-                const currentChampionData = userDraftState.currentChampNum === 1 ? userDraftState.champion1 : userDraftState.champion2;
-                const champNum = userDraftState.currentChampNum;
+                const currentChampionData = userDraftState.champion1;
+                const champNum = 1;
 
                 switch (interaction.customId) {
                     case `tutorial_select_hero_${champNum}`:
@@ -869,13 +723,8 @@ client.on(Events.InteractionCreate, async interaction => {
                         break;
                     case `tutorial_select_armor_${champNum}`:
                         currentChampionData.armorId = parseInt(interaction.values[0]);
-                        if (userDraftState.currentChampNum === 1) {
-                            userDraftState.stage = 'RECAP_1';
-                            await sendChampionRecapStep(interaction, userId, userDraftState.currentChampNum);
-                        } else {
-                            userDraftState.stage = 'RECAP_2';
-                            await sendChampionRecapStep(interaction, userId, userDraftState.currentChampNum);
-                        }
+                        userDraftState.stage = 'RECAP';
+                        await sendChampionRecapStep(interaction, userId, champNum);
                         break;
                     default:
                         console.log(`Unhandled tutorial interaction (select menu): ${interaction.customId}`);
@@ -1147,25 +996,18 @@ client.on(Events.InteractionCreate, async interaction => {
                     return champ && champ.is_monster;
                 });
 
-                let playerChampion1_db, playerChampion2_db;
+                let playerChampion1_db;
 
                 if (monsterSelectionId) {
-                    if (selections.length > 1) {
-                        return interaction.update({ content: 'You cannot select a monster and another champion. A monster takes up the whole team.', components: [] });
-                    }
                     const [rows] = await db.execute('SELECT * FROM user_champions WHERE id = ?', [monsterSelectionId]);
                     playerChampion1_db = rows[0];
-                    playerChampion2_db = null;
                     const monsterName = getHeroById(playerChampion1_db.base_hero_id)?.name || 'Unknown Monster';
                     await interaction.update({ content: `You have chosen the monster: ${monsterName}! Preparing the battle...`, components: [] });
                 } else {
-                    await interaction.update({ content: 'Team selected! Preparing the battle...', components: [] });
-
-                    const [player_champion_id_1, player_champion_id_2] = selections;
-                    const [p1_rows] = await db.execute('SELECT * FROM user_champions WHERE id = ?', [player_champion_id_1]);
-                    const [p2_rows] = await db.execute('SELECT * FROM user_champions WHERE id = ?', [player_champion_id_2]);
+                    await interaction.update({ content: 'Champion selected! Preparing the battle...', components: [] });
+                    const selectedChampionId = selections[0];
+                    const [p1_rows] = await db.execute('SELECT * FROM user_champions WHERE id = ?', [selectedChampionId]);
                     playerChampion1_db = p1_rows[0];
-                    playerChampion2_db = p2_rows[0];
                 }
 
                 const [deckRows1] = await db.execute(
@@ -1174,98 +1016,29 @@ client.on(Events.InteractionCreate, async interaction => {
                 );
                 const deckAbilityIds1 = deckRows1.map(r => r.ability_id);
 
-                let deckAbilityIds2 = [];
-                if (playerChampion2_db) {
-                    const [dr2] = await db.execute(
-                        'SELECT ability_id FROM champion_decks WHERE user_champion_id = ? ORDER BY order_index ASC',
-                        [playerChampion2_db.id]
-                    );
-                    deckAbilityIds2 = dr2.map(r => r.ability_id);
-                }
+                const deckAbilityIds2 = [];
 
-                let isPvP = Math.random() < 0.25;
+                let isPvP = false;
                 let opponentName = 'Dungeon Monsters';
                 const combatants = [
-                    createCombatant({ hero_id: playerChampion1_db.base_hero_id, weapon_id: playerChampion1_db.equipped_weapon_id, armor_id: playerChampion1_db.equipped_armor_id, ability_id: playerChampion1_db.equipped_ability_id, deck: deckAbilityIds1 }, 'player', 0),
-                    playerChampion2_db ? createCombatant({ hero_id: playerChampion2_db.base_hero_id, weapon_id: playerChampion2_db.equipped_weapon_id, armor_id: playerChampion2_db.equipped_armor_id, ability_id: playerChampion2_db.equipped_ability_id, deck: deckAbilityIds2 }, 'player', 1) : null,
+                    createCombatant({ hero_id: playerChampion1_db.base_hero_id, weapon_id: playerChampion1_db.equipped_weapon_id, armor_id: playerChampion1_db.equipped_armor_id, ability_id: playerChampion1_db.equipped_ability_id, deck: deckAbilityIds1 }, 'player', 0)
                 ];
-
-                if (isPvP) {
-                    const [opponentRows] = await db.execute(
-                        'SELECT user_id FROM defense_teams WHERE user_id != ? ORDER BY RAND() LIMIT 1',
-                        [interaction.user.id]
-                    );
-                    if (opponentRows.length > 0) {
-                        const opponentId = opponentRows[0].user_id;
-                        const [[defTeam]] = await db.execute(
-                            'SELECT champion_1_id, champion_2_id FROM defense_teams WHERE user_id = ?',
-                            [opponentId]
-                        );
-                        const [e1] = await db.execute('SELECT * FROM user_champions WHERE id = ?', [defTeam.champion_1_id]);
-                        const enemy1_db = e1[0];
-                        let enemy2_db = null;
-                        if (defTeam.champion_2_id) {
-                            const [e2] = await db.execute('SELECT * FROM user_champions WHERE id = ?', [defTeam.champion_2_id]);
-                            enemy2_db = e2[0];
-                        }
-
-                        const userObj = await client.users.fetch(opponentId).catch(() => null);
-                        if (userObj) opponentName = userObj.username;
-
-                        const [ed1] = await db.execute(
-                            'SELECT ability_id FROM champion_decks WHERE user_champion_id = ? ORDER BY order_index ASC',
-                            [enemy1_db.id]
-                        );
-                        const enemyDeck1 = ed1.map(r => r.ability_id);
-                        combatants.push(
-                            createCombatant({ hero_id: enemy1_db.base_hero_id, weapon_id: enemy1_db.equipped_weapon_id, armor_id: enemy1_db.equipped_armor_id, ability_id: enemy1_db.equipped_ability_id, deck: enemyDeck1 }, 'enemy', 0)
-                        );
-                        if (enemy2_db) {
-                            const [ed2] = await db.execute(
-                                'SELECT ability_id FROM champion_decks WHERE user_champion_id = ? ORDER BY order_index ASC',
-                                [enemy2_db.id]
-                            );
-                            const enemyDeck2 = ed2.map(r => r.ability_id);
-                            combatants.push(
-                                createCombatant({ hero_id: enemy2_db.base_hero_id, weapon_id: enemy2_db.equipped_weapon_id, armor_id: enemy2_db.equipped_armor_id, ability_id: enemy2_db.equipped_ability_id, deck: enemyDeck2 }, 'enemy', 1)
-                            );
-                        }
-                    } else {
-                        isPvP = false;
-                    }
-                }
 
                 if (!isPvP) {
                     opponentName = 'Dungeon Monsters';
-                    const playerTeamSize = selections.length;
                     const [monsterRows] = await db.execute(
                         'SELECT id FROM heroes WHERE is_monster = TRUE'
                     );
                     const monsterIds = monsterRows.map(r => r.id);
-
-                    if (playerTeamSize <= 2) {
-                        const monsterId = monsterIds[Math.floor(Math.random() * monsterIds.length)];
-                        combatants.push(
-                            createCombatant({ hero_id: monsterId, weapon_id: null, armor_id: null, ability_id: null }, 'enemy', 0)
-                        );
-                    } else {
-                        const randIndex1 = Math.floor(Math.random() * monsterIds.length);
-                        let randIndex2 = Math.floor(Math.random() * monsterIds.length);
-                        while (randIndex2 === randIndex1 && monsterIds.length > 1) {
-                            randIndex2 = Math.floor(Math.random() * monsterIds.length);
-                        }
-                        const monsterId1 = monsterIds[randIndex1];
-                        const monsterId2 = monsterIds[randIndex2];
-                        combatants.push(
-                            createCombatant({ hero_id: monsterId1, weapon_id: null, armor_id: null, ability_id: null }, 'enemy', 0),
-                            createCombatant({ hero_id: monsterId2, weapon_id: null, armor_id: null, ability_id: null }, 'enemy', 1)
-                        );
-                    }
+                    const monsterId = monsterIds[Math.floor(Math.random() * monsterIds.length)];
+                    combatants.push(
+                        createCombatant({ hero_id: monsterId, weapon_id: null, armor_id: null, ability_id: null }, 'enemy', 0)
+                    );
                 }
 
                 const finalCombatants = combatants.filter(Boolean);
 
-                if (finalCombatants.length < 3) {
+                if (finalCombatants.length < 2) {
                     throw new Error('Failed to create all combatants for the battle. Check if all hero IDs are valid.');
                 }
                 const gameInstance = new GameEngine(finalCombatants);
@@ -1282,11 +1055,8 @@ client.on(Events.InteractionCreate, async interaction => {
                     const xpGain = 25;
                     const survivors = finalCombatants.filter(c => c.team === 'player' && c.currentHp > 0);
                     for (const survivor of survivors) {
-                        const champDb = survivor.position === 0 ? playerChampion1_db : playerChampion2_db;
-                        if (champDb) {
-                            await db.execute('UPDATE user_champions SET xp = xp + ? WHERE id = ?', [xpGain, champDb.id]);
-                            await checkAndApplyLevelUp(interaction.user.id, champDb.id, interaction);
-                        }
+                        await db.execute('UPDATE user_champions SET xp = xp + ? WHERE id = ?', [xpGain, playerChampion1_db.id]);
+                        await checkAndApplyLevelUp(interaction.user.id, playerChampion1_db.id, interaction);
                     }
                     const gold = Math.floor(Math.random() * 51) + 50;
                     await db.execute('UPDATE users SET soft_currency = soft_currency + ? WHERE discord_id = ?', [gold, interaction.user.id]);
@@ -1305,39 +1075,6 @@ client.on(Events.InteractionCreate, async interaction => {
             } catch (error) {
                 console.error('Error handling fight selection:', error);
                 await interaction.followUp({ content: 'An error occurred while starting the battle.', flags: [MessageFlags.Ephemeral] }).catch(() => {});
-            }
-        } else if (interaction.customId === 'defense_team_select') {
-            try {
-                const selections = interaction.values;
-
-                const monsterSelectionId = selections.find(id => {
-                    const champ = getHeroById(parseInt(id));
-                    return champ && champ.is_monster;
-                });
-
-                let champion1Id, champion2Id = null;
-
-                if (monsterSelectionId) {
-                    if (selections.length > 1) {
-                        return interaction.update({ content: 'You cannot select a monster and another champion. A monster takes up the whole team.', components: [] });
-                    }
-                    champion1Id = monsterSelectionId;
-                    champion2Id = null;
-                } else {
-                    [champion1Id, champion2Id] = selections;
-                }
-
-                await db.execute(
-                    `INSERT INTO defense_teams (user_id, champion_1_id, champion_2_id)
-                     VALUES (?, ?, ?)
-                     ON DUPLICATE KEY UPDATE champion_1_id = VALUES(champion_1_id), champion_2_id = VALUES(champion_2_id)`,
-                    [interaction.user.id, champion1Id, champion2Id || null]
-                );
-
-                await interaction.update({ content: 'Your defense team has been set!', components: [] });
-            } catch (error) {
-                console.error('Error setting defense team:', error);
-                await interaction.update({ content: 'An error occurred while setting your defense team.', components: [] });
             }
         } else if (interaction.customId.startsWith('equip_weapon_')) {
             try {
@@ -1412,9 +1149,8 @@ client.on(Events.InteractionCreate, async interaction => {
  * Sends the hero selection step for the given champion number.
  * @param {Interaction} interaction
  * @param {string} userId
- * @param {number} champNum - 1 or 2
  */
-async function sendHeroSelectionStep(interaction, userId, champNum) {
+async function sendHeroSelectionStep(interaction, userId, champNum = 1) {
     const commonHeroes = allPossibleHeroes.filter(h => h.rarity === 'Common');
     const heroOptions = commonHeroes.map(hero => ({
         label: hero.name,
@@ -1424,14 +1160,14 @@ async function sendHeroSelectionStep(interaction, userId, champNum) {
 
     const selectMenu = new StringSelectMenuBuilder()
         .setCustomId(`tutorial_select_hero_${champNum}`)
-        .setPlaceholder(`Choose your Hero for Champion ${champNum}`)
+        .setPlaceholder('Choose your Hero')
         .addOptions(heroOptions.slice(0, 5));
 
     const row = new ActionRowBuilder().addComponents(selectMenu);
 
     await interaction.editReply({
         embeds: [simple(
-            `Step 1: Choose Your Champion ${champNum}'s Hero`,
+            'Step 1: Choose Your Champion\'s Hero',
             [{ name: 'Select Your Core Hero', value: 'Heroes define your champion\'s class and base stats. Choose one to begin shaping your champion!' }]
         )],
         components: [row]
@@ -1443,11 +1179,10 @@ async function sendHeroSelectionStep(interaction, userId, champNum) {
  * Sends the ability selection step for the given champion number.
  * @param {Interaction} interaction
  * @param {string} userId
- * @param {number} champNum - 1 or 2
  */
-async function sendAbilitySelectionStep(interaction, userId, champNum) {
+async function sendAbilitySelectionStep(interaction, userId, champNum = 1) {
     const userDraftState = activeTutorialDrafts.get(userId);
-    const championData = champNum === 1 ? userDraftState.champion1 : userDraftState.champion2;
+    const championData = userDraftState.champion1;
     const selectedHero = allPossibleHeroes.find(h => h.id === championData.heroId);
     if (!selectedHero) {
         throw new Error('Selected hero not found for ability step.');
@@ -1462,14 +1197,14 @@ async function sendAbilitySelectionStep(interaction, userId, champNum) {
 
     const selectMenu = new StringSelectMenuBuilder()
         .setCustomId(`tutorial_select_ability_${champNum}`)
-        .setPlaceholder(`Choose a Basic Ability for Champion ${champNum}`)
+        .setPlaceholder('Choose a Basic Ability')
         .addOptions(abilityOptions.slice(0, 5));
 
     const row = new ActionRowBuilder().addComponents(selectMenu);
 
     await interaction.editReply({
         embeds: [simple(
-            `Step 2: Choose a Basic Ability for Champion ${champNum}`,
+            'Step 2: Choose a Basic Ability',
             [{ name: 'Equip a Skill', value: 'Abilities are powerful skills your champion can use in battle. Pick one that complements your hero!' }]
         )],
         components: [row]
@@ -1481,9 +1216,8 @@ async function sendAbilitySelectionStep(interaction, userId, champNum) {
  * Sends the weapon selection step for the given champion number.
  * @param {Interaction} interaction
  * @param {string} userId
- * @param {number} champNum - 1 or 2
  */
-async function sendWeaponSelectionStep(interaction, userId, champNum) {
+async function sendWeaponSelectionStep(interaction, userId, champNum = 1) {
     const commonWeapons = allPossibleWeapons.filter(w => w.rarity === 'Common');
     const weaponOptions = commonWeapons.map(weapon => ({
         label: weapon.name,
@@ -1493,14 +1227,14 @@ async function sendWeaponSelectionStep(interaction, userId, champNum) {
 
     const selectMenu = new StringSelectMenuBuilder()
         .setCustomId(`tutorial_select_weapon_${champNum}`)
-        .setPlaceholder(`Choose a Basic Weapon for Champion ${champNum}`)
+        .setPlaceholder('Choose a Basic Weapon')
         .addOptions(weaponOptions.slice(0, 5));
 
     const row = new ActionRowBuilder().addComponents(selectMenu);
 
     await interaction.editReply({
         embeds: [simple(
-            `Step 3: Choose a Basic Weapon for Champion ${champNum}`,
+            'Step 3: Choose a Basic Weapon',
             [{ name: 'Arm Your Champion', value: 'Weapons augment your champion\'s attacks and can provide unique effects.' }]
         )],
         components: [row]
@@ -1512,9 +1246,8 @@ async function sendWeaponSelectionStep(interaction, userId, champNum) {
  * Sends the armor selection step for the given champion number.
  * @param {Interaction} interaction
  * @param {string} userId
- * @param {number} champNum - 1 or 2
  */
-async function sendArmorSelectionStep(interaction, userId, champNum) {
+async function sendArmorSelectionStep(interaction, userId, champNum = 1) {
     const commonArmors = allPossibleArmors.filter(a => a.rarity === 'Common');
     const armorOptions = commonArmors.map(armor => ({
         label: armor.name,
@@ -1524,14 +1257,14 @@ async function sendArmorSelectionStep(interaction, userId, champNum) {
 
     const selectMenu = new StringSelectMenuBuilder()
         .setCustomId(`tutorial_select_armor_${champNum}`)
-        .setPlaceholder(`Choose a Basic Armor for Champion ${champNum}`)
+        .setPlaceholder('Choose a Basic Armor')
         .addOptions(armorOptions.slice(0, 5));
 
     const row = new ActionRowBuilder().addComponents(selectMenu);
 
     await interaction.editReply({
         embeds: [simple(
-            `Step 4: Choose a Basic Armor for Champion ${champNum}`,
+            'Step 4: Choose a Basic Armor',
             [{ name: 'Protect Your Champion', value: 'Armor provides crucial defense, mitigating incoming damage.' }]
         )],
         components: [row]
@@ -1543,11 +1276,10 @@ async function sendArmorSelectionStep(interaction, userId, champNum) {
  * Displays the recap for a single champion during the tutorial.
  * @param {Interaction} interaction
  * @param {string} userId
- * @param {number} champNum - The champion number being recapped (1 or 2)
  */
-async function sendChampionRecapStep(interaction, userId, champNum) {
+async function sendChampionRecapStep(interaction, userId, champNum = 1) {
     const userDraftState = activeTutorialDrafts.get(userId);
-    const championData = champNum === 1 ? userDraftState.champion1 : userDraftState.champion2;
+    const championData = userDraftState.champion1;
 
     const hero = allPossibleHeroes.find(h => h.id === championData.heroId);
     const ability = allPossibleAbilities.find(ab => ab.id === championData.abilityId);
@@ -1565,7 +1297,7 @@ async function sendChampionRecapStep(interaction, userId, champNum) {
 
     const embed = new EmbedBuilder()
         .setColor('#29b6f6')
-        .setTitle(`Champion ${champNum} Assembled!`)
+        .setTitle('Champion Assembled!')
         .setDescription(`**${detailedInfo.name}** - the **${detailedInfo.class}**`)
         .setThumbnail(detailedInfo.imageUrl || 'https://placehold.co/100x100')
         .addFields(
@@ -1580,20 +1312,10 @@ async function sendChampionRecapStep(interaction, userId, champNum) {
         )
         .setTimestamp();
 
-    let buttonLabel = '';
-    let customId = '';
-    let buttonStyle = ButtonStyle.Primary;
-
-    if (champNum === 1) {
-        buttonLabel = 'Draft Second Champion';
-        customId = 'tutorial_recap_1_continue';
-        embed.setFooter({ text: 'Next, you will draft your second champion.' });
-    } else {
-        buttonLabel = 'Finalize Team & Begin Adventure!';
-        customId = 'tutorial_recap_2_finalize';
-        buttonStyle = ButtonStyle.Success;
-        embed.setFooter({ text: 'Your team is complete! Confirm to save them to your roster.' });
-    }
+    const buttonLabel = 'Finalize Champion & Begin Adventure!';
+    const customId = 'tutorial_recap_finalize';
+    const buttonStyle = ButtonStyle.Success;
+    embed.setFooter({ text: 'Confirm to save your champion to the roster.' });
 
     const actionRow = new ActionRowBuilder()
         .addComponents(
@@ -1677,18 +1399,16 @@ async function insertAndDeckChampion(userId, champData) {
 }
 
 /**
- * Finalizes both champions and saves them to the database.
+ * Finalizes the drafted champion and saves it to the database.
  * @param {Interaction} interaction
  * @param {string} userId
  */
 async function finalizeChampionTeam(interaction, userId) {
     const userDraftState = activeTutorialDrafts.get(userId);
     const champion1Data = userDraftState.champion1;
-    const champion2Data = userDraftState.champion2;
 
     try {
         await insertAndDeckChampion(userId, champion1Data);
-        await insertAndDeckChampion(userId, champion2Data);
 
         await db.execute(
             'UPDATE users SET tutorial_completed = TRUE WHERE discord_id = ?',
@@ -1698,10 +1418,9 @@ async function finalizeChampionTeam(interaction, userId) {
         activeTutorialDrafts.delete(userId);
 
         const hero1 = allPossibleHeroes.find(h => h.id === champion1Data.heroId);
-        const hero2 = allPossibleHeroes.find(h => h.id === champion2Data.heroId);
 
         const embed = confirmEmbed(
-            `Your team of **${hero1.name}** and **${hero2.name}** has been created and added to your roster!`
+            `Your champion **${hero1.name}** has been created and added to your roster!`
         );
         embed.setDescription('You\'re all set! Now you can manage your champions or jump into the Dungeon!');
 
@@ -1945,21 +1664,14 @@ async function openWelcomePackAndGrantGold(interaction, userId) {
     const userDraftState = activeTutorialDrafts.get(userId);
 
     const champion1Kit = await generateRandomChampionKit();
-    let champion2Kit = await generateRandomChampionKit();
-    while (champion2Kit.heroId === champion1Kit.heroId && allPossibleHeroes.length > 1) {
-        champion2Kit = await generateRandomChampionKit();
-    }
 
     userDraftState.champion1 = champion1Kit;
-    userDraftState.champion2 = champion2Kit;
 
     const names = [];
 
     try {
         await insertAndDeckChampion(userId, champion1Kit);
-        await insertAndDeckChampion(userId, champion2Kit);
         names.push(`**${champion1Kit.heroData.name}** (Common) - Equipped`);
-        names.push(`**${champion2Kit.heroData.name}** (Common) - Equipped`);
     } catch (error) {
         console.error('Error inserting welcome pack champions:', error);
         await interaction.editReply({ content: 'Failed to create your starting champions due to a database error. Please try `/start` again.', components: [] });
@@ -1979,9 +1691,9 @@ async function openWelcomePackAndGrantGold(interaction, userId) {
     const resultsEmbed = new EmbedBuilder()
         .setColor('#84cc16')
         .setTitle('🎉 Heroic Beginnings Pack Opened! 🎉')
-        .setDescription(`You received two powerful champions and ${STARTING_GOLD} Gold to get started!`)
+        .setDescription(`You received a brave champion and ${STARTING_GOLD} Gold to get started!`)
         .addFields(
-            { name: 'New Champions:', value: names.join('\n'), inline: false },
+            { name: 'New Champion:', value: names.join('\n'), inline: false },
             { name: 'Starting Gold:', value: `🪙 ${STARTING_GOLD}`, inline: true }
         )
         .setFooter({ text: 'Time to expand your collection!' })
