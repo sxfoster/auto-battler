@@ -19,63 +19,8 @@ const { loadAllData, gameData, getHeroes, getHeroById, getMonsters, getRandomCar
 const { createCombatant } = require('../backend/game/utils');
 const GameEngine = require('../backend/game/engine');
 const { getTownMenu } = require('./commands/town.js');
-const marketManager = require('./features/marketManager');
 
 const { BOOSTER_PACKS } = require('./src/boosterConfig');
-
-function getMarketplaceMenu(category = 'tavern', page = 0) {
-    const ITEMS_PER_PAGE = 10;
-    const CATEGORY_INFO = {
-        tavern: { title: '🍻 The Tavern', field: { name: 'Champions & Abilities', value: 'Recruit new heroes and learn new skills.' } },
-        armory: { title: '🛡️ The Armory', field: { name: 'Weapons & Armor', value: 'Outfit your champions with the finest gear.' } },
-        altar: { title: '💀 The Altar', field: { name: 'Monsters & Powers', value: 'Unleash forbidden powers and monstrous allies.' } }
-    };
-
-    const info = CATEGORY_INFO[category] || { title: 'Marketplace', field: { name: 'Packs', value: 'Available booster packs' } };
-    const embed = simple(info.title, [info.field]);
-
-    const packs = Object.entries(BOOSTER_PACKS).filter(([, p]) => p.category === category);
-    const totalPages = Math.ceil(packs.length / ITEMS_PER_PAGE);
-    const start = page * ITEMS_PER_PAGE;
-    const pagePacks = packs.slice(start, start + ITEMS_PER_PAGE);
-
-    const selectMenu = new StringSelectMenuBuilder()
-        .setCustomId(`market_pack_select_${category}_${page}`)
-        .setPlaceholder('Choose a booster pack')
-        .addOptions(pagePacks.map(([id, p]) => ({
-            label: p.name,
-            description: `${p.cost} ${p.currency === 'soft_currency' ? 'Gold 🪙' : 'Gems 💎'}`,
-            value: id
-        })));
-
-    const categoryRow = new ActionRowBuilder().addComponents(
-        new ButtonBuilder().setCustomId('market_tavern').setLabel('The Tavern').setStyle(ButtonStyle.Primary).setEmoji('🍻').setDisabled(category === 'tavern'),
-        new ButtonBuilder().setCustomId('market_armory').setLabel('The Armory').setStyle(ButtonStyle.Secondary).setEmoji('🛡️').setDisabled(category === 'armory'),
-        new ButtonBuilder().setCustomId('market_altar').setLabel('The Altar').setStyle(ButtonStyle.Danger).setEmoji('💀').setDisabled(category === 'altar')
-    );
-
-    const selectRow = new ActionRowBuilder().addComponents(selectMenu);
-    const paginationRow = new ActionRowBuilder().addComponents(
-        new ButtonBuilder()
-            .setCustomId(`market_page_prev_${category}_${page - 1}`)
-            .setLabel('Previous')
-            .setStyle(ButtonStyle.Secondary)
-            .setEmoji('⬅️')
-            .setDisabled(page === 0),
-        new ButtonBuilder()
-            .setCustomId(`market_page_next_${category}_${page + 1}`)
-            .setLabel('Next')
-            .setStyle(ButtonStyle.Secondary)
-            .setEmoji('➡️')
-            .setDisabled(page >= totalPages - 1)
-    );
-
-    const backButton = new ActionRowBuilder().addComponents(
-        new ButtonBuilder().setCustomId('back_to_market').setLabel('Back to Marketplace').setStyle(ButtonStyle.Secondary).setEmoji('⬅️')
-    );
-
-    return { embeds: [embed], components: [categoryRow, selectRow, paginationRow, backButton], ephemeral: true };
-}
 
 const STARTING_GOLD = 400;
 
@@ -889,71 +834,6 @@ client.on(Events.InteractionCreate, async interaction => {
                 case 'town_craft':
                     await interaction.reply({ content: 'This feature is coming soon!', ephemeral: true });
                     break;
-                case 'town_market': {
-                    await interaction.deferUpdate();
-
-                    const marketEmbed = simple(
-                        '💰 The Grand Bazaar',
-                        [{ name: 'Welcome to the Marketplace!', value: 'Here you can buy various goods for your journey.' }]
-                    );
-
-                    const shopButtons = new ActionRowBuilder()
-                        .addComponents(
-                            new ButtonBuilder().setCustomId('market_tavern').setLabel('The Tavern').setStyle(ButtonStyle.Primary).setEmoji('🍻'),
-                            new ButtonBuilder().setCustomId('market_armory').setLabel('The Armory').setStyle(ButtonStyle.Secondary).setEmoji('🛡️'),
-                            new ButtonBuilder().setCustomId('market_altar').setLabel('The Altar').setStyle(ButtonStyle.Danger).setEmoji('💀')
-                        );
-                    const navigationRow = new ActionRowBuilder()
-                        .addComponents(
-                            new ButtonBuilder().setCustomId('back_to_town').setLabel('Back to Town').setStyle(ButtonStyle.Secondary).setEmoji('⬅️')
-                        );
-
-                    await interaction.editReply({ embeds: [marketEmbed], components: [shopButtons, navigationRow] });
-                    break;
-                }
-
-                case 'market_auction_house': {
-                    await interaction.deferUpdate();
-                    const embed = simple(
-                        '🏛️ Auction House',
-                        [{ name: 'Coming Soon!', value: 'The Auction House will allow players to list and bid on cards. Stay tuned for this feature!' }]
-                    );
-                    const backButton = new ActionRowBuilder()
-                        .addComponents(
-                            new ButtonBuilder().setCustomId('back_to_market').setLabel('Back to Marketplace').setStyle(ButtonStyle.Secondary).setEmoji('⬅️')
-                        );
-                    await interaction.editReply({ embeds: [embed], components: [backButton] });
-                    break;
-                }
-                case 'market_tavern': {
-                    await interaction.deferUpdate();
-                    await interaction.editReply(getMarketplaceMenu('tavern'));
-                    break;
-                }
-                case 'market_armory': {
-                    await interaction.deferUpdate();
-                    await interaction.editReply(getMarketplaceMenu('armory'));
-                    break;
-                }
-                case 'market_altar': {
-                    await interaction.deferUpdate();
-                    await interaction.editReply(getMarketplaceMenu('altar'));
-                    break;
-                }
-                case (interaction.customId.startsWith('market_page_prev_') ? interaction.customId : (interaction.customId.startsWith('market_page_next_') ? interaction.customId : '')): {
-                    await interaction.deferUpdate();
-                    const parts = interaction.customId.split('_');
-                    const category = parts[3];
-                    const page = parseInt(parts[4], 10) || 0;
-                    await interaction.editReply(getMarketplaceMenu(category, page));
-                    break;
-                }
-                case (interaction.customId.startsWith('buy_pack_') ? interaction.customId : ''): {
-                    await interaction.deferUpdate();
-                    const packId = interaction.customId.replace('buy_pack_', '');
-                    await marketManager.handleBoosterPurchase(interaction, userId, packId, 0);
-                    break;
-                }
 
                 case 'view_inventory_from_pack': {
                     await interaction.deferUpdate();
@@ -963,25 +843,6 @@ client.on(Events.InteractionCreate, async interaction => {
                     } else {
                         await interaction.editReply({ content: 'Inventory command not found.', ephemeral: true });
                     }
-                    break;
-                }
-                case 'back_to_market': {
-                    await interaction.deferUpdate();
-                    const marketEmbed = simple(
-                        '💰 The Grand Bazaar',
-                        [{ name: 'Welcome to the Marketplace!', value: 'Here you can buy various goods for your journey.' }]
-                    );
-                    const shopButtons = new ActionRowBuilder()
-                        .addComponents(
-                            new ButtonBuilder().setCustomId('market_tavern').setLabel('The Tavern').setStyle(ButtonStyle.Primary).setEmoji('🍻'),
-                            new ButtonBuilder().setCustomId('market_armory').setLabel('The Armory').setStyle(ButtonStyle.Secondary).setEmoji('🛡️'),
-                            new ButtonBuilder().setCustomId('market_altar').setLabel('The Altar').setStyle(ButtonStyle.Danger).setEmoji('💀')
-                        );
-                    const navigationRow = new ActionRowBuilder()
-                        .addComponents(
-                            new ButtonBuilder().setCustomId('back_to_town').setLabel('Back to Town').setStyle(ButtonStyle.Secondary).setEmoji('⬅️')
-                        );
-                    await interaction.editReply({ embeds: [marketEmbed], components: [shopButtons, navigationRow] });
                     break;
                 }
                 case 'back_to_town': {
@@ -1008,15 +869,6 @@ client.on(Events.InteractionCreate, async interaction => {
     if (interaction.isStringSelectMenu()) {
         const userId = interaction.user.id;
         const userDraftState = activeTutorialDrafts.get(userId);
-        if (interaction.customId.startsWith('market_pack_select_')) {
-            await interaction.deferUpdate();
-            const parts = interaction.customId.split('_');
-            const category = parts[3];
-            const page = parseInt(parts[4], 10) || 0;
-            const packId = interaction.values[0];
-            await marketManager.handleBoosterPurchase(interaction, userId, packId, page);
-            return;
-        }
         if (interaction.customId.startsWith('tutorial_') || userDraftState) {
             try {
                 await interaction.deferUpdate();
