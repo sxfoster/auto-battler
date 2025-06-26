@@ -7,7 +7,7 @@ const db = require('../util/database');
  * @returns {object} The message payload for Discord's reply function.
  */
 
-function getTownMenu(showTutorialButton = false) {
+function getTownMenu(showTutorialButton = true) {
     const embed = new EmbedBuilder()
         .setColor('#29b6f6')
         .setTitle('Welcome to the Town Square')
@@ -37,8 +37,7 @@ function getTownMenu(showTutorialButton = false) {
 
     const row2 = new ActionRowBuilder()
         .addComponents(
-            new ButtonBuilder().setCustomId('town_forge').setLabel('The Forge').setStyle(ButtonStyle.Secondary).setEmoji('🔥').setDisabled(true),
-            new ButtonBuilder().setCustomId('town_market').setLabel('Marketplace').setStyle(ButtonStyle.Secondary).setEmoji('💰').setDisabled(false)
+            new ButtonBuilder().setCustomId('town_forge').setLabel('The Forge').setStyle(ButtonStyle.Secondary).setEmoji('🔥').setDisabled(true)
         );
 
     const row3 = new ActionRowBuilder()
@@ -85,7 +84,7 @@ module.exports = {
             );
             // As a fallback, we won't show the tutorial button if the database check fails.
         }
-        await interaction.reply(getTownMenu(showTutorial));
+        await interaction.reply(getTownMenu());
     },
     getTownMenu,
 };
