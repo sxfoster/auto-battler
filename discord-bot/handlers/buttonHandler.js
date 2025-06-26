@@ -1,4 +1,5 @@
 const tutorialManager = require('../features/tutorialManager');
+const beginManager = require('../features/beginManager');
 const { getTownMenu } = require('../commands/town');
 
 module.exports = async (interaction) => {
@@ -10,6 +11,9 @@ module.exports = async (interaction) => {
         return;
     }
     switch (customId) {
+        case 'begin_show_class_selection':
+            await beginManager.showClassSelection(interaction);
+            break;
         case 'back_to_town':
             await interaction.update(getTownMenu());
             break;

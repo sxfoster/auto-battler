@@ -1,3 +1,4 @@
+// TODO: Legacy tutorial manager. Remove once new onboarding flow is stable.
 const { MessageFlags } = require('discord.js');
 const { ActionRowBuilder, ButtonBuilder, ButtonStyle, StringSelectMenuBuilder, EmbedBuilder } = require('discord.js');
 const confirmEmbed = require('../src/utils/confirm');
@@ -339,28 +340,10 @@ async function finalizeTutorialCompletion(interaction, userId) {
         await interaction.editReply({ content: 'Failed to mark tutorial as complete due to an error. Please try again.', components: [] });
     }
 }
-
-module.exports = {
-    STARTING_GOLD,
-    activeTutorialDrafts,
-    sendHeroSelectionStep,
-    sendAbilitySelectionStep,
-    sendWeaponSelectionStep,
-    sendArmorSelectionStep,
-    sendChampionRecapStep,
-    insertAndDeckChampion,
-    finalizeChampionTeam,
-    generateRandomChampion,
-    generateRandomChampionKit,
-    sendWelcomePackStep,
-    openWelcomePackAndGrantGold,
-    sendInitialGoldAndBoosterStore,
-    finalizeTutorialCompletion
-};
-
 function handleTutorialButton(interaction) {
     const userId = interaction.user.id;
     let userDraftState = activeTutorialDrafts.get(userId);
+
     switch (interaction.customId) {
         case 'tutorial_start_new_flow':
             if (!userDraftState) {

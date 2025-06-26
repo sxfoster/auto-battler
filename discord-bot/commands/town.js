@@ -19,12 +19,12 @@ function getTownMenu(showTutorialButton = true) {
 
     const components = [];
 
-    // Conditionally add the tutorial button at the very top if needed.
+    // Conditionally add the onboarding button at the very top if needed.
     if (showTutorialButton) {
         const tutorialRow = new ActionRowBuilder().addComponents(
             new ButtonBuilder()
-                .setCustomId('tutorial_start_new_flow')
-                .setLabel('Begin Your Training')
+                .setCustomId('begin_show_class_selection')
+                .setLabel('Begin Your Adventure')
                 .setStyle(ButtonStyle.Success)
                 .setEmoji('🎓')
         );
