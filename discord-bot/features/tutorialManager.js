@@ -199,7 +199,7 @@ async function insertAndDeckChampion(userId, champData) {
         if (champData.abilityId) {
             await connection.execute(
                 `INSERT INTO champion_decks (user_champion_id, ability_id, order_index) VALUES (?, ?, 0)`,
-                [newChampionId, champData.abilityId, 0]
+                [newChampionId, champData.abilityId]
             );
         }
         await connection.commit();

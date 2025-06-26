@@ -1642,7 +1642,7 @@ async function insertAndDeckChampion(userId, champData) {
             try {
                 await connection.execute(
                     `INSERT INTO champion_decks (user_champion_id, ability_id, order_index) VALUES (?, ?, 0)`,
-                    [newChampionId, champData.abilityId, 0]
+                    [newChampionId, champData.abilityId]
                 );
                 console.log(`[DEBUG] Successfully inserted champion_decks entry for champion ID: ${newChampionId}`);
             } catch (deckInsertError) {
