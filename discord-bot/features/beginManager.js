@@ -2,6 +2,7 @@ const { MessageFlags } = require('discord.js');
 const { ActionRowBuilder, StringSelectMenuBuilder, EmbedBuilder } = require('discord.js');
 const db = require('../util/database');
 const { simple } = require('../src/utils/embedBuilder');
+const { startEquipFlow } = require('./equipManager');
 const { allPossibleAbilities } = require('../../backend/game/data');
 const { getRandomCardsForPack } = require('../util/gameData');
 
@@ -65,7 +66,8 @@ async function openStarterPack(chosenClass, userId, interaction) {
     const fields = cards.map(c => ({ name: c.name, value: c.effect }));
     try {
         const embed = simple('🎁 Starter Pack', fields);
-        await interaction.followUp({ embeds: [embed] });
+        const msg = await interaction.followUp({ embeds: [embed] });
+        await startEquipFlow(interaction, userId);
     } catch (err) {
         console.error('Failed to send starter pack embed:', err);
         await interaction.followUp({ content: 'Failed to send starter pack info.', flags: [MessageFlags.Ephemeral] }).catch(() => {});
