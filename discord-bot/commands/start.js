@@ -1,3 +1,4 @@
+const { InteractionResponseFlags } = require('discord-api-types/v10');
 const { SlashCommandBuilder } = require('discord.js');
 const { simple } = require('../src/utils/embedBuilder');
 
@@ -10,6 +11,6 @@ module.exports = {
             'Welcome to the Grand Adventure!',
             [{ name: 'Your Journey Begins!', value: 'Use the `/town` command to get started. If you are a new player, a "Begin Your Training" button will appear to guide you!' }]
         );
-        await interaction.reply({ embeds: [embed], ephemeral: true });
+        await interaction.reply({ embeds: [embed], flags: [InteractionResponseFlags.EPHEMERAL] });
     },
 };

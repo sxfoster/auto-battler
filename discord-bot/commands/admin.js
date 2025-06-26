@@ -1,3 +1,4 @@
+const { InteractionResponseFlags } = require('discord-api-types/v10');
 const { SlashCommandBuilder, PermissionFlagsBits } = require('discord.js');
 const db = require('../util/database');
 const { simple, sendCardDM } = require('../src/utils/embedBuilder');
@@ -35,7 +36,7 @@ module.exports = {
         if (!interaction.member.roles.cache.some(role => role.name === requiredRoleName)) {
             return interaction.reply({
                 embeds: [simple('🚫 Access Denied', [{ name: 'Error', value: 'You do not have permission to use this command.' }])],
-                ephemeral: true
+                flags: [InteractionResponseFlags.EPHEMERAL]
             });
         }
 
@@ -44,7 +45,7 @@ module.exports = {
             const amount = interaction.options.getInteger('amount');
 
             if (amount <= 0) {
-                return interaction.reply({ content: 'Please provide a positive amount of gold.', ephemeral: true });
+                return interaction.reply({ content: 'Please provide a positive amount of gold.', flags: [InteractionResponseFlags.EPHEMERAL] });
             }
 
             try {
@@ -55,17 +56,17 @@ module.exports = {
                     '💰 Gold Granted',
                     [{ name: 'Success!', value: `Successfully granted ${amount} gold to ${targetUser.username}.` }]
                 );
-                await interaction.reply({ embeds: [successEmbed], ephemeral: true });
+                await interaction.reply({ embeds: [successEmbed], flags: [InteractionResponseFlags.EPHEMERAL] });
             } catch (error) {
                 console.error('Error granting gold:', error);
-                await interaction.reply({ content: 'An error occurred while granting gold.', ephemeral: true });
+                await interaction.reply({ content: 'An error occurred while granting gold.', flags: [InteractionResponseFlags.EPHEMERAL] });
             }
         } else if (interaction.options.getSubcommand() === 'grant-recruit') {
             const targetUser = interaction.options.getUser('target') || interaction.user;
             const recruit = allPossibleHeroes.find(h => h.id === 101);
 
             if (!recruit) {
-                return interaction.reply({ content: 'Recruit card data not found.', ephemeral: true });
+                return interaction.reply({ content: 'Recruit card data not found.', flags: [InteractionResponseFlags.EPHEMERAL] });
             }
 
             try {
@@ -79,10 +80,10 @@ module.exports = {
                 console.log(`DMing recruit card to user ${targetUser.username} (${targetUser.id})`);
                 await sendCardDM(targetUser, recruit);
 
-                await interaction.reply({ content: "Successfully sent the Recruit card to the user's DMs.", ephemeral: true });
+                await interaction.reply({ content: "Successfully sent the Recruit card to the user's DMs.", flags: [InteractionResponseFlags.EPHEMERAL] });
             } catch (error) {
                 console.error('Error granting recruit:', error);
-                await interaction.reply({ content: 'An error occurred while granting the Recruit card.', ephemeral: true });
+                await interaction.reply({ content: 'An error occurred while granting the Recruit card.', flags: [InteractionResponseFlags.EPHEMERAL] });
             }
         }
     },

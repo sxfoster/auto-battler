@@ -1,3 +1,4 @@
+const { InteractionResponseFlags } = require('discord-api-types/v10');
 const { SlashCommandBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder } = require('discord.js');
 const db = require('../util/database');
 
@@ -41,7 +42,7 @@ function getTownMenu(showTutorialButton = true) {
 
     components.push(row);
 
-    return { embeds: [embed], components: components, ephemeral: true };
+    return { embeds: [embed], components: components, flags: [InteractionResponseFlags.EPHEMERAL] };
 }
 
 module.exports = {

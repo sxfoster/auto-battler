@@ -1,3 +1,4 @@
+const { InteractionResponseFlags } = require('discord-api-types/v10');
 const { SlashCommandBuilder } = require('discord.js');
 const embedBuilder = require('../src/utils/embedBuilder');
 const confirm = require('../src/utils/confirm');
@@ -11,10 +12,10 @@ module.exports = {
     const name = interaction.options.getString('name');
     // TODO: add new column in DB
     // TODO: persist card to database
-    await interaction.reply({ embeds: [embedBuilder.simple(`Card ${name} added.`)], ephemeral: true });
+    await interaction.reply({ embeds: [embedBuilder.simple(`Card ${name} added.`)], flags: [InteractionResponseFlags.EPHEMERAL] });
     await interaction.followUp({
       embeds: [ confirm('Your card has been added to your collection.') ],
-      ephemeral: true
+      flags: [InteractionResponseFlags.EPHEMERAL]
     });
   }
 };
