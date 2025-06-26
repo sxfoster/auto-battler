@@ -22,9 +22,14 @@ jest.mock('../../backend/game/data', () => ({
   ]
 }));
 
+jest.mock('../features/equipManager', () => ({
+  startEquipFlow: jest.fn()
+}));
+
 const beginCommand = require('../commands/begin');
 const selectMenuHandler = require('../handlers/selectMenuHandler');
 const beginManager = require('../features/beginManager');
+const equipManager = require('../features/equipManager');
 
 describe('begin command flow', () => {
   test('executing /begin calls showClassSelection', async () => {
@@ -53,6 +58,7 @@ describe('begin command flow', () => {
       editReply: jest.fn().mockResolvedValue(),
       followUp: jest.fn().mockResolvedValue()
     };
+    equipManager.startEquipFlow.mockResolvedValue();
     gameData.getRandomCardsForPack.mockReturnValue([
       { id: 1, name: 'Bolt', class: 'Mage', effect: 'Zap' },
       { id: 2, name: 'Fireball', class: 'Mage', effect: 'Burn' },
@@ -71,5 +77,6 @@ describe('begin command flow', () => {
       ['99', 1, 'ability']
     );
     expect(interaction.followUp).toHaveBeenCalledWith(expect.objectContaining({ embeds: [expect.any(Object)] }));
+    expect(equipManager.startEquipFlow).toHaveBeenCalledWith(interaction, '99');
   });
 });
