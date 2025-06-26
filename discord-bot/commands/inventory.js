@@ -1,4 +1,4 @@
-const { InteractionResponseFlags } = require('discord-api-types/v10');
+const { MessageFlags } = require('discord.js');
 const { SlashCommandBuilder, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
 const { simple } = require('../src/utils/embedBuilder');
 const db = require('../util/database');
@@ -24,7 +24,7 @@ module.exports = {
         if (interaction.isChatInputCommand()) {
             try {
                 console.log('[INVENTORY DEBUG] Attempting to deferReply for slash command.');
-                await interaction.deferReply({ flags: [InteractionResponseFlags.EPHEMERAL] });
+                await interaction.deferReply({ flags: [MessageFlags.Ephemeral] });
                 interactionHandledByThisCommand = true;
                 console.log(`[INVENTORY DEBUG] deferReply successful. interactionHandledByThisCommand: ${interactionHandledByThisCommand}`);
             } catch (deferError) {

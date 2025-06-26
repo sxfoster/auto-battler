@@ -1,4 +1,4 @@
-const { InteractionResponseFlags } = require('discord-api-types/v10');
+const { MessageFlags } = require('discord.js');
 const { SlashCommandBuilder } = require('discord.js');
 
 module.exports = {
@@ -27,6 +27,6 @@ module.exports = {
         // The core functionality for 'manage' is now driven by the Barracks UI flow.
         // You can leave this execute empty or provide a basic ephemeral reply
         // directing the user to the /town command if they try to use /team manage directly.
-        await interaction.reply({ content: "Please use the `/town` command and then navigate to Barracks to manage your champions. This command is mainly for internal use or specific direct champion selection.", flags: [InteractionResponseFlags.EPHEMERAL] });
+        await interaction.reply({ content: "Please use the `/town` command and then navigate to Barracks to manage your champions. This command is mainly for internal use or specific direct champion selection.", flags: [MessageFlags.Ephemeral] });
     }
 };

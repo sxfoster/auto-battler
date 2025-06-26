@@ -1,3 +1,4 @@
+const { MessageFlags } = require('discord.js');
 const addcard = require('../commands/addcard');
 
 jest.mock('../util/database', () => ({
@@ -15,7 +16,7 @@ describe('confirm embed', () => {
     };
     await addcard.execute(interaction);
     const call = interaction.followUp.mock.calls[0][0];
-    expect(call.ephemeral).toBe(true);
+    expect(call.flags).toContain(MessageFlags.Ephemeral);
     expect(call.embeds[0].data.title).toBe('✅ Success');
   });
 

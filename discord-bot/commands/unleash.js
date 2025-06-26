@@ -1,4 +1,4 @@
-const { InteractionResponseFlags } = require('discord-api-types/v10');
+const { MessageFlags } = require('discord.js');
 const { SlashCommandBuilder } = require('discord.js');
 const db = require('../util/database');
 const { simple } = require('../src/utils/embedBuilder');
@@ -15,7 +15,7 @@ module.exports = {
         // Placeholder currency check - replace with real query when available
         const userHasStones = true;
         if (!userHasStones) {
-            return interaction.reply({ content: 'You do not have a Corrupted Lodestone to unleash a monster.', flags: [InteractionResponseFlags.EPHEMERAL] });
+            return interaction.reply({ content: 'You do not have a Corrupted Lodestone to unleash a monster.', flags: [MessageFlags.Ephemeral] });
         }
 
         const monsters = getMonsters();

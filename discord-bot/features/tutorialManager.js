@@ -1,4 +1,4 @@
-const { InteractionResponseFlags } = require('discord-api-types/v10');
+const { MessageFlags } = require('discord.js');
 const { ActionRowBuilder, ButtonBuilder, ButtonStyle, StringSelectMenuBuilder, EmbedBuilder } = require('discord.js');
 const confirmEmbed = require('../src/utils/confirm');
 const { simple } = require('../src/utils/embedBuilder');
@@ -320,7 +320,7 @@ async function sendInitialGoldAndBoosterStore(interaction, userId) {
         new ButtonBuilder().setCustomId('tutorial_confirm_tutorial_completion').setLabel('Done Training - Begin Dungeon!').setStyle(ButtonStyle.Success).setEmoji('✅')
     );
     components.push(finalizeTutorialRow);
-    await interaction.followUp({ embeds: [storeEmbed], components, flags: [InteractionResponseFlags.EPHEMERAL] });
+    await interaction.followUp({ embeds: [storeEmbed], components, flags: [MessageFlags.Ephemeral] });
 }
 
 async function finalizeTutorialCompletion(interaction, userId) {
