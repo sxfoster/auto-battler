@@ -168,7 +168,12 @@ async function handleBoosterPurchase(interaction, userId, packId, page = 0) {
             .setTitle('✨ You pulled a new card! ✨')
             .addFields({ name: 'Name', value: card.name, inline: true }, { name: 'Rarity', value: card.rarity, inline: true })
             .setTimestamp();
-        await interaction.user.send({ embeds: [embed], files: [{ attachment: cardBuffer, name: `${card.name}.png` }] });
+        try {
+            await interaction.user.send({ embeds: [embed], files: [{ attachment: cardBuffer, name: `${card.name}.png` }] });
+            console.log(`Sent card DM to ${interaction.user.username} for card ${card.name}`);
+        } catch (err) {
+            console.error(`Failed to DM card ${card.name} to ${interaction.user.username}:`, err);
+        }
         await sleep(500);
     }
 }
