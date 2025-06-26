@@ -42,3 +42,4 @@ Future updates should continue documenting new pivots here.  Potential direction
 
 ## Cleanup Simplifying Champions (2025-??)
 - Removed old defense team concept and team commands. Each user now manages a single champion. Database migrations and bot handlers were trimmed accordingly.
+- Tutorial flows and battle selection were updated to remove multi-champion logic.

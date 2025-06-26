@@ -260,7 +260,7 @@ client.on(Events.InteractionCreate, async interaction => {
                         await sendHeroSelectionStep(interaction, userId, 1);
                         break;
                     case 'tutorial_recap_finalize':
-                        await finalizeChampionTeam(interaction, userId);
+                        await finalizeChampion(interaction, userId);
                         break;
                     case 'tutorial_start_over':
                         activeTutorialDrafts.delete(userId);
@@ -589,8 +589,8 @@ client.on(Events.InteractionCreate, async interaction => {
                         'SELECT id, base_hero_id, level FROM user_champions WHERE user_id = ?',
                         [userId]
                     );
-                    if (ownedChampions.length < 2) {
-                        await interaction.reply({ content: 'You need at least 2 champions in your roster to fight! Use `/summon` to recruit more.', flags: [MessageFlags.Ephemeral] });
+                    if (ownedChampions.length < 1) {
+                        await interaction.reply({ content: 'You need at least one champion in your roster to fight! Use `/summon` to recruit more.', flags: [MessageFlags.Ephemeral] });
                         break;
                     }
                     const options = ownedChampions.map(champion => {
@@ -605,17 +605,17 @@ client.on(Events.InteractionCreate, async interaction => {
                         };
                     });
                     const selectMenu = new StringSelectMenuBuilder()
-                        .setCustomId('fight_team_select')
-                        .setPlaceholder('Select your team (1 Monster OR 2 Champions)')
+                        .setCustomId('fight_champion_select')
+                        .setPlaceholder('Select your champion or monster')
                         .setMinValues(1)
-                        .setMaxValues(2)
+                        .setMaxValues(1)
                         .addOptions(options);
                     const row = new ActionRowBuilder().addComponents(selectMenu);
                     const backToTownRow = new ActionRowBuilder()
                         .addComponents(
                             new ButtonBuilder().setCustomId('back_to_town').setLabel('Back to Town').setStyle(ButtonStyle.Secondary).setEmoji('⬅️')
                         );
-                    await interaction.reply({ content: 'Choose your team for the dungeon fight!', components: [row, backToTownRow], flags: [MessageFlags.Ephemeral] });
+                    await interaction.reply({ content: 'Choose your champion for the dungeon fight!', components: [row, backToTownRow], flags: [MessageFlags.Ephemeral] });
                     break;
                 }
                 case 'town_forge': {
@@ -986,7 +986,7 @@ client.on(Events.InteractionCreate, async interaction => {
             await interaction.editReply({ content: 'Deck editing cancelled. No changes were saved.', components: [] });
             return;
         }
-        if (interaction.customId === 'fight_team_select') {
+        if (interaction.customId === 'fight_champion_select') {
             try {
                 const selections = interaction.values;
 
@@ -1403,7 +1403,7 @@ async function insertAndDeckChampion(userId, champData) {
  * @param {Interaction} interaction
  * @param {string} userId
  */
-async function finalizeChampionTeam(interaction, userId) {
+async function finalizeChampion(interaction, userId) {
     const userDraftState = activeTutorialDrafts.get(userId);
     const champion1Data = userDraftState.champion1;
 
@@ -1441,9 +1441,9 @@ async function finalizeChampionTeam(interaction, userId) {
         await interaction.editReply({ embeds: [embed], components: [nextStepsRow] });
 
     } catch (error) {
-        console.error('Error finalizing champion team:', error);
+        console.error('Error finalizing champion:', error);
         await interaction.editReply({
-            embeds: [simple('Error!', [{ name: 'Failed to create team', value: 'There was an issue saving your champions. Please try again.' }])],
+            embeds: [simple('Error!', [{ name: 'Failed to create champion', value: 'There was an issue saving your champion. Please try again.' }])],
             components: []
         });
         activeTutorialDrafts.delete(userId);
@@ -1641,7 +1641,7 @@ async function sendWelcomePackStep(interaction, userId) {
     const embed = simple(
         '📦 Your Welcome Pack Awaits!',
         [
-            { name: 'Special Delivery!', value: 'As a new adventurer, you receive a complimentary "Heroic Beginnings" Booster Pack. It contains two common champions, ready for battle!' }
+            { name: 'Special Delivery!', value: 'As a new adventurer, you receive a complimentary "Heroic Beginnings" Booster Pack. It contains one common champion, ready for battle!' }
         ]
     );
 
@@ -1674,7 +1674,7 @@ async function openWelcomePackAndGrantGold(interaction, userId) {
         names.push(`**${champion1Kit.heroData.name}** (Common) - Equipped`);
     } catch (error) {
         console.error('Error inserting welcome pack champions:', error);
-        await interaction.editReply({ content: 'Failed to create your starting champions due to a database error. Please try `/start` again.', components: [] });
+        await interaction.editReply({ content: 'Failed to create your starting champion due to a database error. Please try `/start` again.', components: [] });
         activeTutorialDrafts.delete(userId);
         return;
     }
