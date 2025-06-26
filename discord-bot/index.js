@@ -535,8 +535,8 @@ client.on(Events.InteractionCreate, async interaction => {
                         'SELECT id, base_hero_id, level FROM user_champions WHERE user_id = ?',
                         [userId]
                     );
-                    if (ownedChampions.length < 2) {
-                        await interaction.reply({ content: 'You need at least 2 champions in your roster to fight! Use `/summon` to recruit more.', flags: [MessageFlags.Ephemeral] });
+                    if (ownedChampions.length < 1) {
+                        await interaction.reply({ content: 'You need at least one champion in your roster to fight! Use `/summon` to recruit more.', flags: [MessageFlags.Ephemeral] });
                         break;
                     }
                     const options = ownedChampions.map(champion => {
@@ -552,16 +552,16 @@ client.on(Events.InteractionCreate, async interaction => {
                     });
                     const selectMenu = new StringSelectMenuBuilder()
                         .setCustomId('fight_team_select')
-                        .setPlaceholder('Select your team (1 Monster OR 2 Champions)')
+                        .setPlaceholder('Select your champion (or monster)')
                         .setMinValues(1)
-                        .setMaxValues(2)
+                        .setMaxValues(1)
                         .addOptions(options);
                     const row = new ActionRowBuilder().addComponents(selectMenu);
                     const backToTownRow = new ActionRowBuilder()
                         .addComponents(
                             new ButtonBuilder().setCustomId('back_to_town').setLabel('Back to Town').setStyle(ButtonStyle.Secondary).setEmoji('⬅️')
                         );
-                    await interaction.reply({ content: 'Choose your team for the dungeon fight!', components: [row, backToTownRow], flags: [MessageFlags.Ephemeral] });
+                    await interaction.reply({ content: 'Choose your champion for the dungeon fight!', components: [row, backToTownRow], flags: [MessageFlags.Ephemeral] });
                     break;
                 }
                 case 'town_forge': {
@@ -905,32 +905,11 @@ client.on(Events.InteractionCreate, async interaction => {
             try {
                 const selections = interaction.values;
 
-                // Check for monster selection
-                const monsterSelectionId = selections.find(id => {
-                    const champ = getHeroById(parseInt(id));
-                    return champ && champ.is_monster;
-                });
+                const selectedId = selections[0];
+                await interaction.update({ content: 'Champion selected! Preparing the battle...', components: [] });
 
-                let playerChampion1_db, playerChampion2_db;
-
-                if (monsterSelectionId) {
-                    if (selections.length > 1) {
-                        return interaction.update({ content: 'You cannot select a monster and another champion. A monster takes up the whole team.', components: [] });
-                    }
-                    const [rows] = await db.execute('SELECT * FROM user_champions WHERE id = ?', [monsterSelectionId]);
-                    playerChampion1_db = rows[0];
-                    playerChampion2_db = null;
-                    const monsterName = getHeroById(playerChampion1_db.base_hero_id)?.name || 'Unknown Monster';
-                    await interaction.update({ content: `You have chosen the monster: ${monsterName}! Preparing the battle...`, components: [] });
-                } else {
-                    await interaction.update({ content: 'Team selected! Preparing the battle...', components: [] });
-
-                    const [player_champion_id_1, player_champion_id_2] = selections;
-                    const [p1_rows] = await db.execute('SELECT * FROM user_champions WHERE id = ?', [player_champion_id_1]);
-                    const [p2_rows] = await db.execute('SELECT * FROM user_champions WHERE id = ?', [player_champion_id_2]);
-                    playerChampion1_db = p1_rows[0];
-                    playerChampion2_db = p2_rows[0];
-                }
+                const [p1_rows] = await db.execute('SELECT * FROM user_champions WHERE id = ?', [selectedId]);
+                const playerChampion1_db = p1_rows[0];
 
                 const [deckRows1] = await db.execute(
                     'SELECT ability_id FROM champion_decks WHERE user_champion_id = ? ORDER BY order_index ASC',
@@ -938,99 +917,22 @@ client.on(Events.InteractionCreate, async interaction => {
                 );
                 const deckAbilityIds1 = deckRows1.map(r => r.ability_id);
 
-                let deckAbilityIds2 = [];
-                if (playerChampion2_db) {
-                    const [dr2] = await db.execute(
-                        'SELECT ability_id FROM champion_decks WHERE user_champion_id = ? ORDER BY order_index ASC',
-                        [playerChampion2_db.id]
-                    );
-                    deckAbilityIds2 = dr2.map(r => r.ability_id);
-                }
-
-                let isPvP = Math.random() < 0.25;
                 let opponentName = 'Dungeon Monsters';
                 const combatants = [
-                    createCombatant({ hero_id: playerChampion1_db.base_hero_id, weapon_id: playerChampion1_db.equipped_weapon_id, armor_id: playerChampion1_db.equipped_armor_id, ability_id: playerChampion1_db.equipped_ability_id, deck: deckAbilityIds1 }, 'player', 0),
-                    playerChampion2_db ? createCombatant({ hero_id: playerChampion2_db.base_hero_id, weapon_id: playerChampion2_db.equipped_weapon_id, armor_id: playerChampion2_db.equipped_armor_id, ability_id: playerChampion2_db.equipped_ability_id, deck: deckAbilityIds2 }, 'player', 1) : null,
+                    createCombatant({ hero_id: playerChampion1_db.base_hero_id, weapon_id: playerChampion1_db.equipped_weapon_id, armor_id: playerChampion1_db.equipped_armor_id, ability_id: playerChampion1_db.equipped_ability_id, deck: deckAbilityIds1 }, 'player', 0)
                 ];
 
-                if (isPvP) {
-                    const [opponentRows] = await db.execute(
-                        'SELECT user_id FROM defense_teams WHERE user_id != ? ORDER BY RAND() LIMIT 1',
-                        [interaction.user.id]
-                    );
-                    if (opponentRows.length > 0) {
-                        const opponentId = opponentRows[0].user_id;
-                        const [[defTeam]] = await db.execute(
-                            'SELECT champion_1_id, champion_2_id FROM defense_teams WHERE user_id = ?',
-                            [opponentId]
-                        );
-                        const [e1] = await db.execute('SELECT * FROM user_champions WHERE id = ?', [defTeam.champion_1_id]);
-                        const enemy1_db = e1[0];
-                        let enemy2_db = null;
-                        if (defTeam.champion_2_id) {
-                            const [e2] = await db.execute('SELECT * FROM user_champions WHERE id = ?', [defTeam.champion_2_id]);
-                            enemy2_db = e2[0];
-                        }
-
-                        const userObj = await client.users.fetch(opponentId).catch(() => null);
-                        if (userObj) opponentName = userObj.username;
-
-                        const [ed1] = await db.execute(
-                            'SELECT ability_id FROM champion_decks WHERE user_champion_id = ? ORDER BY order_index ASC',
-                            [enemy1_db.id]
-                        );
-                        const enemyDeck1 = ed1.map(r => r.ability_id);
-                        combatants.push(
-                            createCombatant({ hero_id: enemy1_db.base_hero_id, weapon_id: enemy1_db.equipped_weapon_id, armor_id: enemy1_db.equipped_armor_id, ability_id: enemy1_db.equipped_ability_id, deck: enemyDeck1 }, 'enemy', 0)
-                        );
-                        if (enemy2_db) {
-                            const [ed2] = await db.execute(
-                                'SELECT ability_id FROM champion_decks WHERE user_champion_id = ? ORDER BY order_index ASC',
-                                [enemy2_db.id]
-                            );
-                            const enemyDeck2 = ed2.map(r => r.ability_id);
-                            combatants.push(
-                                createCombatant({ hero_id: enemy2_db.base_hero_id, weapon_id: enemy2_db.equipped_weapon_id, armor_id: enemy2_db.equipped_armor_id, ability_id: enemy2_db.equipped_ability_id, deck: enemyDeck2 }, 'enemy', 1)
-                            );
-                        }
-                    } else {
-                        isPvP = false;
-                    }
-                }
-
-                if (!isPvP) {
-                    opponentName = 'Dungeon Monsters';
-                    const playerTeamSize = selections.length;
-                    const [monsterRows] = await db.execute(
-                        'SELECT id FROM heroes WHERE is_monster = TRUE'
-                    );
-                    const monsterIds = monsterRows.map(r => r.id);
-
-                    if (playerTeamSize <= 2) {
-                        const monsterId = monsterIds[Math.floor(Math.random() * monsterIds.length)];
-                        combatants.push(
-                            createCombatant({ hero_id: monsterId, weapon_id: null, armor_id: null, ability_id: null }, 'enemy', 0)
-                        );
-                    } else {
-                        const randIndex1 = Math.floor(Math.random() * monsterIds.length);
-                        let randIndex2 = Math.floor(Math.random() * monsterIds.length);
-                        while (randIndex2 === randIndex1 && monsterIds.length > 1) {
-                            randIndex2 = Math.floor(Math.random() * monsterIds.length);
-                        }
-                        const monsterId1 = monsterIds[randIndex1];
-                        const monsterId2 = monsterIds[randIndex2];
-                        combatants.push(
-                            createCombatant({ hero_id: monsterId1, weapon_id: null, armor_id: null, ability_id: null }, 'enemy', 0),
-                            createCombatant({ hero_id: monsterId2, weapon_id: null, armor_id: null, ability_id: null }, 'enemy', 1)
-                        );
-                    }
-                }
+                const [monsterRows] = await db.execute('SELECT id FROM heroes WHERE is_monster = TRUE');
+                const monsterIds = monsterRows.map(r => r.id);
+                const monsterId = monsterIds[Math.floor(Math.random() * monsterIds.length)];
+                combatants.push(
+                    createCombatant({ hero_id: monsterId, weapon_id: null, armor_id: null, ability_id: null }, 'enemy', 0)
+                );
 
                 const finalCombatants = combatants.filter(Boolean);
 
-                if (finalCombatants.length < 3) {
-                    throw new Error('Failed to create all combatants for the battle. Check if all hero IDs are valid.');
+                if (finalCombatants.length < 2) {
+                    throw new Error('Failed to create combatants for the battle. Check if all hero IDs are valid.');
                 }
                 const gameInstance = new GameEngine(finalCombatants);
                 const battleLog = gameInstance.runFullGame();
@@ -1038,23 +940,15 @@ client.on(Events.InteractionCreate, async interaction => {
 
                 const resultFields = [{ name: 'Winner', value: playerWon ? interaction.user.username : opponentName }];
 
-                if (isPvP) {
-                    const ratingChange = playerWon ? 10 : -10;
-                    await db.execute('UPDATE users SET pvp_rating = pvp_rating + ? WHERE discord_id = ?', [ratingChange, interaction.user.id]);
-                    resultFields.push({ name: 'Rating Change', value: `${ratingChange > 0 ? '+' : ''}${ratingChange}` });
-                } else if (playerWon) {
+                if (playerWon) {
                     const xpGain = 25;
-                    const survivors = finalCombatants.filter(c => c.team === 'player' && c.currentHp > 0);
-                    for (const survivor of survivors) {
-                        const champDb = survivor.position === 0 ? playerChampion1_db : playerChampion2_db;
-                        if (champDb) {
-                            await db.execute('UPDATE user_champions SET xp = xp + ? WHERE id = ?', [xpGain, champDb.id]);
-                            await checkAndApplyLevelUp(interaction.user.id, champDb.id, interaction);
-                        }
+                    if (finalCombatants[0].currentHp > 0) {
+                        await db.execute('UPDATE user_champions SET xp = xp + ? WHERE id = ?', [xpGain, playerChampion1_db.id]);
+                        await checkAndApplyLevelUp(interaction.user.id, playerChampion1_db.id, interaction);
                     }
                     const gold = Math.floor(Math.random() * 51) + 50;
                     await db.execute('UPDATE users SET soft_currency = soft_currency + ? WHERE discord_id = ?', [gold, interaction.user.id]);
-                    resultFields.push({ name: 'Rewards', value: `${xpGain} XP to surviving champions\n${gold} Gold` });
+                    resultFields.push({ name: 'Rewards', value: `${xpGain} XP to your champion\n${gold} Gold` });
                 } else {
                     resultFields.push({ name: 'Defeat', value: 'You were vanquished by the dungeon foes.' });
                 }
@@ -1069,39 +963,6 @@ client.on(Events.InteractionCreate, async interaction => {
             } catch (error) {
                 console.error('Error handling fight selection:', error);
                 await interaction.followUp({ content: 'An error occurred while starting the battle.', flags: [MessageFlags.Ephemeral] }).catch(() => {});
-            }
-        } else if (interaction.customId === 'defense_team_select') {
-            try {
-                const selections = interaction.values;
-
-                const monsterSelectionId = selections.find(id => {
-                    const champ = getHeroById(parseInt(id));
-                    return champ && champ.is_monster;
-                });
-
-                let champion1Id, champion2Id = null;
-
-                if (monsterSelectionId) {
-                    if (selections.length > 1) {
-                        return interaction.update({ content: 'You cannot select a monster and another champion. A monster takes up the whole team.', components: [] });
-                    }
-                    champion1Id = monsterSelectionId;
-                    champion2Id = null;
-                } else {
-                    [champion1Id, champion2Id] = selections;
-                }
-
-                await db.execute(
-                    `INSERT INTO defense_teams (user_id, champion_1_id, champion_2_id)
-                     VALUES (?, ?, ?)
-                     ON DUPLICATE KEY UPDATE champion_1_id = VALUES(champion_1_id), champion_2_id = VALUES(champion_2_id)`,
-                    [interaction.user.id, champion1Id, champion2Id || null]
-                );
-
-                await interaction.update({ content: 'Your defense team has been set!', components: [] });
-            } catch (error) {
-                console.error('Error setting defense team:', error);
-                await interaction.update({ content: 'An error occurred while setting your defense team.', components: [] });
             }
         } else if (interaction.customId.startsWith('equip_weapon_')) {
             try {

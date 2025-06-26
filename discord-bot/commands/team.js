@@ -1,3 +1,4 @@
+/*
 const { MessageFlags } = require('discord.js');
 const { SlashCommandBuilder } = require('discord.js');
 
@@ -30,3 +31,4 @@ module.exports = {
         await interaction.reply({ content: "Please use the `/town` command and then navigate to Barracks to manage your champions. This command is mainly for internal use or specific direct champion selection.", flags: [MessageFlags.Ephemeral] });
     }
 };
+*/
