@@ -658,10 +658,16 @@ client.on(Events.InteractionCreate, async interaction => {
                         .setTitle('Your New Card!')
                         .setDescription(`You chose **${chosenCard.name}**! You gained **${totalShardsGained}** shards from the other cards.`)
                         .setFooter({ text: 'Auto-Battler Bot' });
-                    const cardBuffer = await generateCardImage(chosenCard);
+                    let cardBuffer = null;
+                    try {
+                        cardBuffer = await generateCardImage(chosenCard);
+                    } catch (err) {
+                        console.error(`Failed to generate image for ${chosenCard.name}:`, err);
+                    }
                     console.log(`DMing chosen card ${chosenCard.name} to user ${user.username} (${userId})`);
                     try {
-                        await user.send({ embeds: [dmEmbed], files: [{ attachment: cardBuffer, name: `${chosenCard.name}.png` }] });
+                        const files = cardBuffer ? [{ attachment: cardBuffer, name: `${chosenCard.name}.png` }] : [];
+                        await user.send({ embeds: [dmEmbed], files });
                     } catch (e) {
                         console.error('Failed to send DM:', e);
                     }
