@@ -2,6 +2,8 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { Client, Collection, GatewayIntentBits, Events, ActionRowBuilder, ButtonBuilder, ButtonStyle, StringSelectMenuBuilder, EmbedBuilder } = require('discord.js');
 require('dotenv').config();
+const ANNOUNCEMENTS_ID = process.env.ANNOUNCEMENT_CHANNEL_ID;
+let announcementsChannel;
 const db = require('./util/database');
 const { simple } = require('./src/utils/embedBuilder');
 const confirmEmbed = require('./src/utils/confirm');
@@ -122,6 +124,8 @@ for (const file of commandFiles) {
 
 client.once(Events.ClientReady, async () => {
     console.log(`✅ Logged in as ${client.user.tag}! The bot is online.`);
+
+    announcementsChannel = client.channels.cache.get(ANNOUNCEMENTS_ID);
 
     // Test database connection
     try {
