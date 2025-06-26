@@ -1,4 +1,4 @@
-const { InteractionResponseFlags } = require('discord-api-types/v10');
+const { MessageFlags } = require('discord.js');
 const { SlashCommandBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder } = require('discord.js');
 const db = require('../util/database');
 
@@ -42,7 +42,7 @@ function getTownMenu(showTutorialButton = true) {
 
     components.push(row);
 
-    return { embeds: [embed], components: components, flags: [InteractionResponseFlags.EPHEMERAL] };
+    return { embeds: [embed], components: components, flags: [MessageFlags.Ephemeral] };
 }
 
 module.exports = {
@@ -79,7 +79,7 @@ module.exports = {
             );
             // As a fallback, we won't show the tutorial button if the database check fails.
         }
-        await interaction.reply(getTownMenu());
+        await interaction.reply(getTownMenu(showTutorial));
     },
     getTownMenu,
 };
