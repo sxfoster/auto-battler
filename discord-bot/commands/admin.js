@@ -77,16 +77,22 @@ module.exports = {
                     [targetUser.id]
                 );
 
-                const imageBuffer = await generateCardImage(recruit);
+                let imageBuffer = null;
+                try {
+                    imageBuffer = await generateCardImage(recruit);
+                } catch (err) {
+                    console.error(`Failed to generate image for ${recruit.name}:`, err);
+                }
                 console.log(`DMing recruit card to user ${targetUser.username} (${targetUser.id})`);
                 const successEmbed = simple(
                     '🃏 Recruit Granted',
                     [{ name: 'New Card', value: `${recruit.name} (${recruit.rarity})` }]
                 );
 
+                const files = imageBuffer ? [{ attachment: imageBuffer, name: 'recruit.png' }] : [];
                 await targetUser.send({
                     embeds: [successEmbed],
-                    files: [{ attachment: imageBuffer, name: 'recruit.png' }]
+                    files
                 });
 
                 await interaction.reply({ content: "Successfully sent the Recruit card to the user's DMs.", ephemeral: true });

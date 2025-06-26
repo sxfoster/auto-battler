@@ -31,6 +31,15 @@ async function generateCardImage(card) {
     `Generating card image for ${card.name} - frame: ${framePath}, hero: ${heroArtPath}, class: ${classIconPath}`
   );
 
+  // Verify the rarity frame exists
+  try {
+    await fs.access(framePath);
+  } catch {
+    const errMsg = `Frame image not found at ${framePath}`;
+    console.error(errMsg);
+    throw new Error(errMsg);
+  }
+
   // Start with the rarity frame as the base image
   let base = sharp(framePath).resize(300, 400);
 
