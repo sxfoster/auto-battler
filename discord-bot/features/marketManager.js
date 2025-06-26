@@ -163,6 +163,7 @@ async function handleBoosterPurchase(interaction, userId, packId, page = 0) {
 
     for (const card of awardedCards) {
         const cardBuffer = await generateCardImage(card);
+        console.log(`DMing card ${card.name} to user ${interaction.user.username} (${interaction.user.id})`);
         const embed = new EmbedBuilder()
             .setColor('#FDE047')
             .setTitle('✨ You pulled a new card! ✨')

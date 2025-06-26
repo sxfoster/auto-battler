@@ -78,6 +78,7 @@ module.exports = {
                 );
 
                 const imageBuffer = await generateCardImage(recruit);
+                console.log(`DMing recruit card to user ${targetUser.username} (${targetUser.id})`);
                 const successEmbed = simple(
                     '🃏 Recruit Granted',
                     [{ name: 'New Card', value: `${recruit.name} (${recruit.rarity})` }]
