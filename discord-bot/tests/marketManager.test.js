@@ -2,6 +2,7 @@ const marketManager = require('../features/marketManager');
 const { BOOSTER_PACKS } = require('../src/boosterConfig');
 const db = require('../util/database');
 const gameData = require('../util/gameData');
+const embedBuilder = require('../src/utils/embedBuilder');
 
 jest.mock('../util/database', () => ({
   execute: jest.fn()
@@ -18,8 +19,9 @@ jest.mock('../../backend/game/data', () => ({
   allPossibleAbilities: []
 }));
 
-jest.mock('../src/utils/cardRenderer', () => ({
-  generateCardImage: jest.fn(() => Promise.resolve(Buffer.from('x')))
+jest.mock('../src/utils/embedBuilder', () => ({
+  simple: jest.fn(() => ({ data: {} })),
+  sendCardDM: jest.fn(() => Promise.resolve())
 }));
 
 describe('handleBoosterPurchase', () => {
@@ -47,5 +49,6 @@ describe('handleBoosterPurchase', () => {
 
     expect(interaction.user.send).toHaveBeenCalledWith('💰 Debug: Your new gold balance is 50');
     expect(channelSend).toHaveBeenCalledWith('📣 **Tester** has obtained a new card: **Test Card** (Common)!');
+    expect(embedBuilder.sendCardDM).toHaveBeenCalledWith(interaction.user, expect.objectContaining({ name: 'Test Card' }));
   });
 });

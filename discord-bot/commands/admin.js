@@ -1,8 +1,7 @@
 const { SlashCommandBuilder, PermissionFlagsBits } = require('discord.js');
 const db = require('../util/database');
-const { simple } = require('../src/utils/embedBuilder');
+const { simple, sendCardDM } = require('../src/utils/embedBuilder');
 const { allPossibleHeroes } = require('../../backend/game/data');
-const { generateCardImage } = require('../src/utils/cardRenderer');
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -77,23 +76,8 @@ module.exports = {
                     [targetUser.id]
                 );
 
-                let imageBuffer = null;
-                try {
-                    imageBuffer = await generateCardImage(recruit);
-                } catch (err) {
-                    console.error(`Failed to generate image for ${recruit.name}:`, err);
-                }
                 console.log(`DMing recruit card to user ${targetUser.username} (${targetUser.id})`);
-                const successEmbed = simple(
-                    '🃏 Recruit Granted',
-                    [{ name: 'New Card', value: `${recruit.name} (${recruit.rarity})` }]
-                );
-
-                const files = imageBuffer ? [{ attachment: imageBuffer, name: 'recruit.png' }] : [];
-                await targetUser.send({
-                    embeds: [successEmbed],
-                    files
-                });
+                await sendCardDM(targetUser, recruit);
 
                 await interaction.reply({ content: "Successfully sent the Recruit card to the user's DMs.", ephemeral: true });
             } catch (error) {
