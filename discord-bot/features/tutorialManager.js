@@ -1,3 +1,4 @@
+// TODO: Legacy tutorial flow. Remove once new onboarding is implemented.
 const { MessageFlags } = require('discord.js');
 const { ActionRowBuilder, ButtonBuilder, ButtonStyle, StringSelectMenuBuilder, EmbedBuilder } = require('discord.js');
 const confirmEmbed = require('../src/utils/confirm');
@@ -340,23 +341,6 @@ async function finalizeTutorialCompletion(interaction, userId) {
     }
 }
 
-module.exports = {
-    STARTING_GOLD,
-    activeTutorialDrafts,
-    sendHeroSelectionStep,
-    sendAbilitySelectionStep,
-    sendWeaponSelectionStep,
-    sendArmorSelectionStep,
-    sendChampionRecapStep,
-    insertAndDeckChampion,
-    finalizeChampionTeam,
-    generateRandomChampion,
-    generateRandomChampionKit,
-    sendWelcomePackStep,
-    openWelcomePackAndGrantGold,
-    sendInitialGoldAndBoosterStore,
-    finalizeTutorialCompletion
-};
 
 function handleTutorialButton(interaction) {
     const userId = interaction.user.id;
@@ -403,6 +387,40 @@ function handleTutorialButton(interaction) {
     }
 }
 
+function handleTutorialSelect(interaction) {
+    const userId = interaction.user.id;
+    const userDraftState = activeTutorialDrafts.get(userId);
+    if (!userDraftState) return;
+    const parts = interaction.customId.split('_');
+    const step = parts[2];
+    const champNum = parseInt(parts[3], 10);
+    const currentChampionData = userDraftState.currentChampNum === 1 ? userDraftState.champion1 : userDraftState.champion2;
+    switch (step) {
+        case 'hero':
+            currentChampionData.heroId = parseInt(interaction.values[0]);
+            userDraftState.stage = 'ABILITY_SELECTION';
+            return sendAbilitySelectionStep(interaction, userId, champNum);
+        case 'ability':
+            currentChampionData.abilityId = parseInt(interaction.values[0]);
+            userDraftState.stage = 'WEAPON_SELECTION';
+            return sendWeaponSelectionStep(interaction, userId, champNum);
+        case 'weapon':
+            currentChampionData.weaponId = parseInt(interaction.values[0]);
+            userDraftState.stage = 'ARMOR_SELECTION';
+            return sendArmorSelectionStep(interaction, userId, champNum);
+        case 'armor':
+            currentChampionData.armorId = parseInt(interaction.values[0]);
+            if (userDraftState.currentChampNum === 1) {
+                userDraftState.stage = 'RECAP_1';
+            } else {
+                userDraftState.stage = 'RECAP_2';
+            }
+            return sendChampionRecapStep(interaction, userId, userDraftState.currentChampNum);
+        default:
+            return interaction.editReply({ content: 'Something went wrong with the tutorial step. Please try `/start` again.', components: [] }).then(() => activeTutorialDrafts.delete(userId));
+    }
+}
+
 module.exports = {
     STARTING_GOLD,
     activeTutorialDrafts,
@@ -419,5 +437,6 @@ module.exports = {
     openWelcomePackAndGrantGold,
     sendInitialGoldAndBoosterStore,
     finalizeTutorialCompletion,
-    handleTutorialButton
+    handleTutorialButton,
+    handleTutorialSelect
 };
