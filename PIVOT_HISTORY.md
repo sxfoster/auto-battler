@@ -39,3 +39,7 @@ Future updates should continue documenting new pivots here.  Potential direction
 - Expanding the database schema to support persistent heroes, quests and economy.
 - Reintroducing a modern front‑end framework once the core mechanics stabilize.
 
+
+## December 2025 Cleanup
+- Removed leftover team management and defense table logic from the Discord bot. PvP defense rosters and multi‑champion selection were unused and complicated the command handler.
+- Simplified champion management APIs so each user only fields a single champion.
