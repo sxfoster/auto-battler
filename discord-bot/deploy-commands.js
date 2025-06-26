@@ -4,17 +4,25 @@ const path = require('node:path');
 require('dotenv').config();
 
 const commands = [];
-const commandsPath = path.join(__dirname, 'commands');
-// Automatically register all command files in the commands directory,
+const commandDirs = [
+  path.join(__dirname, 'commands'),
+  path.join(__dirname, 'src/commands')
+];
+
+// Automatically register all command files in the command directories,
 // including newly added ones like /leaderboard, /market and /begin
-const commandFiles = fs
-  .readdirSync(commandsPath)
-  .filter(file => file.endsWith('.js'));
+const commandFiles = commandDirs
+  .filter(dir => fs.existsSync(dir))
+  .flatMap(dir =>
+    fs.readdirSync(dir)
+      .filter(file => file.endsWith('.js'))
+      .map(file => path.join(dir, file))
+  );
 
-console.log('Registering slash commands:', commandFiles.join(', '));
+console.log('Registering slash commands:', commandFiles.map(f => path.basename(f)).join(', '));
 
-for (const file of commandFiles) {
-    const command = require(`./commands/${file}`);
+for (const filePath of commandFiles) {
+    const command = require(filePath);
     // Log each loaded command so new additions like /summon are visible
     console.log(`Loading command: ${command.data.name}`);
     commands.push(command.data.toJSON());
