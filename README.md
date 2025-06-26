@@ -49,11 +49,12 @@ The `docs` directory hosts the game design document, technical overview and othe
 ## Discord Bot
 
 The Discord bot resides in the `discord-bot/` directory and requires a `.env` file for secrets.
-Copy `.env.example` to `.env` and populate the following variables:
+Copy the `.env.example` file in the repository root to `.env` and populate the following variables:
 
 - `DISCORD_TOKEN` – your bot token.
 - `APP_ID` and `GUILD_ID` – used when deploying slash commands.
 - `DB_HOST`, `DB_USER`, `DB_PASSWORD`, `DB_DATABASE` – credentials for the MySQL database. `DB_HOST` must be the remote host address provided by GoDaddy.
+- `ANNOUNCEMENT_CHANNEL_ID` – Discord channel ID used for market notifications.
 
 Install the dependencies and start the bot:
 
