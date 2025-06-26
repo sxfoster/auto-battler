@@ -30,22 +30,16 @@ function getTownMenu(showTutorialButton = true) {
         components.push(tutorialRow);
     }
 
-    const row1 = new ActionRowBuilder()
+    const row = new ActionRowBuilder()
         .addComponents(
-            new ButtonBuilder().setCustomId('town_barracks').setLabel('Barracks').setStyle(ButtonStyle.Secondary).setEmoji('⚔️').setDisabled(false)
+            new ButtonBuilder()
+                .setCustomId('town_dungeon')
+                .setLabel('Enter the Dungeon Portal')
+                .setStyle(ButtonStyle.Primary)
+                .setEmoji('🌀')
         );
 
-    const row2 = new ActionRowBuilder()
-        .addComponents(
-            new ButtonBuilder().setCustomId('town_forge').setLabel('The Forge').setStyle(ButtonStyle.Secondary).setEmoji('🔥').setDisabled(true)
-        );
-
-    const row3 = new ActionRowBuilder()
-        .addComponents(
-            new ButtonBuilder().setCustomId('town_dungeon').setLabel('Enter the Dungeon Portal').setStyle(ButtonStyle.Primary).setEmoji('🌀')
-        );
-
-    components.push(row1, row2, row3);
+    components.push(row);
 
     return { embeds: [embed], components: components, ephemeral: true };
 }
