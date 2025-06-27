@@ -1,5 +1,7 @@
 // GameEngine handles simple auto-attack combat rounds
 
+const abilityCardService = require('../../discord-bot/src/utils/abilityCardService');
+
 class GameEngine {
     constructor(combatants) {
         this.combatants = combatants.map(c => ({ ...c }));
@@ -32,6 +34,17 @@ class GameEngine {
        if (target.currentHp <= 0) {
            this.log(`💀 ${target.heroData.name} has been defeated.`);
        }
+   }
+
+   startRound() {
+       this.roundCounter++;
+       this.log(`\n**--- Round ${this.roundCounter} ---**`);
+       this.combatants.forEach(c => {
+           if (c.currentHp > 0) {
+               c.currentEnergy = (c.currentEnergy || 0) + 1;
+           }
+       });
+       this.turnQueue = this.computeTurnQueue();
    }
 
    processStatuses(combatant) {
@@ -67,8 +80,6 @@ class GameEngine {
 
        this.log(`\n**> Turn: ${attacker.heroData.name}** (${attacker.currentHp}/${attacker.maxHp} HP)`);
 
-       attacker.currentEnergy = (attacker.currentEnergy || 0) + 1;
-
        const wasSkipped = this.processStatuses(attacker);
        if (this.checkVictory()) return;
 
@@ -83,6 +94,9 @@ class GameEngine {
                    this.applyDamage(attacker, target, attacker.attack);
                    attacker.currentEnergy -= cost;
                    attacker.abilityCharges -= 1;
+                   if (ability.cardId) {
+                       try { abilityCardService.decrementCharge(ability.cardId); } catch(e) { /* ignore */ }
+                   }
                    if (attacker.abilityCharges <= 0) {
                        const idx = attacker.deck.findIndex(a => a.charges > 0);
                        if (idx !== -1) {
@@ -106,9 +120,7 @@ class GameEngine {
    runFullGame() {
        this.log('⚔️ --- Battle Starting --- ⚔️');
        while (!this.isBattleOver) {
-           this.roundCounter++;
-           this.log(`\n**--- Round ${this.roundCounter} ---**`);
-           this.turnQueue = this.computeTurnQueue();
+           this.startRound();
            while(this.turnQueue.length > 0 && !this.isBattleOver){
                this.processTurn();
            }

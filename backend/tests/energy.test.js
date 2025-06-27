@@ -9,7 +9,7 @@ describe('Energy and charge system', () => {
     player.abilityCharges = 1;
 
     const engine = new GameEngine([player, enemy]);
-    engine.turnQueue = engine.computeTurnQueue();
+    engine.startRound();
     engine.processTurn();
     const combatant = engine.combatants.find(c => c.team === 'player');
 
@@ -28,7 +28,7 @@ describe('Energy and charge system', () => {
     player.abilityCharges = 1;
 
     const engine = new GameEngine([player, enemy]);
-    engine.turnQueue = engine.computeTurnQueue();
+    engine.startRound();
     engine.processTurn();
     const combatant = engine.combatants.find(c => c.team === 'player');
 
