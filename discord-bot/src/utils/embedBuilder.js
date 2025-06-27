@@ -47,6 +47,28 @@ function buildCardEmbed(card) {
   return embed;
 }
 
+/**
+ * Build an embed showing current combatant HP and log lines.
+ * New log entries should appear at the top of the description.
+ *
+ * @param {object[]} combatants
+ * @param {string} logText
+ * @returns {EmbedBuilder}
+ */
+function buildBattleEmbed(combatants, logText) {
+  const hpLines = combatants
+    .map(c => `${c.heroData.name}: ${c.currentHp}/${c.maxHp} HP`)
+    .join('\n');
+  const embed = new EmbedBuilder()
+    .setColor('#29b6f6')
+    .setTitle('Battle')
+    .setTimestamp()
+    .setFooter({ text: 'Auto\u2011Battler Bot' })
+    .setDescription(logText)
+    .addFields({ name: 'HP', value: hpLines });
+  return embed;
+}
+
 
 /**
  * DM a player when they obtain a new ability card.
@@ -59,4 +81,4 @@ async function sendCardDM(user, card) {
   await user.send({ embeds: [embed] });
 }
 
-module.exports = { simple, sendCardDM, buildCardEmbed };
+module.exports = { simple, sendCardDM, buildCardEmbed, buildBattleEmbed };

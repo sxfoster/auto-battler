@@ -118,15 +118,37 @@ class GameEngine {
    }
 
 
-   runFullGame() {
+
+   *runGameSteps() {
        this.log('⚔️ --- Battle Starting --- ⚔️');
+       let lastIndex = 0;
+       yield { combatants: this.combatants.map(c => ({ ...c })), log: this.battleLog.slice(lastIndex) };
+       lastIndex = this.battleLog.length;
+
        while (!this.isBattleOver) {
            this.startRound();
-           while(this.turnQueue.length > 0 && !this.isBattleOver){
+           if (this.battleLog.length > lastIndex) {
+               yield { combatants: this.combatants.map(c => ({ ...c })), log: this.battleLog.slice(lastIndex) };
+               lastIndex = this.battleLog.length;
+           }
+           while (this.turnQueue.length > 0 && !this.isBattleOver) {
                this.processTurn();
+               if (this.battleLog.length > lastIndex) {
+                   yield { combatants: this.combatants.map(c => ({ ...c })), log: this.battleLog.slice(lastIndex) };
+                   lastIndex = this.battleLog.length;
+               }
            }
        }
        this.log(`\n🏆 --- Battle Finished! --- 🏆`);
+       if (this.battleLog.length > lastIndex) {
+           yield { combatants: this.combatants.map(c => ({ ...c })), log: this.battleLog.slice(lastIndex) };
+       }
+   }
+
+   runFullGame() {
+       for (const _ of this.runGameSteps()) {
+           // exhaust generator to completion
+       }
        return this.battleLog;
    }
 }
