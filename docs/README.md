@@ -11,6 +11,7 @@ For instructions on running the playable demo see [../hero-game/README.md](../he
 - `game_modes_gdd.md` – Descriptions of proposed game modes.
 - `progression_economy_gdd.md` – Progression and economy details.
 - `armor_gdd.md`, `class_card_gdd.md`, `items_gdd.md`, `monster_gdd.md`, `weapons_gdd.md` – Additional design information.
+- `ability_card_charge_gdd.md` – Design for the ability card and charge system.
 - `technical_overview.md` – Overview of the project structure and suggested improvements.
 - `event_schema.md` – JSON schema used by the battle simulator and log viewer.
 - `animation_timing_map.md` – Timing recommendations for battle animations.
