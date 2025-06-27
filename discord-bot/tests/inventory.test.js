@@ -103,7 +103,7 @@ describe('inventory command', () => {
   });
 
   test('autocomplete suggests charged abilities', async () => {
-    userService.getUser.mockResolvedValue({ id: 1 });
+    userService.getUser.mockResolvedValue({ id: 1, class: 'Warrior' });
     abilityCardService.getCards.mockResolvedValue([
       { id: 1, ability_id: 3111, charges: 5 },
       { id: 2, ability_id: 3112, charges: 0 },
@@ -149,7 +149,7 @@ describe('inventory command', () => {
   });
 
   test('handleAbilitySelect shows card dropdown when multiple copies', async () => {
-    userService.getUser.mockResolvedValue({ id: 1, name: 'Tester' });
+    userService.getUser.mockResolvedValue({ id: 1, name: 'Tester', class: 'Warrior' });
     abilityCardService.getCards.mockResolvedValue([
       { id: 10, ability_id: 3111, charges: 5 },
       { id: 11, ability_id: 3111, charges: 4 }
@@ -160,11 +160,45 @@ describe('inventory command', () => {
   });
 
   test('handleAbilitySelect equips when single copy', async () => {
-    userService.getUser.mockResolvedValue({ id: 1, name: 'Tester' });
+    userService.getUser.mockResolvedValue({ id: 1, name: 'Tester', class: 'Warrior' });
     abilityCardService.getCards.mockResolvedValue([{ id: 10, ability_id: 3111, charges: 5 }]);
     const interaction = { user: { id: '123' }, values: ['3111'], update: jest.fn().mockResolvedValue() };
     await inventory.handleAbilitySelect(interaction);
     expect(abilityCardService.setEquippedCard).toHaveBeenCalledWith(1, 10);
     expect(interaction.update).toHaveBeenCalled();
+  });
+
+  test('execute rejects ability from another class', async () => {
+    userService.getUser.mockResolvedValue({ id: 1, name: 'Tester', class: 'Warrior' });
+    abilityCardService.getCards.mockResolvedValue([{ id: 60, ability_id: 3211, charges: 5 }]);
+    const interaction = {
+      user: { id: '123' },
+      options: {
+        getSubcommand: jest.fn().mockReturnValue('set'),
+        getString: jest.fn().mockReturnValue('Divine Strike')
+      },
+      reply: jest.fn().mockResolvedValue()
+    };
+    await inventory.execute(interaction);
+    expect(abilityCardService.setEquippedCard).not.toHaveBeenCalled();
+    expect(interaction.reply).toHaveBeenCalledWith(expect.objectContaining({ ephemeral: true }));
+  });
+
+  test('handleAbilitySelect rejects ability from another class', async () => {
+    userService.getUser.mockResolvedValue({ id: 1, class: 'Warrior' });
+    abilityCardService.getCards.mockResolvedValue([{ id: 61, ability_id: 3211, charges: 5 }]);
+    const interaction = { user: { id: '123' }, values: ['3211'], update: jest.fn().mockResolvedValue() };
+    await inventory.handleAbilitySelect(interaction);
+    expect(abilityCardService.setEquippedCard).not.toHaveBeenCalled();
+    expect(interaction.update).toHaveBeenCalledWith(expect.objectContaining({ ephemeral: true }));
+  });
+
+  test('handleEquipSelect rejects card from another class', async () => {
+    userService.getUser.mockResolvedValue({ id: 1, class: 'Warrior' });
+    abilityCardService.getCards.mockResolvedValue([{ id: 62, ability_id: 3211, charges: 5 }]);
+    const interaction = { user: { id: '123' }, values: ['62'], update: jest.fn().mockResolvedValue() };
+    await inventory.handleEquipSelect(interaction);
+    expect(abilityCardService.setEquippedCard).not.toHaveBeenCalled();
+    expect(interaction.update).toHaveBeenCalledWith(expect.objectContaining({ ephemeral: true }));
   });
 });
