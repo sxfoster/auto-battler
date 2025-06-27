@@ -48,6 +48,8 @@ async function execute(interaction) {
   const goblin = createCombatant({ hero_id: goblinBase.id, deck: goblinAbilities }, 'enemy', 0);
   goblin.heroData = { ...goblin.heroData, name: `Goblin ${goblinClass}` };
 
+  console.log(`[BATTLE START] Player ${user.class} vs Goblin ${goblinClass}`);
+
   await interaction.reply({ content: `${interaction.user.username} delves into the goblin cave and encounters a ferocious Goblin ${goblinClass}! The battle begins!` });
 
   const engine = new GameEngine([player, goblin]);
@@ -67,12 +69,15 @@ async function execute(interaction) {
 
   const outcome = engine.winner === 'player' ? 'Victory!' : 'Defeat!';
   await interaction.followUp({ embeds: [simple(outcome)] });
+  engine.runFullGame();
+  console.log(`[BATTLE END] ${engine.winner}`);
 
   if (engine.winner === 'player') {
     const abilityId = goblinLootMap[goblinClass];
     const drop = allPossibleAbilities.find(a => a.id === abilityId);
     if (drop) {
       await userService.addAbility(interaction.user.id, drop.id);
+      console.log(`[ITEM LOOT] ${drop.name} (${drop.id})`);
       if (interaction.user.send) {
         try {
           await sendCardDM(interaction.user, drop);

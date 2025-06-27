@@ -17,6 +17,7 @@ describe('adventure command', () => {
       runGameSteps: function* () {
         yield { combatants: [], log: ['log'] };
       },
+      runFullGame: jest.fn(),
       winner: 'player'
     }));
   });
@@ -49,6 +50,7 @@ describe('adventure command', () => {
   test('no ability drop when defeated', async () => {
     GameEngine.mockImplementationOnce(() => ({
       runGameSteps: function* () { yield { combatants: [], log: ['log'] }; },
+      runFullGame: jest.fn(),
       winner: 'enemy'
     }));
     userService.getUser.mockResolvedValue({ discord_id: '123', class: 'Warrior' });
