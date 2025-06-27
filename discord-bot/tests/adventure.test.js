@@ -69,7 +69,9 @@ describe('adventure command', () => {
     ).id;
     expect(userService.addAbility).toHaveBeenCalledWith('123', expectedId);
     Math.random.mockRestore();
-    expect(interaction.followUp).toHaveBeenCalledWith(expect.objectContaining({ embeds: expect.any(Array), ephemeral: true }));
+    expect(interaction.followUp).toHaveBeenCalledWith(
+      expect.objectContaining({ embeds: expect.any(Array) })
+    );
   });
 
   test('no ability drop when defeated', async () => {

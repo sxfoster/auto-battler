@@ -1,7 +1,7 @@
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
 const userService = require('../utils/userService');
 const abilityCardService = require('../utils/abilityCardService');
-const { sendCardDM, buildCardEmbed, buildBattleEmbed } = require('../utils/embedBuilder');
+const { sendCardDM, buildBattleEmbed } = require('../utils/embedBuilder');
 
 const MAX_LOG_LINES = 20;
 const GameEngine = require('../../../backend/game/engine');
@@ -46,7 +46,9 @@ async function execute(interaction) {
     .map(c => c.ability_id);
 
   const goblinAbilityPool = allPossibleAbilities
-    .filter(a => a.class === (classAbilityMap[goblinClass] || goblinClass) && a.rarity === 'Common');
+    .filter(
+      a => a.class === (classAbilityMap[goblinClass] || goblinClass) && a.rarity === 'Common'
+    );
   const goblinAbilities = goblinAbilityPool.map(a => a.id);
 
   const player = createCombatant({ hero_id: playerHero.id, ability_id: playerAbilityId, deck: playerAbilities }, 'player', 0);
@@ -80,37 +82,44 @@ async function execute(interaction) {
     }
   }
 
-  let drop;
-  if (engine.winner === 'player') {
-    const abilityClass = classAbilityMap[goblinClass] || goblinClass;
-    drop = allPossibleAbilities.find(
-      a => a.class === abilityClass && a.rarity === 'Common'
-    );
-  }
+  console.log(
+    `[BATTLE END] User: ${interaction.user.username} | Result: ${
+      engine.winner === 'player' ? 'Victory' : 'Defeat'
+    }`
+  );
 
-  const goblinName = `Goblin ${goblinClass}`;
-  let summary = `${interaction.user.username} adventured into the goblin caves and encountered a ${goblinName} `;
+  let narrativeDescription = '';
+  let lootDrop = null;
+  const adventurerName = `**${interaction.user.username}**`;
+  const enemyName = `a **Goblin ${goblinClass}**`;
+
   if (engine.winner === 'player') {
-    summary += drop ? `who was slain and dropped ${drop.name}.` : 'who was slain.';
+    lootDrop =
+      goblinAbilityPool[Math.floor(Math.random() * goblinAbilityPool.length)];
+    let dropText = 'who was slain.';
+    if (lootDrop) {
+      dropText = `who was slain and dropped **${lootDrop.name}**.`;
+      console.log(
+        `[ITEM LOOT] User: ${interaction.user.username} looted Ability: ${lootDrop.name} (ID: ${lootDrop.id})`
+      );
+      await userService.addAbility(interaction.user.id, lootDrop.id);
+    }
+    narrativeDescription = `${adventurerName} adventured into the goblin caves and encountered ${enemyName}, ${dropText}`;
   } else {
-    summary += 'who defeated them.';
+    narrativeDescription = `${adventurerName} adventured into the goblin caves and encountered ${enemyName} who defeated them.`;
   }
 
-  await interaction.followUp({ embeds: [new EmbedBuilder().setDescription(summary)] });
-  console.log(`[BATTLE END] ${engine.winner}`);
+  const summaryEmbed = new EmbedBuilder()
+    .setColor(engine.winner === 'player' ? '#57F287' : '#ED4245')
+    .setDescription(narrativeDescription);
 
-  if (engine.winner === 'player' && drop) {
-    await userService.addAbility(interaction.user.id, drop.id);
-    console.log(`[ITEM LOOT] ${drop.name} (${drop.id})`);
-    if (interaction.user.send) {
-      try {
-        await sendCardDM(interaction.user, drop);
-      } catch (err) {
-        console.error('Failed to DM card drop:', err);
-        await interaction.followUp({ embeds: [buildCardEmbed(drop)], ephemeral: true });
-      }
-    } else {
-      await interaction.followUp({ embeds: [buildCardEmbed(drop)], ephemeral: true });
+  await interaction.followUp({ embeds: [summaryEmbed] });
+
+  if (lootDrop) {
+    try {
+      await sendCardDM(interaction.user, lootDrop);
+    } catch (err) {
+      console.error('Failed to DM card drop:', err);
     }
   }
 }
