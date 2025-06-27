@@ -1,7 +1,9 @@
 const {
   SlashCommandBuilder,
   ActionRowBuilder,
-  StringSelectMenuBuilder
+  StringSelectMenuBuilder,
+  ButtonBuilder,
+  ButtonStyle
 } = require('discord.js');
 const { simple } = require('../src/utils/embedBuilder');
 const userService = require('../src/utils/userService');
@@ -47,7 +49,13 @@ async function execute(interaction) {
           .map(c => {
             const ability = allPossibleAbilities.find(a => a.id === c.ability_id);
             const name = ability ? ability.name : `Ability ${c.ability_id}`;
-            return `${name} ${c.charges}/10`;
+            let prefix = '';
+            if (c.id === user.equipped_ability_id) {
+              prefix = '✅ [Equipped] ';
+            } else if (c.charges > 0) {
+              prefix = '📄 [Set] ';
+            }
+            return `${prefix}${name} ${c.charges}/10`;
           })
           .join('\n')
       : 'Your backpack is empty.';
@@ -67,7 +75,14 @@ async function execute(interaction) {
       interaction.user.displayAvatarURL()
     );
 
-    await interaction.reply({ embeds: [embed] });
+    const buttonRow = new ActionRowBuilder().addComponents(
+      new ButtonBuilder()
+        .setCustomId('inventory-set')
+        .setLabel('Set Ability')
+        .setStyle(ButtonStyle.Primary)
+    );
+
+    await interaction.reply({ embeds: [embed], components: [buttonRow] });
     return;
   }
 
@@ -100,6 +115,34 @@ async function execute(interaction) {
   }
 }
 
+async function handleSetButton(interaction) {
+  const user = await userService.getUser(interaction.user.id);
+  if (!user) {
+    await interaction.reply({ content: 'User not found.', ephemeral: true });
+    return;
+  }
+
+  const cards = await abilityCardService.getCards(user.id);
+  if (!cards.length) {
+    await interaction.reply({ content: 'Your backpack is empty.', ephemeral: true });
+    return;
+  }
+
+  const menu = new StringSelectMenuBuilder()
+    .setCustomId('equip-card')
+    .setPlaceholder('Select a card')
+    .addOptions(
+      cards.map(card => {
+        const ability = allPossibleAbilities.find(a => a.id === card.ability_id);
+        const name = ability ? ability.name : `Ability ${card.ability_id}`;
+        return { label: `${name} ${card.charges}/10`, value: String(card.id) };
+      })
+    );
+  const row = new ActionRowBuilder().addComponents(menu);
+
+  await interaction.reply({ content: 'Choose a card to equip:', components: [row], ephemeral: true });
+}
+
 async function handleEquipSelect(interaction) {
   const cardId = parseInt(interaction.values[0], 10);
   const user = await userService.getUser(interaction.user.id);
@@ -117,4 +160,4 @@ async function handleEquipSelect(interaction) {
   await interaction.update({ content: `Equipped ${abilityName}.`, components: [], embeds: [], ephemeral: true });
 }
 
-module.exports = { data, execute, handleEquipSelect };
+module.exports = { data, execute, handleEquipSelect, handleSetButton };

@@ -26,9 +26,10 @@ describe('inventory command', () => {
       reply: jest.fn().mockResolvedValue()
     };
     await inventory.execute(interaction);
-    expect(interaction.reply).toHaveBeenCalledWith(expect.objectContaining({ embeds: expect.any(Array) }));
+    expect(interaction.reply).toHaveBeenCalledWith(expect.objectContaining({ embeds: expect.any(Array), components: expect.any(Array) }));
     expect(interaction.reply.mock.calls[0][0].ephemeral).toBeUndefined();
     expect(interaction.reply.mock.calls[0][0].embeds[0].data.fields[1].value).toContain('Power Strike');
+    expect(interaction.reply.mock.calls[0][0].embeds[0].data.fields[2].value).toContain('✅ [Equipped]');
   });
 
   test('ephemeral reply when user lacks a class', async () => {
@@ -65,7 +66,9 @@ describe('inventory command', () => {
       reply: jest.fn().mockResolvedValue()
     };
     await inventory.execute(interaction);
-    expect(interaction.reply.mock.calls[0][0].embeds[0].data.fields[2].value).toContain('Power Strike');
+    const backpack = interaction.reply.mock.calls[0][0].embeds[0].data.fields[2].value;
+    expect(backpack).toContain('✅ [Equipped]');
+    expect(backpack).toContain('📄 [Set]');
   });
 
   test('equip subcommand shows dropdown', async () => {
