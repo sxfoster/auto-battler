@@ -6,7 +6,8 @@ const commands = [];
 const commandDirs = [
   path.join(__dirname, 'commands/ping.js'),
   path.join(__dirname, 'commands/who.js'),
-  path.join(__dirname, 'src/commands/game.js')
+  path.join(__dirname, 'src/commands/game.js'),
+  path.join(__dirname, 'src/commands/adventure.js')
 ];
 
 console.log('Registering slash commands:', commandDirs.map(f => path.basename(f)).join(', '));
