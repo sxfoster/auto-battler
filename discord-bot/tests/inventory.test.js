@@ -107,7 +107,8 @@ describe('inventory command', () => {
     abilityCardService.getCards.mockResolvedValue([
       { id: 1, ability_id: 3111, charges: 5 },
       { id: 2, ability_id: 3112, charges: 0 },
-      { id: 3, ability_id: 3121, charges: 3 }
+      { id: 3, ability_id: 3121, charges: 3 },
+      { id: 4, ability_id: 3211, charges: 2 }
     ]);
     const interaction = {
       user: { id: '123' },
@@ -119,6 +120,7 @@ describe('inventory command', () => {
     const names = options.map(o => o.name);
     expect(names).toContain('Power Strike');
     expect(names).toContain('Crippling Blow');
+    expect(names).not.toContain('Divine Strike');
   });
 
   test('handleEquipSelect equips card', async () => {

@@ -221,12 +221,11 @@ async function autocomplete(interaction) {
     return;
   }
   const cards = await abilityCardService.getCards(user.id);
-  const abilities = [...new Set(
-    cards.filter(c => c.charges > 0).map(c => c.ability_id)
-  )]
+  const abilityIds = [...new Set(cards.filter(c => c.charges > 0).map(c => c.ability_id))];
+  let abilities = abilityIds
     .map(id => allPossibleAbilities.find(a => a.id === id))
-    .filter(Boolean)
-    .filter(a => classAbilityMap[user.class] === a.class);
+    .filter(Boolean);
+  abilities = abilities.filter(a => classAbilityMap[user.class] === a.class);
   const filtered = abilities
     .filter(a => a.name.toLowerCase().includes(focused.toLowerCase()))
     .slice(0, 25)
