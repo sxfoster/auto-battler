@@ -17,11 +17,16 @@ async function execute(interaction) {
     return;
   }
 
+  const inventory = await userService.getInventory(interaction.user.id);
+  const list = inventory.length
+    ? inventory.map(a => `${a.name} ${a.charges}/10`).join('\n')
+    : 'Your backpack is empty.';
+
   const embed = simple(
     'Player Inventory',
     [
       { name: 'Player', value: `${user.name} - ${user.class}` },
-      { name: 'Backpack', value: 'Your backpack is empty.' }
+      { name: 'Backpack', value: list }
     ],
     interaction.user.displayAvatarURL()
   );
