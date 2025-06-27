@@ -18,13 +18,14 @@ const data = new SlashCommandBuilder()
   )
   .addSubcommand(sub =>
     sub
-      .setName('equip')
+      .setName('set')
       .setDescription('Equip an ability card')
       .addStringOption(opt =>
         opt
           .setName('ability')
           .setDescription('Name of the ability to equip')
           .setRequired(true)
+          .setAutocomplete(true)
       )
   );
 
@@ -71,7 +72,7 @@ async function execute(interaction) {
     return;
   }
 
-  if (sub === 'equip') {
+  if (sub === 'set') {
     const abilityName = interaction.options.getString('ability');
     const ability = allPossibleAbilities.find(a => a.name.toLowerCase() === abilityName.toLowerCase());
     if (!ability) {
@@ -79,9 +80,17 @@ async function execute(interaction) {
       return;
     }
 
-    const cards = (await abilityCardService.getCards(user.id)).filter(c => c.ability_id === ability.id);
+    const cards = (await abilityCardService.getCards(user.id)).filter(
+      c => c.ability_id === ability.id && c.charges > 0
+    );
     if (!cards.length) {
-      await interaction.reply({ content: `You don't own any copies of ${ability.name}.`, ephemeral: true });
+      await interaction.reply({ content: `You don't own any charged copies of ${ability.name}.`, ephemeral: true });
+      return;
+    }
+
+    if (cards.length === 1) {
+      await abilityCardService.setEquippedCard(user.id, cards[0].id);
+      await interaction.reply({ content: `Equipped ${ability.name}.`, ephemeral: true });
       return;
     }
 
@@ -90,7 +99,7 @@ async function execute(interaction) {
       .setPlaceholder('Select a card')
       .addOptions(
         cards.map(card => ({
-          label: `${ability.name} ${card.charges}/10`,
+          label: `${ability.name} (${card.charges}/10)`,
           value: String(card.id)
         }))
       );
@@ -175,10 +184,31 @@ async function handleEquipSelect(interaction) {
   await interaction.update({ content: `Equipped ${abilityName}.`, components: [], embeds: [], ephemeral: true });
 }
 
+async function autocomplete(interaction) {
+  const user = await userService.getUser(interaction.user.id);
+  if (!user) {
+    await interaction.respond([]);
+    return;
+  }
+
+  const cards = (await abilityCardService.getCards(user.id)).filter(c => c.charges > 0);
+  const uniqueIds = [...new Set(cards.map(c => c.ability_id))];
+  const abilities = uniqueIds
+    .map(id => allPossibleAbilities.find(a => a.id === id))
+    .filter(Boolean);
+  const focused = interaction.options.getFocused().toLowerCase();
+  const choices = abilities
+    .filter(a => a.name.toLowerCase().includes(focused))
+    .slice(0, 25)
+    .map(a => ({ name: a.name, value: a.name }));
+  await interaction.respond(choices);
+}
+
 module.exports = {
   data,
   execute,
   handleEquipSelect,
   handleSetAbilityButton,
-  handleAbilitySelect
+  handleAbilitySelect,
+  autocomplete
 };
