@@ -15,10 +15,10 @@ describe('set command', () => {
 
   test('calls userService to set ability', async () => {
     userService.getUser.mockResolvedValue({ id: 1 });
-    abilityCardService.getCards.mockResolvedValue([{ id: 42, ability_id: 3113 }]);
+    abilityCardService.getCards.mockResolvedValue([{ id: 42, ability_id: 3111 }]);
     const interaction = {
       user: { id: '123' },
-      options: { getString: jest.fn().mockReturnValue('Shield Bash') },
+      options: { getString: jest.fn().mockReturnValue('Power Strike') },
       reply: jest.fn().mockResolvedValue()
     };
     await set.execute(interaction);
