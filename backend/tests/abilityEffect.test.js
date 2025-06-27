@@ -32,7 +32,10 @@ describe('Ability effect application', () => {
     const expectedEnemyHp = enemy.maxHp - player.attack * 2 - 2;
     expect(e.currentHp).toBe(expectedEnemyHp);
 
-    // log should mention combined damage and healing
-    expect(engine.battleLog.some(l => l.includes('hits') && l.includes('and is healed for 2'))).toBe(true);
+    // single log line should describe both damage and healing
+    const lines = engine.battleLog.filter(l => l.includes('uses Divine Strike'));
+    expect(lines.length).toBe(1);
+    expect(lines[0]).toContain('hits');
+    expect(lines[0]).toContain('and is healed for 2');
   });
 });

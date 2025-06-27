@@ -46,7 +46,6 @@ class GameEngine {
    }
 
    applyAbilityEffect(attacker, target, ability) {
-       this.log(`${attacker.heroData.name} uses ${ability.name}!`);
 
        let damageDealt = 0;
        let healingDone = 0;
@@ -63,13 +62,15 @@ class GameEngine {
            this.applyHeal(attacker, healingDone);
        }
 
-       let logParts = [];
-       if (damageDealt > 0) logParts.push(`${attacker.heroData.name} hits ${target.heroData.name} for ${damageDealt} damage`);
-       if (healingDone > 0) logParts.push(`and is healed for ${healingDone} hit points.`);
-
-       if (logParts.length > 0) {
-           this.log(logParts.join(' '));
+       let message = `${attacker.heroData.name} uses ${ability.name}`;
+       if (damageDealt > 0) {
+           message += `, hits ${target.heroData.name} for ${damageDealt} damage`;
        }
+       if (healingDone > 0) {
+           const healPart = `and is healed for ${healingDone} hit points`;
+           message += damageDealt > 0 ? ` ${healPart}` : `, ${healPart}`;
+       }
+       this.log(message + '.');
 
        if (target.currentHp <= 0) {
            this.log(`💀 ${target.heroData.name} has been defeated.`);
