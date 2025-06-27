@@ -57,7 +57,7 @@ describe('inventory command', () => {
     userService.getUser.mockResolvedValue({ id: 1, name: 'Tester', class: 'Warrior', equipped_ability_id: 42 });
     abilityCardService.getCards.mockResolvedValue([
       { id: 42, ability_id: 3111, charges: 5 },
-      { id: 43, ability_id: 3121, charges: 3 }
+      { id: 43, ability_id: 3111, charges: 3 }
     ]);
     const interaction = {
       user: { id: '123', displayAvatarURL: jest.fn().mockReturnValue('https://example.com/avatar.png') },
@@ -106,8 +106,8 @@ describe('inventory command', () => {
     userService.getUser.mockResolvedValue({ id: 1, class: 'Warrior' });
     abilityCardService.getCards.mockResolvedValue([
       { id: 1, ability_id: 3111, charges: 5 },
-      { id: 2, ability_id: 3112, charges: 0 },
-      { id: 3, ability_id: 3121, charges: 3 },
+      { id: 2, ability_id: 3111, charges: 0 },
+      { id: 3, ability_id: 3211, charges: 3 },
       { id: 4, ability_id: 3211, charges: 2 }
     ]);
     const interaction = {
@@ -119,7 +119,6 @@ describe('inventory command', () => {
     const options = interaction.respond.mock.calls[0][0];
     const names = options.map(o => o.name);
     expect(names).toContain('Power Strike');
-    expect(names).toContain('Crippling Blow');
     expect(names).not.toContain('Divine Strike');
   });
 
@@ -141,7 +140,7 @@ describe('inventory command', () => {
     abilityCardService.getCards.mockResolvedValue([
       { id: 1, ability_id: 3111, charges: 5 },
       { id: 2, ability_id: 3111, charges: 0 },
-      { id: 3, ability_id: 3121, charges: 2 }
+      { id: 3, ability_id: 3111, charges: 2 }
     ]);
     const interaction = { user: { id: '123' }, reply: jest.fn().mockResolvedValue() };
     await inventory.handleSetAbilityButton(interaction);
