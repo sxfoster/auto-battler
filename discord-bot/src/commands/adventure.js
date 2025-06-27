@@ -55,7 +55,7 @@ async function execute(interaction) {
   let battleMessage;
   let logText = '';
   for (const step of engine.runGameSteps()) {
-    logText = [...step.log, logText].filter(Boolean).join('\n');
+    logText = [logText, ...step.log].filter(Boolean).join('\n');
     const embed = buildBattleEmbed(step.combatants, logText);
     if (!battleMessage) {
       battleMessage = await interaction.followUp({ embeds: [embed] });
