@@ -1,5 +1,6 @@
 const { SlashCommandBuilder } = require('discord.js');
 const userService = require('../utils/userService');
+const { sendCardDM } = require('../utils/embedBuilder');
 const GameEngine = require('../../../backend/game/engine');
 const { createCombatant } = require('../../../backend/game/utils');
 const { allPossibleHeroes, allPossibleAbilities } = require('../../../backend/game/data');
@@ -51,9 +52,9 @@ async function execute(interaction) {
     .filter(a => a.class === (classAbilityMap[user.class] || user.class) && a.rarity === 'Common')
     .map(a => a.id);
 
-  const goblinAbilities = allPossibleAbilities
-    .filter(a => a.class === (classAbilityMap[goblinClass] || goblinClass) && a.rarity === 'Common')
-    .map(a => a.id);
+  const goblinAbilityPool = allPossibleAbilities
+    .filter(a => a.class === (classAbilityMap[goblinClass] || goblinClass) && a.rarity === 'Common');
+  const goblinAbilities = goblinAbilityPool.map(a => a.id);
 
   const player = createCombatant({ hero_id: playerHero.id, deck: playerAbilities }, 'player', 0);
   const goblin = createCombatant({ hero_id: goblinBase.id, deck: goblinAbilities }, 'enemy', 0);
@@ -75,10 +76,20 @@ async function execute(interaction) {
 
   await interaction.followUp({ embeds: [embed] });
 
-  const dropId = goblinAbilities[0];
-  await userService.addAbility(interaction.user.id, dropId);
-  const abilityName = allPossibleAbilities.find(a => a.id === dropId)?.name || 'Unknown Ability';
-  await interaction.followUp({ content: `You found ${abilityName}!`, ephemeral: true });
+  const drop = goblinAbilityPool[Math.floor(Math.random() * goblinAbilityPool.length)];
+  if (drop) {
+    await userService.addAbility(interaction.user.id, drop.id);
+    if (interaction.user.send) {
+      try {
+        await sendCardDM(interaction.user, drop);
+      } catch (err) {
+        console.error('Failed to DM card drop:', err);
+        await interaction.followUp({ content: `You found ${drop.name}!`, ephemeral: true });
+      }
+    } else {
+      await interaction.followUp({ content: `You found ${drop.name}!`, ephemeral: true });
+    }
+  }
 }
 
 module.exports = { data, execute };

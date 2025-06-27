@@ -1,4 +1,6 @@
 const db = require('../../util/database');
+const abilityCards = require('./abilityCardService');
+const { allPossibleAbilities } = require('../../../backend/game/data');
 
 async function getUser(discordId) {
   const [rows] = await db.query('SELECT * FROM users WHERE discord_id = ?', [discordId]);
@@ -19,17 +21,34 @@ async function setUserClass(discordId, className) {
   await db.query('UPDATE users SET class = ? WHERE discord_id = ?', [className, discordId]);
 }
 
-// Placeholder inventory helpers used for unit tests
-async function addAbility(discordId, abilityName) {
-  return { discordId, abilityName };
+// Add an ability card to the user's inventory
+async function addAbility(discordId, abilityId) {
+  const user = await getUser(discordId);
+  if (!user) return null;
+  return abilityCards.addCard(user.id, abilityId);
 }
 
+// Retrieve the user's ability card inventory with names
 async function getInventory(discordId) {
-  return [];
+  const user = await getUser(discordId);
+  if (!user) return [];
+  const cards = await abilityCards.getCards(user.id);
+  return cards.map(card => {
+    const ability = allPossibleAbilities.find(a => a.id === card.ability_id);
+    return {
+      name: ability ? ability.name : `Ability ${card.ability_id}`,
+      charges: card.charges,
+      id: card.id
+    };
+  });
 }
 
-async function setActiveAbility(discordId, abilityName) {
-  return { discordId, abilityName };
+// Set which ability card is currently equipped
+async function setActiveAbility(discordId, cardId) {
+  const user = await getUser(discordId);
+  if (!user) return null;
+  await abilityCards.setEquippedCard(user.id, cardId);
+  return { discordId, cardId };
 }
 
 module.exports = {
