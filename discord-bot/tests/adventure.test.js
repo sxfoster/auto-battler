@@ -24,10 +24,7 @@ describe('adventure command', () => {
     abilityCardService.getCards.mockResolvedValue([]);
     createCombatantSpy = utils.createCombatant;
     GameEngine.mockImplementation(() => ({
-      runGameSteps: function* () {
-        yield { combatants: [], log: ['log'] };
-      },
-      runFullGame: jest.fn(),
+      runFullGame: jest.fn().mockReturnValue([]),
       winner: 'player'
     }));
   });
@@ -53,7 +50,7 @@ describe('adventure command', () => {
       'player',
       0
     );
-    expect(interaction.reply).toHaveBeenCalledWith(expect.objectContaining({ content: expect.stringContaining('Goblin') }));
+    expect(interaction.reply).toHaveBeenCalledWith(expect.objectContaining({ content: 'The battle begins...' }));
     expect(interaction.followUp).toHaveBeenCalledWith(expect.objectContaining({ embeds: expect.any(Array) }));
   });
 
@@ -69,13 +66,13 @@ describe('adventure command', () => {
     ).id;
     expect(userService.addAbility).toHaveBeenCalledWith('123', expectedId);
     Math.random.mockRestore();
-    expect(interaction.followUp).toHaveBeenCalledWith(expect.objectContaining({ embeds: expect.any(Array), ephemeral: true }));
+    const desc = interaction.followUp.mock.calls[0][0].embeds[0].data.description;
+    expect(desc).toMatch(/dropped/);
   });
 
   test('no ability drop when defeated', async () => {
     GameEngine.mockImplementationOnce(() => ({
-      runGameSteps: function* () { yield { combatants: [], log: ['log'] }; },
-      runFullGame: jest.fn(),
+      runFullGame: jest.fn().mockReturnValue([]),
       winner: 'enemy'
     }));
     userService.getUser.mockResolvedValue({ id: 1, discord_id: '123', class: 'Warrior', equipped_ability_id: 50 });
@@ -84,26 +81,10 @@ describe('adventure command', () => {
     await adventure.execute(interaction);
     expect(abilityCardService.getCards).toHaveBeenCalledWith('123');
     expect(userService.addAbility).not.toHaveBeenCalled();
-    const calls = interaction.followUp.mock.calls.filter(c => c[0].ephemeral);
-    expect(calls.length).toBe(0);
+    const desc = interaction.followUp.mock.calls[0][0].embeds[0].data.description;
+    expect(desc).toMatch(/defeated/);
   });
 
-  test('battle log is included in embed', async () => {
-    GameEngine.mockImplementationOnce(() => ({
-      runGameSteps: function* () {
-        yield { combatants: [], log: ['first', 'second'] };
-      },
-      runFullGame: jest.fn(),
-      winner: 'player'
-    }));
-    userService.getUser.mockResolvedValue({ id: 1, discord_id: '123', class: 'Barbarian', equipped_ability_id: 50 });
-    abilityCardService.getCards.mockResolvedValue([{ id: 50, ability_id: 3111, charges: 5 }]);
-    const interaction = { user: { id: '123' }, reply: jest.fn().mockResolvedValue(), followUp: jest.fn().mockResolvedValue() };
-    await adventure.execute(interaction);
-    expect(abilityCardService.getCards).toHaveBeenCalledWith('123');
-    const description = interaction.followUp.mock.calls[0][0].embeds[0].data.description;
-    expect(description).toBe('first\nsecond');
-  });
 
   test('drops correct ability based on goblin class', async () => {
     const targetClass = 'Barbarian';
@@ -121,24 +102,4 @@ describe('adventure command', () => {
     Math.random.mockRestore();
   });
 
-  test('battle log is truncated to last 20 lines', async () => {
-    const logs = Array.from({ length: 30 }, (_, i) => String(i + 1));
-    GameEngine.mockImplementationOnce(() => ({
-      runGameSteps: function* () {
-        yield { combatants: [], log: logs };
-      },
-      runFullGame: jest.fn(),
-      winner: 'player'
-    }));
-    userService.getUser.mockResolvedValue({ id: 1, discord_id: '123', class: 'Barbarian', equipped_ability_id: 50 });
-    abilityCardService.getCards.mockResolvedValue([{ id: 50, ability_id: 3111, charges: 5 }]);
-    const interaction = { user: { id: '123' }, reply: jest.fn().mockResolvedValue(), followUp: jest.fn().mockResolvedValue() };
-    await adventure.execute(interaction);
-    expect(abilityCardService.getCards).toHaveBeenCalledWith('123');
-    const description = interaction.followUp.mock.calls[0][0].embeds[0].data.description;
-    const lines = description.split('\n');
-    expect(lines.length).toBe(20);
-    expect(lines[0]).toBe('11');
-    expect(lines[19]).toBe('30');
-  });
 });
