@@ -145,9 +145,14 @@ describe('inventory command', () => {
     const interaction = { user: { id: '123' }, reply: jest.fn().mockResolvedValue() };
     await inventory.handleSetAbilityButton(interaction);
     expect(interaction.reply).toHaveBeenCalledWith(expect.objectContaining({ components: expect.any(Array) }));
-    const options = interaction.reply.mock.calls[0][0].components[0].components[0].toJSON().options;
-    // Only one unique ability should be presented
+    const options =
+      interaction.reply.mock.calls[0][0].components[0].components[0].toJSON().
+        options;
+    // The dropdown lists each ability only once regardless of duplicate cards
     expect(options).toHaveLength(1);
+    expect(options[0]).toEqual(
+      expect.objectContaining({ label: 'Power Strike', value: '3111' })
+    );
   });
 
   test('handleAbilitySelect shows card dropdown when multiple copies', async () => {
