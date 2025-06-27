@@ -76,18 +76,20 @@ async function execute(interaction) {
 
   await interaction.followUp({ embeds: [embed] });
 
-  const drop = goblinAbilityPool[Math.floor(Math.random() * goblinAbilityPool.length)];
-  if (drop) {
-    await userService.addAbility(interaction.user.id, drop.id);
-    if (interaction.user.send) {
-      try {
-        await sendCardDM(interaction.user, drop);
-      } catch (err) {
-        console.error('Failed to DM card drop:', err);
+  if (engine.winner === 'player') {
+    const drop = goblinAbilityPool[Math.floor(Math.random() * goblinAbilityPool.length)];
+    if (drop) {
+      await userService.addAbility(interaction.user.id, drop.id);
+      if (interaction.user.send) {
+        try {
+          await sendCardDM(interaction.user, drop);
+        } catch (err) {
+          console.error('Failed to DM card drop:', err);
+          await interaction.followUp({ embeds: [buildCardEmbed(drop)], ephemeral: true });
+        }
+      } else {
         await interaction.followUp({ embeds: [buildCardEmbed(drop)], ephemeral: true });
       }
-    } else {
-      await interaction.followUp({ embeds: [buildCardEmbed(drop)], ephemeral: true });
     }
   }
 }
