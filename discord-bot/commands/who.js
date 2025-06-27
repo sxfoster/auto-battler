@@ -3,19 +3,19 @@ const userService = require('../src/utils/userService');
 
 const data = new SlashCommandBuilder()
   .setName('who')
-  .setDescription('Look up a player by name')
-  .addStringOption(option =>
-    option.setName('player')
-      .setDescription('Player name')
+  .setDescription('Look up a player by mention')
+  .addUserOption(option =>
+    option.setName('user')
+      .setDescription('Discord user to look up')
       .setRequired(true)
   );
 
 async function execute(interaction) {
-  const searchName = interaction.options.getString('player');
-  const user = await userService.getUserByName(searchName);
+  const mentionedUser = interaction.options.getUser('user');
+  const user = await userService.getUser(mentionedUser.id);
 
   if (!user) {
-    await interaction.reply({ content: `Could not find a player named ${searchName}.`, ephemeral: true });
+    await interaction.reply({ content: `@${mentionedUser.username} has not started their adventure yet.`, ephemeral: true });
     return;
   }
 
