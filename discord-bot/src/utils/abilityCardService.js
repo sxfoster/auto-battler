@@ -29,7 +29,15 @@ async function getCard(cardId) {
 
 // Mark a specific card as equipped and unequip others for the user
 async function setEquippedCard(userId, cardId) {
-  await db.query('UPDATE users SET equipped_ability_id = ? WHERE id = ?', [cardId, userId]);
+  await db.query(
+    `UPDATE users
+     SET equipped_ability_id = ?
+     WHERE id = ? AND EXISTS (
+       SELECT 1 FROM user_ability_cards
+       WHERE id = ? AND user_id = ?
+     )`,
+    [cardId, userId, cardId, userId]
+  );
 }
 
 // Reduce the charge count of a card by one, clamping at zero
