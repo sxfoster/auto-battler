@@ -128,6 +128,9 @@ const allPossibleHeroes = [
     { type: 'hero', id: 2902, name: 'Void Horror', class: 'Void Horror', rarity: 'Uncommon', art: '../img/monsters/void_horror_2.png', imageUrl: 'https://placehold.co/300x400/1e293b/ffffff?text=Void%20Horror', hp: 47, attack: 11, speed: 5, isMonster: true, trait: 'Reality Warp: 25% chance to ignore damage.' },
     { type: 'hero', id: 2903, name: 'Eldritch Abomination', class: 'Void Horror', rarity: 'Rare', art: '../img/monsters/void_horror_3.png', imageUrl: 'https://placehold.co/300x400/1e293b/ffffff?text=Eldritch%20Abomination', hp: 59, attack: 14, speed: 5, isMonster: true, trait: 'Reality Warp: 25% chance to ignore damage.' },
     { type: 'hero', id: 2904, name: 'Reality Devourer', class: 'Void Horror', rarity: 'Epic', art: '../img/monsters/void_horror_4.png', imageUrl: 'https://placehold.co/300x400/1e293b/ffffff?text=Reality%20Devourer', hp: 73, attack: 18, speed: 5, isMonster: true, trait: 'Reality Warp: 25% chance to ignore damage.' },
+
+    // Generic Monsters
+    { type: 'hero', id: 9001, name: 'Goblin', class: 'Goblin', rarity: 'Common', hp: 10, attack: 1, speed: 4, isMonster: true, abilities: [] },
 ];
 
 const allPossibleMinions = {
