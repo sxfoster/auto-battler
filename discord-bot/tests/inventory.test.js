@@ -103,11 +103,12 @@ describe('inventory command', () => {
   });
 
   test('autocomplete suggests charged abilities', async () => {
-    userService.getUser.mockResolvedValue({ id: 1 });
+    userService.getUser.mockResolvedValue({ id: 1, class: 'Warrior' });
     abilityCardService.getCards.mockResolvedValue([
       { id: 1, ability_id: 3111, charges: 5 },
       { id: 2, ability_id: 3112, charges: 0 },
-      { id: 3, ability_id: 3121, charges: 3 }
+      { id: 3, ability_id: 3121, charges: 3 },
+      { id: 4, ability_id: 3411, charges: 5 }
     ]);
     const interaction = {
       user: { id: '123' },
@@ -119,6 +120,7 @@ describe('inventory command', () => {
     const names = options.map(o => o.name);
     expect(names).toContain('Power Strike');
     expect(names).toContain('Crippling Blow');
+    expect(names).not.toContain('Chaos Bolt');
   });
 
   test('handleEquipSelect equips card', async () => {

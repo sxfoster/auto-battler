@@ -7,6 +7,7 @@ const { simple } = require('../src/utils/embedBuilder');
 const userService = require('../src/utils/userService');
 const abilityCardService = require('../src/utils/abilityCardService');
 const { allPossibleAbilities } = require('../../backend/game/data');
+const classAbilityMap = require('../src/data/classAbilityMap');
 
 const data = new SlashCommandBuilder()
   .setName('inventory')
@@ -205,11 +206,13 @@ async function autocomplete(interaction) {
     return;
   }
   const cards = await abilityCardService.getCards(user.id);
+  const abilityClass = classAbilityMap[user.class] || user.class;
   const abilities = [...new Set(
     cards.filter(c => c.charges > 0).map(c => c.ability_id)
   )]
     .map(id => allPossibleAbilities.find(a => a.id === id))
-    .filter(Boolean);
+    .filter(Boolean)
+    .filter(a => !abilityClass || a.class === abilityClass);
   const filtered = abilities
     .filter(a => a.name.toLowerCase().includes(focused.toLowerCase()))
     .slice(0, 25)
