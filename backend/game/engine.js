@@ -50,28 +50,68 @@ class GameEngine {
 
        let damageDealt = 0;
        let healingDone = 0;
+       let healTarget = null;
+       let multiTarget = false;
 
-       const damageMatch = ability.effect.match(/Deal (\d+) damage/);
-       if (damageMatch) {
-           damageDealt = parseInt(damageMatch[1], 10);
-           target.currentHp = Math.max(0, target.currentHp - damageDealt);
+       // check for multi-target damage phrases first
+       const multiDamageMatch = ability.effect.match(/Deal (\d+) damage to (?:all|each) enemies/i);
+       if (multiDamageMatch) {
+           damageDealt = parseInt(multiDamageMatch[1], 10);
+           multiTarget = true;
+           const enemies = this.combatants.filter(c => c.team !== attacker.team && c.currentHp > 0);
+           for (const enemy of enemies) {
+               enemy.currentHp = Math.max(0, enemy.currentHp - damageDealt);
+           }
+       } else {
+           const damageMatch = ability.effect.match(/Deal (\d+) damage/i);
+           if (damageMatch) {
+               damageDealt = parseInt(damageMatch[1], 10);
+               target.currentHp = Math.max(0, target.currentHp - damageDealt);
+           }
        }
 
-       const healMatch = ability.effect.match(/heal yourself for (\d+) HP/);
-       if (healMatch) {
-           healingDone = parseInt(healMatch[1], 10);
-           this.applyHeal(attacker, healingDone);
+       const healSelfMatch = ability.effect.match(/heal yourself for (\d+) HP/i);
+       if (healSelfMatch) {
+           healingDone = parseInt(healSelfMatch[1], 10);
+           healTarget = attacker;
+       } else {
+           const generalHealMatch = ability.effect.match(/Heal .*? for (\d+) HP/i);
+           if (generalHealMatch) {
+               healingDone = parseInt(generalHealMatch[1], 10);
+               healTarget = target;
+           }
+       }
+
+       if (healTarget && healingDone > 0) {
+           this.applyHeal(healTarget, healingDone);
        }
 
        let logParts = [];
-       if (damageDealt > 0) logParts.push(`${attacker.heroData.name} hits ${target.heroData.name} for ${damageDealt} damage`);
-       if (healingDone > 0) logParts.push(`and is healed for ${healingDone} hit points.`);
+       if (damageDealt > 0) {
+           if (multiTarget) {
+               logParts.push(`${attacker.heroData.name} hits all enemies for ${damageDealt} damage`);
+           } else {
+               logParts.push(`${attacker.heroData.name} hits ${target.heroData.name} for ${damageDealt} damage`);
+           }
+       }
+       if (healingDone > 0) {
+           if (healTarget === attacker) {
+               logParts.push(`and is healed for ${healingDone} hit points.`);
+           } else if (healTarget) {
+               logParts.push(`and heals ${healTarget.heroData.name} for ${healingDone} hit points.`);
+           }
+       }
 
        if (logParts.length > 0) {
            this.log(logParts.join(' '));
        }
 
-       if (target.currentHp <= 0) {
+       if (multiTarget && damageDealt > 0) {
+           const enemies = this.combatants.filter(c => c.team !== attacker.team && c.currentHp <= 0);
+           for (const enemy of enemies) {
+               this.log(`💀 ${enemy.heroData.name} has been defeated.`);
+           }
+       } else if (damageDealt > 0 && target.currentHp <= 0) {
            this.log(`💀 ${target.heroData.name} has been defeated.`);
        }
    }
