@@ -1,5 +1,6 @@
 const { SlashCommandBuilder } = require('discord.js');
 const userService = require('../utils/userService');
+const abilityCardService = require('../utils/abilityCardService');
 const { sendCardDM, buildCardEmbed, buildBattleEmbed, simple } = require('../utils/embedBuilder');
 const GameEngine = require('../../../backend/game/engine');
 const { createCombatant } = require('../../../backend/game/utils');
@@ -36,16 +37,26 @@ async function execute(interaction) {
     return;
   }
 
-  const playerAbilities = allPossibleAbilities
-    .filter(a => a.class === (classAbilityMap[user.class] || user.class) && a.rarity === 'Common')
-    .map(a => a.id);
+  const cards = await abilityCardService.getCards(user.id);
+  const equippedCard = cards.find(c => c.id === user.equipped_ability_id);
+  const playerAbilities = cards
+    .filter(c => c.id !== user.equipped_ability_id)
+    .map(c => c.ability_id);
 
   const goblinAbilityPool = allPossibleAbilities
     .filter(a => a.class === (classAbilityMap[goblinClass] || goblinClass) && a.rarity === 'Common');
   const goblinAbilities = goblinAbilityPool.map(a => a.id);
 
-  const player = createCombatant({ hero_id: playerHero.id, deck: playerAbilities }, 'player', 0);
+  const player = createCombatant({
+    hero_id: playerHero.id,
+    ability_id: equippedCard ? equippedCard.ability_id : null,
+    deck: playerAbilities
+  }, 'player', 0);
   const goblin = createCombatant({ hero_id: goblinBase.id, deck: goblinAbilities }, 'enemy', 0);
+  if (equippedCard && player.abilityData) {
+    player.abilityData = { ...player.abilityData, cardId: equippedCard.id, charges: equippedCard.charges };
+    player.abilityCharges = equippedCard.charges;
+  }
   goblin.heroData = { ...goblin.heroData, name: `Goblin ${goblinClass}` };
 
   await interaction.reply({ content: `${interaction.user.username} delves into the goblin cave and encounters a ferocious Goblin ${goblinClass}! The battle begins!` });
