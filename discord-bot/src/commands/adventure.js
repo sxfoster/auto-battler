@@ -39,7 +39,7 @@ async function execute(interaction) {
     return;
   }
 
-  const cards = await abilityCardService.getCards(user.id);
+  const cards = await abilityCardService.getCards(interaction.user.id);
   const equippedCard = cards.find(c => c.id === user.equipped_ability_id);
   const playerAbilityId = equippedCard ? equippedCard.ability_id : undefined;
   const playerAbilities = cards
