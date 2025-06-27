@@ -62,8 +62,9 @@ Equipped Ability: Power Strike
 
 `/adventure` sends your hero into a practice fight against a random goblin. The
 command posts an embed that updates every couple seconds to show remaining HP
-for all combatants and the latest log entries at the top. When the fight ends a
-final embed announces **Victory** or **Defeat** and any loot is granted.
+for all combatants. The battle log grows from top to bottom, with new entries
+appended to the bottom of the list. When the fight ends a final embed announces
+**Victory** or **Defeat** and any loot is granted.
 
 ## Admin Tools
 
