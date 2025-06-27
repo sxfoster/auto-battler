@@ -14,4 +14,9 @@ async function setUserClass(discordId, className) {
   await db.query('UPDATE users SET class = ? WHERE discord_id = ?', [className, discordId]);
 }
 
-module.exports = { getUser, createUser, setUserClass };
+async function getUserByName(name) {
+  const [rows] = await db.query('SELECT * FROM users WHERE LOWER(name) = LOWER(?)', [name]);
+  return rows[0] || null;
+}
+
+module.exports = { getUser, createUser, setUserClass, getUserByName };

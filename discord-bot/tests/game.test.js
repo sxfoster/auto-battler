@@ -3,7 +3,8 @@ const game = require('../src/commands/game');
 jest.mock('../src/utils/userService', () => ({
   getUser: jest.fn(),
   createUser: jest.fn(),
-  setUserClass: jest.fn()
+  setUserClass: jest.fn(),
+  getUserByName: jest.fn()
 }));
 const userService = require('../src/utils/userService');
 
