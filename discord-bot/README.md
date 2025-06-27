@@ -54,3 +54,15 @@ Example output:
 Player Details
 Player: SomePlayer - Bard
 ```
+
+## Database Migration
+
+The updated schema introduces a `user_ability_cards` table and a new
+`equipped_ability_id` column on `users`.
+
+1. Run the statements in `db-schema.sql` against your MySQL database.
+2. For existing installs, create a `user_ability_cards` row for each
+   player's current ability and update `users.equipped_ability_id` to
+   point to that card.
+
+New deployments only need to execute the schema file.

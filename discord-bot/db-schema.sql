@@ -8,6 +8,20 @@ CREATE TABLE IF NOT EXISTS users (
     class VARCHAR(50) DEFAULT NULL
 );
 
+-- Ability cards owned by users
+CREATE TABLE IF NOT EXISTS user_ability_cards (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    ability_id INT NOT NULL,
+    charges INT DEFAULT 10,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+-- Equipped ability reference
+ALTER TABLE users
+    ADD COLUMN equipped_ability_id INT DEFAULT NULL,
+    ADD FOREIGN KEY (equipped_ability_id) REFERENCES user_ability_cards(id);
+
 -- Champions owned by users
 CREATE TABLE IF NOT EXISTS user_champions (
     id INT AUTO_INCREMENT PRIMARY KEY,
