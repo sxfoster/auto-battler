@@ -48,11 +48,15 @@ client.on(Events.InteractionCreate, async interaction => {
   } else if (interaction.isStringSelectMenu()) {
     if (interaction.customId === 'class-select') {
       await gameHandlers.handleClassSelect(interaction);
+    } else if (interaction.customId === 'ability-select') {
+      await inventoryHandlers.handleAbilitySelect(interaction);
     } else if (interaction.customId === 'equip-card') {
       await inventoryHandlers.handleEquipSelect(interaction);
     }
   } else if (interaction.isButton()) {
-    if (interaction.customId.startsWith('class-confirm') || interaction.customId === 'class-choose-again') {
+    if (interaction.customId === 'set-ability') {
+      await inventoryHandlers.handleSetAbilityButton(interaction);
+    } else if (interaction.customId.startsWith('class-confirm') || interaction.customId === 'class-choose-again') {
       await gameHandlers.handleClassButton(interaction);
     }
   }
