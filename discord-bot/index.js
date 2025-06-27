@@ -7,6 +7,7 @@ const client = new Client({ intents: [GatewayIntentBits.Guilds] });
 client.commands = new Collection();
 
 const gameHandlers = require('./src/commands/game');
+const inventoryHandlers = require('./commands/inventory');
 
 const commandDirs = [
   path.join(__dirname, 'commands'),
@@ -47,6 +48,8 @@ client.on(Events.InteractionCreate, async interaction => {
   } else if (interaction.isStringSelectMenu()) {
     if (interaction.customId === 'class-select') {
       await gameHandlers.handleClassSelect(interaction);
+    } else if (interaction.customId.startsWith('equip-ability')) {
+      await inventoryHandlers.handleEquipSelect(interaction);
     }
   } else if (interaction.isButton()) {
     if (interaction.customId.startsWith('class-confirm') || interaction.customId === 'class-choose-again') {

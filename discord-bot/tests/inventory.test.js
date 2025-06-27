@@ -14,6 +14,7 @@ describe('inventory command', () => {
     userService.getUser.mockResolvedValue({ name: 'Tester', class: 'Warrior' });
     const interaction = {
       user: { id: '123', displayAvatarURL: jest.fn().mockReturnValue('https://example.com/avatar.png') },
+      options: { getSubcommand: jest.fn().mockReturnValue('view') },
       reply: jest.fn().mockResolvedValue()
     };
     await inventory.execute(interaction);
@@ -25,6 +26,7 @@ describe('inventory command', () => {
     userService.getUser.mockResolvedValue({ name: 'Tester', class: null });
     const interaction = {
       user: { id: '123', displayAvatarURL: jest.fn().mockReturnValue('https://example.com/avatar.png') },
+      options: { getSubcommand: jest.fn().mockReturnValue('view') },
       reply: jest.fn().mockResolvedValue()
     };
     await inventory.execute(interaction);
@@ -35,6 +37,7 @@ describe('inventory command', () => {
     userService.getUser.mockResolvedValue(null);
     const interaction = {
       user: { id: '123', displayAvatarURL: jest.fn().mockReturnValue('https://example.com/avatar.png') },
+      options: { getSubcommand: jest.fn().mockReturnValue('view') },
       reply: jest.fn().mockResolvedValue()
     };
     await inventory.execute(interaction);
