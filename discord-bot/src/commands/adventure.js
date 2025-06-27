@@ -9,7 +9,6 @@ const { createCombatant } = require('../../../backend/game/utils');
 const { allPossibleHeroes, allPossibleAbilities } = require('../../../backend/game/data');
 const classes = require('../data/classes');
 const classAbilityMap = require('../data/classAbilityMap');
-const goblinLootMap = require('../data/goblinLootMap');
 
 const data = new SlashCommandBuilder()
   .setName('adventure')
@@ -86,8 +85,11 @@ async function execute(interaction) {
   console.log(`[BATTLE END] ${engine.winner}`);
 
   if (engine.winner === 'player') {
-    const abilityId = goblinLootMap[goblinClass];
-    const drop = allPossibleAbilities.find(a => a.id === abilityId);
+    // Drop the basic ability associated with the goblin's class
+    const abilityClass = classAbilityMap[goblinClass] || goblinClass;
+    const drop = allPossibleAbilities.find(
+      a => a.class === abilityClass && a.rarity === 'Common'
+    );
     if (drop) {
       await userService.addAbility(interaction.user.id, drop.id);
       console.log(`[ITEM LOOT] ${drop.name} (${drop.id})`);
