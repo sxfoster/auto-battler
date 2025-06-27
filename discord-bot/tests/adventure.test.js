@@ -5,6 +5,13 @@ jest.mock('../src/utils/userService', () => ({
 }));
 const userService = require('../src/utils/userService');
 
+jest.mock('../src/utils/abilityCardService', () => ({
+  addAbilityCard: jest.fn()
+}));
+jest.mock('../src/utils/embedBuilder', () => ({
+  sendCardDM: jest.fn()
+}));
+
 describe('adventure command', () => {
   beforeEach(() => {
     jest.clearAllMocks();

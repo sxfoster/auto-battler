@@ -1,5 +1,7 @@
-const { SlashCommandBuilder } = require('discord.js');
+const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
 const userService = require('../utils/userService');
+const abilityCardService = require('../utils/abilityCardService');
+const { sendCardDM } = require('../utils/embedBuilder');
 const GameEngine = require('../../../backend/game/engine');
 const { createCombatant } = require('../../../backend/game/utils');
 const { allPossibleHeroes, allPossibleAbilities } = require('../../../backend/game/data');
@@ -42,6 +44,11 @@ async function execute(interaction) {
   const goblinClass = classNames[Math.floor(Math.random() * classNames.length)];
   const goblinBase = allPossibleHeroes.find(h => (h.class === goblinClass || h.name === goblinClass) && h.isBase);
 
+  // Select a matching common ability from data
+  const goblinAbilityOptions = allPossibleAbilities
+    .filter(a => a.class === (classAbilityMap[goblinClass] || goblinClass) && a.rarity === 'Common');
+  const droppedAbility = goblinAbilityOptions[Math.floor(Math.random() * goblinAbilityOptions.length)];
+
   if (!goblinBase) {
     await interaction.reply({ content: 'Required goblin data missing.', ephemeral: true });
     return;
@@ -74,6 +81,21 @@ async function execute(interaction) {
     .setFooter({ text: 'Auto\u2011Battler Bot' });
 
   await interaction.followUp({ embeds: [embed] });
+
+  if (engine.winner === 'player' && droppedAbility) {
+    await abilityCardService.addAbilityCard(user.id, droppedAbility.id, 10);
+    try {
+      await sendCardDM(interaction.user, droppedAbility);
+    } catch (err) {
+      console.error('Failed to send ability card DM:', err);
+      const dropEmbed = new EmbedBuilder()
+        .setColor('#FDE047')
+        .setTitle('You received a new ability card!')
+        .addFields({ name: 'Name', value: droppedAbility.name, inline: true })
+        .setTimestamp();
+      await interaction.followUp({ embeds: [dropEmbed] });
+    }
+  }
 }
 
 module.exports = { data, execute };
