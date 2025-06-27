@@ -33,3 +33,7 @@ through drafting a starter champion:
 5. **Confirm** – review the recap embed and finalize your champion.
 
 After confirmation the champion is saved to your roster and you can explore the rest of the commands.
+
+## Using `/game`
+
+`/game` starts a lightweight onboarding flow that lets testers try class selection without going through the full `/begin` process. Running the command posts an ephemeral message listing the available classes (currently only `Recruit`). Selecting one shows a short description along with **Confirm** and **Choose Another** buttons. Confirm locks in your pick while **Choose Another** returns you to the class list so you can preview a different option.
