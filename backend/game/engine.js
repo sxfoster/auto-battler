@@ -1,6 +1,11 @@
 // GameEngine handles simple auto-attack combat rounds
 
-const abilityCardService = require('../../discord-bot/src/utils/abilityCardService');
+let abilityCardService;
+try {
+    abilityCardService = require('../../discord-bot/src/utils/abilityCardService');
+} catch (e) {
+    abilityCardService = { decrementCharge: () => {} };
+}
 
 class GameEngine {
     constructor(combatants) {
@@ -39,11 +44,6 @@ class GameEngine {
    startRound() {
        this.roundCounter++;
        this.log(`\n**--- Round ${this.roundCounter} ---**`);
-       this.combatants.forEach(c => {
-           if (c.currentHp > 0) {
-               c.currentEnergy = (c.currentEnergy || 0) + 1;
-           }
-       });
        this.turnQueue = this.computeTurnQueue();
    }
 
@@ -114,6 +114,7 @@ class GameEngine {
        }
 
        if (this.checkVictory()) return;
+       attacker.currentEnergy = (attacker.currentEnergy || 0) + 1;
    }
 
 
