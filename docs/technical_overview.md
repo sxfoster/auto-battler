@@ -1,36 +1,35 @@
 # Technical Overview
 
-This document explains the structure of the playable prototype located in `hero-game/` and how the pieces fit together. It is intended for developers who want to extend the prototype or integrate AI generated features.
+This document explains the structure of the playable prototype located in `auto-battler-react/` and how the pieces fit together. It is intended for developers who want to extend the prototype or integrate AI generated features.
 
 Additional design documents are listed in [README.md](README.md).
 
 ## Folder Layout
 
 ```
-hero-game/
-├── index.html       # Entry point for the browser game
-├── style.css        # Basic styling
-└── js/
-    ├── main.js      # Game bootstrap and scene management
-    ├── data.js      # Static card and hero data, including `allPossibleMinions`
-    ├── background-animation.js
-    ├── utils.js
-    ├── scenes/      # Individual scenes (pack, draft, battle, recap)
-    ├── systems/     # Game systems such as EffectProcessor
-    └── ui/          # UI helpers like CardRenderer
+auto-battler-react/
+├── index.html            # HTML entry point loaded by Vite
+├── src/
+│   ├── main.jsx          # Application bootstrap
+│   ├── data/             # Static card and hero data
+│   ├── scenes/           # Individual scenes (pack, draft, battle, recap)
+│   ├── components/       # Shared React components
+│   └── store.js          # Zustand store and helpers
+└── public/
+    └── vite.svg          # Example static asset
 ```
 
 ## Running Locally
 
-From the repository root start any static server, e.g.:
+From the repository root run the React development server:
 
 ```bash
-python3 -m http.server 8000
+cd ../auto-battler-react
+npm install
+npm run dev
 ```
 
-Then open `http://localhost:8000/hero-game/` in your browser. Additional options are described in [../README.md](../README.md).
-
-If you prefer Node.js you can run `npx http-server -p 8000` instead of the Python command above.
+This will launch Vite on `http://localhost:5173` by default. Additional options are described in [../README.md](../README.md).
 
 ### Client Logic
 

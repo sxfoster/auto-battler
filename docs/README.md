@@ -2,7 +2,7 @@
 
 This directory contains design documents and technical references for the auto‑battler prototypes.  New contributors should begin with `technical_overview.md` for a code walkthrough and `event_schema.md` for the battle event format.
 
-For instructions on running the playable demo see [../hero-game/README.md](../hero-game/README.md).  The general repository layout is described in [../README.md](../README.md).
+For instructions on running the playable demo see [../auto-battler-react/README.md](../auto-battler-react/README.md).  The general repository layout is described in [../README.md](../README.md).
 
 ## Files
 

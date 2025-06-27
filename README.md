@@ -1,34 +1,27 @@
 # Auto Battler Prototypes
 
-This repository contains a series of HTML and JavaScript prototypes for a card based auto‑battler.  The main implementation lives in the `hero-game` folder, while the root directory holds several earlier proof‑of‑concept files.
+This repository contains a series of HTML and JavaScript prototypes for a card based auto‑battler.  The most complete browser implementation now lives in the `auto-battler-react/` folder, while the root directory holds several earlier proof‑of‑concept files.
 
-For details on the current prototype and its user interface, see [hero-game/README.md](hero-game/README.md).
+For details on the current prototype and its user interface, see [auto-battler-react/README.md](auto-battler-react/README.md).
 
 ## Repository Layout
 
-- `hero-game/` – Modern prototype with modular JavaScript, scenes and battle logic.
-- `index.html`, `poc.html`, `poc2`, `poc3.html` – Stand‑alone prototypes kept for reference.
+- `auto-battler-react/` – React-based prototype with modular scenes and battle logic.
+- `index.html`, `poc2` – Stand‑alone HTML prototypes kept for reference.
 - `docs/` – Game design documents and technical notes.
 - `backend/` – Basic Express server used for local development.
 
 ## Running the Game
 
-The `hero-game` prototype uses ES module imports and must be served from a local web server.  Any simple static server will work.  From the repository root run:
+The React prototype is built with Vite. From the repository root run:
 
 ```bash
-# Using Python
-python3 -m http.server 8000
+cd auto-battler-react
+npm install
+npm run dev
 ```
 
-Then open `http://localhost:8000/hero-game/` in your browser.
-
-If you prefer Node.js you can run:
-
-```bash
-npx http-server -p 8000
-```
-
-Any other static file server will work as long as it serves the repository root.
+This starts the Vite development server (usually on `http://localhost:5173`).
 
 ## Running the Backend
 

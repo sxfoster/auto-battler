@@ -1,5 +1,5 @@
-# Project Roadmap: Hero-Game Discord Bot
-To evolve the hero-game into a feature-rich Discord bot experience by implementing the following 10 key features.
+# Project Roadmap: Auto Battler Discord Bot
+To evolve the project into a feature-rich Discord bot experience by implementing the following 10 key features.
 
 ## Core Gameplay Mechanics
 1.  **Character Creation and Customization:** Allow users to create unique heroes with customizable stats, abilities, and appearances.
@@ -51,7 +51,7 @@ The core combat is already implemented but can be expanded for a Discord environ
 
 ### Detailed Combat Logs
 **Implementation Plan:**
--   **Existing Feature:** Note that `BattleScene.js` in the hero-game and the `GameEngine` in the backend already produce detailed battle logs.
+    -   **Existing Feature:** Note that `BattleScene.jsx` in `auto-battler-react/src/scenes` and the `GameEngine` in the backend already produce detailed battle logs.
 -   **Discord Display:** The task is to format this log output within a Discord embed, potentially using pagination for long fights. Reference the simple embed builder in `discord-bot/src/utils/embedBuilder.js`.
 
 ## 3. In-Game Economy and Currency
