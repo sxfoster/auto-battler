@@ -1,4 +1,6 @@
-// GameEngine handles simple auto-attack combat rounds
+// GameEngine handles simple auto-attack combat rounds with optional ability usage
+const abilityCardService = require('./abilityCardService');
+const MAX_ENERGY = 10;
 
 class GameEngine {
     constructor(combatants) {
@@ -73,10 +75,30 @@ class GameEngine {
        if (!wasSkipped) {
            const targets = this.combatants.filter(c => c.team !== attacker.team && c.currentHp > 0);
            if (targets.length > 0) {
-               const target = targets[0];
-               this.applyDamage(attacker, target, attacker.attack);
+               const ability = attacker.abilityData;
+               let usedAbility = false;
+               if (ability && attacker.currentEnergy >= ability.energyCost) {
+                   if (abilityCardService.useCharge(attacker)) {
+                       usedAbility = true;
+                       attacker.currentEnergy -= ability.energyCost;
+                       const dmgMatch = ability.effect && ability.effect.match(/(\d+)/);
+                       const base = dmgMatch ? parseInt(dmgMatch[1], 10) : attacker.attack;
+                       if (ability.target === 'ENEMIES') {
+                           targets.forEach(t => this.applyDamage(attacker, t, base));
+                       } else {
+                           const target = targets[0];
+                           this.applyDamage(attacker, target, base);
+                       }
+                   }
+               }
+               if (!usedAbility) {
+                   const target = targets[0];
+                   this.applyDamage(attacker, target, attacker.attack);
+               }
            }
        }
+
+       attacker.currentEnergy = Math.min(MAX_ENERGY, attacker.currentEnergy + 1);
 
        if (this.checkVictory()) return;
    }
