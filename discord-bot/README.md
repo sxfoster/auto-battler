@@ -55,6 +55,16 @@ Player Details
 Player: SomePlayer - Bard
 ```
 
+## Admin Tools
+
+`/admin grant-ability` lets users with the **Game Master** role grant an ability card to any player. The command requires two options:
+
+```bash
+/admin grant-ability user:@SomePlayer ability:"Power Strike"
+```
+
+The Game Master receives an ephemeral confirmation message while the target player is sent a DM with the standard ability card embed.
+
 ## Database Migration
 
 The updated schema introduces a `user_ability_cards` table and a new
