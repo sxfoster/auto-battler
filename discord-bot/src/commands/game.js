@@ -9,7 +9,7 @@ const data = new SlashCommandBuilder()
 async function execute(interaction) {
   let user = await userService.getUser(interaction.user.id);
   if (!user) {
-    await userService.createUser(interaction.user.id);
+    await userService.createUser(interaction.user.id, interaction.user.username);
     user = await userService.getUser(interaction.user.id);
   }
 
@@ -71,7 +71,7 @@ async function handleClassButton(interaction) {
     const className = interaction.customId.split(':')[1];
     let user = await userService.getUser(interaction.user.id);
     if (!user) {
-      await userService.createUser(interaction.user.id);
+      await userService.createUser(interaction.user.id, interaction.user.username);
       user = await userService.getUser(interaction.user.id);
     }
     if (user.class) {
