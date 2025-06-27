@@ -33,4 +33,15 @@ describe('adventure command', () => {
     expect(userService.addAbility).toHaveBeenCalled();
     expect(interaction.followUp).toHaveBeenCalledWith(expect.objectContaining({ content: expect.stringContaining('You found'), ephemeral: true }));
   });
+
+  test('battle log reflects class base stats', async () => {
+    userService.getUser.mockResolvedValue({ discord_id: '123', class: 'Barbarian' });
+    jest.spyOn(Math, 'random').mockReturnValue(0.2);
+    const interaction = { user: { id: '123' }, reply: jest.fn().mockResolvedValue(), followUp: jest.fn().mockResolvedValue() };
+    await adventure.execute(interaction);
+    const description = interaction.followUp.mock.calls[0][0].embeds[0].data.description;
+    expect(description).toContain('(20/20 HP)');
+    expect(description).toMatch(/for 4 damage/);
+    Math.random.mockRestore();
+  });
 });
