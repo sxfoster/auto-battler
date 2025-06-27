@@ -46,7 +46,6 @@ class GameEngine {
    }
 
    applyAbilityEffect(attacker, target, ability) {
-       this.log(`${attacker.heroData.name} uses ${ability.name}!`);
 
        let damageDealt = 0;
        let healingDone = 0;
@@ -86,25 +85,25 @@ class GameEngine {
            this.applyHeal(healTarget, healingDone);
        }
 
-       let logParts = [];
+       let log = `${attacker.heroData.name} uses ${ability.name}`;
        if (damageDealt > 0) {
            if (multiTarget) {
-               logParts.push(`${attacker.heroData.name} hits all enemies for ${damageDealt} damage`);
+               log += ` and hits all enemies for ${damageDealt} damage`;
            } else {
-               logParts.push(`${attacker.heroData.name} hits ${target.heroData.name} for ${damageDealt} damage`);
+               log += ` and hits ${target.heroData.name} for ${damageDealt} damage`;
            }
        }
        if (healingDone > 0) {
            if (healTarget === attacker) {
-               logParts.push(`and is healed for ${healingDone} hit points.`);
+               log += ` and is healed for ${healingDone} hit points.`;
            } else if (healTarget) {
-               logParts.push(`and heals ${healTarget.heroData.name} for ${healingDone} hit points.`);
+               log += ` and heals ${healTarget.heroData.name} for ${healingDone} hit points.`;
            }
+       } else {
+           log += '.';
        }
 
-       if (logParts.length > 0) {
-           this.log(logParts.join(' '));
-       }
+       this.log(log);
 
        if (multiTarget && damageDealt > 0) {
            const enemies = this.combatants.filter(c => c.team !== attacker.team && c.currentHp <= 0);
