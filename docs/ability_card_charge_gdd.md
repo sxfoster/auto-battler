@@ -3,6 +3,8 @@
 ## 1. Concept Overview
 This system replaces temporary drafted abilities with persistent Ability Cards that drop from monsters. Cards are stored in the player's inventory and must be equipped to use in combat. Each card carries a limited number of charges, adding resource management to battles.
 
+*Implementation note:* as of the current prototype the Discord bot exposes only a basic `/inventory` command. The charge logic described below is not yet coded. The planned `/inventory set` command will allow selecting which card is active once the inventory system is fully implemented.
+
 ## 2. Core Mechanics
 ### 2.1 Acquiring Ability Cards
 - **Loot Drops:** Monsters have a chance to drop an Ability Card matching their class.
@@ -17,7 +19,7 @@ This system replaces temporary drafted abilities with persistent Ability Cards t
   - `Power Strike 0/10`
 
 ### 2.3 Equipping and Using Abilities
-- **Setting an Ability:** Players select one card from their inventory to become their active ability. Only one ability can be set at a time.
+- **Setting an Ability:** Players select one card from their inventory to become their active ability. Only one ability can be set at a time. The planned `/inventory set <card name>` command in the Discord bot will handle this once implemented.
 - **Combat Usage:**
   - Heroes gain 1 energy per round.
   - When enough energy is available, the equipped ability is used automatically.

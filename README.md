@@ -66,3 +66,7 @@ node index.js
 
 When configured correctly the bot logs a `Database connection successful` message on start.
 
+### Inventory Commands & Charge System
+
+The bot includes a simple `/inventory` command for viewing your backpack. Once the ability card system is implemented it will also support `/inventory set` to choose which ability card is active.  The design for this charge-based system is documented in [docs/ability_card_charge_gdd.md](docs/ability_card_charge_gdd.md).
+
