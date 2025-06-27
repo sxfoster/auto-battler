@@ -40,19 +40,22 @@ After confirmation the champion is saved to your roster and you can explore the 
 
 ## Using `/who`
 
-`/who` displays the champion bound to a Discord user. You must mention the target player:
+`/who` displays a short character sheet for the mentioned player. You must mention the target user:
 
 ```bash
 /who @SomePlayer
 ```
 
-The command replies with a styled embed showing the player's name and class. If the player has not started the game or has not chosen a class, the embed will display that message instead.
+The command responds with a styled embed showing the player's name, class, base HP and Attack, and the ability they currently have equipped. If the player has not started the game or has not chosen a class, the embed will indicate that instead.
 
 Example output:
 
 ```
-Player Details
+Character Sheet
 Player: SomePlayer - Bard
+HP: 16
+Attack: 2
+Equipped Ability: Power Strike
 ```
 
 ## Admin Tools
