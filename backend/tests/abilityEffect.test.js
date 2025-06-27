@@ -32,7 +32,8 @@ describe('Ability effect application', () => {
     const expectedEnemyHp = enemy.maxHp - player.attack * 2 - 2;
     expect(e.currentHp).toBe(expectedEnemyHp);
 
-    // log should mention combined damage and healing
-    expect(engine.battleLog.some(l => l.includes('hits') && l.includes('and is healed for 2'))).toBe(true);
+    // there should be exactly one log entry describing both damage and healing
+    const actionLines = engine.battleLog.filter(l => l.includes('hits') && l.includes('healed'));
+    expect(actionLines).toHaveLength(1);
   });
 });
