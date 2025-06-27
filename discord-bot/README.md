@@ -37,3 +37,19 @@ After confirmation the champion is saved to your roster and you can explore the 
 ## Using `/game`
 
 `/game` starts a lightweight onboarding flow that lets testers try class selection without going through the full `/begin` process. Running the command posts an ephemeral message listing the available classes (currently only `Recruit`). Selecting one shows a short description along with **Confirm** and **Choose Another** buttons. Confirm locks in your pick while **Choose Another** returns you to the class list so you can preview a different option.
+
+## Using `/who`
+
+`/who` displays the champion bound to a Discord user. The command is case‑insensitive and accepts an optional user mention:
+
+```bash
+/who @SomePlayer
+```
+
+If no user is provided, the bot looks up your own champion. A successful lookup replies with a short embed summarizing that player's class and level. When the target has not created a character yet you will see `That player has no champion.`
+
+Example output:
+
+```
+@SomePlayer – Level 3 Barbarian
+```
