@@ -66,3 +66,15 @@ The updated schema introduces a `user_ability_cards` table and a new
    point to that card.
 
 New deployments only need to execute the schema file.
+
+## Running Tests
+
+The bot includes a Jest test suite located in the `tests/` directory. Install
+dependencies and run the suite with:
+
+```bash
+npm install
+npm test
+```
+
+`npm test` runs Jest and executes all tests.
