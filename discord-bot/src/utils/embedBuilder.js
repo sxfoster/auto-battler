@@ -49,7 +49,7 @@ function buildCardEmbed(card) {
 
 /**
  * Build an embed showing current combatant HP and log lines.
- * New log entries should appear at the top of the description.
+ * New log entries should be appended to the bottom of the description.
  *
  * @param {object[]} combatants
  * @param {string} logText
