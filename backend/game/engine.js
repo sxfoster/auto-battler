@@ -33,9 +33,44 @@ class GameEngine {
             .sort((a, b) => this.getEffectiveSpeed(b) - this.getEffectiveSpeed(a));
     }
 
+   applyHeal(caster, amount) {
+       caster.currentHp = Math.min(caster.maxHp, caster.currentHp + amount);
+   }
+
    applyDamage(attacker, target, baseDamage) {
        target.currentHp = Math.max(0, target.currentHp - baseDamage);
        this.log(`${attacker.heroData.name} hits ${target.heroData.name} for ${baseDamage} damage.`);
+       if (target.currentHp <= 0) {
+           this.log(`💀 ${target.heroData.name} has been defeated.`);
+       }
+   }
+
+   applyAbilityEffect(attacker, target, ability) {
+       this.log(`${attacker.heroData.name} uses ${ability.name}!`);
+
+       let damageDealt = 0;
+       let healingDone = 0;
+
+       const damageMatch = ability.effect.match(/Deal (\d+) damage/);
+       if (damageMatch) {
+           damageDealt = parseInt(damageMatch[1], 10);
+           target.currentHp = Math.max(0, target.currentHp - damageDealt);
+       }
+
+       const healMatch = ability.effect.match(/heal yourself for (\d+) HP/);
+       if (healMatch) {
+           healingDone = parseInt(healMatch[1], 10);
+           this.applyHeal(attacker, healingDone);
+       }
+
+       let logParts = [];
+       if (damageDealt > 0) logParts.push(`${attacker.heroData.name} hits ${target.heroData.name} for ${damageDealt} damage`);
+       if (healingDone > 0) logParts.push(`and is healed for ${healingDone} hit points.`);
+
+       if (logParts.length > 0) {
+           this.log(logParts.join(' '));
+       }
+
        if (target.currentHp <= 0) {
            this.log(`💀 ${target.heroData.name} has been defeated.`);
        }
@@ -90,8 +125,7 @@ class GameEngine {
                const ability = attacker.abilityData;
                const cost = ability ? ability.energyCost || 1 : 1;
                if (ability && attacker.abilityCharges > 0 && attacker.currentEnergy >= cost) {
-                   this.log(`${attacker.heroData.name} uses ${ability.name}!`);
-                   this.applyDamage(attacker, target, attacker.attack);
+                   this.applyAbilityEffect(attacker, target, ability);
                    attacker.currentEnergy -= cost;
                    attacker.abilityCharges -= 1;
                    if (ability.cardId) {
