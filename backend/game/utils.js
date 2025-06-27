@@ -5,10 +5,16 @@ function createCombatant(playerData, team, position) {
     const hero = allPossibleHeroes.find(h => h.id === playerData.hero_id);
     const weapon = allPossibleWeapons.find(w => w.id === playerData.weapon_id);
     const armor = allPossibleArmors.find(a => a.id === playerData.armor_id);
-    const ability = allPossibleAbilities.find(a => a.id === playerData.ability_id);
-    const deckAbilities = (playerData.deck || []).map(id => {
-        const a = allPossibleAbilities.find(ab => ab.id === id);
-        return a ? { ...a, charges: 10 } : null;
+    const abilityId = playerData.ability_id || (playerData.ability_card && playerData.ability_card.ability_id);
+    const ability = allPossibleAbilities.find(a => a.id === abilityId);
+    const deckAbilities = (playerData.deck || []).map(entry => {
+        if (typeof entry === 'object') {
+            const a = allPossibleAbilities.find(ab => ab.id === entry.ability_id);
+            return a ? { ...a, cardId: entry.id, charges: entry.charges ?? 10 } : null;
+        } else {
+            const a = allPossibleAbilities.find(ab => ab.id === entry);
+            return a ? { ...a, charges: 10 } : null;
+        }
     }).filter(Boolean);
 
     if (!hero) return null;
@@ -25,8 +31,12 @@ function createCombatant(playerData, team, position) {
         heroData: hero,
         weaponData: weapon,
         armorData: armor,
-        abilityData: ability || deckAbilities[0] || null,
-        abilityCharges: ability ? 10 : (deckAbilities[0] ? deckAbilities[0].charges : 0),
+        abilityData: ability
+            ? (playerData.ability_card ? { ...ability, cardId: playerData.ability_card.id } : ability)
+            : deckAbilities[0] || null,
+        abilityCharges: ability
+            ? (playerData.ability_card ? playerData.ability_card.charges : 10)
+            : (deckAbilities[0] ? deckAbilities[0].charges : 0),
         deck: ability ? deckAbilities : deckAbilities.slice(1),
         team: team,
         position: position,
