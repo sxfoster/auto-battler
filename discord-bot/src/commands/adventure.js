@@ -1,6 +1,6 @@
 const { SlashCommandBuilder } = require('discord.js');
 const userService = require('../utils/userService');
-const { sendCardDM, buildCardEmbed } = require('../utils/embedBuilder');
+const { sendCardDM, buildCardEmbed, buildBattleEmbed, simple } = require('../utils/embedBuilder');
 const GameEngine = require('../../../backend/game/engine');
 const { createCombatant } = require('../../../backend/game/utils');
 const { allPossibleHeroes, allPossibleAbilities } = require('../../../backend/game/data');
@@ -51,18 +51,22 @@ async function execute(interaction) {
   await interaction.reply({ content: `${interaction.user.username} delves into the goblin cave and encounters a ferocious Goblin ${goblinClass}! The battle begins!` });
 
   const engine = new GameEngine([player, goblin]);
-  const log = engine.runFullGame();
+  const wait = ms => new Promise(r => setTimeout(r, ms));
+  let battleMessage;
+  let logText = '';
+  for (const step of engine.runGameSteps()) {
+    logText = [...step.log, logText].filter(Boolean).join('\n');
+    const embed = buildBattleEmbed(step.combatants, logText);
+    if (!battleMessage) {
+      battleMessage = await interaction.followUp({ embeds: [embed] });
+    } else {
+      await wait(1500);
+      await battleMessage.edit({ embeds: [embed] });
+    }
+  }
 
   const outcome = engine.winner === 'player' ? 'Victory!' : 'Defeat!';
-  const logText = log.concat(outcome).join('\n');
-  const embed = new (require('discord.js').EmbedBuilder)()
-    .setColor('#29b6f6')
-    .setTitle(outcome)
-    .setDescription(logText)
-    .setTimestamp()
-    .setFooter({ text: 'Auto\u2011Battler Bot' });
-
-  await interaction.followUp({ embeds: [embed] });
+  await interaction.followUp({ embeds: [simple(outcome)] });
 
   if (engine.winner === 'player') {
     const abilityId = goblinLootMap[goblinClass];

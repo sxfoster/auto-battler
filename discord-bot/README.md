@@ -58,6 +58,13 @@ Attack: 2
 Equipped Ability: Power Strike
 ```
 
+## Using `/adventure`
+
+`/adventure` sends your hero into a practice fight against a random goblin. The
+command posts an embed that updates every couple seconds to show remaining HP
+for all combatants and the latest log entries at the top. When the fight ends a
+final embed announces **Victory** or **Defeat** and any loot is granted.
+
 ## Admin Tools
 
 `/admin grant-ability` lets users with the **Game Master** role grant an ability card to any player. The command requires two options:

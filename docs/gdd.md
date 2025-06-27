@@ -445,6 +445,7 @@ For detailed information on Deck Size Progression, Card Power Curves, and Loot D
 - Heroes on each side are arranged in a vertical column (top and bottom positions).
 - A Battle Log is displayed at the bottom of the screen to show turn-by-turn actions.
 - A "Speed Control" button is present at the top-center of the screen.
+- In the Discord bot version the battle log is streamed live by editing a single message every few seconds.
 
 ### Team Generation
 - The Player's team consists of the 2 heroes and 2 weapons they drafted.
