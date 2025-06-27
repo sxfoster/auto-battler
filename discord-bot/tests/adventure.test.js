@@ -66,6 +66,7 @@ describe('adventure command', () => {
       runGameSteps: function* () {
         yield { combatants: [], log: ['first', 'second'] };
       },
+      runFullGame: jest.fn(),
       winner: 'player'
     }));
     userService.getUser.mockResolvedValue({ discord_id: '123', class: 'Barbarian' });
@@ -84,5 +85,24 @@ describe('adventure command', () => {
     await adventure.execute(interaction);
     expect(userService.addAbility).toHaveBeenCalledWith('123', goblinLootMap[targetClass]);
     Math.random.mockRestore();
+  });
+
+  test('battle log is truncated to last 20 lines', async () => {
+    const logs = Array.from({ length: 30 }, (_, i) => String(i + 1));
+    GameEngine.mockImplementationOnce(() => ({
+      runGameSteps: function* () {
+        yield { combatants: [], log: logs };
+      },
+      runFullGame: jest.fn(),
+      winner: 'player'
+    }));
+    userService.getUser.mockResolvedValue({ discord_id: '123', class: 'Barbarian' });
+    const interaction = { user: { id: '123' }, reply: jest.fn().mockResolvedValue(), followUp: jest.fn().mockResolvedValue() };
+    await adventure.execute(interaction);
+    const description = interaction.followUp.mock.calls[0][0].embeds[0].data.description;
+    const lines = description.split('\n');
+    expect(lines.length).toBe(20);
+    expect(lines[0]).toBe('11');
+    expect(lines[19]).toBe('30');
   });
 });
