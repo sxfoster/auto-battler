@@ -1,6 +1,8 @@
 const { SlashCommandBuilder } = require('discord.js');
 const userService = require('../utils/userService');
 const { sendCardDM, buildCardEmbed, buildBattleEmbed, simple } = require('../utils/embedBuilder');
+
+const MAX_LOG_LINES = 20;
 const GameEngine = require('../../../backend/game/engine');
 const { createCombatant } = require('../../../backend/game/utils');
 const { allPossibleHeroes, allPossibleAbilities } = require('../../../backend/game/data');
@@ -58,6 +60,10 @@ async function execute(interaction) {
   let logText = '';
   for (const step of engine.runGameSteps()) {
     logText = [logText, ...step.log].filter(Boolean).join('\n');
+    const lines = logText.split('\n');
+    if (lines.length > MAX_LOG_LINES) {
+      logText = lines.slice(-MAX_LOG_LINES).join('\n');
+    }
     const embed = buildBattleEmbed(step.combatants, logText);
     if (!battleMessage) {
       battleMessage = await interaction.followUp({ embeds: [embed] });
