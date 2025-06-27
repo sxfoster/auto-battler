@@ -27,6 +27,19 @@ const data = new SlashCommandBuilder()
           .setRequired(true)
           .setAutocomplete(true)
       )
+  )
+  // temporary alias for backwards compatibility
+  .addSubcommand(sub =>
+    sub
+      .setName('equip')
+      .setDescription('Equip an ability card')
+      .addStringOption(opt =>
+        opt
+          .setName('ability')
+          .setDescription('Name of the ability to equip')
+          .setRequired(true)
+          .setAutocomplete(true)
+      )
   );
 
 async function execute(interaction) {
@@ -72,7 +85,7 @@ async function execute(interaction) {
     return;
   }
 
-  if (sub === 'set') {
+  if (sub === 'set' || sub === 'equip') {
     const abilityName = interaction.options.getString('ability');
     const ability = allPossibleAbilities.find(a => a.name.toLowerCase() === abilityName.toLowerCase());
     if (!ability) {
