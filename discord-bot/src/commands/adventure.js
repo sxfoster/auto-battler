@@ -1,7 +1,7 @@
-const { SlashCommandBuilder } = require('discord.js');
+const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
 const userService = require('../utils/userService');
 const abilityCardService = require('../utils/abilityCardService');
-const { sendCardDM, buildCardEmbed, buildBattleEmbed, simple } = require('../utils/embedBuilder');
+const { sendCardDM, buildCardEmbed, buildBattleEmbed } = require('../utils/embedBuilder');
 
 const MAX_LOG_LINES = 20;
 const GameEngine = require('../../../backend/game/engine');
@@ -80,29 +80,37 @@ async function execute(interaction) {
     }
   }
 
-  const outcome = engine.winner === 'player' ? 'Victory!' : 'Defeat!';
-  await interaction.followUp({ embeds: [simple(outcome)] });
-  console.log(`[BATTLE END] ${engine.winner}`);
-
+  let drop;
   if (engine.winner === 'player') {
-    // Drop the basic ability associated with the goblin's class
     const abilityClass = classAbilityMap[goblinClass] || goblinClass;
-    const drop = allPossibleAbilities.find(
+    drop = allPossibleAbilities.find(
       a => a.class === abilityClass && a.rarity === 'Common'
     );
-    if (drop) {
-      await userService.addAbility(interaction.user.id, drop.id);
-      console.log(`[ITEM LOOT] ${drop.name} (${drop.id})`);
-      if (interaction.user.send) {
-        try {
-          await sendCardDM(interaction.user, drop);
-        } catch (err) {
-          console.error('Failed to DM card drop:', err);
-          await interaction.followUp({ embeds: [buildCardEmbed(drop)], ephemeral: true });
-        }
-      } else {
+  }
+
+  const goblinName = `Goblin ${goblinClass}`;
+  let summary = `${interaction.user.username} adventured into the goblin caves and encountered a ${goblinName} `;
+  if (engine.winner === 'player') {
+    summary += drop ? `who was slain and dropped ${drop.name}.` : 'who was slain.';
+  } else {
+    summary += 'who defeated them.';
+  }
+
+  await interaction.followUp({ embeds: [new EmbedBuilder().setDescription(summary)] });
+  console.log(`[BATTLE END] ${engine.winner}`);
+
+  if (engine.winner === 'player' && drop) {
+    await userService.addAbility(interaction.user.id, drop.id);
+    console.log(`[ITEM LOOT] ${drop.name} (${drop.id})`);
+    if (interaction.user.send) {
+      try {
+        await sendCardDM(interaction.user, drop);
+      } catch (err) {
+        console.error('Failed to DM card drop:', err);
         await interaction.followUp({ embeds: [buildCardEmbed(drop)], ephemeral: true });
       }
+    } else {
+      await interaction.followUp({ embeds: [buildCardEmbed(drop)], ephemeral: true });
     }
   }
 }
