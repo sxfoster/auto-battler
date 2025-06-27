@@ -109,5 +109,5 @@ Emitted once when a battle begins.
 Other events currently produced by the simulator include `TURN_SKIPPED`, `TURN_PASSED`, `ENERGY_GAIN`, `TURN_ACTION`, `ACTION_FAILED` and `EFFECT_APPLYING`. These share the same envelope structure and follow a similar pattern with `turn`, `actor`/`caster` and relevant fields.
 
 ## Entity Formats
-`GameEntity` and `Card` entries appear as plain JSON objects containing identifiers, names, stats and any active effects.  The current JavaScript implementation defines these structures in `hero-game/js/data.js` and related modules.
+`GameEntity` and `Card` entries appear as plain JSON objects containing identifiers, names, stats and any active effects.  The current JavaScript implementation defines these structures in `auto-battler-react/src/data/data.js` and related modules.
 

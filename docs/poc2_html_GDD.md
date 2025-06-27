@@ -81,8 +81,8 @@
 
 ## 8. Connections to Other Projects
 
-*   **Evolution of Drafting:** This PoC represents an earlier, simpler version of the multi-stage drafting (hero, then ability, then weapon, then armor) found in `hero-game/`.
-*   **Card Visuals:** The compact card style with circular art is distinct from the rectangular art in `poc.html` and `hero-game/`, showing exploration of different visual approaches.
+*   **Evolution of Drafting:** This PoC represents an earlier, simpler version of the multi-stage drafting (hero, then ability, then weapon, then armor) found in the `auto-battler-react/` prototype.
+*   **Card Visuals:** The compact card style with circular art is distinct from the rectangular art in `poc.html` and `auto-battler-react/`, showing exploration of different visual approaches.
 *   The "Ultra Rare" rarity likely maps to "Epic" in the more developed projects.
 
 ## 9. Future Ideas / Potential Improvements (If this PoC were to be expanded)
