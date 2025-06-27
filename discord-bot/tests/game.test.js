@@ -18,13 +18,13 @@ describe('game command onboarding', () => {
     userService.getUser.mockResolvedValueOnce({ discord_id: '123', class: null });
 
     const interaction = {
-      user: { id: '123' },
+      user: { id: '123', username: 'tester' },
       options: {},
       reply: jest.fn().mockResolvedValue()
     };
 
     await game.execute(interaction);
-    expect(userService.createUser).toHaveBeenCalledWith('123');
+    expect(userService.createUser).toHaveBeenCalledWith('123', 'tester');
     expect(interaction.reply).toHaveBeenCalledWith(expect.objectContaining({ ephemeral: true }));
   });
 
@@ -53,7 +53,7 @@ describe('game command onboarding', () => {
     userService.getUser.mockResolvedValue({ discord_id: '123', class: 'Bard' });
 
     const interaction = {
-      user: { id: '123' },
+      user: { id: '123', username: 'tester' },
       options: {},
       reply: jest.fn().mockResolvedValue()
     };
