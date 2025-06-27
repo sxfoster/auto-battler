@@ -68,7 +68,7 @@ describe('inventory command', () => {
     expect(interaction.reply.mock.calls[0][0].embeds[0].data.fields[2].value).toContain('Power Strike');
   });
 
-  test('equip subcommand shows dropdown', async () => {
+  test('set subcommand shows dropdown when multiple copies', async () => {
     userService.getUser.mockResolvedValue({ id: 1, name: 'Tester', class: 'Warrior', equipped_ability_id: null });
     abilityCardService.getCards.mockResolvedValue([
       { id: 1, ability_id: 3111, charges: 5 },
@@ -77,13 +77,48 @@ describe('inventory command', () => {
     const interaction = {
       user: { id: '123' },
       options: {
-        getSubcommand: jest.fn().mockReturnValue('equip'),
+        getSubcommand: jest.fn().mockReturnValue('set'),
         getString: jest.fn().mockReturnValue('Power Strike')
       },
       reply: jest.fn().mockResolvedValue()
     };
     await inventory.execute(interaction);
     expect(interaction.reply).toHaveBeenCalledWith(expect.objectContaining({ components: expect.any(Array) }));
+  });
+
+  test('set subcommand equips when single copy', async () => {
+    userService.getUser.mockResolvedValue({ id: 1, name: 'Tester', class: 'Warrior', equipped_ability_id: null });
+    abilityCardService.getCards.mockResolvedValue([
+      { id: 5, ability_id: 3111, charges: 2 }
+    ]);
+    const interaction = {
+      user: { id: '123' },
+      options: {
+        getSubcommand: jest.fn().mockReturnValue('set'),
+        getString: jest.fn().mockReturnValue('Power Strike')
+      },
+      reply: jest.fn().mockResolvedValue()
+    };
+    await inventory.execute(interaction);
+    expect(abilityCardService.setEquippedCard).toHaveBeenCalledWith(1, 5);
+    expect(interaction.reply).toHaveBeenCalledWith(expect.objectContaining({ ephemeral: true }));
+  });
+
+  test('autocomplete suggests charged abilities', async () => {
+    userService.getUser.mockResolvedValue({ id: 1 });
+    abilityCardService.getCards.mockResolvedValue([
+      { id: 1, ability_id: 3111, charges: 5 },
+      { id: 2, ability_id: 3121, charges: 0 }
+    ]);
+    const interaction = {
+      user: { id: '123' },
+      options: { getFocused: jest.fn().mockReturnValue('Pow') },
+      respond: jest.fn().mockResolvedValue()
+    };
+    await inventory.autocomplete(interaction);
+    expect(interaction.respond).toHaveBeenCalledWith(expect.arrayContaining([
+      expect.objectContaining({ name: 'Power Strike', value: 'Power Strike' })
+    ]));
   });
 
   test('handleEquipSelect equips card', async () => {

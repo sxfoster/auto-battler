@@ -45,6 +45,15 @@ client.on(Events.InteractionCreate, async interaction => {
         await interaction.reply(replyOptions);
       }
     }
+  } else if (interaction.isAutocomplete()) {
+    const command = client.commands.get(interaction.commandName);
+    if (command && command.autocomplete) {
+      try {
+        await command.autocomplete(interaction);
+      } catch (error) {
+        console.error(`Error handling autocomplete for ${interaction.commandName}`, error);
+      }
+    }
   } else if (interaction.isStringSelectMenu()) {
     if (interaction.customId === 'class-select') {
       await gameHandlers.handleClassSelect(interaction);
