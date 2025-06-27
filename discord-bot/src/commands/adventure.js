@@ -1,6 +1,6 @@
 const { SlashCommandBuilder } = require('discord.js');
 const userService = require('../utils/userService');
-const { sendCardDM } = require('../utils/embedBuilder');
+const { sendCardDM, buildCardEmbed } = require('../utils/embedBuilder');
 const GameEngine = require('../../../backend/game/engine');
 const { createCombatant } = require('../../../backend/game/utils');
 const { allPossibleHeroes, allPossibleAbilities } = require('../../../backend/game/data');
@@ -84,10 +84,10 @@ async function execute(interaction) {
         await sendCardDM(interaction.user, drop);
       } catch (err) {
         console.error('Failed to DM card drop:', err);
-        await interaction.followUp({ content: `You found ${drop.name}!`, ephemeral: true });
+        await interaction.followUp({ embeds: [buildCardEmbed(drop)], ephemeral: true });
       }
     } else {
-      await interaction.followUp({ content: `You found ${drop.name}!`, ephemeral: true });
+      await interaction.followUp({ embeds: [buildCardEmbed(drop)], ephemeral: true });
     }
   }
 }

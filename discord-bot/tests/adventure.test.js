@@ -31,7 +31,7 @@ describe('adventure command', () => {
     const interaction = { user: { id: '123' }, reply: jest.fn().mockResolvedValue(), followUp: jest.fn().mockResolvedValue() };
     await adventure.execute(interaction);
     expect(userService.addAbility).toHaveBeenCalled();
-    expect(interaction.followUp).toHaveBeenCalledWith(expect.objectContaining({ content: expect.stringContaining('You found'), ephemeral: true }));
+    expect(interaction.followUp).toHaveBeenCalledWith(expect.objectContaining({ embeds: expect.any(Array), ephemeral: true }));
   });
 
   test('battle log reflects class base stats', async () => {

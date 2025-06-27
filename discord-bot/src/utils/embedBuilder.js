@@ -25,6 +25,28 @@ function simple(title, fields = [], thumbnailUrl) {
   return embed;
 }
 
+/**
+ * Build an embed describing an ability card.
+ *
+ * @param {object} card
+ * @returns {EmbedBuilder}
+ */
+function buildCardEmbed(card) {
+  const embed = new EmbedBuilder()
+    .setColor('#29b6f6')
+    .setTimestamp()
+    .setFooter({ text: 'Auto\u2011Battler Bot' })
+    .addFields(
+      { name: 'Name', value: card.name, inline: true },
+      { name: 'Class', value: card.class, inline: true },
+      { name: 'Rarity', value: card.rarity, inline: true },
+      { name: 'Charges', value: '10/10', inline: true },
+      { name: 'Description', value: card.effect }
+    );
+
+  return embed;
+}
+
 
 /**
  * DM a player when they obtain a new ability card.
@@ -33,18 +55,8 @@ function simple(title, fields = [], thumbnailUrl) {
  * @param {object} card
  */
 async function sendCardDM(user, card) {
-  const embed = new EmbedBuilder()
-    .setColor('#29b6f6')
-    .setTitle('✨ You found a new ability card! ✨')
-    .addFields(
-      { name: 'Name', value: card.name, inline: true },
-      { name: 'Rarity', value: card.rarity, inline: true },
-      { name: 'Charges', value: '10/10', inline: true }
-    )
-    .setTimestamp()
-    .setFooter({ text: 'Auto‑Battler Bot' });
-
+  const embed = buildCardEmbed(card).setTitle('✨ You found a new ability card! ✨');
   await user.send({ embeds: [embed] });
 }
 
-module.exports = { simple, sendCardDM };
+module.exports = { simple, sendCardDM, buildCardEmbed };
