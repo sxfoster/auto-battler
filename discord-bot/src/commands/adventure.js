@@ -83,7 +83,6 @@ async function execute(interaction) {
 
   const outcome = engine.winner === 'player' ? 'Victory!' : 'Defeat!';
   await interaction.followUp({ embeds: [simple(outcome)] });
-  engine.runFullGame();
   console.log(`[BATTLE END] ${engine.winner}`);
 
   if (engine.winner === 'player') {
