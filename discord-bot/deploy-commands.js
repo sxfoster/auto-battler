@@ -5,6 +5,7 @@ require('dotenv').config();
 const commands = [];
 const commandDirs = [
   path.join(__dirname, 'commands/ping.js'),
+  path.join(__dirname, 'commands/who.js'),
   path.join(__dirname, 'src/commands/game.js')
 ];
 
