@@ -100,6 +100,64 @@ async function execute(interaction) {
   }
 }
 
+async function handleSetAbilityButton(interaction) {
+  const user = await userService.getUser(interaction.user.id);
+  if (!user) {
+    await interaction.reply({ content: 'User not found.', ephemeral: true });
+    return;
+  }
+
+  const cards = (await abilityCardService.getCards(user.id)).filter(c => c.charges > 0);
+  const uniqueIds = [...new Set(cards.map(c => c.ability_id))];
+  if (!uniqueIds.length) {
+    await interaction.reply({ content: 'You have no usable ability cards.', ephemeral: true });
+    return;
+  }
+
+  const menu = new StringSelectMenuBuilder()
+    .setCustomId('ability-select')
+    .setPlaceholder('Select an ability')
+    .addOptions(
+      uniqueIds.map(id => {
+        const ability = allPossibleAbilities.find(a => a.id === id);
+        const name = ability ? ability.name : `Ability ${id}`;
+        return { label: name, value: String(id) };
+      })
+    );
+  const row = new ActionRowBuilder().addComponents(menu);
+  await interaction.reply({ content: 'Choose an ability to equip:', components: [row], ephemeral: true });
+}
+
+async function handleAbilitySelect(interaction) {
+  const abilityId = parseInt(interaction.values[0], 10);
+  const user = await userService.getUser(interaction.user.id);
+  if (!user) {
+    await interaction.update({ content: 'User not found.', components: [], ephemeral: true });
+    return;
+  }
+
+  const cards = (await abilityCardService.getCards(user.id)).filter(c => c.ability_id === abilityId && c.charges > 0);
+  const abilityName = allPossibleAbilities.find(a => a.id === abilityId)?.name || `Ability ${abilityId}`;
+
+  if (cards.length === 1) {
+    await abilityCardService.setEquippedCard(user.id, cards[0].id);
+    await interaction.update({ content: `Equipped ${abilityName}.`, components: [], embeds: [], ephemeral: true });
+    return;
+  }
+
+  const menu = new StringSelectMenuBuilder()
+    .setCustomId('equip-card')
+    .setPlaceholder('Select a card')
+    .addOptions(
+      cards.map(card => ({
+        label: `${abilityName} (${card.charges}/10)`,
+        value: String(card.id)
+      }))
+    );
+  const row = new ActionRowBuilder().addComponents(menu);
+  await interaction.update({ content: 'Choose a card to equip:', components: [row], ephemeral: true });
+}
+
 async function handleEquipSelect(interaction) {
   const cardId = parseInt(interaction.values[0], 10);
   const user = await userService.getUser(interaction.user.id);
@@ -117,4 +175,10 @@ async function handleEquipSelect(interaction) {
   await interaction.update({ content: `Equipped ${abilityName}.`, components: [], embeds: [], ephemeral: true });
 }
 
-module.exports = { data, execute, handleEquipSelect };
+module.exports = {
+  data,
+  execute,
+  handleEquipSelect,
+  handleSetAbilityButton,
+  handleAbilitySelect
+};

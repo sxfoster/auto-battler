@@ -98,4 +98,38 @@ describe('inventory command', () => {
     expect(abilityCardService.setEquippedCard).toHaveBeenCalledWith(1, 99);
     expect(interaction.update).toHaveBeenCalled();
   });
+
+  test('handleSetAbilityButton shows ability dropdown', async () => {
+    userService.getUser.mockResolvedValue({ id: 1, name: 'Tester' });
+    abilityCardService.getCards.mockResolvedValue([
+      { id: 1, ability_id: 3111, charges: 5 },
+      { id: 2, ability_id: 3111, charges: 0 },
+      { id: 3, ability_id: 3121, charges: 2 }
+    ]);
+    const interaction = { user: { id: '123' }, reply: jest.fn().mockResolvedValue() };
+    await inventory.handleSetAbilityButton(interaction);
+    expect(interaction.reply).toHaveBeenCalledWith(expect.objectContaining({ components: expect.any(Array) }));
+    const options = interaction.reply.mock.calls[0][0].components[0].components[0].toJSON().options;
+    expect(options).toHaveLength(2);
+  });
+
+  test('handleAbilitySelect shows card dropdown when multiple copies', async () => {
+    userService.getUser.mockResolvedValue({ id: 1, name: 'Tester' });
+    abilityCardService.getCards.mockResolvedValue([
+      { id: 10, ability_id: 3111, charges: 5 },
+      { id: 11, ability_id: 3111, charges: 4 }
+    ]);
+    const interaction = { user: { id: '123' }, values: ['3111'], update: jest.fn().mockResolvedValue() };
+    await inventory.handleAbilitySelect(interaction);
+    expect(interaction.update).toHaveBeenCalledWith(expect.objectContaining({ components: expect.any(Array) }));
+  });
+
+  test('handleAbilitySelect equips when single copy', async () => {
+    userService.getUser.mockResolvedValue({ id: 1, name: 'Tester' });
+    abilityCardService.getCards.mockResolvedValue([{ id: 10, ability_id: 3111, charges: 5 }]);
+    const interaction = { user: { id: '123' }, values: ['3111'], update: jest.fn().mockResolvedValue() };
+    await inventory.handleAbilitySelect(interaction);
+    expect(abilityCardService.setEquippedCard).toHaveBeenCalledWith(1, 10);
+    expect(interaction.update).toHaveBeenCalled();
+  });
 });
