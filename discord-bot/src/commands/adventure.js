@@ -8,6 +8,9 @@ const classes = require('../data/classes');
 const classAbilityMap = require('../data/classAbilityMap');
 const goblinLootMap = require('../data/goblinLootMap');
 
+// Maximum number of log lines to keep when updating the battle embed
+const MAX_LOG_LINES = 15;
+
 const data = new SlashCommandBuilder()
   .setName('adventure')
   .setDescription('Enter the goblin cave for a practice battle');
@@ -56,7 +59,13 @@ async function execute(interaction) {
   let logText = '';
   for (const step of engine.runGameSteps()) {
     logText = [...step.log, logText].filter(Boolean).join('\n');
-    const embed = buildBattleEmbed(step.combatants, logText);
+    // Trim log output when the embed has already been sent to avoid exceeding
+    // Discord's description limit. New log entries appear at the top so we keep
+    // the first MAX_LOG_LINES lines.
+    const displayLog = battleMessage
+      ? logText.split('\n').slice(0, MAX_LOG_LINES).join('\n')
+      : logText;
+    const embed = buildBattleEmbed(step.combatants, displayLog);
     if (!battleMessage) {
       battleMessage = await interaction.followUp({ embeds: [embed] });
     } else {

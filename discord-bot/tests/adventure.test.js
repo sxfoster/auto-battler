@@ -77,4 +77,28 @@ describe('adventure command', () => {
     expect(userService.addAbility).toHaveBeenCalledWith('123', goblinLootMap[targetClass]);
     Math.random.mockRestore();
   });
+
+  test('truncates battle log when editing embed', async () => {
+    userService.getUser.mockResolvedValue({ discord_id: '123', class: 'Warrior' });
+    const followUpMsg = { edit: jest.fn().mockResolvedValue() };
+    const interaction = {
+      user: { id: '123' },
+      reply: jest.fn().mockResolvedValue(),
+      followUp: jest.fn().mockResolvedValue(followUpMsg)
+    };
+    // Simulate enough log entries to exceed the MAX_LOG_LINES limit
+    GameEngine.mockImplementationOnce(() => ({
+      runGameSteps: function* () {
+        yield { combatants: [], log: ['start'] };
+        yield { combatants: [], log: Array.from({ length: 20 }, (_, i) => `line${i}`) };
+      },
+      winner: 'player'
+    }));
+
+    await adventure.execute(interaction);
+
+    const lastCall = followUpMsg.edit.mock.calls.at(-1);
+    const desc = lastCall[0].embeds[0].data.description;
+    expect(desc.split('\n').length).toBeLessThanOrEqual(15);
+  });
 });
