@@ -444,6 +444,7 @@ For detailed information on Deck Size Progression, Card Power Curves, and Loot D
 - The scene is split into two sides: Player team on the left, Enemy team on the right.
 - Heroes on each side are arranged in a vertical column (top and bottom positions).
 - A Battle Log is displayed at the bottom of the screen to show turn-by-turn actions.
+  The log grows from top to bottom with new entries appended to the end.
 - A "Speed Control" button is present at the top-center of the screen.
 - In the Discord bot version the battle log is streamed live by editing a single message every few seconds.
 
