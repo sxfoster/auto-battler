@@ -1,7 +1,7 @@
 const who = require('../commands/who');
 
 jest.mock('../src/utils/userService', () => ({
-  getUserByName: jest.fn()
+  getUser: jest.fn()
 }));
 const userService = require('../src/utils/userService');
 
@@ -11,9 +11,9 @@ describe('who command', () => {
   });
 
   test('public reply when user has a class', async () => {
-    userService.getUserByName.mockResolvedValue({ name: 'Tester', class: 'Mage' });
+    userService.getUser.mockResolvedValue({ name: 'Tester', class: 'Mage' });
     const interaction = {
-      options: { getString: jest.fn().mockReturnValue('tester') },
+      options: { getUser: jest.fn().mockReturnValue({ id: '123', username: 'Tester' }) },
       reply: jest.fn().mockResolvedValue()
     };
     await who.execute(interaction);
@@ -22,9 +22,9 @@ describe('who command', () => {
   });
 
   test('public reply when user lacks a class', async () => {
-    userService.getUserByName.mockResolvedValue({ name: 'Tester', class: null });
+    userService.getUser.mockResolvedValue({ name: 'Tester', class: null });
     const interaction = {
-      options: { getString: jest.fn().mockReturnValue('tester') },
+      options: { getUser: jest.fn().mockReturnValue({ id: '123', username: 'Tester' }) },
       reply: jest.fn().mockResolvedValue()
     };
     await who.execute(interaction);
@@ -33,9 +33,9 @@ describe('who command', () => {
   });
 
   test('ephemeral reply on lookup failure', async () => {
-    userService.getUserByName.mockResolvedValue(null);
+    userService.getUser.mockResolvedValue(null);
     const interaction = {
-      options: { getString: jest.fn().mockReturnValue('tester') },
+      options: { getUser: jest.fn().mockReturnValue({ id: '123', username: 'Tester' }) },
       reply: jest.fn().mockResolvedValue()
     };
     await who.execute(interaction);

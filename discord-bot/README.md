@@ -40,13 +40,13 @@ After confirmation the champion is saved to your roster and you can explore the 
 
 ## Using `/who`
 
-`/who` displays the champion bound to a Discord user. The command is case‑insensitive and accepts an optional user mention:
+`/who` displays the champion bound to a Discord user. You must mention the target player:
 
 ```bash
 /who @SomePlayer
 ```
 
-If no user is provided, the bot looks up your own champion. A successful lookup replies with a short embed summarizing that player's class and level. When the target has not created a character yet you will see `That player has no champion.`
+The command replies with that player's class. If they have not started the game you will see `@SomePlayer has not started their adventure yet.`
 
 Example output:
 
