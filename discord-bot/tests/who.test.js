@@ -3,7 +3,11 @@ const who = require('../commands/who');
 jest.mock('../src/utils/userService', () => ({
   getUser: jest.fn()
 }));
+jest.mock('../src/utils/abilityCardService', () => ({
+  getCard: jest.fn()
+}));
 const userService = require('../src/utils/userService');
+const abilityCardService = require('../src/utils/abilityCardService');
 
 describe('who command', () => {
   beforeEach(() => {
@@ -11,13 +15,23 @@ describe('who command', () => {
   });
 
   test('public reply when user has a class', async () => {
-    userService.getUser.mockResolvedValue({ name: 'Tester', class: 'Mage' });
+    userService.getUser.mockResolvedValue({ id: 1, name: 'Tester', class: 'Warrior', equipped_ability_id: 42 });
+    abilityCardService.getCard.mockResolvedValue({ id: 42, ability_id: 3111 });
     const interaction = {
-      options: { getUser: jest.fn().mockReturnValue({ id: '123', username: 'Tester', displayAvatarURL: jest.fn().mockReturnValue('https://example.com/avatar.png') }) },
+      options: {
+        getUser: jest.fn().mockReturnValue({
+          id: '123',
+          username: 'Tester',
+          displayAvatarURL: jest.fn().mockReturnValue('https://example.com/avatar.png')
+        })
+      },
       reply: jest.fn().mockResolvedValue()
     };
     await who.execute(interaction);
     expect(interaction.reply).toHaveBeenCalledWith(expect.objectContaining({ embeds: expect.any(Array) }));
+    const fields = interaction.reply.mock.calls[0][0].embeds[0].data.fields;
+    expect(fields[0].value).toContain('Tester - Warrior');
+    expect(fields[3].value).toContain('Power Strike');
     expect(interaction.reply.mock.calls[0][0].ephemeral).toBeUndefined();
   });
 
@@ -30,6 +44,23 @@ describe('who command', () => {
     await who.execute(interaction);
     expect(interaction.reply).toHaveBeenCalledWith(expect.objectContaining({ embeds: expect.any(Array) }));
     expect(interaction.reply.mock.calls[0][0].ephemeral).toBeUndefined();
+  });
+
+  test('shows None when no ability equipped', async () => {
+    userService.getUser.mockResolvedValue({ id: 1, name: 'Tester', class: 'Warrior', equipped_ability_id: null });
+    const interaction = {
+      options: {
+        getUser: jest.fn().mockReturnValue({
+          id: '123',
+          username: 'Tester',
+          displayAvatarURL: jest.fn().mockReturnValue('https://example.com/avatar.png')
+        })
+      },
+      reply: jest.fn().mockResolvedValue()
+    };
+    await who.execute(interaction);
+    const fields = interaction.reply.mock.calls[0][0].embeds[0].data.fields;
+    expect(fields[3].value).toBe('None');
   });
 
   test('ephemeral reply on lookup failure', async () => {

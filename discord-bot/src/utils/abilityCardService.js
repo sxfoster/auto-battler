@@ -18,6 +18,15 @@ async function getCards(userId) {
   return rows;
 }
 
+// Retrieve a single ability card by id
+async function getCard(cardId) {
+  const [rows] = await db.query(
+    'SELECT * FROM user_ability_cards WHERE id = ?',
+    [cardId]
+  );
+  return rows[0] || null;
+}
+
 // Mark a specific card as equipped and unequip others for the user
 async function setEquippedCard(userId, cardId) {
   await db.query('UPDATE users SET equipped_ability_id = ? WHERE id = ?', [cardId, userId]);
@@ -31,4 +40,4 @@ async function decrementCharge(cardId) {
   );
 }
 
-module.exports = { addCard, getCards, setEquippedCard, decrementCharge };
+module.exports = { addCard, getCards, getCard, setEquippedCard, decrementCharge };

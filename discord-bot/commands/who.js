@@ -1,6 +1,11 @@
 const { SlashCommandBuilder } = require('discord.js');
 const { simple } = require('../src/utils/embedBuilder');
 const userService = require('../src/utils/userService');
+const abilityCardService = require('../src/utils/abilityCardService');
+const {
+  allPossibleHeroes,
+  allPossibleAbilities
+} = require('../../backend/game/data');
 
 const data = new SlashCommandBuilder()
   .setName('who')
@@ -33,10 +38,31 @@ async function execute(interaction) {
     return;
   }
 
-  const embed = simple('Player Details', [{
-    name: 'Player',
-    value: `${user.name} - ${user.class}`
-  }], mentionedUser.displayAvatarURL());
+  const baseHero = allPossibleHeroes.find(
+    h => (h.class === user.class || h.name === user.class) && h.isBase
+  );
+  const hp = baseHero ? baseHero.hp : '??';
+  const atk = baseHero ? baseHero.attack : '??';
+
+  let abilityName = 'None';
+  if (user.equipped_ability_id) {
+    const card = await abilityCardService.getCard(user.equipped_ability_id);
+    if (card) {
+      const ability = allPossibleAbilities.find(a => a.id === card.ability_id);
+      abilityName = ability ? ability.name : `Ability ${card.ability_id}`;
+    }
+  }
+
+  const embed = simple(
+    'Character Sheet',
+    [
+      { name: 'Player', value: `${user.name} - ${user.class}` },
+      { name: 'HP', value: String(hp), inline: true },
+      { name: 'Attack', value: String(atk), inline: true },
+      { name: 'Equipped Ability', value: abilityName }
+    ],
+    mentionedUser.displayAvatarURL()
+  );
   await interaction.reply({ embeds: [embed] });
 }
 
