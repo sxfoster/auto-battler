@@ -67,6 +67,8 @@ class GameEngine {
 
        this.log(`\n**> Turn: ${attacker.heroData.name}** (${attacker.currentHp}/${attacker.maxHp} HP)`);
 
+       attacker.currentEnergy = (attacker.currentEnergy || 0) + 1;
+
        const wasSkipped = this.processStatuses(attacker);
        if (this.checkVictory()) return;
 
@@ -74,7 +76,26 @@ class GameEngine {
            const targets = this.combatants.filter(c => c.team !== attacker.team && c.currentHp > 0);
            if (targets.length > 0) {
                const target = targets[0];
-               this.applyDamage(attacker, target, attacker.attack);
+               const ability = attacker.abilityData;
+               const cost = ability ? ability.energyCost || 1 : 1;
+               if (ability && attacker.abilityCharges > 0 && attacker.currentEnergy >= cost) {
+                   this.log(`${attacker.heroData.name} uses ${ability.name}!`);
+                   this.applyDamage(attacker, target, attacker.attack);
+                   attacker.currentEnergy -= cost;
+                   attacker.abilityCharges -= 1;
+                   if (attacker.abilityCharges <= 0) {
+                       const idx = attacker.deck.findIndex(a => a.charges > 0);
+                       if (idx !== -1) {
+                           const next = attacker.deck.splice(idx, 1)[0];
+                           attacker.abilityData = next;
+                           attacker.abilityCharges = next.charges;
+                       } else {
+                           attacker.abilityData = null;
+                       }
+                   }
+               } else {
+                   this.applyDamage(attacker, target, attacker.attack);
+               }
            }
        }
 

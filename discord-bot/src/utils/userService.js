@@ -19,4 +19,25 @@ async function setUserClass(discordId, className) {
   await db.query('UPDATE users SET class = ? WHERE discord_id = ?', [className, discordId]);
 }
 
-module.exports = { getUser, createUser, getUserByName, setUserClass };
+// Placeholder inventory helpers used for unit tests
+async function addAbility(discordId, abilityName) {
+  return { discordId, abilityName };
+}
+
+async function getInventory(discordId) {
+  return [];
+}
+
+async function setActiveAbility(discordId, abilityName) {
+  return { discordId, abilityName };
+}
+
+module.exports = {
+  getUser,
+  createUser,
+  getUserByName,
+  setUserClass,
+  addAbility,
+  getInventory,
+  setActiveAbility
+};

@@ -1,7 +1,8 @@
 const inventory = require('../commands/inventory');
 
 jest.mock('../src/utils/userService', () => ({
-  getUser: jest.fn()
+  getUser: jest.fn(),
+  getInventory: jest.fn()
 }));
 const userService = require('../src/utils/userService');
 
@@ -12,6 +13,7 @@ describe('inventory command', () => {
 
   test('public reply when user has a class', async () => {
     userService.getUser.mockResolvedValue({ name: 'Tester', class: 'Warrior' });
+    userService.getInventory.mockResolvedValue([{ name: 'Shield Bash', charges: 5 }]);
     const interaction = {
       user: { id: '123', displayAvatarURL: jest.fn().mockReturnValue('https://example.com/avatar.png') },
       reply: jest.fn().mockResolvedValue()
@@ -39,5 +41,16 @@ describe('inventory command', () => {
     };
     await inventory.execute(interaction);
     expect(interaction.reply).toHaveBeenCalledWith(expect.objectContaining({ ephemeral: true }));
+  });
+
+  test('lists ability cards in backpack', async () => {
+    userService.getUser.mockResolvedValue({ name: 'Tester', class: 'Warrior' });
+    userService.getInventory.mockResolvedValue([{ name: 'Shield Bash', charges: 5 }]);
+    const interaction = {
+      user: { id: '123', displayAvatarURL: jest.fn().mockReturnValue('https://example.com/avatar.png') },
+      reply: jest.fn().mockResolvedValue()
+    };
+    await inventory.execute(interaction);
+    expect(interaction.reply.mock.calls[0][0].embeds[0].data.fields[1].value).toContain('Shield Bash');
   });
 });

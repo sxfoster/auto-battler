@@ -74,6 +74,11 @@ async function execute(interaction) {
     .setFooter({ text: 'Auto\u2011Battler Bot' });
 
   await interaction.followUp({ embeds: [embed] });
+
+  const dropId = goblinAbilities[0];
+  await userService.addAbility(interaction.user.id, dropId);
+  const abilityName = allPossibleAbilities.find(a => a.id === dropId)?.name || 'Unknown Ability';
+  await interaction.followUp({ content: `You found ${abilityName}!`, ephemeral: true });
 }
 
 module.exports = { data, execute };
