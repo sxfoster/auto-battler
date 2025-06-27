@@ -20,8 +20,13 @@
 - **Hero Chassis:** Classes determine innate keywords, card slots, and an unchangeable AI Persona that guides combat behavior.
 - **Progression System:** Player Level increases automatically each turn, unlocking higher Tier cards in the draft packs.
 
-## 3. Game Components
+-## 3. Game Components
 - **Ability Cards:** Unique to each class, used for attacks, defense, and special effects.
+  *Prototype note:* the codebase currently implements only a small set of eleven
+  ability cards: Power Strike (3111), Raging Strike (3312), Divine Strike (3211),
+  Divine Light (3511), Regrowth (3612), Illusionary Strike (4004), Dissonant
+  Chord (3712), Precision Shot (3811), Chaos Bolt (3411), Backstab (4104) and
+  Fireball (4201).
 - **Item Cards:** Grant temporary buffs, healing, or special actions.
 - **Monster Cards:** AI-controlled enemies with varying difficulty levels and attack patterns. Monsters can also be played by players and can take multiple team slots.
 - **Player Board:** Tracks health, mana, and other status effects.

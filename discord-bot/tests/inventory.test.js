@@ -146,7 +146,8 @@ describe('inventory command', () => {
     await inventory.handleSetAbilityButton(interaction);
     expect(interaction.reply).toHaveBeenCalledWith(expect.objectContaining({ components: expect.any(Array) }));
     const options = interaction.reply.mock.calls[0][0].components[0].components[0].toJSON().options;
-    expect(options).toHaveLength(2);
+    // Only one unique ability should be presented
+    expect(options).toHaveLength(1);
   });
 
   test('handleAbilitySelect shows card dropdown when multiple copies', async () => {
