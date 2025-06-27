@@ -60,11 +60,17 @@ describe('adventure command', () => {
   });
 
   test('battle log is included in embed', async () => {
+    GameEngine.mockImplementationOnce(() => ({
+      runGameSteps: function* () {
+        yield { combatants: [], log: ['first', 'second'] };
+      },
+      winner: 'player'
+    }));
     userService.getUser.mockResolvedValue({ discord_id: '123', class: 'Barbarian' });
     const interaction = { user: { id: '123' }, reply: jest.fn().mockResolvedValue(), followUp: jest.fn().mockResolvedValue() };
     await adventure.execute(interaction);
     const description = interaction.followUp.mock.calls[0][0].embeds[0].data.description;
-    expect(description).toContain('log');
+    expect(description).toBe('first\nsecond');
   });
 
   test('drops correct ability based on goblin class', async () => {
