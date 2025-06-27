@@ -1,4 +1,5 @@
 const { SlashCommandBuilder } = require('discord.js');
+const { simple } = require('../src/utils/embedBuilder');
 const userService = require('../src/utils/userService');
 
 const data = new SlashCommandBuilder()
@@ -15,16 +16,28 @@ async function execute(interaction) {
   const user = await userService.getUser(mentionedUser.id);
 
   if (!user) {
-    await interaction.reply({ content: `@${mentionedUser.username} has not started their adventure yet.`, ephemeral: true });
+    const embed = simple('Player Details', [{
+      name: 'Player',
+      value: `@${mentionedUser.username} has not started their adventure yet.`
+    }], mentionedUser.displayAvatarURL());
+    await interaction.reply({ embeds: [embed], ephemeral: true });
     return;
   }
 
   if (!user.class) {
-    await interaction.reply({ content: `${user.name} has not yet chosen a class.` });
+    const embed = simple('Player Details', [{
+      name: 'Player',
+      value: `${user.name} has not yet chosen a class.`
+    }], mentionedUser.displayAvatarURL());
+    await interaction.reply({ embeds: [embed] });
     return;
   }
 
-  await interaction.reply({ content: `${user.name} - ${user.class}` });
+  const embed = simple('Player Details', [{
+    name: 'Player',
+    value: `${user.name} - ${user.class}`
+  }], mentionedUser.displayAvatarURL());
+  await interaction.reply({ embeds: [embed] });
 }
 
 module.exports = { data, execute };

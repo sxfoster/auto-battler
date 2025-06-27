@@ -46,10 +46,11 @@ After confirmation the champion is saved to your roster and you can explore the 
 /who @SomePlayer
 ```
 
-The command replies with that player's class. If they have not started the game you will see `@SomePlayer has not started their adventure yet.`
+The command replies with a styled embed showing the player's name and class. If the player has not started the game or has not chosen a class, the embed will display that message instead.
 
 Example output:
 
 ```
-@SomePlayer – Level 3 Barbarian
+Player Details
+Player: SomePlayer - Bard
 ```
