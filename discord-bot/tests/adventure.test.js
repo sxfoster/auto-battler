@@ -1,12 +1,12 @@
-const adventure = require('../src/commands/adventure');
-const classes = require('../src/data/classes');
-const goblinLootMap = require('../src/data/goblinLootMap');
-
 jest.mock('../src/utils/userService', () => ({
   getUser: jest.fn(),
   addAbility: jest.fn()
 }));
 jest.mock('../../backend/game/engine');
+
+const adventure = require('../src/commands/adventure');
+const classes = require('../src/data/classes');
+const goblinLootMap = require('../src/data/goblinLootMap');
 const userService = require('../src/utils/userService');
 const GameEngine = require('../../backend/game/engine');
 
