@@ -1,4 +1,6 @@
 const adventure = require('../src/commands/adventure');
+const classes = require('../src/data/classes');
+const goblinLootMap = require('../src/data/goblinLootMap');
 
 jest.mock('../src/utils/userService', () => ({
   getUser: jest.fn(),
@@ -35,8 +37,10 @@ describe('adventure command', () => {
   test('ability drop message sent', async () => {
     userService.getUser.mockResolvedValue({ discord_id: '123', class: 'Warrior' });
     const interaction = { user: { id: '123' }, reply: jest.fn().mockResolvedValue(), followUp: jest.fn().mockResolvedValue() };
+    jest.spyOn(Math, 'random').mockReturnValue(0);
     await adventure.execute(interaction);
-    expect(userService.addAbility).toHaveBeenCalled();
+    expect(userService.addAbility).toHaveBeenCalledWith('123', goblinLootMap.Warrior);
+    Math.random.mockRestore();
     expect(interaction.followUp).toHaveBeenCalledWith(expect.objectContaining({ embeds: expect.any(Array), ephemeral: true }));
   });
 
@@ -59,5 +63,16 @@ describe('adventure command', () => {
     await adventure.execute(interaction);
     const description = interaction.followUp.mock.calls[0][0].embeds[0].data.description;
     expect(description).toContain('log');
+  });
+
+  test('drops correct ability based on goblin class', async () => {
+    const targetClass = 'Barbarian';
+    const index = classes.findIndex(c => c.name === targetClass);
+    jest.spyOn(Math, 'random').mockReturnValue(index / classes.length + 0.0001);
+    userService.getUser.mockResolvedValue({ discord_id: '123', class: 'Warrior' });
+    const interaction = { user: { id: '123', send: jest.fn().mockResolvedValue() }, reply: jest.fn().mockResolvedValue(), followUp: jest.fn().mockResolvedValue() };
+    await adventure.execute(interaction);
+    expect(userService.addAbility).toHaveBeenCalledWith('123', goblinLootMap[targetClass]);
+    Math.random.mockRestore();
   });
 });

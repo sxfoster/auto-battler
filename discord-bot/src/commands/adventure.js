@@ -6,6 +6,7 @@ const { createCombatant } = require('../../../backend/game/utils');
 const { allPossibleHeroes, allPossibleAbilities } = require('../../../backend/game/data');
 const classes = require('../data/classes');
 const classAbilityMap = require('../data/classAbilityMap');
+const goblinLootMap = require('../data/goblinLootMap');
 
 const data = new SlashCommandBuilder()
   .setName('adventure')
@@ -64,7 +65,8 @@ async function execute(interaction) {
   await interaction.followUp({ embeds: [embed] });
 
   if (engine.winner === 'player') {
-    const drop = goblinAbilityPool[Math.floor(Math.random() * goblinAbilityPool.length)];
+    const abilityId = goblinLootMap[goblinClass];
+    const drop = allPossibleAbilities.find(a => a.id === abilityId);
     if (drop) {
       await userService.addAbility(interaction.user.id, drop.id);
       if (interaction.user.send) {
