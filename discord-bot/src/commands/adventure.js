@@ -1,41 +1,77 @@
 const { SlashCommandBuilder } = require('discord.js');
-const { simple } = require('../utils/embedBuilder');
 const userService = require('../utils/userService');
 const GameEngine = require('../../../backend/game/engine');
 const { createCombatant } = require('../../../backend/game/utils');
-const { allPossibleHeroes } = require('../../../backend/game/data');
+const { allPossibleHeroes, allPossibleAbilities } = require('../../../backend/game/data');
+const classes = require('../data/classes');
+
+const classAbilityMap = {
+  Warrior: 'Stalwart Defender',
+  Bard: 'Inspiring Artist',
+  Barbarian: 'Raging Fighter',
+  Cleric: 'Divine Healer',
+  Druid: 'Nature Shaper',
+  Enchanter: 'Mystic Deceiver',
+  Paladin: 'Holy Warrior',
+  Rogue: 'Shadow Striker',
+  Ranger: 'Wilderness Expert',
+  Sorcerer: 'Raw Power Mage',
+  Wizard: 'Arcane Savant'
+};
 
 const data = new SlashCommandBuilder()
   .setName('adventure')
-  .setDescription('Fight a practice battle against a goblin');
+  .setDescription('Enter the goblin cave for a practice battle');
 
 async function execute(interaction) {
   const user = await userService.getUser(interaction.user.id);
 
   if (!user || !user.class) {
-    await interaction.reply({ content: 'You must choose a class before adventuring. Use `/game` to pick one!', ephemeral: true });
+    await interaction.reply({ content: 'You must select a class before you can go on an adventure! Use the /game command to get started.', ephemeral: true });
     return;
   }
 
   const playerHero = allPossibleHeroes.find(h => (h.class === user.class || h.name === user.class) && h.isBase);
-  const goblinHero = allPossibleHeroes.find(h => h.name === 'Goblin');
-
-  if (!playerHero || !goblinHero) {
+  if (!playerHero) {
     await interaction.reply({ content: 'Required hero data missing.', ephemeral: true });
     return;
   }
 
-  const player = createCombatant({ hero_id: playerHero.id }, 'player', 0);
-  const goblin = createCombatant({ hero_id: goblinHero.id }, 'enemy', 0);
+  // Pick a random class for the goblin opponent
+  const classNames = classes.map(c => c.name);
+  const goblinClass = classNames[Math.floor(Math.random() * classNames.length)];
+  const goblinBase = allPossibleHeroes.find(h => (h.class === goblinClass || h.name === goblinClass) && h.isBase);
 
-  await interaction.reply({ content: `⚔️ ${playerHero.name} engages a Goblin!` });
+  if (!goblinBase) {
+    await interaction.reply({ content: 'Required goblin data missing.', ephemeral: true });
+    return;
+  }
+
+  const playerAbilities = allPossibleAbilities
+    .filter(a => a.class === (classAbilityMap[user.class] || user.class) && a.rarity === 'Common')
+    .map(a => a.id);
+
+  const goblinAbilities = allPossibleAbilities
+    .filter(a => a.class === (classAbilityMap[goblinClass] || goblinClass) && a.rarity === 'Common')
+    .map(a => a.id);
+
+  const player = createCombatant({ hero_id: playerHero.id, deck: playerAbilities }, 'player', 0);
+  const goblin = createCombatant({ hero_id: goblinBase.id, deck: goblinAbilities }, 'enemy', 0);
+  goblin.heroData = { ...goblin.heroData, name: `Goblin ${goblinClass}` };
+
+  await interaction.reply({ content: `${interaction.user.username} delves into the goblin cave and encounters a ferocious Goblin ${goblinClass}! The battle begins!` });
 
   const engine = new GameEngine([player, goblin]);
   const log = engine.runFullGame();
 
   const outcome = engine.winner === 'player' ? 'Victory!' : 'Defeat!';
   const logText = log.concat(outcome).join('\n');
-  const embed = simple(outcome, [{ name: 'Battle Log', value: logText }]);
+  const embed = new (require('discord.js').EmbedBuilder)()
+    .setColor('#29b6f6')
+    .setTitle(outcome)
+    .setDescription(logText)
+    .setTimestamp()
+    .setFooter({ text: 'Auto\u2011Battler Bot' });
 
   await interaction.followUp({ embeds: [embed] });
 }
