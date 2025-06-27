@@ -6,6 +6,7 @@ const commands = [];
 const commandDirs = [
   path.join(__dirname, 'commands/ping.js'),
   path.join(__dirname, 'commands/who.js'),
+  path.join(__dirname, 'commands/admin.js'),
   path.join(__dirname, 'commands/inventory.js'),
   path.join(__dirname, 'commands/set.js'),
   path.join(__dirname, 'src/commands/game.js'),
