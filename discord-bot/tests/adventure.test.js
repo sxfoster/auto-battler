@@ -11,7 +11,8 @@ const utils = require('../../backend/game/utils');
 jest.spyOn(utils, 'createCombatant');
 const adventure = require('../src/commands/adventure');
 const classes = require('../src/data/classes');
-const goblinLootMap = require('../src/data/goblinLootMap');
+const classAbilityMap = require('../src/data/classAbilityMap');
+const { allPossibleAbilities } = require('../../backend/game/data');
 const userService = require('../src/utils/userService');
 const abilityCardService = require('../src/utils/abilityCardService');
 const GameEngine = require('../../backend/game/engine');
@@ -63,7 +64,10 @@ describe('adventure command', () => {
     jest.spyOn(Math, 'random').mockReturnValue(0);
     await adventure.execute(interaction);
     expect(abilityCardService.getCards).toHaveBeenCalledWith('123');
-    expect(userService.addAbility).toHaveBeenCalledWith('123', goblinLootMap.Warrior);
+    const expectedId = allPossibleAbilities.find(
+      a => a.class === classAbilityMap.Warrior && a.rarity === 'Common'
+    ).id;
+    expect(userService.addAbility).toHaveBeenCalledWith('123', expectedId);
     Math.random.mockRestore();
     expect(interaction.followUp).toHaveBeenCalledWith(expect.objectContaining({ embeds: expect.any(Array), ephemeral: true }));
   });
@@ -110,7 +114,10 @@ describe('adventure command', () => {
     const interaction = { user: { id: '123', send: jest.fn().mockResolvedValue() }, reply: jest.fn().mockResolvedValue(), followUp: jest.fn().mockResolvedValue() };
     await adventure.execute(interaction);
     expect(abilityCardService.getCards).toHaveBeenCalledWith('123');
-    expect(userService.addAbility).toHaveBeenCalledWith('123', goblinLootMap[targetClass]);
+    const expectedDrop = allPossibleAbilities.find(
+      a => a.class === classAbilityMap[targetClass] && a.rarity === 'Common'
+    ).id;
+    expect(userService.addAbility).toHaveBeenCalledWith('123', expectedDrop);
     Math.random.mockRestore();
   });
 
