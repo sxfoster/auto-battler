@@ -1,5 +1,4 @@
 const { EmbedBuilder } = require('discord.js');
-const { generateCardImage } = require('./cardRenderer');
 
 /**
  * Build a standard embed with brand styling.
@@ -28,30 +27,24 @@ function simple(title, fields = [], thumbnailUrl) {
 
 
 /**
- * Generate the standard card pull embed and DM it to the given user.
+ * DM a player when they obtain a new ability card.
  *
  * @param {import('discord.js').User} user
  * @param {object} card
  */
 async function sendCardDM(user, card) {
-  let cardBuffer = null;
-  try {
-    cardBuffer = await generateCardImage(card);
-  } catch (err) {
-    console.error(`Failed to generate image for card ${card.name}:`, err);
-  }
-
   const embed = new EmbedBuilder()
-    .setColor('#FDE047')
-    .setTitle('✨ You pulled a new card! ✨')
+    .setColor('#29b6f6')
+    .setTitle('✨ You found a new ability card! ✨')
     .addFields(
       { name: 'Name', value: card.name, inline: true },
-      { name: 'Rarity', value: card.rarity, inline: true }
+      { name: 'Rarity', value: card.rarity, inline: true },
+      { name: 'Charges', value: '10/10', inline: true }
     )
-    .setTimestamp();
+    .setTimestamp()
+    .setFooter({ text: 'Auto‑Battler Bot' });
 
-  const files = cardBuffer ? [{ attachment: cardBuffer, name: `${card.name}.png` }] : [];
-  await user.send({ embeds: [embed], files });
+  await user.send({ embeds: [embed] });
 }
 
 module.exports = { simple, sendCardDM };
