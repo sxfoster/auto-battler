@@ -82,4 +82,14 @@ describe('admin grant-ability command', () => {
     const options = interaction.respond.mock.calls[0][0];
     expect(options.some(o => o.name === 'Power Strike')).toBe(true);
   });
+
+  test('autocomplete does not suggest nonexistent abilities', async () => {
+    const interaction = {
+      options: { getFocused: jest.fn().mockReturnValue('Nonexistent') },
+      respond: jest.fn().mockResolvedValue()
+    };
+    await admin.autocomplete(interaction);
+    const options = interaction.respond.mock.calls[0][0];
+    expect(options).toHaveLength(0);
+  });
 });
