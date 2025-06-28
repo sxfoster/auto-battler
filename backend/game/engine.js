@@ -85,25 +85,46 @@ class GameEngine {
            this.applyHeal(healTarget, healingDone);
        }
 
-       let log = `${attacker.heroData.name} uses ${ability.name}`;
+       // first log line - announce ability usage
+       this.log(`${attacker.heroData.name} uses ${ability.name}!`);
+
+       // build description of the ability effects
+       let descParts = [];
        if (damageDealt > 0) {
            if (multiTarget) {
-               log += ` and hits all enemies for ${damageDealt} damage`;
+               descParts.push(`hits all enemies for ${damageDealt} damage`);
            } else {
-               log += ` and hits ${target.heroData.name} for ${damageDealt} damage`;
+               descParts.push(`hits ${target.heroData.name} for ${damageDealt} damage`);
            }
        }
        if (healingDone > 0) {
            if (healTarget === attacker) {
-               log += ` and is healed for ${healingDone} hit points.`;
+               descParts.push(`heals for ${healingDone} HP`);
            } else if (healTarget) {
-               log += ` and heals ${healTarget.heroData.name} for ${healingDone} hit points.`;
+               descParts.push(`heals ${healTarget.heroData.name} for ${healingDone} HP`);
            }
-       } else {
-           log += '.';
        }
 
-       this.log(log);
+       // check for additional text in ability.effect not covered above
+       let remaining = ability.effect;
+       if (multiDamageMatch) {
+           remaining = remaining.replace(/Deal \d+ damage to (?:all|each) enemies\.*/i, '').trim();
+       } else {
+           const dmgRegex = /Deal \d+ damage(?: to .*?)?\.?/i;
+           remaining = remaining.replace(dmgRegex, '').trim();
+       }
+       remaining = remaining.replace(/heal yourself for \d+ HP\.?/i, '')
+                           .replace(/Heal .*? for \d+ HP\.?/i, '')
+                           .trim();
+       if (remaining.toLowerCase().startsWith('and ')) {
+           remaining = remaining.slice(4);
+       }
+       if (remaining) {
+           descParts.push(remaining);
+       }
+
+       const effectLine = `${attacker.heroData.name} ${descParts.join(' and ')}.`;
+       this.log(effectLine);
 
        if (multiTarget && damageDealt > 0) {
            const enemies = this.combatants.filter(c => c.team !== attacker.team && c.currentHp <= 0);

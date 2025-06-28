@@ -13,7 +13,8 @@ describe('Friendly ability targeting', () => {
     engine.processTurn();
     const updated = engine.combatants.find(c => c.id === cleric.id);
     expect(updated.currentHp).toBe(updated.maxHp);
-    expect(engine.battleLog.some(l => l.includes('Divine Light') && l.includes('healed'))).toBe(true);
+    expect(engine.battleLog.some(l => l.includes('uses Divine Light'))).toBe(true);
+    expect(engine.battleLog.some(l => l.includes('heals'))).toBe(true);
   });
 
   test('Regrowth heals the caster', () => {
@@ -27,7 +28,8 @@ describe('Friendly ability targeting', () => {
     engine.processTurn();
     const updated = engine.combatants.find(c => c.id === druid.id);
     expect(updated.currentHp).toBe(updated.maxHp);
-    expect(engine.battleLog.some(l => l.includes('Regrowth') && l.includes('healed'))).toBe(true);
+    expect(engine.battleLog.some(l => l.includes('uses Regrowth'))).toBe(true);
+    expect(engine.battleLog.some(l => l.includes('heals'))).toBe(true);
   });
 
   test('lack of energy causes cleric to attack the enemy', () => {
