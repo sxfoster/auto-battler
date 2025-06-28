@@ -162,12 +162,13 @@ class GameEngine {
            if (enemies.length > 0) {
                const ability = attacker.abilityData;
                const cost = ability ? ability.energyCost || 1 : 1;
-               let target = enemies[0];
-               if (ability && ability.targetType === 'friendly') {
-                   target = attacker;
-               }
+
+               const abilityTarget = ability && ability.targetType === 'friendly'
+                   ? attacker
+                   : enemies[0];
+
                if (ability && attacker.abilityCharges > 0 && attacker.currentEnergy >= cost) {
-                   this.applyAbilityEffect(attacker, target, ability);
+                   this.applyAbilityEffect(attacker, abilityTarget, ability);
                    attacker.currentEnergy -= cost;
                    attacker.abilityCharges -= 1;
                    if (ability.cardId) {
@@ -184,7 +185,7 @@ class GameEngine {
                        }
                    }
                } else {
-                   this.applyDamage(attacker, target, attacker.attack);
+                   this.applyDamage(attacker, enemies[0], attacker.attack);
                }
            }
        }

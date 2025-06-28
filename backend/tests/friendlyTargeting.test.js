@@ -29,4 +29,18 @@ describe('Friendly ability targeting', () => {
     expect(updated.currentHp).toBe(updated.maxHp);
     expect(engine.battleLog.some(l => l.includes('Regrowth') && l.includes('healed'))).toBe(true);
   });
+
+  test('lack of energy causes cleric to attack the enemy', () => {
+    const cleric = createCombatant({ hero_id: 4, ability_id: 3511 }, 'enemy', 0);
+    const player = createCombatant({ hero_id: 1 }, 'player', 0);
+    cleric.currentEnergy = 0; // not enough for Divine Light
+    cleric.speed = 10;
+    const engine = new GameEngine([cleric, player]);
+    engine.startRound();
+    engine.processTurn();
+    const updatedPlayer = engine.combatants.find(c => c.id === player.id);
+    const updatedCleric = engine.combatants.find(c => c.id === cleric.id);
+    expect(updatedPlayer.currentHp).toBe(player.maxHp - cleric.attack);
+    expect(updatedCleric.currentHp).toBe(cleric.maxHp);
+  });
 });
