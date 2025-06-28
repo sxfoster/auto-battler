@@ -167,6 +167,7 @@ class GameEngine {
                    ? attacker
                    : enemies[0];
 
+               let usedAbility = false;
                if (ability && attacker.abilityCharges > 0 && attacker.currentEnergy >= cost) {
                    this.applyAbilityEffect(attacker, abilityTarget, ability);
                    attacker.currentEnergy -= cost;
@@ -184,7 +185,10 @@ class GameEngine {
                            attacker.abilityData = null;
                        }
                    }
-               } else {
+                   usedAbility = true;
+               }
+
+               if (!usedAbility) {
                    this.applyDamage(attacker, enemies[0], attacker.attack);
                }
            }
