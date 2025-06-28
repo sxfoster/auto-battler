@@ -158,11 +158,14 @@ class GameEngine {
        if (this.checkVictory()) return;
 
        if (!wasSkipped) {
-           const targets = this.combatants.filter(c => c.team !== attacker.team && c.currentHp > 0);
-           if (targets.length > 0) {
-               const target = targets[0];
+           const enemies = this.combatants.filter(c => c.team !== attacker.team && c.currentHp > 0);
+           if (enemies.length > 0) {
                const ability = attacker.abilityData;
                const cost = ability ? ability.energyCost || 1 : 1;
+               let target = enemies[0];
+               if (ability && ability.targetType === 'friendly') {
+                   target = attacker;
+               }
                if (ability && attacker.abilityCharges > 0 && attacker.currentEnergy >= cost) {
                    this.applyAbilityEffect(attacker, target, ability);
                    attacker.currentEnergy -= cost;

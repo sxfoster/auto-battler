@@ -1,0 +1,32 @@
+const GameEngine = require('../game/engine');
+const { createCombatant } = require('../game/utils');
+
+describe('Friendly ability targeting', () => {
+  test('Divine Light heals the caster', () => {
+    const cleric = createCombatant({ hero_id: 4, ability_id: 3511 }, 'enemy', 0);
+    const player = createCombatant({ hero_id: 1 }, 'player', 0);
+    cleric.currentHp -= 3;
+    cleric.currentEnergy = 2;
+    cleric.speed = 10;
+    const engine = new GameEngine([cleric, player]);
+    engine.startRound();
+    engine.processTurn();
+    const updated = engine.combatants.find(c => c.id === cleric.id);
+    expect(updated.currentHp).toBe(updated.maxHp);
+    expect(engine.battleLog.some(l => l.includes('Divine Light') && l.includes('healed'))).toBe(true);
+  });
+
+  test('Regrowth heals the caster', () => {
+    const druid = createCombatant({ hero_id: 5, ability_id: 3612 }, 'enemy', 0);
+    const player = createCombatant({ hero_id: 1 }, 'player', 0);
+    druid.currentHp -= 2;
+    druid.currentEnergy = 2;
+    druid.speed = 10;
+    const engine = new GameEngine([druid, player]);
+    engine.startRound();
+    engine.processTurn();
+    const updated = engine.combatants.find(c => c.id === druid.id);
+    expect(updated.currentHp).toBe(updated.maxHp);
+    expect(engine.battleLog.some(l => l.includes('Regrowth') && l.includes('healed'))).toBe(true);
+  });
+});
