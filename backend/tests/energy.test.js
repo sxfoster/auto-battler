@@ -32,4 +32,31 @@ describe('Energy accumulation and ability usage', () => {
     expect(p.abilityCharges).toBe(9);
     expect(engine.battleLog.some(l => l.includes('uses Power Strike'))).toBe(true);
   });
+
+  test('enemy ability also triggers with sufficient energy', () => {
+    const player = createCombatant({ hero_id: 1 }, 'player', 0);
+    const enemy = createCombatant({ hero_id: 1, ability_id: 3111 }, 'enemy', 0);
+    enemy.speed = 10;
+
+    const engine = new GameEngine([player, enemy]);
+
+    // round 1
+    engine.startRound();
+    engine.processTurn(); // enemy
+    engine.processTurn(); // player
+
+    // round 2
+    engine.startRound();
+    engine.processTurn(); // enemy
+    engine.processTurn(); // player
+
+    // round 3 - enemy ability should fire
+    engine.startRound();
+    engine.processTurn(); // enemy uses ability
+
+    const e = engine.combatants.find(c => c.team === 'enemy');
+    expect(e.currentEnergy).toBe(1);
+    expect(e.abilityCharges).toBe(9);
+    expect(engine.battleLog.some(l => l.includes('uses Power Strike'))).toBe(true);
+  });
 });

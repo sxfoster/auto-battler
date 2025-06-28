@@ -77,7 +77,7 @@ async function execute(interaction) {
     if (!battleMessage) {
       battleMessage = await interaction.followUp({ embeds: [embed] });
     } else {
-      await wait(1500);
+      await wait(750);
       await battleMessage.edit({ embeds: [embed] });
     }
   }
