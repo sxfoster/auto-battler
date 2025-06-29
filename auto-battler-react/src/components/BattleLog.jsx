@@ -55,8 +55,13 @@ export default function BattleLog({ battleLog = [] }) {
   const handleFilter = (filter) => setActiveFilter(filter)
 
   const entries = battleLog.map(e => {
-    if (typeof e === 'string') return { message: e, type: guessType(e) }
+    if (typeof e === 'string') return { message: e, type: guessType(e), round: 0 }
     return e
+  })
+
+  const filtered = entries.filter(e => {
+    const category = getCategory(e.type || 'info')
+    return activeFilter === 'all' || category === activeFilter
   })
 
   const summary = entries.length ? entries[entries.length - 1].message : 'The battle is about to begin...'
@@ -77,19 +82,18 @@ export default function BattleLog({ battleLog = [] }) {
           ))}
         </div>
         <div id="log-entries-container">
-          {entries.slice().reverse().map((entry, idx) => {
+          {filtered.slice().reverse().map((entry, idx) => {
             const type = entry.type || 'info'
             const category = getCategory(type)
             const iconClass = getIconClass(type)
-            const hidden = activeFilter !== 'all' && category !== activeFilter
             return (
               <div
                 key={idx}
-                className={`log-entry ${type} ${hidden ? 'hidden-by-filter' : ''}`}
+                className={`log-entry ${type}`}
                 data-category={category}
               >
                 <i className={`log-entry-icon fas ${iconClass}`}></i>
-                {entry.message}
+                {[`[R${entry.round ?? 0}]`, entry.message].join(' ')}
               </div>
             )
           })}

@@ -33,9 +33,9 @@ describe('Ability effect application', () => {
     expect(e.currentHp).toBe(expectedEnemyHp);
 
     // log should show ability usage and a separate line with the effects
-    const useLine = engine.battleLog.find(l => l.includes('uses Divine Strike'));
+    const useLine = engine.battleLog.find(l => l.message.includes('uses Divine Strike'));
     expect(useLine).toBeTruthy();
-    const actionLines = engine.battleLog.filter(l => l.includes('hits') && l.includes('heals'));
+    const actionLines = engine.battleLog.filter(l => l.message.includes('hits') && l.message.includes('heals'));
     expect(actionLines).toHaveLength(1);
   });
 });
