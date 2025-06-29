@@ -30,7 +30,7 @@ describe('Energy accumulation and ability usage', () => {
     p = engine.combatants.find(c => c.team === 'player');
     expect(p.currentEnergy).toBe(1);
     expect(p.abilityCharges).toBe(9);
-    expect(engine.battleLog.some(l => l.includes('uses Power Strike'))).toBe(true);
+    expect(engine.battleLog.some(l => l.message.includes('uses Power Strike'))).toBe(true);
   });
 
   test('enemy ability also triggers with sufficient energy', () => {
@@ -57,6 +57,6 @@ describe('Energy accumulation and ability usage', () => {
     const e = engine.combatants.find(c => c.team === 'enemy');
     expect(e.currentEnergy).toBe(1);
     expect(e.abilityCharges).toBe(9);
-    expect(engine.battleLog.some(l => l.includes('uses Power Strike'))).toBe(true);
+    expect(engine.battleLog.some(l => l.message.includes('uses Power Strike'))).toBe(true);
   });
 });

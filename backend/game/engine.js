@@ -17,8 +17,11 @@ class GameEngine {
         this.roundCounter = 0;
     }
 
-    log(message) {
-        this.battleLog.push(message);
+    log(entry) {
+        if (typeof entry === 'string') {
+            entry = { type: 'info', message: entry };
+        }
+        this.battleLog.push({ round: this.roundCounter, ...entry });
     }
 
     getEffectiveSpeed(combatant) {
@@ -39,9 +42,9 @@ class GameEngine {
 
    applyDamage(attacker, target, baseDamage) {
        target.currentHp = Math.max(0, target.currentHp - baseDamage);
-       this.log(`${attacker.heroData.name} hits ${target.heroData.name} for ${baseDamage} damage.`);
+       this.log({ type: 'damage', message: `${attacker.heroData.name} hits ${target.heroData.name} for ${baseDamage} damage.` });
        if (target.currentHp <= 0) {
-           this.log(`💀 ${target.heroData.name} has been defeated.`);
+           this.log({ type: 'status', message: `💀 ${target.heroData.name} has been defeated.` });
        }
    }
 
@@ -86,7 +89,7 @@ class GameEngine {
        }
 
        // first log line - announce ability usage
-       this.log(`${attacker.heroData.name} uses ${ability.name}!`);
+       this.log({ type: 'ability-cast', message: `${attacker.heroData.name} uses ${ability.name}!` });
 
        // build description of the ability effects
        let descParts = [];
@@ -124,28 +127,28 @@ class GameEngine {
        }
 
        const effectLine = `${attacker.heroData.name} ${descParts.join(' and ')}.`;
-       this.log(effectLine);
+       this.log({ type: 'ability-result', message: effectLine });
 
        if (multiTarget && damageDealt > 0) {
            const enemies = this.combatants.filter(c => c.team !== attacker.team && c.currentHp <= 0);
            for (const enemy of enemies) {
-               this.log(`💀 ${enemy.heroData.name} has been defeated.`);
+               this.log({ type: 'status', message: `💀 ${enemy.heroData.name} has been defeated.` });
            }
        } else if (damageDealt > 0 && target.currentHp <= 0) {
-           this.log(`💀 ${target.heroData.name} has been defeated.`);
+           this.log({ type: 'status', message: `💀 ${target.heroData.name} has been defeated.` });
        }
    }
 
    startRound() {
        this.roundCounter++;
-       this.log(`\n**--- Round ${this.roundCounter} ---**`);
+       this.log({ type: 'round', message: `--- Round ${this.roundCounter} ---` });
        this.turnQueue = this.computeTurnQueue();
    }
 
    processStatuses(combatant) {
        let skip = false;
-       if (combatant.statusEffects.some(s => s.name === 'Stun')) {
-         this.log(`- ${combatant.heroData.name} is stunned and misses the turn.`);
+        if (combatant.statusEffects.some(s => s.name === 'Stun')) {
+         this.log({ type: 'status', message: `${combatant.heroData.name} is stunned and misses the turn.` });
          skip = true;
        }
        // Future status effect processing (poison, etc.) would go here.
@@ -173,7 +176,7 @@ class GameEngine {
             return;
        }
 
-       this.log(`\n**> Turn: ${attacker.heroData.name}** (${attacker.currentHp}/${attacker.maxHp} HP)`);
+       this.log({ type: 'turn', message: `> Turn: ${attacker.heroData.name} (${attacker.currentHp}/${attacker.maxHp} HP)` });
 
        const wasSkipped = this.processStatuses(attacker);
        if (this.checkVictory()) return;
@@ -193,7 +196,7 @@ class GameEngine {
                    this.applyAbilityEffect(attacker, abilityTarget, ability);
                    attacker.currentEnergy -= cost;
                    attacker.abilityCharges -= 1;
-                   if (ability.cardId) {
+                   if (ability.cardId && !ability.isPractice) {
                        try { abilityCardService.decrementCharge(ability.cardId); } catch(e) { /* ignore */ }
                    }
                    if (attacker.abilityCharges <= 0) {
@@ -222,7 +225,7 @@ class GameEngine {
 
 
    *runGameSteps() {
-       this.log('⚔️ --- Battle Starting --- ⚔️');
+       this.log({ type: 'start', message: '⚔️ --- Battle Starting --- ⚔️' });
        let lastIndex = 0;
        yield { combatants: this.combatants.map(c => ({ ...c })), log: this.battleLog.slice(lastIndex) };
        lastIndex = this.battleLog.length;
@@ -241,7 +244,7 @@ class GameEngine {
                }
            }
        }
-       this.log(`\n🏆 --- Battle Finished! --- 🏆`);
+       this.log({ type: this.winner === 'player' ? 'victory' : 'defeat', message: '🏆 --- Battle Finished! --- 🏆' });
        if (this.battleLog.length > lastIndex) {
            yield { combatants: this.combatants.map(c => ({ ...c })), log: this.battleLog.slice(lastIndex) };
        }

@@ -15,7 +15,7 @@ describe('Additional ability effect patterns', () => {
 
     const updated = engine.combatants.find(c => c.id === target.id);
     expect(updated.currentHp).toBe(updated.maxHp);
-    expect(engine.battleLog.some(l => l.includes('heals') && l.includes('5'))).toBe(true);
+    expect(engine.battleLog.some(l => l.message.includes('heals') && l.message.includes('5'))).toBe(true);
   });
 
   test('area damage hits all enemies', () => {
@@ -31,6 +31,6 @@ describe('Additional ability effect patterns', () => {
     const e2 = engine.combatants.find(c => c.id === enemy2.id);
     expect(e1.currentHp).toBe(enemy1.maxHp - 3);
     expect(e2.currentHp).toBe(enemy2.maxHp - 3);
-    expect(engine.battleLog.some(l => l.includes('all enemies') && l.includes('3'))).toBe(true);
+    expect(engine.battleLog.some(l => l.message.includes('all enemies') && l.message.includes('3'))).toBe(true);
   });
 });

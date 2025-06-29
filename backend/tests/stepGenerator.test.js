@@ -8,8 +8,8 @@ describe('runGameSteps generator', () => {
     const engine = new GameEngine([player, enemy]);
     const steps = Array.from(engine.runGameSteps());
     expect(steps.length).toBeGreaterThan(1);
-    expect(steps[0].log[0]).toContain('Battle Starting');
+    expect(steps[0].log[0].message).toContain('Battle Starting');
     const last = steps[steps.length - 1];
-    expect(last.log.join('\n')).toContain('Battle Finished');
+    expect(last.log.map(l => l.message).join('\n')).toContain('Battle Finished');
   });
 });
