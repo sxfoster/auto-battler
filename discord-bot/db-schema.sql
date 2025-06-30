@@ -6,7 +6,9 @@ CREATE TABLE IF NOT EXISTS users (
     discord_id VARCHAR(255) NOT NULL UNIQUE,
     name VARCHAR(255) NOT NULL UNIQUE COLLATE utf8mb4_unicode_ci,
     class VARCHAR(50) DEFAULT NULL,
-    tutorial_completed TINYINT(1) DEFAULT 0
+    tutorial_completed TINYINT(1) DEFAULT 0,
+    dm_battle_logs_enabled TINYINT(1) DEFAULT 1,
+    dm_item_drops_enabled TINYINT(1) DEFAULT 1
 );
 
 -- Ability cards owned by users
@@ -21,10 +23,14 @@ CREATE TABLE IF NOT EXISTS user_ability_cards (
 -- Equipped ability reference
 ALTER TABLE users
     ADD COLUMN equipped_ability_id INT DEFAULT NULL,
+    ADD COLUMN dm_battle_logs_enabled TINYINT(1) DEFAULT 1,
+    ADD COLUMN dm_item_drops_enabled TINYINT(1) DEFAULT 1,
     ADD FOREIGN KEY (equipped_ability_id) REFERENCES user_ability_cards(id);
 
 ALTER TABLE users
-    ADD COLUMN tutorial_completed TINYINT(1) DEFAULT 0;
+    ADD COLUMN tutorial_completed TINYINT(1) DEFAULT 0,
+    ADD COLUMN dm_battle_logs_enabled TINYINT(1) DEFAULT 1,
+    ADD COLUMN dm_item_drops_enabled TINYINT(1) DEFAULT 1;
 
 -- Champions owned by users
 CREATE TABLE IF NOT EXISTS user_champions (
