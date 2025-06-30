@@ -23,14 +23,13 @@ const data = new SlashCommandBuilder()
   .setDescription('Enter the goblin cave for a practice battle');
 
 async function execute(interaction) {
-  const user = await userService.getUser(interaction.user.id);
-
-  if (!user || !user.class) {
-    await interaction.reply({ content: 'You must select a class before you can go on an adventure! Use the /game command to get started.', ephemeral: true });
-    return;
+  let user = await userService.getUser(interaction.user.id);
+  if (!user) {
+    await userService.createUser(interaction.user.id, interaction.user.username);
+    user = await userService.getUser(interaction.user.id);
   }
 
-  const playerClass = classAbilityMap[user.class] || user.class;
+  const playerClass = classAbilityMap[user.class] || user.class || 'Stalwart Defender';
   const playerHero = allPossibleHeroes.find(h => h.class === playerClass && h.isBase);
   if (!playerHero) {
     await interaction.reply({ content: 'Required hero data missing.', ephemeral: true });
@@ -64,7 +63,7 @@ async function execute(interaction) {
 
   goblin.heroData = { ...goblin.heroData, name: `Goblin ${goblinBase.name}` };
 
-  console.log(`[BATTLE START] Player ${user.class} vs Goblin ${goblinBase.name}`);
+  console.log(`[BATTLE START] Player ${playerClass} vs Goblin ${goblinBase.name}`);
 
   await interaction.reply({ content: `${interaction.user.username} delves into the goblin cave and encounters a ferocious Goblin ${goblinBase.name}! The battle begins!` });
 

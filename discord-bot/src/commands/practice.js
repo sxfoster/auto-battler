@@ -23,14 +23,13 @@ function formatLog(entry) {
 }
 
 async function execute(interaction) {
-  const user = await userService.getUser(interaction.user.id);
-
-  if (!user || !user.class) {
-    await interaction.reply({ content: 'You must select a class before you can practice! Use the /game command to get started.', ephemeral: true });
-    return;
+  let user = await userService.getUser(interaction.user.id);
+  if (!user) {
+    await userService.createUser(interaction.user.id, interaction.user.username);
+    user = await userService.getUser(interaction.user.id);
   }
 
-  const playerClass = classAbilityMap[user.class] || user.class;
+  const playerClass = classAbilityMap[user.class] || user.class || 'Stalwart Defender';
   const playerHero = allPossibleHeroes.find(h => h.class === playerClass && h.isBase);
   if (!playerHero) {
     await interaction.reply({ content: 'Required hero data missing.', ephemeral: true });
