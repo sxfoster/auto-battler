@@ -15,7 +15,7 @@ This folder contains the Node.js bot that powers the game's Discord integration.
 ```bash
 cd discord-bot
 npm install
-node deploy-commands.js  # registers the slash commands
+node deploy-commands.js  # registers the slash commands (re-run when deploying)
 node index.js            # starts the bot
 ```
 
