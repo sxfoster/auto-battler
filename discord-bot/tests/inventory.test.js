@@ -28,7 +28,9 @@ describe('inventory command', () => {
     await inventory.execute(interaction);
     expect(interaction.reply).toHaveBeenCalledWith(expect.objectContaining({ embeds: expect.any(Array) }));
     expect(interaction.reply.mock.calls[0][0].ephemeral).toBeUndefined();
-    expect(interaction.reply.mock.calls[0][0].embeds[0].data.fields[1].value).toContain('Power Strike');
+    const fields = interaction.reply.mock.calls[0][0].embeds[0].data.fields;
+    expect(fields[0].value).toContain('Stalwart Defender (Common)');
+    expect(fields[1].value).toContain('Power Strike');
   });
 
   test('ephemeral reply when user lacks a class', async () => {
@@ -99,7 +101,11 @@ describe('inventory command', () => {
     };
     await inventory.execute(interaction);
     expect(abilityCardService.setEquippedCard).toHaveBeenCalledWith(1, 50);
-    expect(interaction.reply).toHaveBeenCalledWith(expect.objectContaining({ content: expect.stringContaining('Equipped Power Strike') }));
+    expect(interaction.reply).toHaveBeenCalledWith(
+      expect.objectContaining({
+        content: 'You have equipped Power Strike. Your active archetype is now Stalwart Defender (Common).'
+      })
+    );
   });
 
   test('autocomplete suggests charged abilities', async () => {
@@ -119,7 +125,7 @@ describe('inventory command', () => {
     const options = interaction.respond.mock.calls[0][0];
     const names = options.map(o => o.name);
     expect(names).toContain('Power Strike');
-    expect(names).not.toContain('Divine Strike');
+    expect(names).toContain('Divine Strike');
   });
 
   test('handleEquipSelect equips card', async () => {
@@ -132,7 +138,11 @@ describe('inventory command', () => {
     };
     await inventory.handleEquipSelect(interaction);
     expect(abilityCardService.setEquippedCard).toHaveBeenCalledWith(1, 99);
-    expect(interaction.update).toHaveBeenCalled();
+    expect(interaction.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        content: 'You have equipped Power Strike. Your active archetype is now Stalwart Defender (Common).'
+      })
+    );
   });
 
   test('handleSetAbilityButton shows ability dropdown', async () => {
@@ -172,10 +182,14 @@ describe('inventory command', () => {
     const interaction = { user: { id: '123' }, values: ['3111'], update: jest.fn().mockResolvedValue() };
     await inventory.handleAbilitySelect(interaction);
     expect(abilityCardService.setEquippedCard).toHaveBeenCalledWith(1, 10);
-    expect(interaction.update).toHaveBeenCalled();
+    expect(interaction.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        content: 'You have equipped Power Strike. Your active archetype is now Stalwart Defender (Common).'
+      })
+    );
   });
 
-  test('execute rejects ability from another class', async () => {
+  test('execute equips ability from another class', async () => {
     userService.getUser.mockResolvedValue({ id: 1, name: 'Tester', class: 'Warrior' });
     abilityCardService.getCards.mockResolvedValue([{ id: 60, ability_id: 3211, charges: 5 }]);
     const interaction = {
@@ -187,25 +201,37 @@ describe('inventory command', () => {
       reply: jest.fn().mockResolvedValue()
     };
     await inventory.execute(interaction);
-    expect(abilityCardService.setEquippedCard).not.toHaveBeenCalled();
-    expect(interaction.reply).toHaveBeenCalledWith(expect.objectContaining({ ephemeral: true }));
+    expect(abilityCardService.setEquippedCard).toHaveBeenCalledWith(1, 60);
+    expect(interaction.reply).toHaveBeenCalledWith(
+      expect.objectContaining({
+        content: 'You have equipped Divine Strike. Your active archetype is now Holy Warrior (Common).'
+      })
+    );
   });
 
-  test('handleAbilitySelect rejects ability from another class', async () => {
+  test('handleAbilitySelect equips ability from another class', async () => {
     userService.getUser.mockResolvedValue({ id: 1, class: 'Warrior' });
     abilityCardService.getCards.mockResolvedValue([{ id: 61, ability_id: 3211, charges: 5 }]);
     const interaction = { user: { id: '123' }, values: ['3211'], update: jest.fn().mockResolvedValue() };
     await inventory.handleAbilitySelect(interaction);
-    expect(abilityCardService.setEquippedCard).not.toHaveBeenCalled();
-    expect(interaction.update).toHaveBeenCalledWith(expect.objectContaining({ ephemeral: true }));
+    expect(abilityCardService.setEquippedCard).toHaveBeenCalledWith(1, 61);
+    expect(interaction.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        content: 'You have equipped Divine Strike. Your active archetype is now Holy Warrior (Common).'
+      })
+    );
   });
 
-  test('handleEquipSelect rejects card from another class', async () => {
+  test('handleEquipSelect equips card from another class', async () => {
     userService.getUser.mockResolvedValue({ id: 1, class: 'Warrior' });
     abilityCardService.getCards.mockResolvedValue([{ id: 62, ability_id: 3211, charges: 5 }]);
     const interaction = { user: { id: '123' }, values: ['62'], update: jest.fn().mockResolvedValue() };
     await inventory.handleEquipSelect(interaction);
-    expect(abilityCardService.setEquippedCard).not.toHaveBeenCalled();
-    expect(interaction.update).toHaveBeenCalledWith(expect.objectContaining({ ephemeral: true }));
+    expect(abilityCardService.setEquippedCard).toHaveBeenCalledWith(1, 62);
+    expect(interaction.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        content: 'You have equipped Divine Strike. Your active archetype is now Holy Warrior (Common).'
+      })
+    );
   });
 });

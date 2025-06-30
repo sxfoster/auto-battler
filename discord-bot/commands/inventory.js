@@ -7,7 +7,6 @@ const { simple } = require('../src/utils/embedBuilder');
 const userService = require('../src/utils/userService');
 const abilityCardService = require('../src/utils/abilityCardService');
 const { allPossibleAbilities } = require('../../backend/game/data');
-const classAbilityMap = require('../src/data/classAbilityMap');
 
 const data = new SlashCommandBuilder()
   .setName('inventory')
@@ -68,14 +67,20 @@ async function execute(interaction) {
       : 'Your backpack is empty.';
 
     const equippedCard = cards.find(c => c.id === user.equipped_ability_id);
-    const equippedName = equippedCard
-      ? allPossibleAbilities.find(a => a.id === equippedCard.ability_id)?.name || `Ability ${equippedCard.ability_id}`
+    const equippedAbility = equippedCard
+      ? allPossibleAbilities.find(a => a.id === equippedCard.ability_id)
+      : null;
+    const equippedName = equippedAbility
+      ? equippedAbility.name
+      : 'None';
+    const archetype = equippedAbility
+      ? `${equippedAbility.class} (${equippedAbility.rarity})`
       : 'None';
 
     const embed = simple(
       'Player Inventory',
       [
-        { name: 'Player', value: `${user.name} - ${user.class}` },
+        { name: 'Player', value: `${user.name} - ${archetype}` },
         { name: 'Equipped', value: equippedName },
         { name: 'Backpack', value: list }
       ],
@@ -93,10 +98,6 @@ async function execute(interaction) {
       await interaction.reply({ content: 'Ability not found.', ephemeral: true });
       return;
     }
-    if (classAbilityMap[user.class] !== ability.class) {
-      await interaction.reply({ content: 'That ability cannot be equipped by your class.', ephemeral: true });
-      return;
-    }
 
     const cards = (await abilityCardService.getCards(user.id)).filter(
       c => c.ability_id === ability.id && c.charges > 0
@@ -108,7 +109,8 @@ async function execute(interaction) {
 
     if (cards.length === 1) {
       await abilityCardService.setEquippedCard(user.id, cards[0].id);
-      await interaction.reply({ content: `Equipped ${ability.name}.`, ephemeral: true });
+      const msg = `You have equipped ${ability.name}. Your active archetype is now ${ability.class} (${ability.rarity}).`;
+      await interaction.reply({ content: msg, ephemeral: true });
       return;
     }
 
@@ -165,8 +167,8 @@ async function handleAbilitySelect(interaction) {
 
   const ability = allPossibleAbilities.find(a => a.id === abilityId);
   const abilityName = ability?.name || `Ability ${abilityId}`;
-  if (!ability || classAbilityMap[user.class] !== ability.class) {
-    await interaction.update({ content: 'That ability cannot be equipped by your class.', components: [], embeds: [], ephemeral: true });
+  if (!ability) {
+    await interaction.update({ content: 'Ability not found.', components: [], embeds: [], ephemeral: true });
     return;
   }
 
@@ -174,7 +176,8 @@ async function handleAbilitySelect(interaction) {
 
   if (cards.length === 1) {
     await abilityCardService.setEquippedCard(user.id, cards[0].id);
-    await interaction.update({ content: `Equipped ${abilityName}.`, components: [], embeds: [], ephemeral: true });
+    const msg = `You have equipped ${abilityName}. Your active archetype is now ${ability.class} (${ability.rarity}).`;
+    await interaction.update({ content: msg, components: [], embeds: [], ephemeral: true });
     return;
   }
 
@@ -203,14 +206,15 @@ async function handleEquipSelect(interaction) {
   const card = cards.find(c => c.id === cardId);
   const ability = card ? allPossibleAbilities.find(a => a.id === card.ability_id) : null;
   const abilityName = ability?.name || 'Ability';
-  if (!ability || classAbilityMap[user.class] !== ability.class) {
-    await interaction.update({ content: 'That ability cannot be equipped by your class.', components: [], embeds: [], ephemeral: true });
+  if (!ability) {
+    await interaction.update({ content: 'Ability not found.', components: [], embeds: [], ephemeral: true });
     return;
   }
 
   await abilityCardService.setEquippedCard(user.id, cardId);
 
-  await interaction.update({ content: `Equipped ${abilityName}.`, components: [], embeds: [], ephemeral: true });
+  const msg = `You have equipped ${abilityName}. Your active archetype is now ${ability.class} (${ability.rarity}).`;
+  await interaction.update({ content: msg, components: [], embeds: [], ephemeral: true });
 }
 
 async function autocomplete(interaction) {
@@ -222,10 +226,9 @@ async function autocomplete(interaction) {
   }
   const cards = await abilityCardService.getCards(user.id);
   const abilityIds = [...new Set(cards.filter(c => c.charges > 0).map(c => c.ability_id))];
-  let abilities = abilityIds
+  const abilities = abilityIds
     .map(id => allPossibleAbilities.find(a => a.id === id))
     .filter(Boolean);
-  abilities = abilities.filter(a => classAbilityMap[user.class] === a.class);
   const filtered = abilities
     .filter(a => a.name.toLowerCase().includes(focused.toLowerCase()))
     .slice(0, 25)
