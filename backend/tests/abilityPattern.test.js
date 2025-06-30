@@ -33,4 +33,34 @@ describe('Additional ability effect patterns', () => {
     expect(e2.currentHp).toBe(enemy2.maxHp - 3);
     expect(engine.battleLog.some(l => l.message.includes('all enemies') && l.message.includes('3'))).toBe(true);
   });
+
+  test('confuse text applies status effect', () => {
+    const caster = createCombatant({ hero_id: 6 }, 'player', 0);
+    const target = createCombatant({ hero_id: 1 }, 'enemy', 0);
+    const engine = new GameEngine([caster, target]);
+    const ability = { name: 'Illusionary Strike', effect: 'Deal 1 damage and confuse the target.' };
+
+    engine.applyAbilityEffect(caster, target, ability);
+
+    const updated = engine.combatants.find(c => c.id === target.id);
+    const confuse = updated.statusEffects.find(s => s.name === 'Confuse');
+    expect(confuse).toBeTruthy();
+    expect(confuse.turnsRemaining).toBe(1);
+    expect(engine.battleLog.some(l => l.message.includes('confused'))).toBe(true);
+  });
+
+  test('defense down pattern applies status with turns', () => {
+    const caster = createCombatant({ hero_id: 1 }, 'player', 0);
+    const target = createCombatant({ hero_id: 1 }, 'enemy', 0);
+    const engine = new GameEngine([caster, target]);
+    const ability = { name: 'Armor Crack', effect: 'Apply Defense Down for 2 turns.' };
+
+    engine.applyAbilityEffect(caster, target, ability);
+
+    const updated = engine.combatants.find(c => c.id === target.id);
+    const dd = updated.statusEffects.find(s => s.name === 'Defense Down');
+    expect(dd).toBeTruthy();
+    expect(dd.turnsRemaining).toBe(2);
+    expect(engine.battleLog.some(l => l.message.includes('Defense Down'))).toBe(true);
+  });
 });
