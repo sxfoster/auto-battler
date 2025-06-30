@@ -26,7 +26,7 @@ The bot connects to the database on start and should log `Database connection su
 The `/begin` command launches the onboarding flow for new players. The flow guides you
 through drafting a starter champion:
 
-1. **Choose a hero** – pick a base hero to determine class and stats.
+1. **Choose a hero** – pick a starter hero to establish your initial stats.
 2. **Select an ability** – equip one starting ability.
 3. **Pick a weapon** – add a weapon for attack bonuses.
 4. **Choose armor** – round out your defenses.
@@ -36,7 +36,11 @@ After confirmation the champion is saved to your roster and you can explore the 
 
 ## Using `/game`
 
-`/game` starts a lightweight onboarding flow that lets testers try class selection without going through the full `/begin` process. Running the command posts an ephemeral message listing the available classes (currently only `Recruit`). Selecting one shows a short description along with **Confirm** and **Choose Another** buttons. Confirm locks in your pick while **Choose Another** returns you to the class list so you can preview a different option.
+`/game` provides a quick introduction battle and hands you a starter ability card. When you confirm the prompt the bot equips that ability and launches a short fight against a goblin. Your hero is chosen dynamically based on the ability's **archetype** and rarity. You can rerun `/game` to try a different ability – swapping abilities changes which hero you field.
+
+## Ability-Based Archetypes
+
+Abilities belong to themed archetypes such as **Stalwart Defender** or **Raging Fighter**. The rarity of the equipped ability determines which hero from that archetype you control. Equipping a higher rarity card automatically upgrades your hero, while changing to a different archetype swaps you to a completely new hero.
 
 ## Using `/who`
 
@@ -46,13 +50,13 @@ After confirmation the champion is saved to your roster and you can explore the 
 /who @SomePlayer
 ```
 
-The command responds with a styled embed showing the player's name, class, base HP and Attack, and the ability they currently have equipped. If the player has not started the game or has not chosen a class, the embed will indicate that instead.
+The command responds with a styled embed showing the player's name, current archetype, base HP and Attack, and the ability they currently have equipped. If the player has not started the game or has no ability equipped, the embed will indicate that instead.
 
 Example output:
 
 ```
 Character Sheet
-Player: SomePlayer - Bard
+Player: SomePlayer - Stalwart Defender
 HP: 16
 Attack: 2
 Equipped Ability: Power Strike
