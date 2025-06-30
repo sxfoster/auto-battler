@@ -66,9 +66,15 @@ client.on(Events.InteractionCreate, async interaction => {
       await inventoryHandlers.handleAbilitySelect(interaction);
     } else if (interaction.customId === 'equip-card') {
       await inventoryHandlers.handleEquipSelect(interaction);
+    } else if (interaction.customId === 'merge-ability-select') {
+      await inventoryHandlers.handleMergeSelect(interaction);
     }
   } else if (interaction.isButton()) {
-    if (interaction.customId === 'set-ability') {
+    if (interaction.customId === 'inventory-equip-start') {
+      await inventoryHandlers.handleEquipButton(interaction);
+    } else if (interaction.customId === 'inventory-merge-start') {
+      await inventoryHandlers.handleMergeButton(interaction);
+    } else if (interaction.customId === 'set-ability') {
       await inventoryHandlers.handleSetAbilityButton(interaction);
     } else if (interaction.customId.startsWith('challenge-accept:')) {
       await challengeHandlers.handleAccept(interaction);

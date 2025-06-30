@@ -1,7 +1,9 @@
 const {
   SlashCommandBuilder,
   ActionRowBuilder,
-  StringSelectMenuBuilder
+  StringSelectMenuBuilder,
+  ButtonBuilder,
+  ButtonStyle
 } = require('discord.js');
 const { simple } = require('../src/utils/embedBuilder');
 const userService = require('../src/utils/userService');
@@ -37,18 +39,6 @@ const data = new SlashCommandBuilder()
         opt
           .setName('ability')
           .setDescription('Name of the ability to equip')
-          .setRequired(true)
-          .setAutocomplete(true)
-      )
-  )
-  .addSubcommand(sub =>
-    sub
-      .setName('merge')
-      .setDescription('Combine all copies of an ability card into one stack.')
-      .addStringOption(opt =>
-        opt
-          .setName('ability')
-          .setDescription('Name of the ability to merge')
           .setRequired(true)
           .setAutocomplete(true)
       )
@@ -95,36 +85,40 @@ async function execute(interaction) {
       interaction.user.displayAvatarURL()
     );
 
-    await interaction.reply({ embeds: [embed], ephemeral: true });
+    const row = new ActionRowBuilder();
+    const abilityCounts = cards.reduce((acc, card) => {
+      acc[card.ability_id] = (acc[card.ability_id] || 0) + 1;
+      return acc;
+    }, {});
+    const hasDuplicates = Object.values(abilityCounts).some(count => count > 1);
+
+    if (hasDuplicates) {
+      row.addComponents(
+        new ButtonBuilder()
+          .setCustomId('inventory-merge-start')
+          .setLabel('Merge Duplicates')
+          .setStyle(ButtonStyle.Primary)
+      );
+    }
+
+    if (cards.length > 0) {
+      row.addComponents(
+        new ButtonBuilder()
+          .setCustomId('inventory-equip-start')
+          .setLabel('Equip Ability')
+          .setStyle(ButtonStyle.Success)
+      );
+    }
+
+    const replyOptions = { embeds: [embed], ephemeral: true };
+    if (row.components.length > 0) {
+      replyOptions.components = [row];
+    }
+
+    await interaction.reply(replyOptions);
     return;
   }
 
-  if (sub === 'merge') {
-    const abilityName = interaction.options.getString('ability');
-    const ability = allPossibleAbilities.find(a => a.name.toLowerCase() === abilityName.toLowerCase());
-
-    if (!ability) {
-      return interaction.reply({ content: 'Ability not found.', ephemeral: true });
-    }
-
-    const allCards = await abilityCardService.getCards(user.id);
-    const cardsToMerge = allCards.filter(c => c.ability_id === ability.id);
-
-    if (cardsToMerge.length <= 1) {
-      return interaction.reply({ content: `You only have one copy of ${ability.name}, nothing to merge.`, ephemeral: true });
-    }
-
-    const totalCharges = cardsToMerge.reduce((sum, card) => sum + card.charges, 0);
-    const cardIdsToDelete = cardsToMerge.map(card => card.id);
-
-    await abilityCardService.deleteCards(cardIdsToDelete);
-    await abilityCardService.addCard(user.id, ability.id, totalCharges);
-
-    return interaction.reply({
-      content: `✅ All ${cardsToMerge.length} copies of **${ability.name}** have been merged into a single card with **${totalCharges}** charges.`,
-      ephemeral: true
-    });
-  }
 
   if (sub === 'set' || sub === 'equip') {
     const abilityName = interaction.options.getString('ability');
@@ -252,6 +246,68 @@ async function handleEquipSelect(interaction) {
   await interaction.update({ content: msg, components: [], embeds: [], ephemeral: true });
 }
 
+async function handleEquipButton(interaction) {
+  await handleSetAbilityButton(interaction);
+}
+
+async function handleMergeButton(interaction) {
+  const user = await userService.getUser(interaction.user.id);
+  const cards = await abilityCardService.getCards(user.id);
+
+  const abilityCounts = cards.reduce((acc, card) => {
+    acc[card.ability_id] = (acc[card.ability_id] || 0) + 1;
+    return acc;
+  }, {});
+
+  const mergeableAbilityIds = Object.keys(abilityCounts).filter(id => abilityCounts[id] > 1);
+
+  if (mergeableAbilityIds.length === 0) {
+    return interaction.reply({ content: 'You have no abilities with duplicate cards to merge.', ephemeral: true });
+  }
+
+  const menu = new StringSelectMenuBuilder()
+    .setCustomId('merge-ability-select')
+    .setPlaceholder('Select an ability to merge')
+    .addOptions(
+      mergeableAbilityIds.map(id => {
+        const ability = allPossibleAbilities.find(a => a.id === parseInt(id));
+        return {
+          label: `${ability.name} (${abilityCounts[id]} copies)`,
+          value: String(id)
+        };
+      })
+    );
+
+  const row = new ActionRowBuilder().addComponents(menu);
+  await interaction.reply({ content: 'Which ability would you like to merge all copies of?', components: [row], ephemeral: true });
+}
+
+async function handleMergeSelect(interaction) {
+  const abilityId = parseInt(interaction.values[0], 10);
+  const user = await userService.getUser(interaction.user.id);
+  const allCards = await abilityCardService.getCards(user.id);
+  const cardsToMerge = allCards.filter(c => c.ability_id === abilityId);
+
+  if (cardsToMerge.length <= 1) {
+    return interaction.update({ content: 'Not enough copies to merge.', components: [], ephemeral: true });
+  }
+
+  const totalCharges = cardsToMerge.reduce((sum, card) => sum + card.charges, 0);
+  const cardIdsToDelete = cardsToMerge.map(card => card.id);
+
+  await abilityCardService.deleteCards(cardIdsToDelete);
+  await abilityCardService.addCard(user.id, abilityId, totalCharges);
+
+  const ability = allPossibleAbilities.find(a => a.id === abilityId);
+  const abilityName = ability ? ability.name : `Ability ${abilityId}`;
+
+  await interaction.update({
+    content: `✅ All ${cardsToMerge.length} copies of **${abilityName}** have been merged into a single card with **${totalCharges}** charges.`,
+    components: [],
+    ephemeral: true
+  });
+}
+
 async function autocomplete(interaction) {
   const sub = interaction.options.getSubcommand();
   const focused = interaction.options.getFocused();
@@ -261,18 +317,7 @@ async function autocomplete(interaction) {
     return;
   }
   const cards = await abilityCardService.getCards(user.id);
-  let abilityIds;
-  if (sub === 'merge') {
-    const counts = {};
-    for (const card of cards) {
-      counts[card.ability_id] = (counts[card.ability_id] || 0) + 1;
-    }
-    abilityIds = Object.keys(counts)
-      .filter(id => counts[id] > 1)
-      .map(id => parseInt(id, 10));
-  } else {
-    abilityIds = [...new Set(cards.filter(c => c.charges > 0).map(c => c.ability_id))];
-  }
+  const abilityIds = [...new Set(cards.filter(c => c.charges > 0).map(c => c.ability_id))];
   const abilities = abilityIds
     .map(id => allPossibleAbilities.find(a => a.id === id))
     .filter(Boolean);
@@ -286,6 +331,9 @@ async function autocomplete(interaction) {
 module.exports = {
   data,
   execute,
+  handleEquipButton,
+  handleMergeButton,
+  handleMergeSelect,
   handleEquipSelect,
   handleSetAbilityButton,
   handleAbilitySelect,
