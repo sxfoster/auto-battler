@@ -13,7 +13,7 @@ const db = require('../util/database');
 const GameEngine = require('../../backend/game/engine');
 
 beforeEach(() => {
-  jest.clearAllMocks();
+  jest.resetAllMocks();
   GameEngine.mockImplementation(() => ({
     runFullGame: jest.fn(),
     battleLog: [],
@@ -117,13 +117,29 @@ test('sends challenge DM with buttons and handles accept/decline', async () => {
   expect(declineInteraction.update).toHaveBeenCalled();
 });
 
-test.skip('expired challenges notify challenger', async () => {
+test('expireChallenge expires pending battles', async () => {
   const challenger = { send: jest.fn().mockResolvedValue() };
   const channelMessage = { id: '1', edit: jest.fn().mockResolvedValue() };
   const announcementChannel = { id: '100', messages: { fetch: jest.fn().mockResolvedValue(channelMessage) } };
-  db.query.mockResolvedValue([]);
+  db.query.mockResolvedValueOnce([[{ status: 'pending', channel_id: '100', message_id: '1' }]]);
+  db.query.mockResolvedValueOnce();
   const client = { channels: { fetch: jest.fn().mockResolvedValue(announcementChannel) } };
   await challenge.expireChallenge(7, challenger, client);
-  expect(db.query).toHaveBeenCalledWith('UPDATE pvp_battles SET status = ? WHERE id = ?', ['expired', 7]);
-  expect(challenger.send).toHaveBeenCalled();
+  expect(db.query).toHaveBeenNthCalledWith(1, 'SELECT * FROM pvp_battles WHERE id = ?', [7]);
+  expect(db.query).toHaveBeenNthCalledWith(2, 'UPDATE pvp_battles SET status = ? WHERE id = ?', ['expired', 7]);
+  expect(channelMessage.edit).toHaveBeenCalledWith({ content: 'Challenge Expired.' });
+  expect(challenger.send).toHaveBeenCalledWith('Your challenge #7 has expired.');
+});
+
+test('expireChallenge exits when not pending', async () => {
+  const challenger = { send: jest.fn().mockResolvedValue() };
+  const channelMessage = { id: '1', edit: jest.fn().mockResolvedValue() };
+  const announcementChannel = { id: '100', messages: { fetch: jest.fn().mockResolvedValue(channelMessage) } };
+  db.query.mockResolvedValueOnce([[{ status: 'accepted', channel_id: '100', message_id: '1' }]]);
+  const client = { channels: { fetch: jest.fn().mockResolvedValue(announcementChannel) } };
+  await challenge.expireChallenge(8, challenger, client);
+  expect(db.query).toHaveBeenCalledTimes(1);
+  expect(db.query).toHaveBeenCalledWith('SELECT * FROM pvp_battles WHERE id = ?', [8]);
+  expect(channelMessage.edit).not.toHaveBeenCalled();
+  expect(challenger.send).not.toHaveBeenCalled();
 });
