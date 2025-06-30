@@ -6,7 +6,6 @@ require('dotenv').config();
 const client = new Client({ intents: [GatewayIntentBits.Guilds] });
 client.commands = new Collection();
 
-const gameHandlers = require('./src/commands/game');
 const inventoryHandlers = require('./commands/inventory');
 const challengeHandlers = require('./src/commands/challenge');
 

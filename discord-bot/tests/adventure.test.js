@@ -1,6 +1,7 @@
 jest.mock('../src/utils/userService', () => ({
   getUser: jest.fn(),
-  addAbility: jest.fn()
+  addAbility: jest.fn(),
+  createUser: jest.fn()
 }));
 jest.mock('../src/utils/abilityCardService', () => ({
   getCards: jest.fn()
@@ -31,11 +32,21 @@ describe('adventure command', () => {
     }));
   });
 
-  test('ephemeral reply when user lacks a class', async () => {
-    userService.getUser.mockResolvedValue({ discord_id: '123', class: null });
-    const interaction = { user: { id: '123' }, reply: jest.fn().mockResolvedValue() };
+  test('creates a new user when none exists', async () => {
+    userService.getUser
+      .mockResolvedValueOnce(null)
+      .mockResolvedValueOnce({ id: 1, discord_id: '123', class: null });
+    userService.createUser.mockResolvedValueOnce();
+    const interaction = {
+      user: { id: '123', username: 'tester' },
+      reply: jest.fn().mockResolvedValue(),
+      followUp: jest.fn().mockResolvedValue()
+    };
     await adventure.execute(interaction);
-    expect(interaction.reply).toHaveBeenCalledWith(expect.objectContaining({ ephemeral: true }));
+    expect(userService.createUser).toHaveBeenCalledWith('123', 'tester');
+    expect(interaction.reply).toHaveBeenCalledWith(
+      expect.objectContaining({ content: expect.stringContaining('Goblin') })
+    );
   });
 
   test('battle runs when user has a class', async () => {
