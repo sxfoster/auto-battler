@@ -2,17 +2,17 @@
 // In a real application, this would likely be fetched from a server API.
 
 const allPossibleHeroes = [
-    { type: 'hero', id: 1, name: 'Warrior', class: 'Warrior', rarity: 'Common', hp: 22, attack: 3, speed: 3, abilities: [], isBase: true },
-    { type: 'hero', id: 2, name: 'Bard', class: 'Bard', rarity: 'Common', hp: 16, attack: 2, speed: 5, abilities: [], isBase: true },
-    { type: 'hero', id: 3, name: 'Barbarian', class: 'Barbarian', rarity: 'Common', hp: 20, attack: 4, speed: 3, abilities: [], isBase: true },
-    { type: 'hero', id: 4, name: 'Cleric', class: 'Cleric', rarity: 'Common', hp: 18, attack: 2, speed: 4, abilities: [], isBase: true },
-    { type: 'hero', id: 5, name: 'Druid', class: 'Druid', rarity: 'Common', hp: 17, attack: 3, speed: 4, abilities: [], isBase: true },
-    { type: 'hero', id: 6, name: 'Enchanter', class: 'Enchanter', rarity: 'Common', hp: 15, attack: 2, speed: 4, abilities: [], isBase: true },
-    { type: 'hero', id: 7, name: 'Paladin', class: 'Paladin', rarity: 'Common', hp: 20, attack: 3, speed: 3, abilities: [], isBase: true },
-    { type: 'hero', id: 8, name: 'Rogue', class: 'Rogue', rarity: 'Common', hp: 14, attack: 5, speed: 6, abilities: [], isBase: true },
-    { type: 'hero', id: 9, name: 'Ranger', class: 'Ranger', rarity: 'Common', hp: 15, attack: 4, speed: 5, abilities: [], isBase: true },
-    { type: 'hero', id: 10, name: 'Sorcerer', class: 'Sorcerer', rarity: 'Common', hp: 14, attack: 4, speed: 4, abilities: [], isBase: true },
-    { type: 'hero', id: 11, name: 'Wizard', class: 'Wizard', rarity: 'Common', hp: 14, attack: 4, speed: 4, abilities: [], isBase: true },
+    { type: 'hero', id: 1, name: 'Recruit', class: 'Stalwart Defender', rarity: 'Common', hp: 22, attack: 3, speed: 3, abilities: [], isBase: true },
+    { type: 'hero', id: 2, name: 'Minstrel', class: 'Inspiring Artist', rarity: 'Common', hp: 16, attack: 2, speed: 5, abilities: [], isBase: true },
+    { type: 'hero', id: 3, name: 'Brawler', class: 'Raging Fighter', rarity: 'Common', hp: 20, attack: 4, speed: 3, abilities: [], isBase: true },
+    { type: 'hero', id: 4, name: 'Acolyte', class: 'Divine Healer', rarity: 'Common', hp: 18, attack: 2, speed: 4, abilities: [], isBase: true },
+    { type: 'hero', id: 5, name: 'Naturalist', class: 'Nature Shaper', rarity: 'Common', hp: 17, attack: 3, speed: 4, abilities: [], isBase: true },
+    { type: 'hero', id: 6, name: 'Trickster', class: 'Mystic Deceiver', rarity: 'Common', hp: 15, attack: 2, speed: 4, abilities: [], isBase: true },
+    { type: 'hero', id: 7, name: 'Squire', class: 'Holy Warrior', rarity: 'Common', hp: 20, attack: 3, speed: 3, abilities: [], isBase: true },
+    { type: 'hero', id: 8, name: 'Thug', class: 'Shadow Striker', rarity: 'Common', hp: 14, attack: 5, speed: 6, abilities: [], isBase: true },
+    { type: 'hero', id: 9, name: 'Tracker', class: 'Wilderness Expert', rarity: 'Common', hp: 15, attack: 4, speed: 5, abilities: [], isBase: true },
+    { type: 'hero', id: 10, name: 'Adept', class: 'Raw Power Mage', rarity: 'Common', hp: 14, attack: 4, speed: 4, abilities: [], isBase: true },
+    { type: 'hero', id: 11, name: 'Apprentice', class: 'Arcane Savant', rarity: 'Common', hp: 14, attack: 4, speed: 4, abilities: [], isBase: true },
     // 1. Stalwart Defender
     { type: 'hero', id: 101, name: 'Recruit', class: 'Stalwart Defender', rarity: 'Common', art: '../img/recruit_card.png', imageUrl: 'https://placehold.co/300x400/1e293b/ffffff?text=Recruit', hp: 22, attack: 4, speed: 5, abilities: [] },
     { type: 'hero', id: 102, name: 'Soldier', class: 'Stalwart Defender', rarity: 'Uncommon', art: '../img/soldier_card.png', imageUrl: 'https://placehold.co/300x400/1e293b/ffffff?text=Soldier', hp: 30, attack: 6, speed: 5, abilities: [] },
