@@ -8,6 +8,7 @@ client.commands = new Collection();
 
 const gameHandlers = require('./src/commands/game');
 const inventoryHandlers = require('./commands/inventory');
+const challengeHandlers = require('./commands/challenge');
 
 const commandDirs = [
   path.join(__dirname, 'commands'),
@@ -67,6 +68,10 @@ client.on(Events.InteractionCreate, async interaction => {
       await inventoryHandlers.handleSetAbilityButton(interaction);
     } else if (interaction.customId.startsWith('class-confirm') || interaction.customId === 'class-choose-again') {
       await gameHandlers.handleClassButton(interaction);
+    } else if (interaction.customId.startsWith('challenge-accept')) {
+      await challengeHandlers.handleChallengeAccept(interaction);
+    } else if (interaction.customId.startsWith('challenge-decline')) {
+      await challengeHandlers.handleChallengeDecline(interaction);
     }
   }
 });
