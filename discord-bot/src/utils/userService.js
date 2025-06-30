@@ -28,6 +28,35 @@ async function addAbility(discordId, abilityId) {
   return abilityCards.addCard(user.id, abilityId);
 }
 
+async function incrementPveWin(userId) {
+  await db.query('UPDATE users SET pve_wins = pve_wins + 1 WHERE id = ?', [userId]);
+}
+
+async function incrementPveLoss(userId) {
+  await db.query('UPDATE users SET pve_losses = pve_losses + 1 WHERE id = ?', [userId]);
+}
+
+async function incrementPvpWin(userId) {
+  await db.query('UPDATE users SET pvp_wins = pvp_wins + 1 WHERE id = ?', [userId]);
+}
+
+async function incrementPvpLoss(userId) {
+  await db.query('UPDATE users SET pvp_losses = pvp_losses + 1 WHERE id = ?', [userId]);
+}
+
+async function getLeaderboardData() {
+  const [rows] = await db.query(`
+        SELECT 
+            name,
+            pve_wins, pve_losses,
+            pvp_wins, pvp_losses,
+            CASE WHEN pve_losses = 0 THEN pve_wins + 99999 ELSE pve_wins / pve_losses END AS pve_ratio,
+            CASE WHEN pvp_losses = 0 THEN pvp_wins + 99999 ELSE pvp_wins / pvp_losses END AS pvp_ratio
+        FROM users
+    `);
+  return rows;
+}
+
 // Retrieve the user's ability card inventory with names
 async function getInventory(discordId) {
   const user = await getUser(discordId);
@@ -73,5 +102,10 @@ module.exports = {
   getInventory,
   setActiveAbility,
   markTutorialComplete,
-  setDmPreference
+  setDmPreference,
+  incrementPveWin,
+  incrementPveLoss,
+  incrementPvpWin,
+  incrementPvpLoss,
+  getLeaderboardData
 };

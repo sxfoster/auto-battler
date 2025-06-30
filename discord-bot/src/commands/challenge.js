@@ -208,6 +208,10 @@ async function handleAccept(interaction) {
 
   const winnerUser = engine.winner === 'player' ? challenger : challenged;
   const loserUser = engine.winner === 'player' ? challenged : challenger;
+
+  await userService.incrementPvpWin(winnerUser.id);
+  await userService.incrementPvpLoss(loserUser.id);
+
   const victoryMessage =
     `⚔️ **Victory!** <@${winnerUser.discord_id}> has defeated <@${loserUser.discord_id}> in a duel!`;
 
