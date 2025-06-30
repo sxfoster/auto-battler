@@ -119,10 +119,10 @@ async function handleAccept(interaction) {
     /* ignore */
   }
 
-  const [challengerRows] = await db.query('SELECT * FROM users WHERE id = ?', [battle.challenger_id]);
-  const [challengedRows] = await db.query('SELECT * FROM users WHERE id = ?', [battle.challenged_id]);
-  const challenger = challengerRows[0];
-  const challenged = challengedRows[0];
+  const [challengerRows] = await db.query('SELECT discord_id FROM users WHERE id = ?', [battle.challenger_id]);
+  const [challengedRows] = await db.query('SELECT discord_id FROM users WHERE id = ?', [battle.challenged_id]);
+  const challenger = await userService.getUser(challengerRows[0].discord_id);
+  const challenged = await userService.getUser(challengedRows[0].discord_id);
 
   const challengerCards = await abilityCardService.getCards(challenger.id);
   const chalEquipped = challengerCards.find(c => c.id === challenger.equipped_ability_id);
@@ -175,17 +175,30 @@ async function handleAccept(interaction) {
   const logBuffer = Buffer.from(finalLogString, 'utf-8');
   const attachment = { attachment: logBuffer, name: `battle-log-${id}.txt` };
 
-  try {
-    const challengerDiscordUser = await interaction.client.users.fetch(challenger.discord_id);
-    await challengerDiscordUser.send({ files: [attachment] });
-  } catch (e) {
-    console.error(`Failed to DM log to challenger ${challenger.name}`);
+  if (challenger.dm_battle_logs_enabled) {
+    try {
+      const challengerDiscordUser = await interaction.client.users.fetch(challenger.discord_id);
+      await challengerDiscordUser.send({ files: [attachment] });
+    } catch (e) {
+      console.error(`Failed to DM log to challenger ${challenger.name}`);
+    }
+  } else {
+    console.log(
+      `[DM DISABLED] Skipping battle log DM for challenger ${challenger.name} (dm_battle_logs_enabled = false)`
+    );
   }
-  try {
-    const challengedDiscordUser = await interaction.client.users.fetch(challenged.discord_id);
-    await challengedDiscordUser.send({ files: [attachment] });
-  } catch (e) {
-    console.error(`Failed to DM log to challenged user ${challenged.name}`);
+
+  if (challenged.dm_battle_logs_enabled) {
+    try {
+      const challengedDiscordUser = await interaction.client.users.fetch(challenged.discord_id);
+      await challengedDiscordUser.send({ files: [attachment] });
+    } catch (e) {
+      console.error(`Failed to DM log to challenged user ${challenged.name}`);
+    }
+  } else {
+    console.log(
+      `[DM DISABLED] Skipping battle log DM for challenged user ${challenged.name} (dm_battle_logs_enabled = false)`
+    );
   }
 
   const winnerUser = engine.winner === 'player' ? challenger : challenged;
