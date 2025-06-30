@@ -70,6 +70,15 @@ for all combatants. The battle log grows from top to bottom, with new entries
 appended to the bottom of the list. When the fight ends a final embed announces
 **Victory** or **Defeat** and any loot is granted.
 
+## Settings
+
+The `/settings` command toggles optional preferences for each player.
+
+- `/settings battle_logs` – turn receiving DM battle logs on or off.
+- `/settings item_drops` – enable or disable item drop notifications.
+
+Both preferences default to **enabled** for all players.
+
 ## Admin Tools
 
 `/admin grant-ability` lets users with the **Game Master** role grant an ability card to any player. The command requires two options:
