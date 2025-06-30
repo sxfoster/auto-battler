@@ -80,8 +80,14 @@ async function execute(interaction) {
       }
     }
 
-    const commonAbilities = allPossibleAbilities.filter(a => a.rarity === 'Common');
-    const drop = commonAbilities[Math.floor(Math.random() * commonAbilities.length)];
+    const commonOffenseAbilities = allPossibleAbilities.filter(
+      a =>
+        a.rarity === 'Common' &&
+        a.category === 'Offense' &&
+        a.class === baseHero.class
+    );
+    const drop =
+      commonOffenseAbilities[Math.floor(Math.random() * commonOffenseAbilities.length)];
     await userService.addAbility(interaction.user.id, drop.id);
 
     const summaryEmbed = new EmbedBuilder()
