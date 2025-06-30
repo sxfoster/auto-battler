@@ -4,6 +4,7 @@ jest.mock('../src/utils/userService', () => ({
   createUser: jest.fn(),
   setActiveAbility: jest.fn(),
   setDmPreference: jest.fn(),
+  addGold: jest.fn(),
   incrementPveWin: jest.fn(),
   incrementPveLoss: jest.fn()
 }));

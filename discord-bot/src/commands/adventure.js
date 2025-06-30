@@ -123,21 +123,23 @@ async function execute(interaction) {
   const enemyName = `a **Goblin ${goblinBase.name}**`;
 
   if (engine.winner === 'player') {
-    let dropText = 'who was slain.';
+    const goldDropped = Math.floor(Math.random() * 3);
+    await userService.addGold(user.id, goldDropped);
+    narrativeDescription = `${adventurerName} was victorious and found **${goldDropped} gold**!`;
+
     if (Math.random() < 0.5) {
       const lootOptions = allPossibleAbilities.filter(
         a => a.class === goblinBase.class && a.rarity === 'Common'
       );
       lootDrop = lootOptions[Math.floor(Math.random() * lootOptions.length)];
       if (lootDrop) {
-        dropText = `who was slain and dropped **${lootDrop.name}**.`;
+        narrativeDescription += ` They also found **${lootDrop.name}**.`;
         console.log(
           `[ITEM LOOT] User: ${interaction.user.username} looted Ability: ${lootDrop.name} (ID: ${lootDrop.id})`
         );
         await userService.addAbility(interaction.user.id, lootDrop.id);
       }
     }
-    narrativeDescription = `${adventurerName} adventured into the goblin caves and encountered ${enemyName}, ${dropText}`;
   } else {
     narrativeDescription = `${adventurerName} adventured into the goblin caves and encountered ${enemyName} who defeated them.`;
   }
