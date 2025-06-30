@@ -71,7 +71,25 @@ Equipped Ability: Power Strike
 command posts an embed that updates every couple seconds to show remaining HP
 for all combatants. The battle log grows from top to bottom, with new entries
 appended to the bottom of the list. When the fight ends a final embed announces
-**Victory** or **Defeat** and any loot is granted.
+**Victory** or **Defeat** and any loot is granted. Victorious players now earn a
+small **gold** reward added directly to their balance.
+
+## Using `/auctionhouse`
+
+The Auction House lets players trade ability cards and other items. Use `/auctionhouse browse`
+to view current listings. To sell an item run:
+
+```bash
+/auctionhouse sell item:"Power Strike" price:100
+```
+
+To place a bid on an existing listing:
+
+```bash
+/auctionhouse bid listing_id:42 amount:150
+```
+
+Listings remain active until they expire or the seller cancels them.
 
 ## Settings
 
@@ -95,12 +113,16 @@ The Game Master receives an ephemeral confirmation message while the target play
 ## Database Migration
 
 The updated schema introduces a `user_ability_cards` table and a new
-`equipped_ability_id` column on `users`.
+`equipped_ability_id` column on `users`. It also adds an `auction_listings`
+table, an `auction_bids` table and a `soft_currency` column on `users` for
+storing gold balances.
 
 1. Run the statements in `db-schema.sql` against your MySQL database.
 2. For existing installs, create a `user_ability_cards` row for each
    player's current ability and update `users.equipped_ability_id` to
    point to that card.
+3. Run the additional statements that create `auction_listings` and
+   `auction_bids` along with the new `soft_currency` column.
 
 New deployments only need to execute the schema file.
 
