@@ -2,10 +2,7 @@ const { SlashCommandBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } = re
 const userService = require('../utils/userService');
 const abilityCardService = require('../utils/abilityCardService');
 const db = require('../../util/database');
-const {
-  allPossibleHeroes,
-  allPossibleAbilities
-} = require('../../../backend/game/data');
+const { allPossibleHeroes } = require('../../../backend/game/data');
 const { createCombatant } = require('../../../backend/game/utils');
 const GameEngine = require('../../../backend/game/engine');
 
