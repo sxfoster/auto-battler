@@ -55,6 +55,15 @@ async function markTutorialComplete(discordId) {
   await db.query('UPDATE users SET tutorial_completed = 1 WHERE discord_id = ?', [discordId]);
 }
 
+async function setDmPreference(discordId, preferenceKey, isEnabled) {
+  const allowed = ['dm_battle_logs_enabled', 'dm_item_drops_enabled'];
+  if (!allowed.includes(preferenceKey)) {
+    throw new Error('Invalid preference key');
+  }
+  const value = isEnabled ? 1 : 0;
+  await db.query(`UPDATE users SET ${preferenceKey} = ? WHERE discord_id = ?`, [value, discordId]);
+}
+
 module.exports = {
   getUser,
   createUser,
@@ -63,5 +72,6 @@ module.exports = {
   addAbility,
   getInventory,
   setActiveAbility,
-  markTutorialComplete
+  markTutorialComplete,
+  setDmPreference
 };
