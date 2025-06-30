@@ -1,6 +1,6 @@
 const { REST, Routes } = require('discord.js');
 const path = require('node:path');
-require('dotenv').config();
+const config = require('./util/config');
 
 const commands = [];
 const commandDirs = [
@@ -23,14 +23,14 @@ for (const filePath of commandDirs) {
   commands.push(command.data.toJSON());
 }
 
-const rest = new REST({ version: '10' }).setToken(process.env.DISCORD_TOKEN);
+const rest = new REST({ version: '10' }).setToken(config.DISCORD_TOKEN);
 
 (async () => {
   try {
     console.log(`Started refreshing ${commands.length} application (/) commands.`);
 
     const data = await rest.put(
-      Routes.applicationGuildCommands(process.env.APP_ID, process.env.GUILD_ID),
+      Routes.applicationGuildCommands(config.APP_ID, config.GUILD_ID),
       { body: commands }
     );
 

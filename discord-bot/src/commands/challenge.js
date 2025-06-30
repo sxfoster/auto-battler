@@ -2,6 +2,7 @@ const { SlashCommandBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } = re
 const userService = require('../utils/userService');
 const abilityCardService = require('../utils/abilityCardService');
 const db = require('../../util/database');
+const config = require('../../util/config');
 const { allPossibleHeroes } = require('../../../backend/game/data');
 const { createCombatant } = require('../../../backend/game/utils');
 const GameEngine = require('../../../backend/game/engine');
@@ -12,7 +13,7 @@ const data = new SlashCommandBuilder()
   .addUserOption(opt => opt.setName('target').setDescription('User to challenge').setRequired(true));
 
 async function execute(interaction) {
-  if (!process.env.PVP_CHANNEL_ID) {
+  if (!config.PVP_CHANNEL_ID) {
     console.error('PVP_CHANNEL_ID is not set in the .env file.');
     return interaction.reply({
       content: 'Error: The challenge channel is not configured. Please contact an admin.',
@@ -45,7 +46,7 @@ async function execute(interaction) {
   );
   const challengeId = result.insertId;
 
-  const announcementChannel = await interaction.client.channels.fetch(process.env.PVP_CHANNEL_ID);
+  const announcementChannel = await interaction.client.channels.fetch(config.PVP_CHANNEL_ID);
   const publicMessage = await announcementChannel.send({
     content: `${interaction.user.username} has challenged ${target.username}!`
   });
