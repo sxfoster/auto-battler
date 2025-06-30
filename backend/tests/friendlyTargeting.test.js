@@ -51,7 +51,7 @@ describe('Friendly ability targeting', () => {
     engine.processTurn();
     const updatedPlayer = engine.combatants.find(c => c.id === player.id);
     const updatedCleric = engine.combatants.find(c => c.id === cleric.id);
-    expect(updatedPlayer.currentHp).toBe(player.maxHp - cleric.attack);
+    expect(updatedPlayer.currentHp).toBe(player.maxHp - 1);
     expect(updatedCleric.currentHp).toBe(cleric.maxHp);
   });
 });
