@@ -44,6 +44,11 @@ async function incrementPvpLoss(userId) {
   await db.query('UPDATE users SET pvp_losses = pvp_losses + 1 WHERE id = ?', [userId]);
 }
 
+// Add gold to the user by incrementing the gold column
+async function addGold(userId, amount) {
+  await db.query('UPDATE users SET gold = gold + ? WHERE id = ?', [amount, userId]);
+}
+
 async function getLeaderboardData() {
   const [rows] = await db.query(`
         SELECT 
@@ -107,5 +112,6 @@ module.exports = {
   incrementPveLoss,
   incrementPvpWin,
   incrementPvpLoss,
+  addGold,
   getLeaderboardData
 };
