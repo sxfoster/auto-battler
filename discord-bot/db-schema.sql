@@ -22,6 +22,10 @@ ALTER TABLE users
     ADD COLUMN equipped_ability_id INT DEFAULT NULL,
     ADD FOREIGN KEY (equipped_ability_id) REFERENCES user_ability_cards(id);
 
+-- PvP invisibility status expiration
+ALTER TABLE users
+    ADD COLUMN pvp_status_until TIMESTAMP NULL DEFAULT NULL;
+
 -- Champions owned by users
 CREATE TABLE IF NOT EXISTS user_champions (
     id INT AUTO_INCREMENT PRIMARY KEY,

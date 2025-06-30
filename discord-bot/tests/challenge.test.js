@@ -71,7 +71,8 @@ test('sends challenge DM with buttons and handles accept/decline', async () => {
   userService.getUser
     .mockResolvedValueOnce({ id: 1, class: 'Mage' })
     .mockResolvedValueOnce({ id: 2, class: 'Mage' });
-  db.query.mockResolvedValueOnce([{ insertId: 5 }]);
+  db.query.mockResolvedValueOnce([{}]);
+  db.query.mockResolvedValueOnce({ insertId: 5 });
   db.query.mockResolvedValueOnce();
   const interaction = {
     user: { id: '1', username: 'Challenger' },
@@ -93,6 +94,7 @@ test('sends challenge DM with buttons and handles accept/decline', async () => {
   db.query.mockResolvedValue([]);
   db.query.mockResolvedValue([]);
   db.query.mockResolvedValueOnce();
+  db.query.mockResolvedValueOnce();
   const acceptInteraction = {
     customId: 'challenge-accept:5',
     update: jest.fn().mockResolvedValue(),
@@ -108,6 +110,7 @@ test('sends challenge DM with buttons and handles accept/decline', async () => {
   // decline path
   db.query.mockResolvedValueOnce();
   db.query.mockResolvedValueOnce([[{ message_id: '555', channel_id: '100' }]]);
+  db.query.mockResolvedValueOnce();
   const declineInteraction = {
     customId: 'challenge-decline:5',
     update: jest.fn().mockResolvedValue(),
@@ -128,7 +131,8 @@ test('logs error when DM fails but still replies', async () => {
   userService.getUser
     .mockResolvedValueOnce({ id: 1, class: 'Mage' })
     .mockResolvedValueOnce({ id: 2, class: 'Mage' });
-  db.query.mockResolvedValueOnce([{ insertId: 6 }]);
+  db.query.mockResolvedValueOnce([{}]);
+  db.query.mockResolvedValueOnce({ insertId: 6 });
   db.query.mockResolvedValueOnce();
   const interaction = {
     user: { id: '1', username: 'Challenger' },

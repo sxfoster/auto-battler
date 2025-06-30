@@ -31,7 +31,7 @@ describe('who command', () => {
     expect(interaction.reply).toHaveBeenCalledWith(expect.objectContaining({ embeds: expect.any(Array) }));
     const fields = interaction.reply.mock.calls[0][0].embeds[0].data.fields;
     expect(fields[0].value).toBe('Tester');
-    expect(fields[1].value).toBe('Stalwart Defender (Common)');
+    expect(fields[1].value).toBe('Warrior');
     expect(fields[4].value).toContain('Power Strike');
     expect(interaction.reply.mock.calls[0][0].ephemeral).toBeUndefined();
   });
@@ -44,6 +44,8 @@ describe('who command', () => {
     };
     await who.execute(interaction);
     expect(interaction.reply).toHaveBeenCalledWith(expect.objectContaining({ embeds: expect.any(Array) }));
+    const fields = interaction.reply.mock.calls[0][0].embeds[0].data.fields;
+    expect(fields[1].value).toBe('None');
     expect(interaction.reply.mock.calls[0][0].ephemeral).toBeUndefined();
   });
 
@@ -59,10 +61,22 @@ describe('who command', () => {
       },
       reply: jest.fn().mockResolvedValue()
     };
+  await who.execute(interaction);
+  const fields = interaction.reply.mock.calls[0][0].embeds[0].data.fields;
+  expect(fields[1].value).toBe('Warrior');
+  expect(fields[4].value).toBe('None');
+});
+
+  test('hides class when in active challenge', async () => {
+    const futureDate = new Date(Date.now() + 5 * 60 * 1000).toISOString();
+    userService.getUser.mockResolvedValue({ id: 1, name: 'Tester', class: 'Warrior', pvp_status_until: futureDate, equipped_ability_id: null });
+    const interaction = {
+      options: { getUser: jest.fn().mockReturnValue({ id: '123', username: 'Tester', displayAvatarURL: jest.fn().mockReturnValue('https://example.com/avatar.png') }) },
+      reply: jest.fn().mockResolvedValue()
+    };
     await who.execute(interaction);
     const fields = interaction.reply.mock.calls[0][0].embeds[0].data.fields;
-    expect(fields[1].value).toBe('None');
-    expect(fields[4].value).toBe('None');
+    expect(fields[1].value).toBe('Hidden (In a Challenge)');
   });
 
   test('ephemeral reply on lookup failure', async () => {

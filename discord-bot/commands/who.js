@@ -51,11 +51,16 @@ async function execute(interaction) {
     }
   }
 
+  let className = user.class || 'None';
+  if (user.pvp_status_until && new Date(user.pvp_status_until) > new Date()) {
+    className = 'Hidden (In a Challenge)';
+  }
+
   const embed = simple(
     'Character Sheet',
     [
       { name: 'Player', value: `${user.name}` },
-      { name: 'Archetype', value: archetype },
+      { name: 'Class', value: className },
       { name: 'HP', value: String(hp), inline: true },
       { name: 'Attack', value: String(atk), inline: true },
       { name: 'Equipped Ability', value: abilityName }

@@ -35,15 +35,22 @@ async function execute(interaction) {
     return;
   }
 
+  const tenMinutesFromNow = new Date(Date.now() + 10 * 60 * 1000);
+  await db.query(
+    'UPDATE users SET pvp_status_until = ? WHERE id IN (?, ?)',
+    [tenMinutesFromNow, challengerUser.id, targetUser.id]
+  );
+
   console.log(
     `[CHALLENGE] ${challengerUser.name} (${challengerUser.discord_id}) is challenging ${targetUser.name} (${targetUser.discord_id}).`
   );
 
-  const [result] = await db.query(
+  const insertRes = await db.query(
     'INSERT INTO pvp_battles (challenger_id, challenged_id, status) VALUES (?, ?, ?)',
     [challengerUser.id, targetUser.id, 'pending']
   );
-  const challengeId = result.insertId;
+  const insertRow = Array.isArray(insertRes) ? insertRes[0] : insertRes;
+  const challengeId = insertRow ? insertRow.insertId : null;
 
   const announcementChannel = await interaction.client.channels.fetch(process.env.PVP_CHANNEL_ID);
   const publicMessage = await announcementChannel.send({
@@ -201,6 +208,7 @@ async function handleAccept(interaction) {
   }
 
   await interaction.update({ content: 'Challenge accepted! Battle complete.', components: [] });
+  await clearPvpStatus(challenger.id, challenged.id);
 }
 
 async function handleDecline(interaction) {
@@ -219,6 +227,7 @@ async function handleDecline(interaction) {
   }
 
   await interaction.update({ content: 'Challenge declined.', components: [] });
+  await clearPvpStatus(battle.challenger_id, battle.challenged_id);
 }
 
 async function expireChallenge(id, challenger, client) {
@@ -242,6 +251,14 @@ async function expireChallenge(id, challenger, client) {
   } catch (e) {
     /* ignore */
   }
+  await clearPvpStatus(battle.challenger_id, battle.challenged_id);
+}
+
+async function clearPvpStatus(challengerId, challengedId) {
+  await db.query(
+    'UPDATE users SET pvp_status_until = NULL WHERE id IN (?, ?)',
+    [challengerId, challengedId]
+  );
 }
 
 module.exports = { data, execute, handleAccept, handleDecline, expireChallenge };
