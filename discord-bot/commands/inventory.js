@@ -44,14 +44,10 @@ const data = new SlashCommandBuilder()
 
 async function execute(interaction) {
   const sub = interaction.options.getSubcommand(false) || 'show';
-  const user = await userService.getUser(interaction.user.id);
-
-  if (!user || !user.class) {
-    await interaction.reply({
-      content: 'You must select a class first! Use /game select to begin your adventure.',
-      ephemeral: true
-    });
-    return;
+  let user = await userService.getUser(interaction.user.id);
+  if (!user) {
+    await userService.createUser(interaction.user.id, interaction.user.username);
+    user = await userService.getUser(interaction.user.id);
   }
 
   if (sub === 'show') {
@@ -75,7 +71,7 @@ async function execute(interaction) {
       : 'None';
     const archetype = equippedAbility
       ? `${equippedAbility.class} (${equippedAbility.rarity})`
-      : 'None';
+      : 'No Archetype Selected';
 
     const embed = simple(
       'Player Inventory',

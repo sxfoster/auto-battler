@@ -1,7 +1,8 @@
 const inventory = require('../commands/inventory');
 
 jest.mock('../src/utils/userService', () => ({
-  getUser: jest.fn()
+  getUser: jest.fn(),
+  createUser: jest.fn()
 }));
 jest.mock('../src/utils/abilityCardService', () => ({
   getCards: jest.fn(),
@@ -33,26 +34,30 @@ describe('inventory command', () => {
     expect(fields[1].value).toContain('Power Strike');
   });
 
-  test('ephemeral reply when user lacks a class', async () => {
-    userService.getUser.mockResolvedValue({ name: 'Tester', class: null });
+  test('shows inventory for user with no archetype', async () => {
+    userService.getUser.mockResolvedValue({ id: 1, name: 'Tester', class: null, equipped_ability_id: null });
+    abilityCardService.getCards.mockResolvedValue([]);
     const interaction = {
       user: { id: '123', displayAvatarURL: jest.fn().mockReturnValue('https://example.com/avatar.png') },
       options: { getSubcommand: jest.fn().mockReturnValue('show') },
       reply: jest.fn().mockResolvedValue()
     };
     await inventory.execute(interaction);
-    expect(interaction.reply).toHaveBeenCalledWith(expect.objectContaining({ ephemeral: true }));
+    expect(interaction.reply).toHaveBeenCalledWith(expect.objectContaining({ embeds: expect.any(Array) }));
+    const fields = interaction.reply.mock.calls[0][0].embeds[0].data.fields;
+    expect(fields[0].value).toContain('No Archetype Selected');
   });
 
-  test('ephemeral reply when user not found', async () => {
-    userService.getUser.mockResolvedValue(null);
+  test('creates user when not found', async () => {
+    userService.getUser.mockResolvedValueOnce(null).mockResolvedValueOnce({ id: 1, name: 'Tester', class: null, equipped_ability_id: null });
     const interaction = {
-      user: { id: '123', displayAvatarURL: jest.fn().mockReturnValue('https://example.com/avatar.png') },
+      user: { id: '123', username: 'Tester', displayAvatarURL: jest.fn().mockReturnValue('https://example.com/avatar.png') },
       options: { getSubcommand: jest.fn().mockReturnValue('show') },
       reply: jest.fn().mockResolvedValue()
     };
     await inventory.execute(interaction);
-    expect(interaction.reply).toHaveBeenCalledWith(expect.objectContaining({ ephemeral: true }));
+    expect(userService.createUser).toHaveBeenCalledWith('123', 'Tester');
+    expect(interaction.reply).toHaveBeenCalledWith(expect.objectContaining({ embeds: expect.any(Array) }));
   });
 
   test('lists ability cards in backpack', async () => {
