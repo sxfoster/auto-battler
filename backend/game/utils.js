@@ -43,6 +43,7 @@ function createCombatant(playerData, team, position) {
 
     return {
         id: `${team}-hero-${position}`,
+        name: playerData.name || hero.name,
         heroData: hero,
         weaponData: weapon,
         armorData: armor,

@@ -137,8 +137,8 @@ async function handleAccept(interaction) {
   const chalHero = allPossibleHeroes.find(h => h.class === chalClass && h.isBase);
   const oppHero = allPossibleHeroes.find(h => h.class === oppClass && h.isBase);
 
-  const player1 = createCombatant({ hero_id: chalHero.id, ability_card: chalEquipped, deck: chalDeck }, 'player', 0);
-  const player2 = createCombatant({ hero_id: oppHero.id, ability_card: challengedEquipped, deck: challengedDeck }, 'enemy', 0);
+  const player1 = createCombatant({ hero_id: chalHero.id, ability_card: chalEquipped, deck: chalDeck, name: challenger.name }, 'player', 0);
+  const player2 = createCombatant({ hero_id: oppHero.id, ability_card: challengedEquipped, deck: challengedDeck, name: challenged.name }, 'enemy', 0);
 
   if (player1.abilityData) player1.abilityData.isPractice = true;
   if (player2.abilityData) player2.abilityData.isPractice = true;

@@ -53,7 +53,7 @@ class GameEngine {
                const info = STATUS_EFFECTS[e.name];
                return !info || info.type !== 'debuff';
            });
-           this.log({ type: 'status', message: `${target.heroData.name}'s negative effects were cleansed.` }, 'summary');
+           this.log({ type: 'status', message: `${target.name}'s negative effects were cleansed.` }, 'summary');
        }
    }
 
@@ -75,12 +75,12 @@ class GameEngine {
        target.currentHp = Math.max(0, target.currentHp - effective);
        if (log) {
            if (attacker === target) {
-               this.log({ type: 'damage', message: `${target.heroData.name} takes ${effective} damage.` }, 'summary');
+               this.log({ type: 'damage', message: `${target.name} takes ${effective} damage.` }, 'summary');
            } else {
-               this.log({ type: 'damage', message: `${attacker.heroData.name} hits ${target.heroData.name} for ${effective} damage.` }, 'summary');
+               this.log({ type: 'damage', message: `${attacker.name} hits ${target.name} for ${effective} damage.` }, 'summary');
            }
            if (target.currentHp <= 0) {
-               this.log({ type: 'status', message: `💀 ${target.heroData.name} has been defeated.` }, 'summary');
+               this.log({ type: 'status', message: `💀 ${target.name} has been defeated.` }, 'summary');
            }
        }
        return effective;
@@ -132,7 +132,7 @@ class GameEngine {
            const healing = parseInt(hotMatch[1], 10);
            const turns = parseInt(hotMatch[2], 10);
            target.statusEffects.push({ name: 'Regrowth', healing, turnsRemaining: turns, sourceAbility: ability.name });
-           this.log({ type: 'status', message: `↳ ${target.heroData.name} is blessed with Regrowth.` });
+           this.log({ type: 'status', message: `↳ ${target.name} is blessed with Regrowth.` });
        }
 
        const poisonMatchDetailed = ability.effect.match(/apply Poison \((\d+) dmg\/turn for (\d+) turns\)/i);
@@ -141,26 +141,26 @@ class GameEngine {
            const damage = poisonMatchDetailed ? parseInt(poisonMatchDetailed[1], 10) : 1;
            const turns = poisonMatchDetailed ? parseInt(poisonMatchDetailed[2], 10) : parseInt(poisonMatchSimple[1], 10);
            target.statusEffects.push({ name: 'Poison', damage, turnsRemaining: turns, sourceAbility: ability.name });
-           this.log({ type: 'status', message: `↳ ${target.heroData.name} is poisoned.` });
+           this.log({ type: 'status', message: `↳ ${target.name} is poisoned.` });
        }
 
        if (/confuse/i.test(ability.effect)) {
            target.statusEffects.push({ name: 'Confuse', turnsRemaining: 1, sourceAbility: ability.name });
-           this.log({ type: 'status', message: `↳ ${target.heroData.name} is confused.` });
+           this.log({ type: 'status', message: `↳ ${target.name} is confused.` });
        }
 
        if (/Armor Break/i.test(ability.effect)) {
            const match = ability.effect.match(/(\d+) turns?/i);
            const turns = match ? parseInt(match[1], 10) : 2;
            target.statusEffects.push({ name: 'Armor Break', bonusDamage: 1, turnsRemaining: turns, sourceAbility: ability.name });
-           this.log({ type: 'status', message: `↳ ${target.heroData.name} suffers Armor Break.` });
+           this.log({ type: 'status', message: `↳ ${target.name} suffers Armor Break.` });
        }
 
        if (/Defense Down/i.test(ability.effect)) {
            const match = ability.effect.match(/Defense Down for (\d+) turns?/i);
            const turns = match ? parseInt(match[1], 10) : 2;
            target.statusEffects.push({ name: 'Defense Down', turnsRemaining: turns, sourceAbility: ability.name });
-           this.log({ type: 'status', message: `↳ ${target.heroData.name} suffers Defense Down.` });
+           this.log({ type: 'status', message: `↳ ${target.name} suffers Defense Down.` });
        }
 
        if (ability.summons) {
@@ -171,6 +171,7 @@ class GameEngine {
                if (minionData) {
                    const newMinion = {
                        id: `${attacker.team}-minion-${Date.now()}-${Math.random()}`,
+                       name: minionData.name,
                        heroData: { ...minionData },
                        team: attacker.team,
                        position: this.combatants.filter(c => c.team === attacker.team).length,
@@ -183,7 +184,7 @@ class GameEngine {
                        statusEffects: [],
                    };
                    this.combatants.push(newMinion);
-                   this.log({ type: 'info', message: `${attacker.heroData.name} summons a ${minionData.name}!` }, 'summary');
+                   this.log({ type: 'info', message: `${attacker.name} summons a ${minionData.name}!` }, 'summary');
                }
            }
            this.turnQueue = this.computeTurnQueue();
@@ -194,13 +195,13 @@ class GameEngine {
        }
 
        if (ability.effect.includes('extra action') && !this.extraActionTaken[attacker.id]) {
-           this.log({ type: 'info', message: `${attacker.heroData.name} gains an extra action!` }, 'summary');
+           this.log({ type: 'info', message: `${attacker.name} gains an extra action!` }, 'summary');
            this.extraActionTaken[attacker.id] = true;
            this.turnQueue.unshift(attacker);
        }
 
        // first log line - announce ability usage
-       this.log({ type: 'ability-cast', message: `${attacker.heroData.name} uses ${ability.name}!` }, 'summary');
+       this.log({ type: 'ability-cast', message: `${attacker.name} uses ${ability.name}!` }, 'summary');
 
        // build description of the ability effects
        let descParts = [];
@@ -208,14 +209,14 @@ class GameEngine {
            if (multiTarget) {
                descParts.push(`hits all enemies for ${damageDealt} damage`);
            } else {
-               descParts.push(`hits ${target.heroData.name} for ${damageDealt} damage`);
+               descParts.push(`hits ${target.name} for ${damageDealt} damage`);
            }
        }
        if (healingDone > 0) {
            if (healTarget === attacker) {
                descParts.push(`heals for ${healingDone} HP`);
            } else if (healTarget) {
-               descParts.push(`heals ${healTarget.heroData.name} for ${healingDone} HP`);
+               descParts.push(`heals ${healTarget.name} for ${healingDone} HP`);
            }
        }
 
@@ -238,16 +239,16 @@ class GameEngine {
            descParts.push(remaining);
        }
 
-       const effectLine = `${attacker.heroData.name} ${descParts.join(' and ')}.`;
+       const effectLine = `${attacker.name} ${descParts.join(' and ')}.`;
        this.log({ type: 'ability-result', message: effectLine });
 
        if (multiTarget && damageDealt > 0) {
            const enemies = this.combatants.filter(c => c.team !== attacker.team && c.currentHp <= 0);
            for (const enemy of enemies) {
-               this.log({ type: 'status', message: `💀 ${enemy.heroData.name} has been defeated.` }, 'summary');
+               this.log({ type: 'status', message: `💀 ${enemy.name} has been defeated.` }, 'summary');
            }
        } else if (damageDealt > 0 && target.currentHp <= 0) {
-           this.log({ type: 'status', message: `💀 ${target.heroData.name} has been defeated.` }, 'summary');
+           this.log({ type: 'status', message: `💀 ${target.name} has been defeated.` }, 'summary');
        }
    }
 
@@ -263,23 +264,23 @@ class GameEngine {
         for (const effect of [...combatant.statusEffects]) {
             if (effect.name === 'Regrowth') {
                 this.applyHeal(combatant, effect.healing);
-                this.log({ type: 'status', message: `💚 ${combatant.heroData.name} is healed for ${effect.healing} by Regrowth.` });
+                this.log({ type: 'status', message: `💚 ${combatant.name} is healed for ${effect.healing} by Regrowth.` });
             } else if (effect.name === 'Poison') {
                 const dealt = this.applyDamage(combatant, combatant, effect.damage, { log: false });
-                this.log({ type: 'status', message: `☣️ ${combatant.heroData.name} takes ${dealt} poison damage.` });
+                this.log({ type: 'status', message: `☣️ ${combatant.name} takes ${dealt} poison damage.` });
             }
 
             if (effect.name !== 'Confuse') {
                 effect.turnsRemaining -= 1;
                 if (effect.turnsRemaining <= 0) {
                     combatant.statusEffects = combatant.statusEffects.filter(e => e !== effect);
-                    this.log({ type: 'status', message: `${effect.name} on ${combatant.heroData.name} has worn off.` });
+                    this.log({ type: 'status', message: `${effect.name} on ${combatant.name} has worn off.` });
                 }
             }
         }
 
        if (combatant.statusEffects.some(s => s.name === 'Stun')) {
-           this.log({ type: 'status', message: `${combatant.heroData.name} is stunned and misses the turn.` });
+           this.log({ type: 'status', message: `${combatant.name} is stunned and misses the turn.` });
            skip = true;
        }
        return skip;
@@ -306,7 +307,7 @@ class GameEngine {
             return;
        }
 
-       this.log({ type: 'turn', message: `> Turn: ${attacker.heroData.name} (${attacker.currentHp}/${attacker.maxHp} HP)` });
+       this.log({ type: 'turn', message: `> Turn: ${attacker.name} (${attacker.currentHp}/${attacker.maxHp} HP)` });
 
        const wasSkipped = this.processStatuses(attacker);
        if (this.checkVictory()) return;
@@ -321,19 +322,19 @@ class GameEngine {
                const cost = ability ? ability.energyCost || 1 : 0;
 
                if (ability) {
-                   console.log(`${attacker.heroData.name} is checking if they can use ${ability.name}.`);
+                   console.log(`${attacker.name} is checking if they can use ${ability.name}.`);
                }
 
                if (confused) {
                    if (Math.random() < 0.5) {
-                       this.log({ type: 'status', message: `${attacker.heroData.name}'s attack misses ${targetEnemy.heroData.name}!` });
+                       this.log({ type: 'status', message: `${attacker.name}'s attack misses ${targetEnemy.name}!` });
                        attacker.statusEffects = attacker.statusEffects.filter(e => e !== confused);
-                       this.log({ type: 'status', message: `Confuse on ${attacker.heroData.name} has worn off.` });
+                       this.log({ type: 'status', message: `Confuse on ${attacker.name} has worn off.` });
                        attacker.currentEnergy = (attacker.currentEnergy || 0) + 1;
                        return;
                    } else {
                        attacker.statusEffects = attacker.statusEffects.filter(e => e !== confused);
-                       this.log({ type: 'status', message: `Confuse on ${attacker.heroData.name} has worn off.` });
+                       this.log({ type: 'status', message: `Confuse on ${attacker.name} has worn off.` });
                    }
                }
 
@@ -348,7 +349,7 @@ class GameEngine {
                    : remainingEnemies[0];
 
                if (ability && attacker.abilityCharges > 0 && attacker.currentEnergy >= cost && abilityTarget) {
-                   console.log(`${attacker.heroData.name} spends ${cost} energy to use ${ability.name}.`);
+                   console.log(`${attacker.name} spends ${cost} energy to use ${ability.name}.`);
                    this.applyAbilityEffect(attacker, abilityTarget, ability);
                    attacker.currentEnergy -= cost;
                    attacker.abilityCharges -= 1;
@@ -366,7 +367,7 @@ class GameEngine {
                        }
                    }
                } else if (ability) {
-                   console.log(`${attacker.heroData.name} has ${attacker.currentEnergy} energy and requires ${cost}. Unable to use ${ability.name}.`);
+                   console.log(`${attacker.name} has ${attacker.currentEnergy} energy and requires ${cost}. Unable to use ${ability.name}.`);
                }
            }
        }

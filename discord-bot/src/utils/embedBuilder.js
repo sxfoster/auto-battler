@@ -57,7 +57,7 @@ function buildCardEmbed(card) {
  */
 function buildBattleEmbed(combatants, logText) {
   const hpLines = combatants
-    .map(c => `${c.heroData.name}: ${c.currentHp}/${c.maxHp} HP`)
+    .map(c => `${c.name}: ${c.currentHp}/${c.maxHp} HP`)
     .join('\n');
   const embed = new EmbedBuilder()
     .setColor('#29b6f6')
