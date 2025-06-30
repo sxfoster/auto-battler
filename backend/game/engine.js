@@ -15,6 +15,7 @@ class GameEngine {
         this.isBattleOver = false;
         this.winner = null;
         this.roundCounter = 0;
+        this.extraActionTaken = {}; // Tracks extra actions per round
     }
 
     log(entry, level = 'detail') {
@@ -38,6 +39,22 @@ class GameEngine {
 
    applyHeal(caster, amount) {
        caster.currentHp = Math.min(caster.maxHp, caster.currentHp + amount);
+   }
+
+   applyCleanse(target) {
+       const { STATUS_EFFECTS } = require('./statusEffects');
+       const effectsToRemove = target.statusEffects.filter(e => {
+           const info = STATUS_EFFECTS[e.name];
+           return info && info.type === 'debuff';
+       });
+
+       if (effectsToRemove.length > 0) {
+           target.statusEffects = target.statusEffects.filter(e => {
+               const info = STATUS_EFFECTS[e.name];
+               return !info || info.type !== 'debuff';
+           });
+           this.log({ type: 'status', message: `${target.heroData.name}'s negative effects were cleansed.` }, 'summary');
+       }
    }
 
    applyDamage(attacker, target, baseDamage, options = {}) {
@@ -146,6 +163,42 @@ class GameEngine {
            this.log({ type: 'status', message: `↳ ${target.heroData.name} suffers Defense Down.` });
        }
 
+       if (ability.summons) {
+           const summonKeys = Array.isArray(ability.summons) ? ability.summons : [ability.summons];
+           const { allPossibleMinions } = require('./data');
+           for (const key of summonKeys) {
+               const minionData = allPossibleMinions[key];
+               if (minionData) {
+                   const newMinion = {
+                       id: `${attacker.team}-minion-${Date.now()}-${Math.random()}`,
+                       heroData: { ...minionData },
+                       team: attacker.team,
+                       position: this.combatants.filter(c => c.team === attacker.team).length,
+                       currentHp: minionData.hp,
+                       maxHp: minionData.hp,
+                       attack: minionData.attack,
+                       speed: minionData.speed,
+                       defense: 0,
+                       currentEnergy: 0,
+                       statusEffects: [],
+                   };
+                   this.combatants.push(newMinion);
+                   this.log({ type: 'info', message: `${attacker.heroData.name} summons a ${minionData.name}!` }, 'summary');
+               }
+           }
+           this.turnQueue = this.computeTurnQueue();
+       }
+
+       if (ability.effect.includes('Remove all negative effects')) {
+           this.applyCleanse(target);
+       }
+
+       if (ability.effect.includes('extra action') && !this.extraActionTaken[attacker.id]) {
+           this.log({ type: 'info', message: `${attacker.heroData.name} gains an extra action!` }, 'summary');
+           this.extraActionTaken[attacker.id] = true;
+           this.turnQueue.unshift(attacker);
+       }
+
        // first log line - announce ability usage
        this.log({ type: 'ability-cast', message: `${attacker.heroData.name} uses ${ability.name}!` }, 'summary');
 
@@ -201,6 +254,7 @@ class GameEngine {
    startRound() {
        this.roundCounter++;
        this.log({ type: 'round', message: `--- Round ${this.roundCounter} ---` }, 'summary');
+       this.extraActionTaken = {}; // reset extra action tracking each round
        this.turnQueue = this.computeTurnQueue();
    }
 
