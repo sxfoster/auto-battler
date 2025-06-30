@@ -18,4 +18,9 @@ describe('userService.addGold', () => {
       [10, 5]
     );
   });
+
+  test('no query when amount is zero', async () => {
+    await userService.addGold(5, 0);
+    expect(db.query).not.toHaveBeenCalled();
+  });
 });

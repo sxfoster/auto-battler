@@ -2,19 +2,13 @@ const { SlashCommandBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } = re
 
 const data = new SlashCommandBuilder()
   .setName('auctionhouse')
-  .setDescription('Open the auction house');
+  .setDescription('Buy and sell ability cards.');
 
 async function execute(interaction) {
-  const row = new ActionRowBuilder().addComponents(
-    new ButtonBuilder()
-      .setCustomId('auction-buy')
-      .setLabel('Buy')
-      .setStyle(ButtonStyle.Primary),
-    new ButtonBuilder()
-      .setCustomId('auction-sell')
-      .setLabel('Sell')
-      .setStyle(ButtonStyle.Success)
-  );
+    const row = new ActionRowBuilder().addComponents(
+        new ButtonBuilder().setCustomId('ah-buy-start').setLabel('Buy Cards').setStyle(ButtonStyle.Success),
+        new ButtonBuilder().setCustomId('ah-sell-start').setLabel('Sell Cards').setStyle(ButtonStyle.Primary)
+    );
 
   await interaction.reply({ content: 'Welcome to the Auction House!', components: [row], ephemeral: true });
 }

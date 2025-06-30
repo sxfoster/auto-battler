@@ -46,6 +46,7 @@ async function incrementPvpLoss(userId) {
 
 // Add gold to the user by incrementing the gold column
 async function addGold(userId, amount) {
+  if (amount === 0) return;
   await db.query('UPDATE users SET gold = gold + ? WHERE id = ?', [amount, userId]);
 }
 
