@@ -1,12 +1,26 @@
 const { allPossibleHeroes, allPossibleWeapons, allPossibleArmors, allPossibleAbilities } = require('./data');
 
 function createCombatant(playerData, team, position) {
-    // Find all the data for the player's chosen hero and equipment
-    const hero = allPossibleHeroes.find(h => h.id === playerData.hero_id);
+    // Determine the equipped ability from either an ability card or raw id
+    const abilityId = playerData.ability_card
+        ? playerData.ability_card.ability_id
+        : playerData.ability_id;
+    const ability = allPossibleAbilities.find(a => a.id === abilityId);
+
+    // Resolve the hero based on the equipped ability's class/rarity when a card
+    // is provided. Fallback to a direct hero_id lookup for existing callers.
+    let hero;
+    if (playerData.ability_card && ability) {
+        hero = allPossibleHeroes.find(
+            h => h.class === ability.class && h.rarity === ability.rarity
+        );
+    }
+    if (!hero) {
+        hero = allPossibleHeroes.find(h => h.id === playerData.hero_id);
+    }
+
     const weapon = allPossibleWeapons.find(w => w.id === playerData.weapon_id);
     const armor = allPossibleArmors.find(a => a.id === playerData.armor_id);
-    const abilityId = playerData.ability_id || (playerData.ability_card && playerData.ability_card.ability_id);
-    const ability = allPossibleAbilities.find(a => a.id === abilityId);
     const deckAbilities = (playerData.deck || []).map(entry => {
         if (typeof entry === 'object') {
             const a = allPossibleAbilities.find(ab => ab.id === entry.ability_id);
