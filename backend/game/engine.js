@@ -116,6 +116,21 @@ class GameEngine {
            this.log({ type: 'status', message: `↳ ${target.heroData.name} is poisoned.` });
        }
 
+       // Confuse / Defense Down debuffs
+       const confuseMatch = ability.effect.match(/confuse the target/i) || ability.effect.match(/apply Confuse(?:[^\d]*(\d+))?\s*turns?/i);
+       if (confuseMatch) {
+           const turns = confuseMatch[1] ? parseInt(confuseMatch[1], 10) : 1;
+           target.statusEffects.push({ name: 'Confuse', turnsRemaining: turns, sourceAbility: ability.name });
+           this.log({ type: 'status', message: `↳ ${target.heroData.name} is confused.` });
+       }
+
+       const defDownMatch = ability.effect.match(/apply Defense Down for (\d+) turns?/i);
+       if (defDownMatch) {
+           const turns = parseInt(defDownMatch[1], 10);
+           target.statusEffects.push({ name: 'Defense Down', turnsRemaining: turns, sourceAbility: ability.name });
+           this.log({ type: 'status', message: `↳ ${target.heroData.name} suffers Defense Down.` });
+       }
+
        // first log line - announce ability usage
        this.log({ type: 'ability-cast', message: `${attacker.heroData.name} uses ${ability.name}!` });
 
