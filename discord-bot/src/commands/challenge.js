@@ -174,7 +174,8 @@ async function handleAccept(interaction) {
 
   const winnerUser = engine.winner === 'player' ? challenger : challenged;
   const loserUser = engine.winner === 'player' ? challenged : challenger;
-  const victoryMessage = `⚔️ **Victory!** ${winnerUser.name} has defeated ${loserUser.name} in a duel!`;
+  const victoryMessage =
+    `⚔️ **Victory!** <@${winnerUser.discord_id}> has defeated <@${loserUser.discord_id}> in a duel!`;
 
   try {
     const channel = await interaction.client.channels.fetch(battle.channel_id);
