@@ -65,7 +65,7 @@ describe('Status effect processing', () => {
     engine.processTurn();
     const updatedP = engine.combatants.find(c => c.id === p.id);
     expect(updatedP.currentHp).toBe(before);
-    expect(engine.battleLog.some(l => l.message.includes('misses the turn'))).toBe(true);
+    expect(engine.battleLog.some(l => l.message.includes('attack misses'))).toBe(true);
 
     engine.applyAbilityEffect(p, e, ability);
     expect(e.statusEffects.some(s => s.name === 'Confuse')).toBe(true);
