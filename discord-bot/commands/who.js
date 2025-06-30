@@ -29,14 +29,6 @@ async function execute(interaction) {
     return;
   }
 
-  if (!user.class) {
-    const embed = simple('Player Details', [{
-      name: 'Player',
-      value: `${user.name} has not yet chosen a class.`
-    }], mentionedUser.displayAvatarURL());
-    await interaction.reply({ embeds: [embed] });
-    return;
-  }
 
   const baseHero = allPossibleHeroes.find(
     h => (h.class === user.class || h.name === user.class) && h.isBase
@@ -45,18 +37,25 @@ async function execute(interaction) {
   const atk = baseHero ? baseHero.attack : '??';
 
   let abilityName = 'None';
+  let archetype = 'None';
   if (user.equipped_ability_id) {
     const card = await abilityCardService.getCard(user.equipped_ability_id);
     if (card) {
       const ability = allPossibleAbilities.find(a => a.id === card.ability_id);
-      abilityName = ability ? ability.name : `Ability ${card.ability_id}`;
+      if (ability) {
+        abilityName = ability.name;
+        archetype = `${ability.class} (${ability.rarity})`;
+      } else {
+        abilityName = `Ability ${card.ability_id}`;
+      }
     }
   }
 
   const embed = simple(
     'Character Sheet',
     [
-      { name: 'Player', value: `${user.name} - ${user.class}` },
+      { name: 'Player', value: `${user.name}` },
+      { name: 'Archetype', value: archetype },
       { name: 'HP', value: String(hp), inline: true },
       { name: 'Attack', value: String(atk), inline: true },
       { name: 'Equipped Ability', value: abilityName }
