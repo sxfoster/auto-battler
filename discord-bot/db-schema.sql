@@ -82,3 +82,18 @@ CREATE TABLE IF NOT EXISTS pvp_battles (
     FOREIGN KEY (challenger_id) REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY (challenged_id) REFERENCES users(id) ON DELETE CASCADE
 );
+
+-- Currency for users
+ALTER TABLE users
+    ADD COLUMN gold INT UNSIGNED DEFAULT 0;
+
+-- Auction house listings
+CREATE TABLE IF NOT EXISTS auction_house_listings (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    seller_id INT NOT NULL,
+    ability_id INT NOT NULL,
+    charges INT DEFAULT 0,
+    price INT UNSIGNED NOT NULL,
+    listed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (seller_id) REFERENCES users(id) ON DELETE CASCADE
+);
