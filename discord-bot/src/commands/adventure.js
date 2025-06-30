@@ -76,7 +76,9 @@ async function execute(interaction) {
   const wait = ms => new Promise(r => setTimeout(r, ms));
   let battleMessage;
   let logText = '';
+  const fullLog = [];
   for (const step of engine.runGameSteps()) {
+    fullLog.push(...step.log);
     const formatted = step.log.map(formatLog);
     logText = [logText, ...formatted].filter(Boolean).join('\n');
     const lines = logText.split('\n');
@@ -124,6 +126,48 @@ async function execute(interaction) {
     .setDescription(narrativeDescription);
 
   await interaction.followUp({ embeds: [summaryEmbed] });
+
+  const finalLogString = fullLog
+    .map(entry => {
+      let prefix = `[R${entry.round}]`;
+      let message = entry.message;
+      switch (entry.type) {
+        case 'round':
+          return `\n--- ${message} ---\n`;
+        case 'ability-cast':
+          message = `✨ ${message}`;
+          break;
+        case 'defeat':
+        case 'victory':
+          message = `🏆 ${message} 🏆`;
+          break;
+        case 'status':
+          message = `💀 ${message}`;
+          break;
+      }
+      return `${prefix} ${message}`.trim();
+    })
+    .join('\n');
+
+  const logBuffer = Buffer.from(finalLogString, 'utf-8');
+
+  try {
+    if (typeof interaction.user.send === 'function') {
+      await interaction.user.send({
+        content: 'Here is the full transcript of your last battle:',
+        files: [{ attachment: logBuffer, name: `battle-log-${Date.now()}.txt` }]
+      });
+    } else {
+      throw new Error('DM function unavailable');
+    }
+  } catch (error) {
+    console.error(`Could not send battle log DM to ${interaction.user.tag}.`, error);
+    await interaction.followUp({
+      content:
+        "I couldn't DM you the full battle log. Please check your privacy settings if you'd like to receive them in the future.",
+      ephemeral: true
+    });
+  }
 
   if (lootDrop) {
     try {
