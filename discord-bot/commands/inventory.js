@@ -83,7 +83,7 @@ async function execute(interaction) {
       interaction.user.displayAvatarURL()
     );
 
-    await interaction.reply({ embeds: [embed] });
+    await interaction.reply({ embeds: [embed], ephemeral: true });
     return;
   }
 
