@@ -83,14 +83,25 @@ async function execute(interaction) {
       .setDescription(`Victory! The Tutorial Goblin dropped **${drop.name}**.`);
     await interaction.user.send({ embeds: [summaryEmbed] });
 
-    interaction.user.send("Congratulations on your victory! You've found your first Ability Card. Use the /inventory show command to see what's in your backpack.");
+    interaction.followUp({
+      content:
+        "Congratulations on your victory! You've found your first Ability Card. Use the /inventory show command to see what's in your backpack.",
+      ephemeral: true
+    });
 
     setTimeout(() => {
-      interaction.user.send(`Now, equip your new ability using the command: /inventory set ability:${drop.name}`);
+      interaction.followUp({
+        content: `Now, equip your new ability using the command: /inventory set ability:${drop.name}`,
+        ephemeral: true
+      });
     }, 5000);
 
     setTimeout(async () => {
-      await interaction.user.send('You can now use /adventure to battle monsters, /challenge @user to duel other players, and /who @user to inspect a character.');
+      await interaction.followUp({
+        content:
+          'You can now use /adventure to battle monsters, /challenge @user to duel other players, and /who @user to inspect a character.',
+        ephemeral: true
+      });
       await userService.markTutorialComplete(interaction.user.id);
     }, 10000);
   } catch (error) {
