@@ -6,6 +6,10 @@ CREATE TABLE IF NOT EXISTS users (
     discord_id VARCHAR(255) NOT NULL UNIQUE,
     name VARCHAR(255) NOT NULL UNIQUE COLLATE utf8mb4_unicode_ci,
     class VARCHAR(50) DEFAULT NULL,
+    pve_wins INT DEFAULT 0,
+    pve_losses INT DEFAULT 0,
+    pvp_wins INT DEFAULT 0,
+    pvp_losses INT DEFAULT 0,
     tutorial_completed TINYINT(1) DEFAULT 0,
     dm_battle_logs_enabled TINYINT(1) DEFAULT 1,
     dm_item_drops_enabled TINYINT(1) DEFAULT 1

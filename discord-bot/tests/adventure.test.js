@@ -3,7 +3,9 @@ jest.mock('../src/utils/userService', () => ({
   addAbility: jest.fn(),
   createUser: jest.fn(),
   setActiveAbility: jest.fn(),
-  setDmPreference: jest.fn()
+  setDmPreference: jest.fn(),
+  incrementPveWin: jest.fn(),
+  incrementPveLoss: jest.fn()
 }));
 jest.mock('../src/utils/abilityCardService', () => ({
   getCards: jest.fn()

@@ -1,7 +1,9 @@
 const challenge = require('../src/commands/challenge');
 
 jest.mock('../src/utils/userService', () => ({
-  getUser: jest.fn()
+  getUser: jest.fn(),
+  incrementPvpWin: jest.fn(),
+  incrementPvpLoss: jest.fn()
 }));
 jest.mock('../util/database', () => ({
   query: jest.fn()

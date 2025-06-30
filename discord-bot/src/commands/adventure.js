@@ -111,6 +111,12 @@ async function execute(interaction) {
     }`
   );
 
+  if (engine.winner === 'player') {
+    await userService.incrementPveWin(user.id);
+  } else {
+    await userService.incrementPveLoss(user.id);
+  }
+
   let narrativeDescription = '';
   let lootDrop = null;
   const adventurerName = `**${interaction.user.username}**`;
