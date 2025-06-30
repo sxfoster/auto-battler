@@ -107,6 +107,16 @@ async function execute(interaction) {
       });
     }, 5000);
 
+    setTimeout(() => {
+      interaction.followUp({
+        content:
+          "**Tip:** The bot will sometimes send you DMs with full battle logs or new items you've found. If you find this too noisy, you can turn them off!\n\n" +
+          '• Use `/settings battle_logs enabled:False` to disable battle log DMs.\n' +
+          '• Use `/settings item_drops enabled:False` to disable new item DMs.',
+        ephemeral: true
+      });
+    }, 10000);
+
     setTimeout(async () => {
       await interaction.followUp({
         content:
@@ -114,7 +124,7 @@ async function execute(interaction) {
         ephemeral: true
       });
       await userService.markTutorialComplete(interaction.user.id);
-    }, 10000);
+    }, 15000);
   } catch (error) {
     console.error(`Tutorial failed for ${interaction.user.tag}.`, error);
     await interaction.followUp({
