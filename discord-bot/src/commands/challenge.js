@@ -63,8 +63,25 @@ async function execute(interaction) {
       .setStyle(ButtonStyle.Danger)
   );
 
-  await target.send({ content: `${interaction.user.username} has challenged you!`, components: [row] });
-  await interaction.reply({ content: `Challenge sent to ${target.username}.`, ephemeral: true });
+  let dmFailed = false;
+  try {
+    await target.send({
+      content: `${interaction.user.username} has challenged you!`,
+      components: [row]
+    });
+  } catch (err) {
+    console.error(
+      `Failed to DM challenge to ${target.username} (${target.id}).`,
+      err
+    );
+    dmFailed = true;
+  }
+
+  let replyContent = `Challenge sent to ${target.username}.`;
+  if (dmFailed) {
+    replyContent += ' However, I could not deliver the DM.';
+  }
+  await interaction.reply({ content: replyContent, ephemeral: true });
 
   // automatically expire the challenge after 5 minutes
   setTimeout(() => expireChallenge(challengeId, interaction.user, interaction.client), 5 * 60 * 1000);

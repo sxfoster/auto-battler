@@ -117,6 +117,35 @@ test('sends challenge DM with buttons and handles accept/decline', async () => {
   expect(declineInteraction.update).toHaveBeenCalled();
 });
 
+test('logs error when DM fails but still replies', async () => {
+  const target = {
+    id: '2',
+    username: 'Target',
+    bot: false,
+    send: jest.fn().mockRejectedValue(new Error('DM failed'))
+  };
+  const announcementChannel = { id: '100', send: jest.fn().mockResolvedValue({}) };
+  userService.getUser
+    .mockResolvedValueOnce({ id: 1, class: 'Mage' })
+    .mockResolvedValueOnce({ id: 2, class: 'Mage' });
+  db.query.mockResolvedValueOnce([{ insertId: 6 }]);
+  db.query.mockResolvedValueOnce();
+  const interaction = {
+    user: { id: '1', username: 'Challenger' },
+    options: { getUser: jest.fn().mockReturnValue(target) },
+    reply: jest.fn().mockResolvedValue(),
+    client: { channels: { fetch: jest.fn().mockResolvedValue(announcementChannel) } }
+  };
+
+  console.error = jest.fn();
+  await challenge.execute(interaction);
+  expect(target.send).toHaveBeenCalled();
+  expect(console.error).toHaveBeenCalled();
+  expect(interaction.reply).toHaveBeenCalledWith(
+    expect.objectContaining({ ephemeral: true })
+  );
+});
+
 test.skip('expired challenges notify challenger', async () => {
   const challenger = { send: jest.fn().mockResolvedValue() };
   const channelMessage = { id: '1', edit: jest.fn().mockResolvedValue() };
