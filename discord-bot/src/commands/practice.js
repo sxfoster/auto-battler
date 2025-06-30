@@ -1,4 +1,10 @@
-const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
+const {
+  SlashCommandBuilder,
+  EmbedBuilder,
+  ActionRowBuilder,
+  ButtonBuilder,
+  ButtonStyle
+} = require('discord.js');
 const userService = require('../utils/userService');
 const abilityCardService = require('../utils/abilityCardService');
 const { buildBattleEmbed } = require('../utils/embedBuilder');
@@ -8,6 +14,13 @@ const GameEngine = require('../../../backend/game/engine');
 const { createCombatant } = require('../../../backend/game/utils');
 const { allPossibleHeroes, allPossibleAbilities } = require('../../../backend/game/data');
 const classAbilityMap = require('../data/classAbilityMap');
+
+function respond(interaction, options) {
+  if (interaction.deferred || interaction.replied) {
+    return interaction.followUp(options);
+  }
+  return interaction.reply(options);
+}
 
 const data = new SlashCommandBuilder()
   .setName('practice')
@@ -42,7 +55,7 @@ async function execute(interaction) {
   const playerClass = classAbilityMap[user.class] || user.class || 'Stalwart Defender';
   const playerHero = allPossibleHeroes.find(h => h.class === playerClass && h.isBase);
   if (!playerHero) {
-    await interaction.reply({ content: 'Required hero data missing.', ephemeral: true });
+    await respond(interaction, { content: 'Required hero data missing.', ephemeral: true });
     return;
   }
 
@@ -51,13 +64,40 @@ async function execute(interaction) {
   const goblinBase = baseHeroes[Math.floor(Math.random() * baseHeroes.length)];
 
   if (!goblinBase) {
-    await interaction.reply({ content: 'Required goblin data missing.', ephemeral: true });
+    await respond(interaction, { content: 'Required goblin data missing.', ephemeral: true });
     return;
   }
 
   const cards = await abilityCardService.getCards(user.id);
   const equippedCard = cards.find(c => c.id === user.equipped_ability_id);
   const deck = cards.filter(c => c.id !== user.equipped_ability_id);
+
+  if (!interaction.bypassChargeCheck && equippedCard && equippedCard.charges <= 0) {
+    const hasOtherChargedCopy = cards.some(
+      c => c.ability_id === equippedCard.ability_id && c.charges > 0
+    );
+
+    if (!hasOtherChargedCopy) {
+      const row = new ActionRowBuilder().addComponents(
+        new ButtonBuilder()
+          .setCustomId(`proceed-battle:${interaction.user.id}`)
+          .setLabel('Proceed to Battle')
+          .setStyle(ButtonStyle.Danger),
+        new ButtonBuilder()
+          .setCustomId(`open-inventory:${interaction.user.id}`)
+          .setLabel('Open Inventory')
+          .setStyle(ButtonStyle.Secondary)
+      );
+
+      const ability = allPossibleAbilities.find(a => a.id === equippedCard.ability_id);
+      await interaction.reply({
+        content: `⚠️ **Warning!** Your equipped ability, **${ability.name}**, has no charges. You will only be able to use basic attacks.`,
+        components: [row],
+        ephemeral: true
+      });
+      return;
+    }
+  }
 
   const goblinAbilityPool = allPossibleAbilities
     .filter(a => a.class === goblinBase.class && a.rarity === 'Common');
@@ -73,7 +113,9 @@ async function execute(interaction) {
   if (player.abilityData) player.abilityData.isPractice = true;
   goblin.heroData = { ...goblin.heroData, name: `Goblin ${goblinBase.name}` };
 
-  await interaction.reply({ content: `${interaction.user.username} begins a practice battle against a Goblin ${goblinBase.name}!` });
+  await respond(interaction, {
+    content: `${interaction.user.username} begins a practice battle against a Goblin ${goblinBase.name}!`
+  });
 
   const engine = new GameEngine([player, goblin]);
   const wait = ms => new Promise(r => setTimeout(r, ms));
