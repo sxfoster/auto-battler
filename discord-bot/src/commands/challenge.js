@@ -15,6 +15,13 @@ const data = new SlashCommandBuilder()
   .addUserOption(opt => opt.setName('target').setDescription('User to challenge').setRequired(true));
 
 async function execute(interaction) {
+  if (!process.env.PVP_CHANNEL_ID) {
+    console.error('PVP_CHANNEL_ID is not set in the .env file.');
+    return interaction.reply({
+      content: 'Error: The challenge channel is not configured. Please contact an admin.',
+      ephemeral: true
+    });
+  }
   const target = interaction.options.getUser('target');
   if (target.id === interaction.user.id) {
     await interaction.reply({ content: 'You cannot challenge yourself.', ephemeral: true });
@@ -30,6 +37,10 @@ async function execute(interaction) {
     await interaction.reply({ content: 'Both players must have a character and class selected.', ephemeral: true });
     return;
   }
+
+  console.log(
+    `[CHALLENGE] ${challengerUser.name} (${challengerUser.discord_id}) is challenging ${targetUser.name} (${targetUser.discord_id}).`
+  );
 
   const [result] = await db.query(
     'INSERT INTO pvp_battles (challenger_id, challenged_id, status) VALUES (?, ?, ?)',
@@ -84,6 +95,8 @@ async function handleAccept(interaction) {
 
   await db.query('UPDATE pvp_battles SET status = ? WHERE id = ?', ['accepted', id]);
 
+  console.log(`[CHALLENGE] Challenge ${id} accepted. Starting battle simulation.`);
+
   try {
     const channel = await interaction.client.channels.fetch(battle.channel_id);
     const msg = await channel.messages.fetch(battle.message_id);
@@ -93,30 +106,30 @@ async function handleAccept(interaction) {
   }
 
   const [challengerRows] = await db.query('SELECT * FROM users WHERE id = ?', [battle.challenger_id]);
-  const [targetRows] = await db.query('SELECT * FROM users WHERE id = ?', [battle.challenged_id]);
+  const [challengedRows] = await db.query('SELECT * FROM users WHERE id = ?', [battle.challenged_id]);
   const challenger = challengerRows[0];
-  const opponent = targetRows[0];
+  const challenged = challengedRows[0];
 
   const challengerCards = await abilityCardService.getCards(challenger.id);
   const chalEquipped = challengerCards.find(c => c.id === challenger.equipped_ability_id);
   const chalDeck = challengerCards.filter(c => c.id !== challenger.equipped_ability_id);
 
-  const opponentCards = await abilityCardService.getCards(opponent.id);
-  const oppEquipped = opponentCards.find(c => c.id === opponent.equipped_ability_id);
-  const oppDeck = opponentCards.filter(c => c.id !== opponent.equipped_ability_id);
+  const challengedCards = await abilityCardService.getCards(challenged.id);
+  const challengedEquipped = challengedCards.find(c => c.id === challenged.equipped_ability_id);
+  const challengedDeck = challengedCards.filter(c => c.id !== challenged.equipped_ability_id);
 
   const chalHero = allPossibleHeroes.find(h => (h.class === challenger.class || h.name === challenger.class) && h.isBase);
-  const oppHero = allPossibleHeroes.find(h => (h.class === opponent.class || h.name === opponent.class) && h.isBase);
+  const oppHero = allPossibleHeroes.find(h => (h.class === challenged.class || h.name === challenged.class) && h.isBase);
 
-  const chalCombatant = createCombatant({ hero_id: chalHero.id, ability_card: chalEquipped, deck: chalDeck }, 'player', 0);
-  const oppCombatant = createCombatant({ hero_id: oppHero.id, ability_card: oppEquipped, deck: oppDeck }, 'enemy', 0);
+  const player1 = createCombatant({ hero_id: chalHero.id, ability_card: chalEquipped, deck: chalDeck }, 'player', 0);
+  const player2 = createCombatant({ hero_id: oppHero.id, ability_card: challengedEquipped, deck: challengedDeck }, 'enemy', 0);
 
-  if (chalCombatant.abilityData) chalCombatant.abilityData.isPractice = true;
-  if (oppCombatant.abilityData) oppCombatant.abilityData.isPractice = true;
-  chalCombatant.deck.forEach(a => (a.isPractice = true));
-  oppCombatant.deck.forEach(a => (a.isPractice = true));
+  if (player1.abilityData) player1.abilityData.isPractice = true;
+  if (player2.abilityData) player2.abilityData.isPractice = true;
+  player1.deck.forEach(a => (a.isPractice = true));
+  player2.deck.forEach(a => (a.isPractice = true));
 
-  const engine = new GameEngine([chalCombatant, oppCombatant]);
+  const engine = new GameEngine([player1, player2]);
   engine.runFullGame();
 
   const finalLogString = engine.battleLog
@@ -141,26 +154,31 @@ async function handleAccept(interaction) {
     })
     .join('\n');
 
-  await db.query('UPDATE pvp_battles SET battle_log = ?, winner_id = ? WHERE id = ?', [finalLogString, engine.winner === 'player' ? challenger.id : opponent.id, id]);
+  await db.query('UPDATE pvp_battles SET battle_log = ?, winner_id = ? WHERE id = ?', [finalLogString, engine.winner === 'player' ? challenger.id : challenged.id, id]);
 
   const logBuffer = Buffer.from(finalLogString, 'utf-8');
+  const attachment = { attachment: logBuffer, name: `battle-log-${id}.txt` };
+
   try {
-    await interaction.user.send({ files: [{ attachment: logBuffer, name: `battle-${id}.txt` }] });
+    const challengerDiscordUser = await interaction.client.users.fetch(challenger.discord_id);
+    await challengerDiscordUser.send({ files: [attachment] });
   } catch (e) {
-    /* ignore */
+    console.error(`Failed to DM log to challenger ${challenger.name}`);
   }
   try {
-    const targetUser = await interaction.client.users.fetch(opponent.discord_id);
-    await targetUser.send({ files: [{ attachment: logBuffer, name: `battle-${id}.txt` }] });
+    const challengedDiscordUser = await interaction.client.users.fetch(challenged.discord_id);
+    await challengedDiscordUser.send({ files: [attachment] });
   } catch (e) {
-    /* ignore */
+    console.error(`Failed to DM log to challenged user ${challenged.name}`);
   }
+
+  const winnerUser = engine.winner === 'player' ? challenger : challenged;
+  const loserUser = engine.winner === 'player' ? challenged : challenger;
+  const victoryMessage = `⚔️ **Victory!** ${winnerUser.name} has defeated ${loserUser.name} in a duel!`;
 
   try {
     const channel = await interaction.client.channels.fetch(battle.channel_id);
-    await channel.send({
-      content: `⚔️ Victory! ${engine.winner === 'player' ? challenger.name : opponent.name} has defeated ${engine.winner === 'player' ? opponent.name : challenger.name} in a duel!`
-    });
+    await channel.send(victoryMessage);
   } catch (e) {
     /* ignore */
   }
