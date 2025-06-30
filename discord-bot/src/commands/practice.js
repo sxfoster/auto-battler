@@ -7,7 +7,6 @@ const MAX_LOG_LINES = 20;
 const GameEngine = require('../../../backend/game/engine');
 const { createCombatant } = require('../../../backend/game/utils');
 const { allPossibleHeroes, allPossibleAbilities } = require('../../../backend/game/data');
-const classes = require('../data/classes');
 const classAbilityMap = require('../data/classAbilityMap');
 
 const data = new SlashCommandBuilder()
@@ -38,11 +37,9 @@ async function execute(interaction) {
     return;
   }
 
-  // Pick a random class for the goblin opponent
-  const classNames = classes.map(c => c.name);
-  const goblinClass = classNames[Math.floor(Math.random() * classNames.length)];
-  const goblinArchetype = classAbilityMap[goblinClass] || goblinClass;
-  const goblinBase = allPossibleHeroes.find(h => h.class === goblinArchetype && h.isBase);
+  // Pick a random base hero for the goblin opponent
+  const baseHeroes = allPossibleHeroes.filter(h => h.isBase);
+  const goblinBase = baseHeroes[Math.floor(Math.random() * baseHeroes.length)];
 
   if (!goblinBase) {
     await interaction.reply({ content: 'Required goblin data missing.', ephemeral: true });
@@ -54,9 +51,7 @@ async function execute(interaction) {
   const deck = cards.filter(c => c.id !== user.equipped_ability_id);
 
   const goblinAbilityPool = allPossibleAbilities
-    .filter(
-      a => a.class === (classAbilityMap[goblinClass] || goblinClass) && a.rarity === 'Common'
-    );
+    .filter(a => a.class === goblinBase.class && a.rarity === 'Common');
   const goblinAbilities = goblinAbilityPool.map(a => a.id);
 
   const player = createCombatant({
@@ -67,9 +62,9 @@ async function execute(interaction) {
   const goblin = createCombatant({ hero_id: goblinBase.id, deck: goblinAbilities }, 'enemy', 0);
 
   if (player.abilityData) player.abilityData.isPractice = true;
-  goblin.heroData = { ...goblin.heroData, name: `Goblin ${goblinClass}` };
+  goblin.heroData = { ...goblin.heroData, name: `Goblin ${goblinBase.name}` };
 
-  await interaction.reply({ content: `${interaction.user.username} begins a practice battle against a Goblin ${goblinClass}!` });
+  await interaction.reply({ content: `${interaction.user.username} begins a practice battle against a Goblin ${goblinBase.name}!` });
 
   const engine = new GameEngine([player, goblin]);
   const wait = ms => new Promise(r => setTimeout(r, ms));

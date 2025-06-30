@@ -10,9 +10,8 @@ jest.mock('../../backend/game/engine');
 const utils = require('../../backend/game/utils');
 jest.spyOn(utils, 'createCombatant');
 const adventure = require('../src/commands/adventure');
-const classes = require('../src/data/classes');
-const classAbilityMap = require('../src/data/classAbilityMap');
-const { allPossibleAbilities } = require('../../backend/game/data');
+const { allPossibleAbilities, allPossibleHeroes } = require('../../backend/game/data');
+const baseHeroes = allPossibleHeroes.filter(h => h.isBase);
 const userService = require('../src/utils/userService');
 const abilityCardService = require('../src/utils/abilityCardService');
 const GameEngine = require('../../backend/game/engine');
@@ -65,7 +64,7 @@ describe('adventure command', () => {
     await adventure.execute(interaction);
     expect(abilityCardService.getCards).toHaveBeenCalledWith(1);
     const expectedId = allPossibleAbilities.find(
-      a => a.class === classAbilityMap.Warrior && a.rarity === 'Common'
+      a => a.class === baseHeroes[0].class && a.rarity === 'Common'
     ).id;
     expect(userService.addAbility).toHaveBeenCalledWith('123', expectedId);
     Math.random.mockRestore();
@@ -112,16 +111,16 @@ describe('adventure command', () => {
   });
 
   test('drops correct ability based on goblin class', async () => {
-    const targetClass = 'Barbarian';
-    const index = classes.findIndex(c => c.name === targetClass);
-    jest.spyOn(Math, 'random').mockReturnValue(index / classes.length + 0.0001);
+    const targetName = 'Brawler';
+    const index = baseHeroes.findIndex(h => h.name === targetName);
+    jest.spyOn(Math, 'random').mockReturnValue(index / baseHeroes.length + 0.0001);
     userService.getUser.mockResolvedValue({ id: 1, discord_id: '123', class: 'Warrior', equipped_ability_id: 50 });
     abilityCardService.getCards.mockResolvedValue([{ id: 50, ability_id: 3111, charges: 5 }]);
     const interaction = { user: { id: '123', send: jest.fn().mockResolvedValue() }, reply: jest.fn().mockResolvedValue(), followUp: jest.fn().mockResolvedValue() };
     await adventure.execute(interaction);
     expect(abilityCardService.getCards).toHaveBeenCalledWith(1);
     const expectedDrop = allPossibleAbilities.find(
-      a => a.class === classAbilityMap[targetClass] && a.rarity === 'Common'
+      a => a.class === baseHeroes[index].class && a.rarity === 'Common'
     ).id;
     expect(userService.addAbility).toHaveBeenCalledWith('123', expectedDrop);
     Math.random.mockRestore();
