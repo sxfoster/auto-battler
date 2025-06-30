@@ -38,7 +38,7 @@ function createCombatant(playerData, team, position) {
         hp: hero.hp,
         attack: hero.attack + (weapon ? weapon.statBonuses.ATK || 0 : 0),
         speed: hero.speed,
-        defense: hero.defense || 0
+        defense: (hero.defense || 0) + (armor ? armor.statBonuses.Block || 0 : 0)
     };
 
     return {

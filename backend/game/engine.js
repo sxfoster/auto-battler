@@ -42,7 +42,10 @@ class GameEngine {
 
    applyDamage(attacker, target, baseDamage, options = {}) {
        const { log = true } = options;
-       const defense = target.defense || 0;
+       let defense = target.defense || 0;
+       if (target.statusEffects && target.statusEffects.some(s => s.name === 'Defense Down')) {
+           defense = Math.max(0, defense - 1);
+       }
        let bonus = 0;
        if (target.statusEffects) {
            for (const eff of target.statusEffects) {
@@ -134,6 +137,13 @@ class GameEngine {
            const turns = match ? parseInt(match[1], 10) : 2;
            target.statusEffects.push({ name: 'Armor Break', bonusDamage: 1, turnsRemaining: turns, sourceAbility: ability.name });
            this.log({ type: 'status', message: `↳ ${target.heroData.name} suffers Armor Break.` });
+       }
+
+       if (/Defense Down/i.test(ability.effect)) {
+           const match = ability.effect.match(/Defense Down for (\d+) turns?/i);
+           const turns = match ? parseInt(match[1], 10) : 2;
+           target.statusEffects.push({ name: 'Defense Down', turnsRemaining: turns, sourceAbility: ability.name });
+           this.log({ type: 'status', message: `↳ ${target.heroData.name} suffers Defense Down.` });
        }
 
        // first log line - announce ability usage
@@ -250,20 +260,9 @@ class GameEngine {
        let confused = attacker.statusEffects.find(s => s.name === 'Confuse');
 
        if (!wasSkipped) {
-           if (confused) {
-               if (Math.random() < 0.5) {
-                   this.log({ type: 'status', message: `${attacker.heroData.name} is confused and misses the turn.` });
-                   attacker.statusEffects = attacker.statusEffects.filter(e => e !== confused);
-                   this.log({ type: 'status', message: `Confuse on ${attacker.heroData.name} has worn off.` });
-                   attacker.currentEnergy = (attacker.currentEnergy || 0) + 1;
-                   return;
-               } else {
-                   attacker.statusEffects = attacker.statusEffects.filter(e => e !== confused);
-                   this.log({ type: 'status', message: `Confuse on ${attacker.heroData.name} has worn off.` });
-               }
-           }
            const enemies = this.combatants.filter(c => c.team !== attacker.team && c.currentHp > 0);
            if (enemies.length > 0) {
+               const targetEnemy = enemies[0];
                const ability = attacker.abilityData;
                const cost = ability ? ability.energyCost || 1 : 0;
 
@@ -271,8 +270,21 @@ class GameEngine {
                    console.log(`${attacker.heroData.name} is checking if they can use ${ability.name}.`);
                }
 
+               if (confused) {
+                   if (Math.random() < 0.5) {
+                       this.log({ type: 'status', message: `${attacker.heroData.name}'s attack misses ${targetEnemy.heroData.name}!` });
+                       attacker.statusEffects = attacker.statusEffects.filter(e => e !== confused);
+                       this.log({ type: 'status', message: `Confuse on ${attacker.heroData.name} has worn off.` });
+                       attacker.currentEnergy = (attacker.currentEnergy || 0) + 1;
+                       return;
+                   } else {
+                       attacker.statusEffects = attacker.statusEffects.filter(e => e !== confused);
+                       this.log({ type: 'status', message: `Confuse on ${attacker.heroData.name} has worn off.` });
+                   }
+               }
+
                // Always perform the auto-attack first
-               this.applyDamage(attacker, enemies[0], attacker.attack);
+               this.applyDamage(attacker, targetEnemy, attacker.attack);
                if (this.checkVictory()) return;
 
                // Re-evaluate potential targets in case the first enemy was defeated
