@@ -10,6 +10,9 @@ This folder contains the Node.js bot that powers the game's Discord integration.
    - `DB_HOST`, `DB_USER`, `DB_PASSWORD`, `DB_DATABASE` – location and credentials for the database.
    - `APP_ID` and `GUILD_ID` are needed when running `deploy-commands.js`.
 
+The bot reads these variables using `util/config.js`. Import this module wherever
+configuration values are needed instead of referencing `process.env` directly.
+
 ## Running the Bot
 
 ```bash
