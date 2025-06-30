@@ -187,12 +187,17 @@ class GameEngine {
                const ability = attacker.abilityData;
                const cost = ability ? ability.energyCost || 1 : 1;
 
+               // Always perform the auto-attack first
+               this.applyDamage(attacker, enemies[0], attacker.attack);
+               if (this.checkVictory()) return;
+
+               // Re-evaluate potential targets in case the first enemy was defeated
+               const remainingEnemies = this.combatants.filter(c => c.team !== attacker.team && c.currentHp > 0);
                const abilityTarget = ability && ability.targetType === 'friendly'
                    ? attacker
-                   : enemies[0];
+                   : remainingEnemies[0];
 
-               let usedAbility = false;
-               if (ability && attacker.abilityCharges > 0 && attacker.currentEnergy >= cost) {
+               if (ability && attacker.abilityCharges > 0 && attacker.currentEnergy >= cost && abilityTarget) {
                    this.applyAbilityEffect(attacker, abilityTarget, ability);
                    attacker.currentEnergy -= cost;
                    attacker.abilityCharges -= 1;
@@ -209,11 +214,6 @@ class GameEngine {
                            attacker.abilityData = null;
                        }
                    }
-                   usedAbility = true;
-               }
-
-               if (!usedAbility) {
-                   this.applyDamage(attacker, enemies[0], attacker.attack);
                }
            }
        }
