@@ -8,6 +8,7 @@ client.commands = new Collection();
 
 const inventoryHandlers = require('./commands/inventory');
 const challengeHandlers = require('./src/commands/challenge');
+const auctionHandlers = require('./commands/auction');
 
 const commandDirs = [
   path.join(__dirname, 'commands'),
@@ -80,6 +81,10 @@ client.on(Events.InteractionCreate, async interaction => {
       await challengeHandlers.handleAccept(interaction);
     } else if (interaction.customId.startsWith('challenge-decline:')) {
       await challengeHandlers.handleDecline(interaction);
+    } else if (interaction.customId === 'auction-buy') {
+      await auctionHandlers.handleBuyButton(interaction);
+    } else if (interaction.customId.startsWith('ah-buy-listing:')) {
+      await auctionHandlers.handleBuyListing(interaction);
     } else if (interaction.customId.startsWith('open-inventory:')) {
       const inventoryCommand = client.commands.get('inventory');
       interaction.options = { getSubcommand: () => 'show' };
