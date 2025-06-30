@@ -123,7 +123,10 @@ describe('inventory command', () => {
     ]);
     const interaction = {
       user: { id: '123' },
-      options: { getFocused: jest.fn().mockReturnValue('') },
+      options: {
+        getFocused: jest.fn().mockReturnValue(''),
+        getSubcommand: jest.fn().mockReturnValue('set')
+      },
       respond: jest.fn().mockResolvedValue()
     };
     await inventory.autocomplete(interaction);

@@ -1,10 +1,10 @@
 const db = require('../../util/database');
 
-// Add a new ability card to the user's inventory with default charges
-async function addCard(userId, abilityId) {
+// Add a new ability card to the user's inventory with configurable charges
+async function addCard(userId, abilityId, charges = 10) {
   const [result] = await db.query(
-    'INSERT INTO user_ability_cards (user_id, ability_id, charges) VALUES (?, ?, 10)',
-    [userId, abilityId]
+    'INSERT INTO user_ability_cards (user_id, ability_id, charges) VALUES (?, ?, ?)',
+    [userId, abilityId, charges]
   );
   return result.insertId;
 }
@@ -48,4 +48,16 @@ async function decrementCharge(cardId) {
   );
 }
 
-module.exports = { addCard, getCards, getCard, setEquippedCard, decrementCharge };
+// Delete a single ability card by id
+async function deleteCard(cardId) {
+  await db.query('DELETE FROM user_ability_cards WHERE id = ?', [cardId]);
+}
+
+// Delete multiple cards using an array of ids
+async function deleteCards(cardIds) {
+  if (!cardIds.length) return;
+  const placeholders = cardIds.map(() => '?').join(',');
+  await db.query(`DELETE FROM user_ability_cards WHERE id IN (${placeholders})`, cardIds);
+}
+
+module.exports = { addCard, getCards, getCard, setEquippedCard, decrementCharge, deleteCard, deleteCards };

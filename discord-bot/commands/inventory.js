@@ -40,6 +40,18 @@ const data = new SlashCommandBuilder()
           .setRequired(true)
           .setAutocomplete(true)
       )
+  )
+  .addSubcommand(sub =>
+    sub
+      .setName('merge')
+      .setDescription('Combine all copies of an ability card into one stack.')
+      .addStringOption(opt =>
+        opt
+          .setName('ability')
+          .setDescription('Name of the ability to merge')
+          .setRequired(true)
+          .setAutocomplete(true)
+      )
   );
 
 async function execute(interaction) {
@@ -85,6 +97,33 @@ async function execute(interaction) {
 
     await interaction.reply({ embeds: [embed], ephemeral: true });
     return;
+  }
+
+  if (sub === 'merge') {
+    const abilityName = interaction.options.getString('ability');
+    const ability = allPossibleAbilities.find(a => a.name.toLowerCase() === abilityName.toLowerCase());
+
+    if (!ability) {
+      return interaction.reply({ content: 'Ability not found.', ephemeral: true });
+    }
+
+    const allCards = await abilityCardService.getCards(user.id);
+    const cardsToMerge = allCards.filter(c => c.ability_id === ability.id);
+
+    if (cardsToMerge.length <= 1) {
+      return interaction.reply({ content: `You only have one copy of ${ability.name}, nothing to merge.`, ephemeral: true });
+    }
+
+    const totalCharges = cardsToMerge.reduce((sum, card) => sum + card.charges, 0);
+    const cardIdsToDelete = cardsToMerge.map(card => card.id);
+
+    await abilityCardService.deleteCards(cardIdsToDelete);
+    await abilityCardService.addCard(user.id, ability.id, totalCharges);
+
+    return interaction.reply({
+      content: `✅ All ${cardsToMerge.length} copies of **${ability.name}** have been merged into a single card with **${totalCharges}** charges.`,
+      ephemeral: true
+    });
   }
 
   if (sub === 'set' || sub === 'equip') {
@@ -214,6 +253,7 @@ async function handleEquipSelect(interaction) {
 }
 
 async function autocomplete(interaction) {
+  const sub = interaction.options.getSubcommand();
   const focused = interaction.options.getFocused();
   const user = await userService.getUser(interaction.user.id);
   if (!user) {
@@ -221,7 +261,18 @@ async function autocomplete(interaction) {
     return;
   }
   const cards = await abilityCardService.getCards(user.id);
-  const abilityIds = [...new Set(cards.filter(c => c.charges > 0).map(c => c.ability_id))];
+  let abilityIds;
+  if (sub === 'merge') {
+    const counts = {};
+    for (const card of cards) {
+      counts[card.ability_id] = (counts[card.ability_id] || 0) + 1;
+    }
+    abilityIds = Object.keys(counts)
+      .filter(id => counts[id] > 1)
+      .map(id => parseInt(id, 10));
+  } else {
+    abilityIds = [...new Set(cards.filter(c => c.charges > 0).map(c => c.ability_id))];
+  }
   const abilities = abilityIds
     .map(id => allPossibleAbilities.find(a => a.id === id))
     .filter(Boolean);

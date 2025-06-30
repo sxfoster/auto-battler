@@ -4,7 +4,7 @@ let abilityCardService;
 try {
     abilityCardService = require('../../discord-bot/src/utils/abilityCardService');
 } catch (e) {
-    abilityCardService = { decrementCharge: () => {} };
+    abilityCardService = { decrementCharge: () => {}, deleteCard: () => {} };
 }
 
 class GameEngine {
@@ -355,6 +355,10 @@ class GameEngine {
                    attacker.abilityCharges -= 1;
                    if (ability.cardId && !ability.isPractice) {
                        try { abilityCardService.decrementCharge(ability.cardId); } catch(e) { /* ignore */ }
+                   }
+                   if (attacker.abilityCharges <= 0 && ability.cardId && !ability.isPractice) {
+                       this.log({ type: 'info', message: `${attacker.name}'s ${ability.name} card has run out of charges and crumbled to dust.` });
+                       try { abilityCardService.deleteCard(ability.cardId); } catch(e) { /* ignore in engine */ }
                    }
                    if (attacker.abilityCharges <= 0) {
                        const idx = attacker.deck.findIndex(a => a.charges > 0);
