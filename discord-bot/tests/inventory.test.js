@@ -8,8 +8,12 @@ jest.mock('../src/utils/abilityCardService', () => ({
   getCards: jest.fn(),
   setEquippedCard: jest.fn()
 }));
+jest.mock('../src/utils/auctionHouseService', () => ({
+  createListing: jest.fn()
+}));
 const userService = require('../src/utils/userService');
 const abilityCardService = require('../src/utils/abilityCardService');
+const auctionHouseService = require('../src/utils/auctionHouseService');
 
 describe('inventory command', () => {
   beforeEach(() => {
@@ -241,5 +245,32 @@ describe('inventory command', () => {
         content: 'You have equipped Divine Strike. Your active archetype is now Holy Warrior (Common).'
       })
     );
+  });
+
+  test('handleSellButton shows card dropdown', async () => {
+    userService.getUser.mockResolvedValue({ id: 1 });
+    abilityCardService.getCards.mockResolvedValue([{ id: 5, ability_id: 3111, charges: 5 }]);
+    const interaction = { user: { id: '123' }, reply: jest.fn().mockResolvedValue() };
+    await inventory.handleSellButton(interaction);
+    expect(interaction.reply).toHaveBeenCalledWith(expect.objectContaining({ components: expect.any(Array) }));
+  });
+
+  test('handleSellSelect shows modal', async () => {
+    const interaction = { values: ['5'], showModal: jest.fn().mockResolvedValue() };
+    await inventory.handleSellSelect(interaction);
+    expect(interaction.showModal).toHaveBeenCalled();
+  });
+
+  test('handleSellSubmit creates listing', async () => {
+    userService.getUser.mockResolvedValue({ id: 1 });
+    const interaction = {
+      customId: 'sell-modal:5',
+      fields: { getTextInputValue: jest.fn().mockReturnValue('100') },
+      user: { id: '123' },
+      reply: jest.fn().mockResolvedValue()
+    };
+    await inventory.handleSellSubmit(interaction);
+    expect(auctionHouseService.createListing).toHaveBeenCalledWith(1, 5, 100);
+    expect(interaction.reply).toHaveBeenCalled();
   });
 });

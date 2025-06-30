@@ -3,11 +3,15 @@ const {
   ActionRowBuilder,
   StringSelectMenuBuilder,
   ButtonBuilder,
-  ButtonStyle
+  ButtonStyle,
+  ModalBuilder,
+  TextInputBuilder,
+  TextInputStyle
 } = require('discord.js');
 const { simple } = require('../src/utils/embedBuilder');
 const userService = require('../src/utils/userService');
 const abilityCardService = require('../src/utils/abilityCardService');
+const auctionHouseService = require('../src/utils/auctionHouseService');
 const { allPossibleAbilities } = require('../../backend/game/data');
 
 const data = new SlashCommandBuilder()
@@ -107,6 +111,12 @@ async function execute(interaction) {
           .setCustomId('inventory-equip-start')
           .setLabel('Equip Ability')
           .setStyle(ButtonStyle.Success)
+      );
+      row.addComponents(
+        new ButtonBuilder()
+          .setCustomId('inventory-sell-start')
+          .setLabel('Sell Cards')
+          .setStyle(ButtonStyle.Secondary)
       );
     }
 
@@ -308,6 +318,49 @@ async function handleMergeSelect(interaction) {
   });
 }
 
+async function handleSellButton(interaction) {
+  const user = await userService.getUser(interaction.user.id);
+  const cards = await abilityCardService.getCards(user.id);
+  if (!cards.length) {
+    return interaction.reply({ content: 'You have no ability cards.', ephemeral: true });
+  }
+  const menu = new StringSelectMenuBuilder()
+    .setCustomId('sell-select')
+    .setPlaceholder('Select a card to sell')
+    .addOptions(
+      cards.map(card => {
+        const ability = allPossibleAbilities.find(a => a.id === card.ability_id);
+        const name = ability ? ability.name : `Ability ${card.ability_id}`;
+        return { label: `${name} (${card.charges}/10)`, value: String(card.id) };
+      })
+    );
+  const row = new ActionRowBuilder().addComponents(menu);
+  await interaction.reply({ content: 'Choose a card to list:', components: [row], ephemeral: true });
+}
+
+async function handleSellSelect(interaction) {
+  const cardId = interaction.values[0];
+  const modal = new ModalBuilder()
+    .setCustomId(`sell-modal:${cardId}`)
+    .setTitle('List Card for Sale');
+  const input = new TextInputBuilder()
+    .setCustomId('price')
+    .setLabel('Price')
+    .setStyle(TextInputStyle.Short)
+    .setPlaceholder('Enter price')
+    .setRequired(true);
+  modal.addComponents(new ActionRowBuilder().addComponents(input));
+  await interaction.showModal(modal);
+}
+
+async function handleSellSubmit(interaction) {
+  const [, cardId] = interaction.customId.split(':');
+  const price = parseInt(interaction.fields.getTextInputValue('price'), 10);
+  const user = await userService.getUser(interaction.user.id);
+  await auctionHouseService.createListing(user.id, parseInt(cardId, 10), price);
+  await interaction.reply({ content: '✅ Listing created.', ephemeral: true });
+}
+
 async function autocomplete(interaction) {
   const sub = interaction.options.getSubcommand();
   const focused = interaction.options.getFocused();
@@ -337,5 +390,8 @@ module.exports = {
   handleEquipSelect,
   handleSetAbilityButton,
   handleAbilitySelect,
+  handleSellButton,
+  handleSellSelect,
+  handleSellSubmit,
   autocomplete
 };
