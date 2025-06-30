@@ -11,7 +11,10 @@ jest.mock('../../backend/game/engine');
 const userService = require('../src/utils/userService');
 const GameEngine = require('../../backend/game/engine');
 const utils = require('../../backend/game/utils');
-const { allPossibleAbilities } = require('../../backend/game/data');
+const {
+  allPossibleAbilities,
+  allPossibleHeroes
+} = require('../../backend/game/data');
 
 jest.spyOn(utils, 'createCombatant');
 
@@ -63,7 +66,13 @@ describe('tutorial command', () => {
     };
     jest.spyOn(Math, 'random').mockReturnValue(0);
     await tutorial.execute(interaction);
-    const abilityId = allPossibleAbilities.filter(a => a.rarity === 'Common')[0].id;
+    const abilityId = allPossibleAbilities.filter(
+      a =>
+        a.rarity === 'Common' &&
+        a.category === 'Offense' &&
+        a.class ===
+          (allPossibleHeroes.find(h => h.isBase) || allPossibleHeroes[0]).class
+    )[0].id;
     expect(userService.addAbility).toHaveBeenCalledWith('1', abilityId);
     jest.runAllTimers();
     await Promise.resolve();
