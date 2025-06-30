@@ -43,7 +43,7 @@ class GameEngine {
    applyDamage(attacker, target, baseDamage) {
        target.currentHp = Math.max(0, target.currentHp - baseDamage);
        if (attacker === target) {
-           this.log({ type: 'damage', message: `${target.heroData.name} takes ${baseDamage} damage.` });
+            this.log({ type: 'damage', message: `${target.heroData.name} takes ${baseDamage} damage.` });
        } else {
            this.log({ type: 'damage', message: `${attacker.heroData.name} hits ${target.heroData.name} for ${baseDamage} damage.` });
        }
@@ -96,8 +96,8 @@ class GameEngine {
        const hotMatch = ability.effect.match(/Heal .* for (\d+) HP per turn over (\d+) turns/i);
        if (hotMatch) {
            const healing = parseInt(hotMatch[1], 10);
-           const turns = parseInt(hotMatch[2], 10);
-           target.statusEffects.push({ name: 'Regrowth', healing, turnsRemaining: turns, sourceAbility: ability.name });
+            const turns = parseInt(hotMatch[2], 10);
+            target.statusEffects.push({ name: 'Regrowth', healing, turnsRemaining: turns, sourceAbility: ability.name });
            this.log({ type: 'status', message: `↳ ${target.heroData.name} is blessed with Regrowth.` });
        }
 
@@ -109,6 +109,17 @@ class GameEngine {
            target.statusEffects.push({ name: 'Poison', damage, turnsRemaining: turns, sourceAbility: ability.name });
            this.log({ type: 'status', message: `↳ ${target.heroData.name} is poisoned.` });
        }
+        const confuseMatch = ability.effect.match(/confuse the target/i);
+        if (confuseMatch) {
+            target.statusEffects.push({ name: 'Confuse', turnsRemaining: 1, sourceAbility: ability.name });
+            this.log({ type: 'status', message: `↳ ${target.heroData.name} is confused.` });
+        }
+        const defDownMatch = ability.effect.match(/apply Defense Down for (\d+) turns?/i);
+        if (defDownMatch) {
+            const turns = parseInt(defDownMatch[1], 10);
+            target.statusEffects.push({ name: 'Defense Down', turnsRemaining: turns, sourceAbility: ability.name });
+            this.log({ type: 'status', message: `↳ ${target.heroData.name} suffers Defense Down for ${turns} turns.` });
+        }
 
        // first log line - announce ability usage
        this.log({ type: 'ability-cast', message: `${attacker.heroData.name} uses ${ability.name}!` });
@@ -139,9 +150,11 @@ class GameEngine {
            remaining = remaining.replace(dmgRegex, '').trim();
        }
        remaining = remaining.replace(/heal yourself for \d+ HP\.?/i, '')
-                           .replace(/Heal .*? for \d+ HP\.?/i, '')
-                           .replace(/per turn over \d+ turns\.?/i, '')
-                           .trim();
+                          .replace(/Heal .*? for \d+ HP\.?/i, '')
+                          .replace(/per turn over \d+ turns\.?/i, '')
+                          .replace(/confuse the target[^.]*\.?/i, '')
+                          .replace(/apply Defense Down for \d+ turns?\.?/i, '')
+                          .trim();
        if (remaining.toLowerCase().startsWith('and ')) {
            remaining = remaining.slice(4);
        }

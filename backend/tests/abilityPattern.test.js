@@ -33,4 +33,30 @@ describe('Additional ability effect patterns', () => {
     expect(e2.currentHp).toBe(enemy2.maxHp - 3);
     expect(engine.battleLog.some(l => l.message.includes('all enemies') && l.message.includes('3'))).toBe(true);
   });
+
+  test('confuse phrase applies Confuse status', () => {
+    const caster = createCombatant({ hero_id: 1 }, 'player', 0);
+    const target = createCombatant({ hero_id: 1 }, 'enemy', 0);
+    const engine = new GameEngine([caster, target]);
+    const ability = { name: 'Illusionary Strike', effect: 'Deal 1 damage and confuse the target.' };
+
+    engine.applyAbilityEffect(caster, target, ability);
+
+    const updated = engine.combatants.find(c => c.id === target.id);
+    expect(updated.statusEffects.some(s => s.name === 'Confuse' && s.turnsRemaining === 1)).toBe(true);
+    expect(engine.battleLog.some(l => l.message.includes('confused'))).toBe(true);
+  });
+
+  test('Defense Down phrase applies debuff', () => {
+    const caster = createCombatant({ hero_id: 1 }, 'player', 0);
+    const target = createCombatant({ hero_id: 1 }, 'enemy', 0);
+    const engine = new GameEngine([caster, target]);
+    const ability = { name: 'Judgment', effect: 'Apply Defense Down for 2 turns.' };
+
+    engine.applyAbilityEffect(caster, target, ability);
+
+    const updated = engine.combatants.find(c => c.id === target.id);
+    expect(updated.statusEffects.some(s => s.name === 'Defense Down' && s.turnsRemaining === 2)).toBe(true);
+    expect(engine.battleLog.some(l => l.message.includes('Defense Down'))).toBe(true);
+  });
 });
