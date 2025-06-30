@@ -5,7 +5,8 @@ CREATE TABLE IF NOT EXISTS users (
     id INT AUTO_INCREMENT PRIMARY KEY,
     discord_id VARCHAR(255) NOT NULL UNIQUE,
     name VARCHAR(255) NOT NULL UNIQUE COLLATE utf8mb4_unicode_ci,
-    class VARCHAR(50) DEFAULT NULL
+    class VARCHAR(50) DEFAULT NULL,
+    tutorial_completed TINYINT(1) DEFAULT 0
 );
 
 -- Ability cards owned by users
@@ -21,6 +22,9 @@ CREATE TABLE IF NOT EXISTS user_ability_cards (
 ALTER TABLE users
     ADD COLUMN equipped_ability_id INT DEFAULT NULL,
     ADD FOREIGN KEY (equipped_ability_id) REFERENCES user_ability_cards(id);
+
+ALTER TABLE users
+    ADD COLUMN tutorial_completed TINYINT(1) DEFAULT 0;
 
 -- Champions owned by users
 CREATE TABLE IF NOT EXISTS user_champions (
