@@ -13,17 +13,18 @@ describe('Status effect processing', () => {
 
     engine.startRound();
     engine.processTurn(); // druid casts Regrowth
-    engine.processTurn(); // enemy
+    engine.processTurn(); // enemy attacks
 
     let caster = engine.combatants.find(c => c.id === druid.id);
     expect(caster.statusEffects.some(s => s.name === 'Regrowth')).toBe(true);
+    const enemyAtk = enemy.attack;
+    expect(caster.currentHp).toBe(druid.maxHp - 4 - enemyAtk);
 
     // next round - first tick
     engine.startRound();
     engine.processTurn(); // druid
     caster = engine.combatants.find(c => c.id === druid.id);
-    const enemyAtk = enemy.attack;
-    expect(caster.currentHp).toBe(druid.maxHp - 4 + 2 - enemyAtk + 2);
+    expect(caster.currentHp).toBe(druid.maxHp - 4 - enemyAtk + 2);
     expect(engine.battleLog.some(l => l.message.includes('healed for 2 by Regrowth'))).toBe(true);
   });
 

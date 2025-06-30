@@ -76,12 +76,12 @@ class GameEngine {
            }
        }
 
-       const healSelfMatch = ability.effect.match(/heal yourself for (\d+) HP/i);
+       const healSelfMatch = ability.effect.match(/heal yourself for (\d+) HP(?!\s*per turn)/i);
        if (healSelfMatch) {
            healingDone = parseInt(healSelfMatch[1], 10);
            healTarget = attacker;
        } else {
-           const generalHealMatch = ability.effect.match(/Heal .*? for (\d+) HP/i);
+           const generalHealMatch = ability.effect.match(/Heal .*? for (\d+) HP(?!\s*per turn)/i);
            if (generalHealMatch) {
                healingDone = parseInt(generalHealMatch[1], 10);
                healTarget = target;

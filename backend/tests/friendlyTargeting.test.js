@@ -17,19 +17,28 @@ describe('Friendly ability targeting', () => {
     expect(engine.battleLog.some(l => l.message.includes('heals'))).toBe(true);
   });
 
-  test('Regrowth heals the caster', () => {
+  test('Regrowth applies a heal over time effect', () => {
     const druid = createCombatant({ hero_id: 5, ability_id: 3612 }, 'enemy', 0);
     const player = createCombatant({ hero_id: 1 }, 'player', 0);
     druid.currentHp -= 2;
     druid.currentEnergy = 2;
     druid.speed = 10;
     const engine = new GameEngine([druid, player]);
+
+    engine.startRound();
+    engine.processTurn(); // druid casts Regrowth
+
+    let updated = engine.combatants.find(c => c.id === druid.id);
+    expect(updated.currentHp).toBe(druid.maxHp - 2); // no instant heal
+    expect(updated.statusEffects.some(s => s.name === 'Regrowth')).toBe(true);
+    expect(engine.battleLog.some(l => l.message.includes('uses Regrowth'))).toBe(true);
+
+    // next round - effect ticks
     engine.startRound();
     engine.processTurn();
-    const updated = engine.combatants.find(c => c.id === druid.id);
-    expect(updated.currentHp).toBe(updated.maxHp);
-    expect(engine.battleLog.some(l => l.message.includes('uses Regrowth'))).toBe(true);
-    expect(engine.battleLog.some(l => l.message.includes('heals'))).toBe(true);
+    updated = engine.combatants.find(c => c.id === druid.id);
+    expect(updated.currentHp).toBe(druid.maxHp); // healed 2 HP
+    expect(engine.battleLog.some(l => l.message.includes('healed for 2 by Regrowth'))).toBe(true);
   });
 
   test('lack of energy causes cleric to attack the enemy', () => {
