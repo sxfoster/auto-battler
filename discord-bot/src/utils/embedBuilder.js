@@ -64,7 +64,7 @@ function buildBattleEmbed(combatants, logText) {
     .setTitle('Battle')
     .setTimestamp()
     .setFooter({ text: 'Auto\u2011Battler Bot' })
-    .setDescription(logText)
+    .setDescription(logText || 'The battle is about to begin...')
     .addFields({ name: 'HP', value: hpLines });
   return embed;
 }
