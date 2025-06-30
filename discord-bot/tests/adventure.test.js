@@ -104,8 +104,8 @@ describe('adventure command', () => {
     GameEngine.mockImplementationOnce(() => ({
       runGameSteps: function* () {
         yield { combatants: [], log: [
-          { round: 1, type: 'info', message: 'first' },
-          { round: 1, type: 'info', message: 'second' }
+          { round: 1, type: 'info', level: 'summary', message: 'first' },
+          { round: 1, type: 'info', level: 'summary', message: 'second' }
         ] };
       },
       runFullGame: jest.fn(),
@@ -138,7 +138,7 @@ describe('adventure command', () => {
   });
 
   test('battle log is truncated to last 20 lines', async () => {
-    const logs = Array.from({ length: 30 }, (_, i) => ({ round: 1, type: 'info', message: String(i + 1) }));
+    const logs = Array.from({ length: 30 }, (_, i) => ({ round: 1, type: 'info', level: 'summary', message: String(i + 1) }));
     GameEngine.mockImplementationOnce(() => ({
       runGameSteps: function* () {
         yield { combatants: [], log: logs };
