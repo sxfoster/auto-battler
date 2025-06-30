@@ -30,8 +30,9 @@ describe('who command', () => {
     await who.execute(interaction);
     expect(interaction.reply).toHaveBeenCalledWith(expect.objectContaining({ embeds: expect.any(Array) }));
     const fields = interaction.reply.mock.calls[0][0].embeds[0].data.fields;
-    expect(fields[0].value).toContain('Tester - Warrior');
-    expect(fields[3].value).toContain('Power Strike');
+    expect(fields[0].value).toBe('Tester');
+    expect(fields[1].value).toBe('Stalwart Defender (Common)');
+    expect(fields[4].value).toContain('Power Strike');
     expect(interaction.reply.mock.calls[0][0].ephemeral).toBeUndefined();
   });
 
@@ -60,7 +61,8 @@ describe('who command', () => {
     };
     await who.execute(interaction);
     const fields = interaction.reply.mock.calls[0][0].embeds[0].data.fields;
-    expect(fields[3].value).toBe('None');
+    expect(fields[1].value).toBe('None');
+    expect(fields[4].value).toBe('None');
   });
 
   test('ephemeral reply on lookup failure', async () => {
