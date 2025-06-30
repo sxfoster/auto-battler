@@ -220,9 +220,14 @@ async function handleDecline(interaction) {
 }
 
 async function expireChallenge(id, challenger, client) {
-  await db.query('UPDATE pvp_battles SET status = ? WHERE id = ?', ['expired', id]);
   const [rows] = await db.query('SELECT * FROM pvp_battles WHERE id = ?', [id]);
   const battle = rows[0];
+  if (!battle || battle.status !== 'pending') {
+    console.log(`[CHALLENGE] Challenge ${id} not pending. Skipping expiration.`);
+    return;
+  }
+
+  await db.query('UPDATE pvp_battles SET status = ? WHERE id = ?', ['expired', id]);
   try {
     const channel = await client.channels.fetch(battle.channel_id);
     const msg = await channel.messages.fetch(battle.message_id);
