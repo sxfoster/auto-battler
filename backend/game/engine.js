@@ -185,7 +185,11 @@ class GameEngine {
            const enemies = this.combatants.filter(c => c.team !== attacker.team && c.currentHp > 0);
            if (enemies.length > 0) {
                const ability = attacker.abilityData;
-               const cost = ability ? ability.energyCost || 1 : 1;
+               const cost = ability ? ability.energyCost || 1 : 0;
+
+               if (ability) {
+                   console.log(`${attacker.heroData.name} checking ability ${ability.name}.`);
+               }
 
                const abilityTarget = ability && ability.targetType === 'friendly'
                    ? attacker
@@ -193,6 +197,7 @@ class GameEngine {
 
                let usedAbility = false;
                if (ability && attacker.abilityCharges > 0 && attacker.currentEnergy >= cost) {
+                   console.log(`${attacker.heroData.name} spends ${cost} energy to use ${ability.name}.`);
                    this.applyAbilityEffect(attacker, abilityTarget, ability);
                    attacker.currentEnergy -= cost;
                    attacker.abilityCharges -= 1;
@@ -210,6 +215,8 @@ class GameEngine {
                        }
                    }
                    usedAbility = true;
+               } else if (ability) {
+                   console.log(`${attacker.heroData.name} has ${attacker.currentEnergy} energy and requires ${cost}. Unable to use ${ability.name}.`);
                }
 
                if (!usedAbility) {
