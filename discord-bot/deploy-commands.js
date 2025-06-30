@@ -11,6 +11,7 @@ const commandDirs = [
   path.join(__dirname, 'commands/set.js'),
   path.join(__dirname, 'src/commands/game.js'),
   path.join(__dirname, 'src/commands/adventure.js'),
+  path.join(__dirname, 'src/commands/challenge.js'),
   path.join(__dirname, 'src/commands/practice.js')
 ];
 

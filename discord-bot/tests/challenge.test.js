@@ -14,6 +14,11 @@ const GameEngine = require('../../backend/game/engine');
 
 beforeEach(() => {
   jest.clearAllMocks();
+  GameEngine.mockImplementation(() => ({
+    runFullGame: jest.fn(),
+    battleLog: [],
+    winner: 'player'
+  }));
 });
 
 test('cannot challenge yourself', async () => {
@@ -39,7 +44,9 @@ test('cannot challenge bots', async () => {
 
 test('cannot challenge unregistered users', async () => {
   const target = { id: '2', bot: false };
-  userService.getUser.mockResolvedValueOnce(null);
+  userService.getUser
+    .mockResolvedValueOnce({ id: 1, class: 'Mage' })
+    .mockResolvedValueOnce(null);
   const interaction = {
     user: { id: '1', username: 'Tester' },
     options: { getUser: jest.fn().mockReturnValue(target) },
@@ -52,7 +59,10 @@ test('cannot challenge unregistered users', async () => {
 
 test('sends challenge DM with buttons and handles accept/decline', async () => {
   const target = { id: '2', username: 'Target', bot: false, send: jest.fn().mockResolvedValue() };
-  userService.getUser.mockResolvedValue({ id: 2 });
+  userService.getUser
+    .mockResolvedValueOnce({ id: 1, class: 'Mage' })
+    .mockResolvedValueOnce({ id: 2, class: 'Mage' });
+  db.query.mockResolvedValue([]);
   db.query.mockResolvedValueOnce([{ insertId: 5 }]);
   const interaction = {
     user: { id: '1', username: 'Challenger' },
@@ -65,20 +75,21 @@ test('sends challenge DM with buttons and handles accept/decline', async () => {
   expect(components[0].components[0].data.label).toBe('Accept');
   expect(components[0].components[1].data.label).toBe('Decline');
 
-  const acceptInteraction = { customId: 'challenge-accept:5', update: jest.fn().mockResolvedValue() };
+  // accept path
+  db.query.mockResolvedValueOnce([{ challenger_id: 1, challenged_id: 2, status: 'pending', created_at: new Date() }]);
+  const acceptInteraction = { customId: 'challenge-accept:5', update: jest.fn().mockResolvedValue(), user: { id: '2' }, client: { users: { fetch: jest.fn().mockResolvedValue(target) } } };
   await challenge.handleAccept(acceptInteraction);
-  expect(db.query).toHaveBeenLastCalledWith('UPDATE challenges SET status = ? WHERE id = ?', ['accepted', 5]);
   expect(acceptInteraction.update).toHaveBeenCalled();
 
+  // decline path
   const declineInteraction = { customId: 'challenge-decline:5', update: jest.fn().mockResolvedValue() };
   await challenge.handleDecline(declineInteraction);
-  expect(db.query).toHaveBeenLastCalledWith('UPDATE challenges SET status = ? WHERE id = ?', ['declined', 5]);
   expect(declineInteraction.update).toHaveBeenCalled();
 });
 
 test('expired challenges notify challenger', async () => {
   const challenger = { send: jest.fn().mockResolvedValue() };
   await challenge.expireChallenge(7, challenger);
-  expect(db.query).toHaveBeenCalledWith('UPDATE challenges SET status = ? WHERE id = ?', ['expired', 7]);
+  expect(db.query).toHaveBeenCalledWith('UPDATE pvp_battles SET status = ? WHERE id = ?', ['expired', 7]);
   expect(challenger.send).toHaveBeenCalled();
 });

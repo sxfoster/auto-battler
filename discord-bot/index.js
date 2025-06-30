@@ -8,7 +8,7 @@ client.commands = new Collection();
 
 const gameHandlers = require('./src/commands/game');
 const inventoryHandlers = require('./commands/inventory');
-const challengeHandlers = require('./challenge');
+const challengeHandlers = require('./src/commands/challenge');
 
 const commandDirs = [
   path.join(__dirname, 'commands'),
