@@ -7,9 +7,9 @@ const {
 } = require('discord.js');
 const userService = require('../utils/userService');
 const abilityCardService = require('../utils/abilityCardService');
-const { sendCardDM, buildBattleEmbed } = require('../utils/embedBuilder');
+const { sendCardDM } = require('../utils/embedBuilder');
+const { runBattleLoop, sendBattleLogDM, formatLog } = require('../utils/battleRunner');
 
-const MAX_LOG_LINES = 20;
 const GameEngine = require('../../../backend/game/engine');
 const { createCombatant } = require('../../../backend/game/utils');
 const { allPossibleHeroes, allPossibleAbilities } = require('../../../backend/game/data');
@@ -20,25 +20,6 @@ function respond(interaction, options) {
     return interaction.followUp(options);
   }
   return interaction.reply(options);
-}
-
-function formatLog(entry) {
-  const prefix = `[R${entry.round}]`;
-  let text = entry.message;
-
-  switch (entry.type) {
-    case 'round':
-      return `\n**--- ${text} ---**\n`;
-    case 'ability-cast':
-      return `\`\`\`diff\n+ ${prefix} ${text}\n\`\`\``;
-    case 'victory':
-    case 'defeat':
-      return `🏆 **${text}** 🏆`;
-    case 'status':
-      return `\`\`\`css\n. ${prefix} ${text}\n\`\`\``;
-    default:
-      return `${prefix} ${text}`;
-  }
 }
 
 const data = new SlashCommandBuilder()
@@ -122,32 +103,7 @@ async function execute(interaction) {
   });
 
   const engine = new GameEngine([player, goblin]);
-  let battleMessage;
-  const fullLog = [];
-  const engineIterator = engine.runGameSteps();
-  let currentStep = engineIterator.next();
-  while (!currentStep.done) {
-    const roundNumber = engine.roundCounter;
-    let roundLogs = [];
-    let lastCombatants = currentStep.value.combatants;
-    while (engine.roundCounter === roundNumber && !currentStep.done) {
-      roundLogs.push(...currentStep.value.log);
-      fullLog.push(...currentStep.value.log);
-      lastCombatants = currentStep.value.combatants;
-      currentStep = engineIterator.next();
-    }
-
-    const summaryLog = fullLog.filter(entry => entry.level === 'summary');
-    const logText = summaryLog.map(formatLog).slice(-MAX_LOG_LINES).join('\n');
-    const embed = buildBattleEmbed(lastCombatants, logText);
-
-    if (!battleMessage) {
-      battleMessage = await interaction.followUp({ embeds: [embed] });
-    } else {
-      await new Promise(r => setTimeout(r, 250));
-      await battleMessage.edit({ embeds: [embed] });
-    }
-  }
+  const { fullLog } = await runBattleLoop(interaction, engine, { waitMs: 250 });
 
   console.log(
     `[BATTLE END] User: ${interaction.user.username} | Result: ${
@@ -196,53 +152,7 @@ async function execute(interaction) {
     );
   }
 
-  const finalLogString = fullLog
-    .map(entry => {
-      let prefix = `[R${entry.round}]`;
-      let message = entry.message;
-      switch (entry.type) {
-        case 'round':
-          return `\n--- ${message} ---\n`;
-        case 'ability-cast':
-          message = `✨ ${message}`;
-          break;
-        case 'defeat':
-        case 'victory':
-          message = `🏆 ${message} 🏆`;
-          break;
-        case 'status':
-          message = `💀 ${message}`;
-          break;
-      }
-      return `${prefix} ${message}`.trim();
-    })
-    .join('\n');
-
-  const logBuffer = Buffer.from(finalLogString, 'utf-8');
-
-  if (user.dm_battle_logs_enabled) {
-    try {
-      if (typeof interaction.user.send === 'function') {
-        await interaction.user.send({
-          content: 'Here is the full transcript of your last battle:',
-          files: [{ attachment: logBuffer, name: `battle-log-${Date.now()}.txt` }]
-        });
-      } else {
-        throw new Error('DM function unavailable');
-      }
-    } catch (error) {
-      console.error(`Could not send battle log DM to ${interaction.user.tag}.`, error);
-      await interaction.followUp({
-        content:
-          "I couldn't DM you the full battle log. Please check your privacy settings if you'd like to receive them in the future.",
-        ephemeral: true
-      });
-    }
-  } else {
-    console.log(
-      `[DM DISABLED] Skipping battle log DM for ${interaction.user.username} (dm_battle_logs_enabled = false)`
-    );
-  }
+  await sendBattleLogDM(interaction, user, fullLog);
 
   if (lootDrop) {
     if (user.dm_item_drops_enabled) {
