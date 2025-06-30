@@ -46,8 +46,9 @@ async function incrementPvpLoss(userId) {
 
 async function getLeaderboardData() {
   const [rows] = await db.query(`
-        SELECT 
+        SELECT
             name,
+            discord_id,
             pve_wins, pve_losses,
             pvp_wins, pvp_losses,
             CASE WHEN pve_losses = 0 THEN pve_wins + 99999 ELSE pve_wins / pve_losses END AS pve_ratio,
