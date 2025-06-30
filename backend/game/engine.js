@@ -17,11 +17,11 @@ class GameEngine {
         this.roundCounter = 0;
     }
 
-    log(entry) {
+    log(entry, level = 'detail') {
         if (typeof entry === 'string') {
             entry = { type: 'info', message: entry };
         }
-        this.battleLog.push({ round: this.roundCounter, ...entry });
+        this.battleLog.push({ round: this.roundCounter, level, ...entry });
     }
 
     getEffectiveSpeed(combatant) {
@@ -63,7 +63,7 @@ class GameEngine {
                this.log({ type: 'damage', message: `${attacker.heroData.name} hits ${target.heroData.name} for ${effective} damage.` });
            }
            if (target.currentHp <= 0) {
-               this.log({ type: 'status', message: `💀 ${target.heroData.name} has been defeated.` });
+               this.log({ type: 'status', message: `💀 ${target.heroData.name} has been defeated.` }, 'summary');
            }
        }
        return effective;
@@ -147,7 +147,7 @@ class GameEngine {
        }
 
        // first log line - announce ability usage
-       this.log({ type: 'ability-cast', message: `${attacker.heroData.name} uses ${ability.name}!` });
+       this.log({ type: 'ability-cast', message: `${attacker.heroData.name} uses ${ability.name}!` }, 'summary');
 
        // build description of the ability effects
        let descParts = [];
@@ -191,16 +191,16 @@ class GameEngine {
        if (multiTarget && damageDealt > 0) {
            const enemies = this.combatants.filter(c => c.team !== attacker.team && c.currentHp <= 0);
            for (const enemy of enemies) {
-               this.log({ type: 'status', message: `💀 ${enemy.heroData.name} has been defeated.` });
+               this.log({ type: 'status', message: `💀 ${enemy.heroData.name} has been defeated.` }, 'summary');
            }
        } else if (damageDealt > 0 && target.currentHp <= 0) {
-           this.log({ type: 'status', message: `💀 ${target.heroData.name} has been defeated.` });
+           this.log({ type: 'status', message: `💀 ${target.heroData.name} has been defeated.` }, 'summary');
        }
    }
 
    startRound() {
        this.roundCounter++;
-       this.log({ type: 'round', message: `--- Round ${this.roundCounter} ---` });
+       this.log({ type: 'round', message: `--- Round ${this.roundCounter} ---` }, 'summary');
        this.turnQueue = this.computeTurnQueue();
    }
 
@@ -343,7 +343,7 @@ class GameEngine {
                }
            }
        }
-       this.log({ type: this.winner === 'player' ? 'victory' : 'defeat', message: '🏆 --- Battle Finished! --- 🏆' });
+       this.log({ type: this.winner === 'player' ? 'victory' : 'defeat', message: '🏆 --- Battle Finished! --- 🏆' }, 'summary');
        if (this.battleLog.length > lastIndex) {
            yield { combatants: this.combatants.map(c => ({ ...c })), log: this.battleLog.slice(lastIndex) };
        }

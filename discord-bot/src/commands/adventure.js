@@ -12,10 +12,20 @@ const classAbilityMap = require('../data/classAbilityMap');
 function formatLog(entry) {
   const prefix = `[R${entry.round}]`;
   let text = entry.message;
-  if (entry.type === 'round') text = `**${text}**`;
-  else if (entry.type === 'victory' || entry.type === 'defeat') text = `🏆 **${text}** 🏆`;
-  else if (entry.type === 'ability-cast') text = `*${text}*`;
-  return `${prefix} ${text}`;
+
+  switch (entry.type) {
+    case 'round':
+      return `\n**--- ${text} ---**\n`;
+    case 'ability-cast':
+      return `\`\`\`diff\n+ ${prefix} ${text}\n\`\`\``;
+    case 'victory':
+    case 'defeat':
+      return `🏆 **${text}** 🏆`;
+    case 'status':
+      return `\`\`\`css\n. ${prefix} ${text}\n\`\`\``;
+    default:
+      return `${prefix} ${text}`;
+  }
 }
 
 const data = new SlashCommandBuilder()
@@ -74,12 +84,9 @@ async function execute(interaction) {
   const fullLog = [];
   for (const step of engine.runGameSteps()) {
     fullLog.push(...step.log);
-    const formatted = step.log.map(formatLog);
-    logText = [logText, ...formatted].filter(Boolean).join('\n');
-    const lines = logText.split('\n');
-    if (lines.length > MAX_LOG_LINES) {
-      logText = lines.slice(-MAX_LOG_LINES).join('\n');
-    }
+    const summaryLog = fullLog.filter(entry => entry.level === 'summary');
+    const lines = summaryLog.map(formatLog);
+    logText = lines.slice(-MAX_LOG_LINES).join('\n');
     const embed = buildBattleEmbed(step.combatants, logText);
     if (!battleMessage) {
       battleMessage = await interaction.followUp({ embeds: [embed] });
