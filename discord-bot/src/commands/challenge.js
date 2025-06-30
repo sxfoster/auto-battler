@@ -176,12 +176,15 @@ async function handleAccept(interaction) {
   const logBuffer = Buffer.from(finalLogString, 'utf-8');
   const attachment = { attachment: logBuffer, name: `battle-log-${id}.txt` };
 
+  let dmFailed = false;
+
   if (challenger.dm_battle_logs_enabled) {
     try {
       const challengerDiscordUser = await interaction.client.users.fetch(challenger.discord_id);
       await challengerDiscordUser.send({ files: [attachment] });
     } catch (e) {
       console.error(`Failed to DM log to challenger ${challenger.name}`);
+      dmFailed = true;
     }
   } else {
     console.log(
@@ -195,6 +198,7 @@ async function handleAccept(interaction) {
       await challengedDiscordUser.send({ files: [attachment] });
     } catch (e) {
       console.error(`Failed to DM log to challenged user ${challenged.name}`);
+      dmFailed = true;
     }
   } else {
     console.log(
@@ -212,6 +216,14 @@ async function handleAccept(interaction) {
     await channel.send(victoryMessage);
   } catch (e) {
     /* ignore */
+  }
+
+  if (dmFailed) {
+    await interaction.followUp({
+      content:
+        "I couldn't DM one or both players the battle log. Please check your privacy settings.",
+      ephemeral: true
+    });
   }
 
   await interaction.update({ content: 'Challenge accepted! Battle complete.', components: [] });

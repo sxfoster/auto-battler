@@ -70,6 +70,10 @@ async function execute(interaction) {
     await sendCardDM(target, ability);
   } catch (err) {
     console.error('Failed to DM ability card:', err);
+    await interaction.followUp({
+      content: "I couldn't DM the ability card. Please check the target's privacy settings.",
+      ephemeral: true
+    });
   }
 }
 

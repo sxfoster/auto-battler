@@ -256,4 +256,47 @@ describe('adventure command', () => {
     expect(embedBuilder.sendCardDM).not.toHaveBeenCalled();
     Math.random.mockRestore();
   });
+
+  test('notifies when battle log DM fails', async () => {
+    userService.getUser.mockResolvedValue({
+      id: 1,
+      discord_id: '123',
+      class: 'Warrior',
+      equipped_ability_id: 50,
+      dm_battle_logs_enabled: true,
+      dm_item_drops_enabled: true
+    });
+    abilityCardService.getCards.mockResolvedValue([{ id: 50, ability_id: 3111, charges: 5 }]);
+    const interaction = {
+      user: { id: '123', username: 'tester', send: jest.fn().mockRejectedValue(new Error('fail')) },
+      reply: jest.fn().mockResolvedValue(),
+      followUp: jest.fn().mockResolvedValue()
+    };
+    await adventure.execute(interaction);
+    const ephemerals = interaction.followUp.mock.calls.filter(c => c[0].ephemeral);
+    expect(ephemerals.length).toBeGreaterThan(0);
+  });
+
+  test('notifies when item drop DM fails', async () => {
+    userService.getUser.mockResolvedValue({
+      id: 1,
+      discord_id: '123',
+      class: 'Warrior',
+      equipped_ability_id: 50,
+      dm_battle_logs_enabled: true,
+      dm_item_drops_enabled: true
+    });
+    abilityCardService.getCards.mockResolvedValue([{ id: 50, ability_id: 3111, charges: 5 }]);
+    jest.spyOn(Math, 'random').mockReturnValue(0);
+    embedBuilder.sendCardDM.mockRejectedValue(new Error('fail'));
+    const interaction = {
+      user: { id: '123', username: 'tester', send: jest.fn().mockResolvedValue() },
+      reply: jest.fn().mockResolvedValue(),
+      followUp: jest.fn().mockResolvedValue()
+    };
+    await adventure.execute(interaction);
+    const ephemerals = interaction.followUp.mock.calls.filter(c => c[0].ephemeral);
+    expect(ephemerals.length).toBeGreaterThan(0);
+    Math.random.mockRestore();
+  });
 });
