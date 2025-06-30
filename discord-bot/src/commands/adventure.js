@@ -111,8 +111,11 @@ async function execute(interaction) {
     }`
   );
 
+  let goldEarned = 0;
   if (engine.winner === 'player') {
     await userService.incrementPveWin(user.id);
+    goldEarned = Math.floor(Math.random() * 3);
+    await userService.addGold(interaction.user.id, goldEarned);
   } else {
     await userService.incrementPveLoss(user.id);
   }
@@ -123,14 +126,14 @@ async function execute(interaction) {
   const enemyName = `a **Goblin ${goblinBase.name}**`;
 
   if (engine.winner === 'player') {
-    let dropText = 'who was slain.';
+    let dropText = `who was slain and dropped ${goldEarned} gold.`;
     if (Math.random() < 0.5) {
       const lootOptions = allPossibleAbilities.filter(
         a => a.class === goblinBase.class && a.rarity === 'Common'
       );
       lootDrop = lootOptions[Math.floor(Math.random() * lootOptions.length)];
       if (lootDrop) {
-        dropText = `who was slain and dropped **${lootDrop.name}**.`;
+        dropText = `who was slain and dropped **${lootDrop.name}** and ${goldEarned} gold.`;
         console.log(
           `[ITEM LOOT] User: ${interaction.user.username} looted Ability: ${lootDrop.name} (ID: ${lootDrop.id})`
         );

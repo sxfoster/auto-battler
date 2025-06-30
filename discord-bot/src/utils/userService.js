@@ -28,6 +28,16 @@ async function addAbility(discordId, abilityId) {
   return abilityCards.addCard(user.id, abilityId);
 }
 
+async function addGold(discordId, amount) {
+  const user = await getUser(discordId);
+  if (!user) return null;
+  await db.query(
+    'UPDATE users SET gold = IFNULL(gold, 0) + ? WHERE id = ?',
+    [amount, user.id]
+  );
+  return { discordId, amount };
+}
+
 async function incrementPveWin(userId) {
   await db.query('UPDATE users SET pve_wins = pve_wins + 1 WHERE id = ?', [userId]);
 }
@@ -107,5 +117,6 @@ module.exports = {
   incrementPveLoss,
   incrementPvpWin,
   incrementPvpLoss,
-  getLeaderboardData
+  getLeaderboardData,
+  addGold
 };

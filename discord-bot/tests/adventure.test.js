@@ -5,7 +5,8 @@ jest.mock('../src/utils/userService', () => ({
   setActiveAbility: jest.fn(),
   setDmPreference: jest.fn(),
   incrementPveWin: jest.fn(),
-  incrementPveLoss: jest.fn()
+  incrementPveLoss: jest.fn(),
+  addGold: jest.fn()
 }));
 jest.mock('../src/utils/abilityCardService', () => ({
   getCards: jest.fn()
@@ -55,6 +56,7 @@ describe('adventure command', () => {
     };
     await adventure.execute(interaction);
     expect(userService.createUser).toHaveBeenCalledWith('123', 'tester');
+    expect(userService.addGold).toHaveBeenCalledWith('123', expect.any(Number));
     expect(interaction.reply).toHaveBeenCalledWith(
       expect.objectContaining({ content: expect.stringContaining('Goblin') })
     );
@@ -74,6 +76,7 @@ describe('adventure command', () => {
       'player',
       0
     );
+    expect(userService.addGold).toHaveBeenCalledWith('123', expect.any(Number));
     expect(interaction.reply).toHaveBeenCalledWith(expect.objectContaining({ content: expect.stringContaining('Goblin') }));
     expect(interaction.followUp).toHaveBeenCalledWith(expect.objectContaining({ embeds: expect.any(Array) }));
   });
@@ -100,6 +103,7 @@ describe('adventure command', () => {
       a => a.class === baseHeroes[0].class && a.rarity === 'Common'
     ).id;
     expect(userService.addAbility).toHaveBeenCalledWith('123', expectedId);
+    expect(userService.addGold).toHaveBeenCalledWith('123', expect.any(Number));
     Math.random.mockRestore();
     expect(interaction.followUp).toHaveBeenCalledWith(
       expect.objectContaining({ embeds: expect.any(Array) })
@@ -119,6 +123,7 @@ describe('adventure command', () => {
     await adventure.execute(interaction);
     expect(abilityCardService.getCards).toHaveBeenCalledWith(1);
     expect(userService.addAbility).not.toHaveBeenCalled();
+    expect(userService.addGold).not.toHaveBeenCalled();
     const calls = interaction.followUp.mock.calls.filter(c => c[0].ephemeral);
     expect(calls.length).toBe(0);
   });
@@ -140,6 +145,7 @@ describe('adventure command', () => {
     const interaction = { user: { id: '123', username: 'tester' }, reply: jest.fn().mockResolvedValue(), followUp: jest.fn().mockResolvedValue() };
     await adventure.execute(interaction);
     expect(abilityCardService.getCards).toHaveBeenCalledWith(1);
+    expect(userService.addGold).toHaveBeenCalledWith('123', expect.any(Number));
     const description = interaction.followUp.mock.calls[0][0].embeds[0].data.description;
     expect(description.includes('first')).toBe(true);
     expect(description.includes('second')).toBe(true);
@@ -158,6 +164,7 @@ describe('adventure command', () => {
       a => a.class === baseHeroes[index].class && a.rarity === 'Common'
     ).id;
     expect(userService.addAbility).toHaveBeenCalledWith('123', expectedDrop);
+    expect(userService.addGold).toHaveBeenCalledWith('123', expect.any(Number));
     Math.random.mockRestore();
   });
 
@@ -176,6 +183,7 @@ describe('adventure command', () => {
     const interaction = { user: { id: '123', username: 'tester' }, reply: jest.fn().mockResolvedValue(), followUp: jest.fn().mockResolvedValue() };
     await adventure.execute(interaction);
     expect(abilityCardService.getCards).toHaveBeenCalledWith(1);
+    expect(userService.addGold).toHaveBeenCalledWith('123', expect.any(Number));
     const description = interaction.followUp.mock.calls[0][0].embeds[0].data.description;
     const lines = description.split('\n');
     expect(lines.length).toBe(20);
@@ -194,6 +202,7 @@ describe('adventure command', () => {
     abilityCardService.getCards.mockResolvedValue([{ id: 50, ability_id: 3111, charges: 5 }]);
     const interaction = { user: { id: '123', username: 'tester' }, reply: jest.fn().mockResolvedValue(), followUp: jest.fn().mockResolvedValue() };
     await adventure.execute(interaction);
+    expect(userService.addGold).toHaveBeenCalledWith('123', expect.any(Number));
     expect(userService.setActiveAbility).toHaveBeenCalledWith('123', 99);
   });
 
@@ -224,6 +233,7 @@ describe('adventure command', () => {
       followUp: jest.fn().mockResolvedValue()
     };
     await adventure.execute(interaction);
+    expect(userService.addGold).toHaveBeenCalledWith('123', expect.any(Number));
     expect(interaction.user.send).not.toHaveBeenCalled();
   });
 
@@ -255,6 +265,7 @@ describe('adventure command', () => {
       followUp: jest.fn().mockResolvedValue()
     };
     await adventure.execute(interaction);
+    expect(userService.addGold).toHaveBeenCalledWith('123', expect.any(Number));
     expect(embedBuilder.sendCardDM).not.toHaveBeenCalled();
     Math.random.mockRestore();
   });
@@ -275,6 +286,7 @@ describe('adventure command', () => {
       followUp: jest.fn().mockResolvedValue()
     };
     await adventure.execute(interaction);
+    expect(userService.addGold).toHaveBeenCalledWith('123', expect.any(Number));
     const ephemerals = interaction.followUp.mock.calls.filter(c => c[0].ephemeral);
     expect(ephemerals.length).toBeGreaterThan(0);
   });
@@ -297,6 +309,7 @@ describe('adventure command', () => {
       followUp: jest.fn().mockResolvedValue()
     };
     await adventure.execute(interaction);
+    expect(userService.addGold).toHaveBeenCalledWith('123', expect.any(Number));
     const ephemerals = interaction.followUp.mock.calls.filter(c => c[0].ephemeral);
     expect(ephemerals.length).toBeGreaterThan(0);
     Math.random.mockRestore();
