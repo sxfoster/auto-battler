@@ -60,6 +60,8 @@ CREATE TABLE IF NOT EXISTS pvp_battles (
     challenger_id INT NOT NULL,
     challenged_id INT NOT NULL,
     status ENUM('pending','accepted','declined','expired') DEFAULT 'pending',
+    message_id VARCHAR(255) DEFAULT NULL,
+    channel_id VARCHAR(255) DEFAULT NULL,
     winner_id INT DEFAULT NULL,
     battle_log TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
