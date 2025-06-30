@@ -132,8 +132,10 @@ async function handleAccept(interaction) {
   const challengedEquipped = challengedCards.find(c => c.id === challenged.equipped_ability_id);
   const challengedDeck = challengedCards.filter(c => c.id !== challenged.equipped_ability_id);
 
-  const chalHero = allPossibleHeroes.find(h => (h.class === challenger.class || h.name === challenger.class) && h.isBase);
-  const oppHero = allPossibleHeroes.find(h => (h.class === challenged.class || h.name === challenged.class) && h.isBase);
+  const chalClass = classAbilityMap[challenger.class] || challenger.class;
+  const oppClass = classAbilityMap[challenged.class] || challenged.class;
+  const chalHero = allPossibleHeroes.find(h => h.class === chalClass && h.isBase);
+  const oppHero = allPossibleHeroes.find(h => h.class === oppClass && h.isBase);
 
   const player1 = createCombatant({ hero_id: chalHero.id, ability_card: chalEquipped, deck: chalDeck }, 'player', 0);
   const player2 = createCombatant({ hero_id: oppHero.id, ability_card: challengedEquipped, deck: challengedDeck }, 'enemy', 0);

@@ -31,7 +31,8 @@ async function execute(interaction) {
     return;
   }
 
-  const playerHero = allPossibleHeroes.find(h => (h.class === user.class || h.name === user.class) && h.isBase);
+  const playerClass = classAbilityMap[user.class] || user.class;
+  const playerHero = allPossibleHeroes.find(h => h.class === playerClass && h.isBase);
   if (!playerHero) {
     await interaction.reply({ content: 'Required hero data missing.', ephemeral: true });
     return;
@@ -40,7 +41,8 @@ async function execute(interaction) {
   // Pick a random class for the goblin opponent
   const classNames = classes.map(c => c.name);
   const goblinClass = classNames[Math.floor(Math.random() * classNames.length)];
-  const goblinBase = allPossibleHeroes.find(h => (h.class === goblinClass || h.name === goblinClass) && h.isBase);
+  const goblinArchetype = classAbilityMap[goblinClass] || goblinClass;
+  const goblinBase = allPossibleHeroes.find(h => h.class === goblinArchetype && h.isBase);
 
   if (!goblinBase) {
     await interaction.reply({ content: 'Required goblin data missing.', ephemeral: true });
