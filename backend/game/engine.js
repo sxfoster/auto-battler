@@ -42,7 +42,11 @@ class GameEngine {
 
    applyDamage(attacker, target, baseDamage) {
        target.currentHp = Math.max(0, target.currentHp - baseDamage);
-       this.log({ type: 'damage', message: `${attacker.heroData.name} hits ${target.heroData.name} for ${baseDamage} damage.` });
+       if (attacker === target) {
+           this.log({ type: 'damage', message: `${target.heroData.name} takes ${baseDamage} damage.` });
+       } else {
+           this.log({ type: 'damage', message: `${attacker.heroData.name} hits ${target.heroData.name} for ${baseDamage} damage.` });
+       }
        if (target.currentHp <= 0) {
            this.log({ type: 'status', message: `💀 ${target.heroData.name} has been defeated.` });
        }
@@ -88,6 +92,24 @@ class GameEngine {
            this.applyHeal(healTarget, healingDone);
        }
 
+       // process heal over time effects
+       const hotMatch = ability.effect.match(/Heal .* for (\d+) HP per turn over (\d+) turns/i);
+       if (hotMatch) {
+           const healing = parseInt(hotMatch[1], 10);
+           const turns = parseInt(hotMatch[2], 10);
+           target.statusEffects.push({ name: 'Regrowth', healing, turnsRemaining: turns, sourceAbility: ability.name });
+           this.log({ type: 'status', message: `↳ ${target.heroData.name} is blessed with Regrowth.` });
+       }
+
+       const poisonMatchDetailed = ability.effect.match(/apply Poison \((\d+) dmg\/turn for (\d+) turns\)/i);
+       const poisonMatchSimple = ability.effect.match(/poison .* for (\d+) turns/i);
+       if (poisonMatchDetailed || poisonMatchSimple) {
+           const damage = poisonMatchDetailed ? parseInt(poisonMatchDetailed[1], 10) : 1;
+           const turns = poisonMatchDetailed ? parseInt(poisonMatchDetailed[2], 10) : parseInt(poisonMatchSimple[1], 10);
+           target.statusEffects.push({ name: 'Poison', damage, turnsRemaining: turns, sourceAbility: ability.name });
+           this.log({ type: 'status', message: `↳ ${target.heroData.name} is poisoned.` });
+       }
+
        // first log line - announce ability usage
        this.log({ type: 'ability-cast', message: `${attacker.heroData.name} uses ${ability.name}!` });
 
@@ -118,6 +140,7 @@ class GameEngine {
        }
        remaining = remaining.replace(/heal yourself for \d+ HP\.?/i, '')
                            .replace(/Heal .*? for \d+ HP\.?/i, '')
+                           .replace(/per turn over \d+ turns\.?/i, '')
                            .trim();
        if (remaining.toLowerCase().startsWith('and ')) {
            remaining = remaining.slice(4);
@@ -147,11 +170,25 @@ class GameEngine {
 
    processStatuses(combatant) {
        let skip = false;
-        if (combatant.statusEffects.some(s => s.name === 'Stun')) {
-         this.log({ type: 'status', message: `${combatant.heroData.name} is stunned and misses the turn.` });
-         skip = true;
+       for (const effect of [...combatant.statusEffects]) {
+           if (effect.name === 'Regrowth') {
+               this.applyHeal(combatant, effect.healing);
+               this.log({ type: 'status', message: `💚 ${combatant.heroData.name} is healed for ${effect.healing} by Regrowth.` });
+           } else if (effect.name === 'Poison') {
+               this.applyDamage(combatant, combatant, effect.damage);
+               this.log({ type: 'status', message: `☣️ ${combatant.heroData.name} takes ${effect.damage} poison damage.` });
+           }
+           effect.turnsRemaining -= 1;
+           if (effect.turnsRemaining <= 0) {
+               combatant.statusEffects = combatant.statusEffects.filter(e => e !== effect);
+               this.log({ type: 'status', message: `${effect.name} on ${combatant.heroData.name} has worn off.` });
+           }
        }
-       // Future status effect processing (poison, etc.) would go here.
+
+       if (combatant.statusEffects.some(s => s.name === 'Stun')) {
+           this.log({ type: 'status', message: `${combatant.heroData.name} is stunned and misses the turn.` });
+           skip = true;
+       }
        return skip;
    }
 
