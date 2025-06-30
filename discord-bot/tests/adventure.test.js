@@ -55,11 +55,11 @@ describe('adventure command', () => {
       { id: 50, ability_id: 3111, charges: 5 },
       { id: 51, ability_id: 3112, charges: 5 }
     ]);
-    const interaction = { user: { id: '123' }, reply: jest.fn().mockResolvedValue(), followUp: jest.fn().mockResolvedValue() };
+    const interaction = { user: { id: '123', username: 'tester' }, reply: jest.fn().mockResolvedValue(), followUp: jest.fn().mockResolvedValue() };
     await adventure.execute(interaction);
     expect(abilityCardService.getCards).toHaveBeenCalledWith(1);
     expect(createCombatantSpy).toHaveBeenCalledWith(
-      expect.objectContaining({ ability_card: { id: 50, ability_id: 3111, charges: 5 } }),
+      expect.objectContaining({ ability_card: { id: 50, ability_id: 3111, charges: 5 }, name: 'tester' }),
       'player',
       0
     );
@@ -70,7 +70,7 @@ describe('adventure command', () => {
   test('ability drop message sent', async () => {
     userService.getUser.mockResolvedValue({ id: 1, discord_id: '123', class: 'Warrior', equipped_ability_id: 50 });
     abilityCardService.getCards.mockResolvedValue([{ id: 50, ability_id: 3111, charges: 5 }]);
-    const interaction = { user: { id: '123' }, reply: jest.fn().mockResolvedValue(), followUp: jest.fn().mockResolvedValue() };
+    const interaction = { user: { id: '123', username: 'tester' }, reply: jest.fn().mockResolvedValue(), followUp: jest.fn().mockResolvedValue() };
     jest.spyOn(Math, 'random').mockReturnValue(0);
     await adventure.execute(interaction);
     expect(abilityCardService.getCards).toHaveBeenCalledWith(1);
@@ -92,7 +92,7 @@ describe('adventure command', () => {
     }));
     userService.getUser.mockResolvedValue({ id: 1, discord_id: '123', class: 'Warrior', equipped_ability_id: 50 });
     abilityCardService.getCards.mockResolvedValue([{ id: 50, ability_id: 3111, charges: 5 }]);
-    const interaction = { user: { id: '123' }, reply: jest.fn().mockResolvedValue(), followUp: jest.fn().mockResolvedValue() };
+    const interaction = { user: { id: '123', username: 'tester' }, reply: jest.fn().mockResolvedValue(), followUp: jest.fn().mockResolvedValue() };
     await adventure.execute(interaction);
     expect(abilityCardService.getCards).toHaveBeenCalledWith(1);
     expect(userService.addAbility).not.toHaveBeenCalled();
@@ -113,7 +113,7 @@ describe('adventure command', () => {
     }));
     userService.getUser.mockResolvedValue({ id: 1, discord_id: '123', class: 'Barbarian', equipped_ability_id: 50 });
     abilityCardService.getCards.mockResolvedValue([{ id: 50, ability_id: 3111, charges: 5 }]);
-    const interaction = { user: { id: '123' }, reply: jest.fn().mockResolvedValue(), followUp: jest.fn().mockResolvedValue() };
+    const interaction = { user: { id: '123', username: 'tester' }, reply: jest.fn().mockResolvedValue(), followUp: jest.fn().mockResolvedValue() };
     await adventure.execute(interaction);
     expect(abilityCardService.getCards).toHaveBeenCalledWith(1);
     const description = interaction.followUp.mock.calls[0][0].embeds[0].data.description;
@@ -127,7 +127,7 @@ describe('adventure command', () => {
     jest.spyOn(Math, 'random').mockReturnValue(index / baseHeroes.length + 0.0001);
     userService.getUser.mockResolvedValue({ id: 1, discord_id: '123', class: 'Warrior', equipped_ability_id: 50 });
     abilityCardService.getCards.mockResolvedValue([{ id: 50, ability_id: 3111, charges: 5 }]);
-    const interaction = { user: { id: '123', send: jest.fn().mockResolvedValue() }, reply: jest.fn().mockResolvedValue(), followUp: jest.fn().mockResolvedValue() };
+    const interaction = { user: { id: '123', username: 'tester', send: jest.fn().mockResolvedValue() }, reply: jest.fn().mockResolvedValue(), followUp: jest.fn().mockResolvedValue() };
     await adventure.execute(interaction);
     expect(abilityCardService.getCards).toHaveBeenCalledWith(1);
     const expectedDrop = allPossibleAbilities.find(
@@ -148,7 +148,7 @@ describe('adventure command', () => {
     }));
     userService.getUser.mockResolvedValue({ id: 1, discord_id: '123', class: 'Barbarian', equipped_ability_id: 50 });
     abilityCardService.getCards.mockResolvedValue([{ id: 50, ability_id: 3111, charges: 5 }]);
-    const interaction = { user: { id: '123' }, reply: jest.fn().mockResolvedValue(), followUp: jest.fn().mockResolvedValue() };
+    const interaction = { user: { id: '123', username: 'tester' }, reply: jest.fn().mockResolvedValue(), followUp: jest.fn().mockResolvedValue() };
     await adventure.execute(interaction);
     expect(abilityCardService.getCards).toHaveBeenCalledWith(1);
     const description = interaction.followUp.mock.calls[0][0].embeds[0].data.description;

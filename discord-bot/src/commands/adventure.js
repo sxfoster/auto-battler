@@ -66,12 +66,14 @@ async function execute(interaction) {
   const player = createCombatant({
     hero_id: playerHero.id,
     ability_card: equippedCard,
-    deck: deck
+    deck: deck,
+    name: interaction.user.username
   }, 'player', 0);
 
   const goblin = createCombatant({ hero_id: goblinBase.id, deck: goblinAbilities }, 'enemy', 0);
 
   goblin.heroData = { ...goblin.heroData, name: `Goblin ${goblinBase.name}` };
+  goblin.name = goblin.heroData.name;
 
   console.log(`[BATTLE START] Player ${playerClass} vs Goblin ${goblinBase.name}`);
 
