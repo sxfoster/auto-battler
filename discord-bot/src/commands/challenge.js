@@ -37,7 +37,7 @@ async function execute(interaction) {
   );
   const challengeId = result.insertId;
 
-  const announcementChannel = await interaction.client.channels.fetch(process.env.ANNOUNCEMENT_CHANNEL_ID);
+  const announcementChannel = await interaction.client.channels.fetch(process.env.PVP_CHANNEL_ID);
   const publicMessage = await announcementChannel.send({
     content: `${interaction.user.username} has challenged ${target.username}!`
   });

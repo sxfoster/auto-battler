@@ -19,7 +19,7 @@ beforeEach(() => {
     battleLog: [],
     winner: 'player'
   }));
-  process.env.ANNOUNCEMENT_CHANNEL_ID = '100';
+  process.env.PVP_CHANNEL_ID = '100';
   jest.useFakeTimers();
 });
 
