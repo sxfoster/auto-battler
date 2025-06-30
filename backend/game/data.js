@@ -144,6 +144,16 @@ const allPossibleHeroes = [
     { type: 'hero', id: 9001, name: 'Goblin', class: 'Goblin', rarity: 'Common', hp: 10, attack: 1, speed: 4, isMonster: true, abilities: [] },
 ];
 
+// Assign base defense values. Most heroes have 0 defense by default, while
+// tank-like classes start with a bit more.
+const classDefense = {
+    'Stalwart Defender': 2,
+    'Holy Warrior': 2,
+};
+allPossibleHeroes.forEach(h => {
+    h.defense = classDefense[h.class] ?? 0;
+});
+
 const allPossibleMinions = {
     SKELETON: {
         id: 'MINION_SKELETON',

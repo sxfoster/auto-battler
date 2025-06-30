@@ -29,7 +29,7 @@ describe('Ability effect application', () => {
 
     expect(p.currentHp).toBe(player.maxHp - 4 - 2 + 2); // took 2 damage then healed 2
 
-    const expectedEnemyHp = enemy.maxHp - player.attack * 3 - 2;
+    const expectedEnemyHp = enemy.maxHp - 4; // 3 reduced auto-attacks plus mitigated ability damage
     expect(e.currentHp).toBe(expectedEnemyHp);
 
     // log should show ability usage and a separate line with the effects

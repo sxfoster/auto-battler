@@ -40,21 +40,27 @@ class GameEngine {
        caster.currentHp = Math.min(caster.maxHp, caster.currentHp + amount);
    }
 
-   applyDamage(attacker, target, baseDamage) {
-       target.currentHp = Math.max(0, target.currentHp - baseDamage);
-       if (attacker === target) {
-           this.log({ type: 'damage', message: `${target.heroData.name} takes ${baseDamage} damage.` });
-       } else {
-           this.log({ type: 'damage', message: `${attacker.heroData.name} hits ${target.heroData.name} for ${baseDamage} damage.` });
+   applyDamage(attacker, target, baseDamage, options = {}) {
+       const { log = true } = options;
+       const defense = target.defense || 0;
+       const effective = Math.max(1, baseDamage - defense);
+       target.currentHp = Math.max(0, target.currentHp - effective);
+       if (log) {
+           if (attacker === target) {
+               this.log({ type: 'damage', message: `${target.heroData.name} takes ${effective} damage.` });
+           } else {
+               this.log({ type: 'damage', message: `${attacker.heroData.name} hits ${target.heroData.name} for ${effective} damage.` });
+           }
+           if (target.currentHp <= 0) {
+               this.log({ type: 'status', message: `💀 ${target.heroData.name} has been defeated.` });
+           }
        }
-       if (target.currentHp <= 0) {
-           this.log({ type: 'status', message: `💀 ${target.heroData.name} has been defeated.` });
-       }
+       return effective;
    }
 
    applyAbilityEffect(attacker, target, ability) {
 
-       let damageDealt = 0;
+       let damageDealt = 0; // actual damage after mitigation
        let healingDone = 0;
        let healTarget = null;
        let multiTarget = false;
@@ -62,17 +68,17 @@ class GameEngine {
        // check for multi-target damage phrases first
        const multiDamageMatch = ability.effect.match(/Deal (\d+) damage to (?:all|each) enemies/i);
        if (multiDamageMatch) {
-           damageDealt = parseInt(multiDamageMatch[1], 10);
+           const base = parseInt(multiDamageMatch[1], 10);
            multiTarget = true;
            const enemies = this.combatants.filter(c => c.team !== attacker.team && c.currentHp > 0);
            for (const enemy of enemies) {
-               enemy.currentHp = Math.max(0, enemy.currentHp - damageDealt);
+               damageDealt = this.applyDamage(attacker, enemy, base, { log: false });
            }
        } else {
            const damageMatch = ability.effect.match(/Deal (\d+) damage/i);
            if (damageMatch) {
-               damageDealt = parseInt(damageMatch[1], 10);
-               target.currentHp = Math.max(0, target.currentHp - damageDealt);
+               const base = parseInt(damageMatch[1], 10);
+               damageDealt = this.applyDamage(attacker, target, base, { log: false });
            }
        }
 
@@ -175,8 +181,8 @@ class GameEngine {
                this.applyHeal(combatant, effect.healing);
                this.log({ type: 'status', message: `💚 ${combatant.heroData.name} is healed for ${effect.healing} by Regrowth.` });
            } else if (effect.name === 'Poison') {
-               this.applyDamage(combatant, combatant, effect.damage);
-               this.log({ type: 'status', message: `☣️ ${combatant.heroData.name} takes ${effect.damage} poison damage.` });
+               const dealt = this.applyDamage(combatant, combatant, effect.damage, { log: false });
+               this.log({ type: 'status', message: `☣️ ${combatant.heroData.name} takes ${dealt} poison damage.` });
            }
            effect.turnsRemaining -= 1;
            if (effect.turnsRemaining <= 0) {
