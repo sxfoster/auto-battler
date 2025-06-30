@@ -250,6 +250,11 @@ async function execute(interaction) {
         await sendCardDM(interaction.user, lootDrop);
       } catch (err) {
         console.error('Failed to DM card drop:', err);
+        await interaction.followUp({
+          content:
+            "I couldn't DM you the item drop. Please check your privacy settings if you'd like to receive them in the future.",
+          ephemeral: true
+        });
       }
     } else {
       console.log(

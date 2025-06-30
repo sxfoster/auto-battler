@@ -19,7 +19,8 @@ function createInteraction(role = 'Game Master') {
       getUser: jest.fn().mockReturnValue({ id: '200', username: 'Target' }),
       getString: jest.fn()
     },
-    reply: jest.fn().mockResolvedValue()
+    reply: jest.fn().mockResolvedValue(),
+    followUp: jest.fn().mockResolvedValue()
   };
 }
 
@@ -71,6 +72,19 @@ describe('admin grant-ability command', () => {
       ephemeral: true,
       content: expect.stringContaining('successfully granted')
     }));
+  });
+
+  test('notifies when ability card DM fails', async () => {
+    const interaction = createInteraction();
+    interaction.options.getString.mockReturnValue('Power Strike');
+    userService.getUser.mockResolvedValue({ id: 1 });
+    userService.addAbility.mockResolvedValue(99);
+    sendCardDM.mockRejectedValue(new Error('fail'));
+    await admin.execute(interaction);
+    expect(sendCardDM).toHaveBeenCalled();
+    expect(interaction.followUp).toHaveBeenCalledWith(
+      expect.objectContaining({ ephemeral: true })
+    );
   });
 
   test('autocomplete suggests ability names', async () => {
