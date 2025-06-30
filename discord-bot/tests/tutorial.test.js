@@ -36,7 +36,7 @@ describe('tutorial command', () => {
   test('creates a user when none exists', async () => {
     userService.getUser.mockResolvedValueOnce(null).mockResolvedValueOnce({ id: 1 });
     const interaction = {
-      user: { id: '1', username: 'Tester', send: jest.fn().mockResolvedValue() },
+      user: { id: '1', username: 'Tester' },
       reply: jest.fn().mockResolvedValue(),
       followUp: jest.fn().mockResolvedValue()
     };
@@ -47,7 +47,7 @@ describe('tutorial command', () => {
   test('replies when already completed', async () => {
     userService.getUser.mockResolvedValue({ id: 1, tutorial_completed: 1 });
     const interaction = {
-      user: { id: '1', send: jest.fn().mockResolvedValue() },
+      user: { id: '1' },
       reply: jest.fn().mockResolvedValue()
     };
     await tutorial.execute(interaction);
@@ -57,7 +57,7 @@ describe('tutorial command', () => {
   test('grants a common ability and marks completion', async () => {
     userService.getUser.mockResolvedValue({ id: 1, tutorial_completed: 0 });
     const interaction = {
-      user: { id: '1', username: 'Tester', send: jest.fn().mockResolvedValue() },
+      user: { id: '1', username: 'Tester' },
       reply: jest.fn().mockResolvedValue(),
       followUp: jest.fn().mockResolvedValue()
     };
@@ -68,6 +68,8 @@ describe('tutorial command', () => {
     jest.runAllTimers();
     await Promise.resolve();
     expect(userService.markTutorialComplete).toHaveBeenCalledWith('1');
+    const ephemeralCalls = interaction.followUp.mock.calls.filter(c => c[0].ephemeral);
+    expect(ephemeralCalls.length).toBeGreaterThan(0);
     Math.random.mockRestore();
   });
 });
