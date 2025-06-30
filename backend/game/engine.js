@@ -58,9 +58,9 @@ class GameEngine {
        target.currentHp = Math.max(0, target.currentHp - effective);
        if (log) {
            if (attacker === target) {
-               this.log({ type: 'damage', message: `${target.heroData.name} takes ${effective} damage.` });
+               this.log({ type: 'damage', message: `${target.heroData.name} takes ${effective} damage.` }, 'summary');
            } else {
-               this.log({ type: 'damage', message: `${attacker.heroData.name} hits ${target.heroData.name} for ${effective} damage.` });
+               this.log({ type: 'damage', message: `${attacker.heroData.name} hits ${target.heroData.name} for ${effective} damage.` }, 'summary');
            }
            if (target.currentHp <= 0) {
                this.log({ type: 'status', message: `💀 ${target.heroData.name} has been defeated.` }, 'summary');

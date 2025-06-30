@@ -78,20 +78,29 @@ async function execute(interaction) {
   await interaction.reply({ content: `${interaction.user.username} delves into the goblin cave and encounters a ferocious Goblin ${goblinBase.name}! The battle begins!` });
 
   const engine = new GameEngine([player, goblin]);
-  const wait = ms => new Promise(r => setTimeout(r, ms));
   let battleMessage;
-  let logText = '';
   const fullLog = [];
-  for (const step of engine.runGameSteps()) {
-    fullLog.push(...step.log);
+  const engineIterator = engine.runGameSteps();
+  let currentStep = engineIterator.next();
+  while (!currentStep.done) {
+    const roundNumber = engine.roundCounter;
+    let roundLogs = [];
+    let lastCombatants = currentStep.value.combatants;
+    while (engine.roundCounter === roundNumber && !currentStep.done) {
+      roundLogs.push(...currentStep.value.log);
+      fullLog.push(...currentStep.value.log);
+      lastCombatants = currentStep.value.combatants;
+      currentStep = engineIterator.next();
+    }
+
     const summaryLog = fullLog.filter(entry => entry.level === 'summary');
-    const lines = summaryLog.map(formatLog);
-    logText = lines.slice(-MAX_LOG_LINES).join('\n');
-    const embed = buildBattleEmbed(step.combatants, logText);
+    const logText = summaryLog.map(formatLog).slice(-MAX_LOG_LINES).join('\n');
+    const embed = buildBattleEmbed(lastCombatants, logText);
+
     if (!battleMessage) {
       battleMessage = await interaction.followUp({ embeds: [embed] });
     } else {
-      await wait(1000);
+      await new Promise(r => setTimeout(r, 250));
       await battleMessage.edit({ embeds: [embed] });
     }
   }
