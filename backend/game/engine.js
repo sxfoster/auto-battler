@@ -40,13 +40,20 @@ class GameEngine {
        caster.currentHp = Math.min(caster.maxHp, caster.currentHp + amount);
    }
 
-   applyDamage(attacker, target, baseDamage) {
-       target.currentHp = Math.max(0, target.currentHp - baseDamage);
-       if (attacker === target) {
-           this.log({ type: 'damage', message: `${target.heroData.name} takes ${baseDamage} damage.` });
-       } else {
-           this.log({ type: 'damage', message: `${attacker.heroData.name} hits ${target.heroData.name} for ${baseDamage} damage.` });
+  applyDamage(attacker, target, baseDamage) {
+       let block = target.block || 0;
+       if (target.statusEffects.some(s => s.name === 'Defense Down')) {
+           block = Math.max(0, block - 1);
        }
+       const dmg = Math.max(1, baseDamage - block);
+       target.currentHp = Math.max(0, target.currentHp - dmg);
+
+       if (attacker === target) {
+           this.log({ type: 'damage', message: `${target.heroData.name} takes ${dmg} damage.` });
+       } else {
+           this.log({ type: 'damage', message: `${attacker.heroData.name} hits ${target.heroData.name} for ${dmg} damage.` });
+       }
+
        if (target.currentHp <= 0) {
            this.log({ type: 'status', message: `💀 ${target.heroData.name} has been defeated.` });
        }
@@ -170,6 +177,7 @@ class GameEngine {
 
    processStatuses(combatant) {
        let skip = false;
+
        for (const effect of [...combatant.statusEffects]) {
            if (effect.name === 'Regrowth') {
                this.applyHeal(combatant, effect.healing);
@@ -189,6 +197,8 @@ class GameEngine {
            this.log({ type: 'status', message: `${combatant.heroData.name} is stunned and misses the turn.` });
            skip = true;
        }
+
+
        return skip;
    }
 
@@ -215,6 +225,14 @@ class GameEngine {
 
        this.log({ type: 'turn', message: `> Turn: ${attacker.heroData.name} (${attacker.currentHp}/${attacker.maxHp} HP)` });
 
+       const enemiesPre = this.combatants.filter(c => c.team !== attacker.team && c.currentHp > 0);
+       if (attacker.statusEffects.some(s => s.name === 'Confuse') && enemiesPre.length > 0 && Math.random() < 0.5) {
+           this.log({ type: 'status', message: `${attacker.heroData.name}'s attack misses ${enemiesPre[0].heroData.name}!` });
+           this.processStatuses(attacker);
+           attacker.currentEnergy = (attacker.currentEnergy || 0) + 1;
+           return;
+       }
+
        const wasSkipped = this.processStatuses(attacker);
        if (this.checkVictory()) return;
 
@@ -232,35 +250,35 @@ class GameEngine {
                this.applyDamage(attacker, enemies[0], attacker.attack);
                if (this.checkVictory()) return;
 
-               // Re-evaluate potential targets in case the first enemy was defeated
-               const remainingEnemies = this.combatants.filter(c => c.team !== attacker.team && c.currentHp > 0);
-               const abilityTarget = ability && ability.targetType === 'friendly'
-                   ? attacker
-                   : remainingEnemies[0];
+                   // Re-evaluate potential targets in case the first enemy was defeated
+                   const remainingEnemies = this.combatants.filter(c => c.team !== attacker.team && c.currentHp > 0);
+                   const abilityTarget = ability && ability.targetType === 'friendly'
+                       ? attacker
+                       : remainingEnemies[0];
 
                if (ability && attacker.abilityCharges > 0 && attacker.currentEnergy >= cost && abilityTarget) {
-                   console.log(`${attacker.heroData.name} spends ${cost} energy to use ${ability.name}.`);
-                   this.applyAbilityEffect(attacker, abilityTarget, ability);
-                   attacker.currentEnergy -= cost;
-                   attacker.abilityCharges -= 1;
-                   if (ability.cardId && !ability.isPractice) {
-                       try { abilityCardService.decrementCharge(ability.cardId); } catch(e) { /* ignore */ }
-                   }
-                   if (attacker.abilityCharges <= 0) {
-                       const idx = attacker.deck.findIndex(a => a.charges > 0);
-                       if (idx !== -1) {
-                           const next = attacker.deck.splice(idx, 1)[0];
-                           attacker.abilityData = next;
-                           attacker.abilityCharges = next.charges;
-                       } else {
-                           attacker.abilityData = null;
+                       console.log(`${attacker.heroData.name} spends ${cost} energy to use ${ability.name}.`);
+                       this.applyAbilityEffect(attacker, abilityTarget, ability);
+                       attacker.currentEnergy -= cost;
+                       attacker.abilityCharges -= 1;
+                       if (ability.cardId && !ability.isPractice) {
+                           try { abilityCardService.decrementCharge(ability.cardId); } catch(e) { /* ignore */ }
                        }
-                   }
+                       if (attacker.abilityCharges <= 0) {
+                           const idx = attacker.deck.findIndex(a => a.charges > 0);
+                           if (idx !== -1) {
+                               const next = attacker.deck.splice(idx, 1)[0];
+                               attacker.abilityData = next;
+                               attacker.abilityCharges = next.charges;
+                           } else {
+                               attacker.abilityData = null;
+                           }
+                       }
                } else if (ability) {
                    console.log(`${attacker.heroData.name} has ${attacker.currentEnergy} energy and requires ${cost}. Unable to use ${ability.name}.`);
                }
-           }
-       }
+            }
+        }
 
        if (this.checkVictory()) return;
        attacker.currentEnergy = (attacker.currentEnergy || 0) + 1;
