@@ -12,13 +12,13 @@ async function execute(interaction) {
   const topPve = allUsers
     .sort((a, b) => b.pve_ratio - a.pve_ratio)
     .slice(0, 3)
-    .map((u, i) => `${i + 1}. **${u.name}** (${u.pve_wins}-${u.pve_losses})`)
+    .map((u, i) => `${i + 1}. <@${u.discord_id}> (${u.pve_wins}-${u.pve_losses})`)
     .join('\n') || 'No PvE battles recorded yet.';
 
   const topPvp = allUsers
     .sort((a, b) => b.pvp_ratio - a.pvp_ratio)
     .slice(0, 3)
-    .map((u, i) => `${i + 1}. **${u.name}** (${u.pvp_wins}-${u.pvp_losses})`)
+    .map((u, i) => `${i + 1}. <@${u.discord_id}> (${u.pvp_wins}-${u.pvp_losses})`)
     .join('\n') || 'No PvP battles recorded yet.';
 
   const embed = simple('Leaderboards', [
