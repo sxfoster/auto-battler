@@ -77,13 +77,24 @@ class GameEngine {
            healingDone = parseInt(healSelfMatch[1], 10);
            healTarget = attacker;
        } else {
-           const generalHealMatch = ability.effect.match(/Heal .*? for (\d+) HP/i);
-           if (generalHealMatch) {
-               healingDone = parseInt(generalHealMatch[1], 10);
+           const regenMatch = ability.effect.match(/Heal .*? for (\d+) HP per turn over (\d+) turns/i);
+           if (regenMatch) {
+               const amt = parseInt(regenMatch[1], 10);
+               const turns = parseInt(regenMatch[2], 10);
+               healingDone = amt; // immediate tick
                healTarget = target;
+               const remaining = Math.max(0, turns - 1);
+               if (remaining > 0) {
+                   target.statusEffects.push({ name: 'Regrowth', turnsRemaining: remaining, amount: amt });
+               }
+           } else {
+               const generalHealMatch = ability.effect.match(/Heal .*? for (\d+) HP(?! per turn)/i);
+               if (generalHealMatch) {
+                   healingDone = parseInt(generalHealMatch[1], 10);
+                   healTarget = target;
+               }
            }
        }
-
        if (healTarget && healingDone > 0) {
            this.applyHeal(healTarget, healingDone);
        }
@@ -126,6 +137,18 @@ class GameEngine {
            descParts.push(remaining);
        }
 
+       // handle status application phrases
+       const poisonMatch = ability.effect.match(/poison(?:ed)?(?:\s*(\d+))? for (\d+) turns/i);
+       if (poisonMatch) {
+           const pAmt = parseInt(poisonMatch[1] || '1', 10);
+           const pTurns = parseInt(poisonMatch[2], 10);
+           const targets = multiTarget ? this.combatants.filter(c => c.team !== attacker.team && c.currentHp > 0) : [target];
+           for (const t of targets) {
+               t.statusEffects.push({ name: 'Poison', turnsRemaining: pTurns, amount: pAmt });
+           }
+           descParts.push(`applies Poison for ${pTurns} turns`);
+       }
+
        const effectLine = `${attacker.heroData.name} ${descParts.join(' and ')}.`;
        this.log({ type: 'ability-result', message: effectLine });
 
@@ -147,11 +170,31 @@ class GameEngine {
 
    processStatuses(combatant) {
        let skip = false;
-        if (combatant.statusEffects.some(s => s.name === 'Stun')) {
-         this.log({ type: 'status', message: `${combatant.heroData.name} is stunned and misses the turn.` });
-         skip = true;
+       const remaining = [];
+       for (const status of combatant.statusEffects) {
+           switch(status.name) {
+               case 'Stun':
+                   this.log({ type: 'status', message: `${combatant.heroData.name} is stunned and misses the turn.` });
+                   skip = true;
+                   break;
+               case 'Poison':
+                   const dmg = status.amount || 1;
+                   combatant.currentHp = Math.max(0, combatant.currentHp - dmg);
+                   this.log({ type: 'status', message: `${combatant.heroData.name} suffers ${dmg} poison damage.` });
+                   break;
+               case 'Regrowth':
+                   const heal = status.amount || 1;
+                   this.applyHeal(combatant, heal);
+                   this.log({ type: 'status', message: `${combatant.heroData.name} heals ${heal} HP from Regrowth.` });
+                   break;
+               default:
+                   break;
+           }
+           status.turnsRemaining = (status.turnsRemaining || 1) - 1;
+           if (status.turnsRemaining > 0) remaining.push(status);
+           else this.log({ type: 'status', message: `${status.name} on ${combatant.heroData.name} wears off.` });
        }
-       // Future status effect processing (poison, etc.) would go here.
+       combatant.statusEffects = remaining;
        return skip;
    }
 
