@@ -51,6 +51,10 @@ async function setActiveAbility(discordId, cardId) {
   return { discordId, cardId };
 }
 
+async function markTutorialComplete(discordId) {
+  await db.query('UPDATE users SET tutorial_completed = 1 WHERE discord_id = ?', [discordId]);
+}
+
 module.exports = {
   getUser,
   createUser,
@@ -58,5 +62,6 @@ module.exports = {
   setUserClass,
   addAbility,
   getInventory,
-  setActiveAbility
+  setActiveAbility,
+  markTutorialComplete
 };
