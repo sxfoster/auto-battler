@@ -8,7 +8,6 @@ const commandDirs = [
   path.join(__dirname, 'commands/who.js'),
   path.join(__dirname, 'commands/admin.js'),
   path.join(__dirname, 'commands/inventory.js'),
-  path.join(__dirname, 'commands/set.js'),
   path.join(__dirname, 'commands/settings.js'),
   path.join(__dirname, 'commands/tutorial.js'),
   path.join(__dirname, 'commands/settings.js'),
