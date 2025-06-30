@@ -47,12 +47,9 @@ async function execute(interaction) {
     return;
   }
 
-  const cards = await abilityCardService.getCards(interaction.user.id);
+  const cards = await abilityCardService.getCards(user.id);
   const equippedCard = cards.find(c => c.id === user.equipped_ability_id);
-  const playerAbilityId = equippedCard ? equippedCard.ability_id : undefined;
-  const playerAbilities = cards
-    .filter(c => c.id !== user.equipped_ability_id)
-    .map(c => c.ability_id);
+  const deck = cards.filter(c => c.id !== user.equipped_ability_id);
 
   const goblinAbilityPool = allPossibleAbilities
     .filter(
@@ -60,13 +57,13 @@ async function execute(interaction) {
     );
   const goblinAbilities = goblinAbilityPool.map(a => a.id);
 
-  const player = createCombatant({ hero_id: playerHero.id, ability_id: playerAbilityId, deck: playerAbilities }, 'player', 0);
+  const player = createCombatant({
+    hero_id: playerHero.id,
+    ability_card: equippedCard,
+    deck: deck
+  }, 'player', 0);
   const goblin = createCombatant({ hero_id: goblinBase.id, deck: goblinAbilities }, 'enemy', 0);
-  if (equippedCard && player.abilityData) {
-    player.abilityData = { ...player.abilityData, cardId: equippedCard.id, charges: equippedCard.charges };
-    player.abilityData.isPractice = true;
-    player.abilityCharges = equippedCard.charges;
-  }
+
   if (player.abilityData) player.abilityData.isPractice = true;
   goblin.heroData = { ...goblin.heroData, name: `Goblin ${goblinClass}` };
 
