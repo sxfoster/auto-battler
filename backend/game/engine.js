@@ -41,11 +41,16 @@ class GameEngine {
    }
 
    applyDamage(attacker, target, baseDamage) {
-       target.currentHp = Math.max(0, target.currentHp - baseDamage);
+       let damage = baseDamage;
+       const armorBreak = target.statusEffects.find(s => s.name === 'Armor Break');
+       if (armorBreak) {
+           damage += armorBreak.bonus || 1;
+       }
+       target.currentHp = Math.max(0, target.currentHp - damage);
        if (attacker === target) {
-           this.log({ type: 'damage', message: `${target.heroData.name} takes ${baseDamage} damage.` });
+           this.log({ type: 'damage', message: `${target.heroData.name} takes ${damage} damage.` });
        } else {
-           this.log({ type: 'damage', message: `${attacker.heroData.name} hits ${target.heroData.name} for ${baseDamage} damage.` });
+           this.log({ type: 'damage', message: `${attacker.heroData.name} hits ${target.heroData.name} for ${damage} damage.` });
        }
        if (target.currentHp <= 0) {
            this.log({ type: 'status', message: `💀 ${target.heroData.name} has been defeated.` });
@@ -101,14 +106,28 @@ class GameEngine {
            this.log({ type: 'status', message: `↳ ${target.heroData.name} is blessed with Regrowth.` });
        }
 
-       const poisonMatchDetailed = ability.effect.match(/apply Poison \((\d+) dmg\/turn for (\d+) turns\)/i);
-       const poisonMatchSimple = ability.effect.match(/poison .* for (\d+) turns/i);
-       if (poisonMatchDetailed || poisonMatchSimple) {
-           const damage = poisonMatchDetailed ? parseInt(poisonMatchDetailed[1], 10) : 1;
-           const turns = poisonMatchDetailed ? parseInt(poisonMatchDetailed[2], 10) : parseInt(poisonMatchSimple[1], 10);
-           target.statusEffects.push({ name: 'Poison', damage, turnsRemaining: turns, sourceAbility: ability.name });
-           this.log({ type: 'status', message: `↳ ${target.heroData.name} is poisoned.` });
-       }
+        const poisonMatchDetailed = ability.effect.match(/apply Poison \((\d+) dmg\/turn for (\d+) turns\)/i);
+        const poisonMatchSimple = ability.effect.match(/poison .* for (\d+) turns/i);
+        if (poisonMatchDetailed || poisonMatchSimple) {
+            const damage = poisonMatchDetailed ? parseInt(poisonMatchDetailed[1], 10) : 1;
+            const turns = poisonMatchDetailed ? parseInt(poisonMatchDetailed[2], 10) : parseInt(poisonMatchSimple[1], 10);
+            target.statusEffects.push({ name: 'Poison', damage, turnsRemaining: turns, sourceAbility: ability.name });
+            this.log({ type: 'status', message: `↳ ${target.heroData.name} is poisoned.` });
+        }
+
+        if (/confuse/i.test(ability.effect)) {
+            const turns = parseInt(ability.effect.match(/confuse.*for (\d+) turns/i)?.[1] || '1', 10);
+            target.statusEffects.push({ name: 'Confuse', turnsRemaining: turns, sourceAbility: ability.name });
+            this.log({ type: 'status', message: `↳ ${target.heroData.name} is confused.` });
+        }
+
+        if (/armor break/i.test(ability.effect)) {
+            const match = ability.effect.match(/armor break.*\+(\d+) damage.*for (\d+) turns/i);
+            const bonus = match ? parseInt(match[1], 10) : 1;
+            const turns = match ? parseInt(match[2], 10) : 2;
+            target.statusEffects.push({ name: 'Armor Break', bonus, turnsRemaining: turns, sourceAbility: ability.name });
+            this.log({ type: 'status', message: `↳ ${target.heroData.name}'s armor is broken.` });
+        }
 
        // first log line - announce ability usage
        this.log({ type: 'ability-cast', message: `${attacker.heroData.name} uses ${ability.name}!` });
@@ -169,28 +188,36 @@ class GameEngine {
    }
 
    processStatuses(combatant) {
-       let skip = false;
-       for (const effect of [...combatant.statusEffects]) {
-           if (effect.name === 'Regrowth') {
-               this.applyHeal(combatant, effect.healing);
-               this.log({ type: 'status', message: `💚 ${combatant.heroData.name} is healed for ${effect.healing} by Regrowth.` });
-           } else if (effect.name === 'Poison') {
-               this.applyDamage(combatant, combatant, effect.damage);
-               this.log({ type: 'status', message: `☣️ ${combatant.heroData.name} takes ${effect.damage} poison damage.` });
-           }
-           effect.turnsRemaining -= 1;
-           if (effect.turnsRemaining <= 0) {
-               combatant.statusEffects = combatant.statusEffects.filter(e => e !== effect);
-               this.log({ type: 'status', message: `${effect.name} on ${combatant.heroData.name} has worn off.` });
-           }
-       }
+        let skip = false;
+        let confused = false;
+        for (const effect of [...combatant.statusEffects]) {
+            if (effect.name === 'Regrowth') {
+                this.applyHeal(combatant, effect.healing);
+                this.log({ type: 'status', message: `💚 ${combatant.heroData.name} is healed for ${effect.healing} by Regrowth.` });
+            } else if (effect.name === 'Poison') {
+                this.applyDamage(combatant, combatant, effect.damage);
+                this.log({ type: 'status', message: `☣️ ${combatant.heroData.name} takes ${effect.damage} poison damage.` });
+            } else if (effect.name === 'Confuse') {
+                confused = true;
+            }
+            effect.turnsRemaining -= 1;
+            if (effect.turnsRemaining <= 0) {
+                combatant.statusEffects = combatant.statusEffects.filter(e => e !== effect);
+                this.log({ type: 'status', message: `${effect.name} on ${combatant.heroData.name} has worn off.` });
+            }
+        }
 
-       if (combatant.statusEffects.some(s => s.name === 'Stun')) {
-           this.log({ type: 'status', message: `${combatant.heroData.name} is stunned and misses the turn.` });
-           skip = true;
-       }
-       return skip;
-   }
+        if (combatant.statusEffects.some(s => s.name === 'Stun')) {
+            this.log({ type: 'status', message: `${combatant.heroData.name} is stunned and misses the turn.` });
+            skip = true;
+        }
+
+        if (!skip && confused && Math.random() < 0.5) {
+            this.log({ type: 'status', message: `${combatant.heroData.name} is confused and fumbles their turn.` });
+            skip = true;
+        }
+        return skip;
+    }
 
    checkVictory() {
        const playerAlive = this.combatants.some(c => c.team === 'player' && c.currentHp > 0);
