@@ -30,66 +30,76 @@ async function execute(interaction) {
     return;
   }
 
-  const baseHero = allPossibleHeroes.find(h => h.isBase) || allPossibleHeroes[0];
-  const player = createCombatant({ hero_id: baseHero.id }, 'player', 0);
+  await interaction.reply({ content: "I've started your tutorial in your DMs!", ephemeral: true });
 
-  const goblin = {
-    id: 'enemy-0',
-    heroData: { name: 'Tutorial Goblin', hp: 10, attack: 1, speed: 1, defense: 0 },
-    weaponData: null,
-    armorData: null,
-    abilityData: null,
-    abilityCharges: 0,
-    deck: [],
-    team: 'enemy',
-    position: 0,
-    currentHp: 10,
-    maxHp: 10,
-    currentEnergy: 0,
-    statusEffects: [],
-    hp: 10,
-    attack: 1,
-    speed: 1,
-    defense: 0
-  };
+  try {
+    const baseHero = allPossibleHeroes.find(h => h.isBase) || allPossibleHeroes[0];
+    const player = createCombatant({ hero_id: baseHero.id }, 'player', 0);
 
-  await interaction.reply({ content: 'A Tutorial Goblin appears! Prepare for battle!' });
+    const goblin = {
+      id: 'enemy-0',
+      heroData: { name: 'Tutorial Goblin', hp: 10, attack: 1, speed: 1, defense: 0 },
+      weaponData: null,
+      armorData: null,
+      abilityData: null,
+      abilityCharges: 0,
+      deck: [],
+      team: 'enemy',
+      position: 0,
+      currentHp: 10,
+      maxHp: 10,
+      currentEnergy: 0,
+      statusEffects: [],
+      hp: 10,
+      attack: 1,
+      speed: 1,
+      defense: 0
+    };
 
-  const engine = new GameEngine([player, goblin]);
-  const wait = ms => new Promise(r => setTimeout(r, ms));
-  let logText = '';
-  let battleMessage;
-  for (const step of engine.runGameSteps()) {
-    const lines = step.log.map(formatLog);
-    logText = [logText, ...lines].filter(Boolean).join('\n');
-    const embed = buildBattleEmbed(step.combatants, logText);
-    if (!battleMessage) {
-      battleMessage = await interaction.followUp({ embeds: [embed] });
-    } else {
-      await wait(1000);
-      await battleMessage.edit({ embeds: [embed] });
+    await interaction.user.send('A Tutorial Goblin appears! Prepare for battle!');
+
+    const engine = new GameEngine([player, goblin]);
+    const wait = ms => new Promise(r => setTimeout(r, ms));
+    let logText = '';
+    let battleMessage;
+    for (const step of engine.runGameSteps()) {
+      const lines = step.log.map(formatLog);
+      logText = [logText, ...lines].filter(Boolean).join('\n');
+      const embed = buildBattleEmbed(step.combatants, logText);
+      if (!battleMessage) {
+        battleMessage = await interaction.user.send({ embeds: [embed] });
+      } else {
+        await wait(1000);
+        await battleMessage.edit({ embeds: [embed] });
+      }
     }
+
+    const commonAbilities = allPossibleAbilities.filter(a => a.rarity === 'Common');
+    const drop = commonAbilities[Math.floor(Math.random() * commonAbilities.length)];
+    await userService.addAbility(interaction.user.id, drop.id);
+
+    const summaryEmbed = new EmbedBuilder()
+      .setColor('#57F287')
+      .setDescription(`Victory! The Tutorial Goblin dropped **${drop.name}**.`);
+    await interaction.user.send({ embeds: [summaryEmbed] });
+
+    interaction.user.send("Congratulations on your victory! You've found your first Ability Card. Use the /inventory show command to see what's in your backpack.");
+
+    setTimeout(() => {
+      interaction.user.send(`Now, equip your new ability using the command: /inventory set ability:${drop.name}`);
+    }, 5000);
+
+    setTimeout(async () => {
+      await interaction.user.send('You can now use /adventure to battle monsters, /challenge @user to duel other players, and /who @user to inspect a character.');
+      await userService.markTutorialComplete(interaction.user.id);
+    }, 10000);
+  } catch (error) {
+    console.error(`Failed to send tutorial DM to ${interaction.user.tag}.`, error);
+    await interaction.followUp({
+      content: "I couldn't send you a DM. Please check your Server Privacy Settings.",
+      ephemeral: true
+    });
   }
-
-  const commonAbilities = allPossibleAbilities.filter(a => a.rarity === 'Common');
-  const drop = commonAbilities[Math.floor(Math.random() * commonAbilities.length)];
-  await userService.addAbility(interaction.user.id, drop.id);
-
-  const summaryEmbed = new EmbedBuilder()
-    .setColor('#57F287')
-    .setDescription(`Victory! The Tutorial Goblin dropped **${drop.name}**.`);
-  await interaction.followUp({ embeds: [summaryEmbed] });
-
-  interaction.followUp("Congratulations on your victory! You've found your first Ability Card. Use the /inventory show command to see what's in your backpack.");
-
-  setTimeout(() => {
-    interaction.followUp(`Now, equip your new ability using the command: /inventory set ability:${drop.name}`);
-  }, 5000);
-
-  setTimeout(async () => {
-    await interaction.followUp('You can now use /adventure to battle monsters, /challenge @user to duel other players, and /who @user to inspect a character.');
-    await userService.markTutorialComplete(interaction.user.id);
-  }, 10000);
 }
 
 module.exports = { data, execute };

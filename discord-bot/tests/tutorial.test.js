@@ -35,21 +35,32 @@ describe('tutorial command', () => {
 
   test('creates a user when none exists', async () => {
     userService.getUser.mockResolvedValueOnce(null).mockResolvedValueOnce({ id: 1 });
-    const interaction = { user: { id: '1', username: 'Tester' }, reply: jest.fn().mockResolvedValue(), followUp: jest.fn().mockResolvedValue() };
+    const interaction = {
+      user: { id: '1', username: 'Tester', send: jest.fn().mockResolvedValue() },
+      reply: jest.fn().mockResolvedValue(),
+      followUp: jest.fn().mockResolvedValue()
+    };
     await tutorial.execute(interaction);
     expect(userService.createUser).toHaveBeenCalledWith('1', 'Tester');
   });
 
   test('replies when already completed', async () => {
     userService.getUser.mockResolvedValue({ id: 1, tutorial_completed: 1 });
-    const interaction = { user: { id: '1' }, reply: jest.fn().mockResolvedValue() };
+    const interaction = {
+      user: { id: '1', send: jest.fn().mockResolvedValue() },
+      reply: jest.fn().mockResolvedValue()
+    };
     await tutorial.execute(interaction);
     expect(interaction.reply).toHaveBeenCalledWith(expect.objectContaining({ ephemeral: true }));
   });
 
   test('grants a common ability and marks completion', async () => {
     userService.getUser.mockResolvedValue({ id: 1, tutorial_completed: 0 });
-    const interaction = { user: { id: '1', username: 'Tester' }, reply: jest.fn().mockResolvedValue(), followUp: jest.fn().mockResolvedValue() };
+    const interaction = {
+      user: { id: '1', username: 'Tester', send: jest.fn().mockResolvedValue() },
+      reply: jest.fn().mockResolvedValue(),
+      followUp: jest.fn().mockResolvedValue()
+    };
     jest.spyOn(Math, 'random').mockReturnValue(0);
     await tutorial.execute(interaction);
     const abilityId = allPossibleAbilities.filter(a => a.rarity === 'Common')[0].id;
