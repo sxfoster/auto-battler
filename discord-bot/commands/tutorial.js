@@ -30,10 +30,6 @@ async function execute(interaction) {
     return;
   }
 
-  await interaction.reply({
-    content: 'A Tutorial Goblin appears! Prepare for battle!',
-    ephemeral: true
-  });
 
   try {
     const baseHero = allPossibleHeroes.find(h => h.isBase) || allPossibleHeroes[0];
@@ -70,11 +66,14 @@ async function execute(interaction) {
       logText = [logText, ...lines].filter(Boolean).join('\n');
       const embed = buildBattleEmbed(step.combatants, logText);
       if (!battleMessage) {
-        battleMessage = await interaction.followUp({
+        battleMessage = await interaction.reply({
           embeds: [embed],
           ephemeral: true
         });
       } else {
+        console.log(
+          `Editing tutorial message for interaction ${interaction.id} (user ${interaction.user.id})`
+        );
         await wait(1000);
         await battleMessage.edit({ embeds: [embed] });
       }

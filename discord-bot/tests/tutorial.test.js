@@ -81,4 +81,29 @@ describe('tutorial command', () => {
     expect(ephemeralCalls.length).toBeGreaterThan(0);
     Math.random.mockRestore();
   });
+
+  test('battle log uses single reply edited for each step', async () => {
+    userService.getUser.mockResolvedValue({ id: 1, tutorial_completed: 0 });
+    const editMock = jest.fn().mockResolvedValue();
+    const interaction = {
+      id: 'xyz',
+      user: { id: '1', username: 'Tester', send: jest.fn() },
+      reply: jest.fn().mockResolvedValue({ edit: editMock }),
+      followUp: jest.fn().mockResolvedValue()
+    };
+    GameEngine.mockImplementationOnce(() => ({
+      runGameSteps: function* () {
+        yield { combatants: [], log: [{ round: 1, type: 'info', message: 'one' }] };
+        yield { combatants: [], log: [{ round: 1, type: 'info', message: 'two' }] };
+      },
+      runFullGame: jest.fn(),
+      winner: 'player'
+    }));
+    const exec = tutorial.execute(interaction);
+    await jest.runAllTimersAsync();
+    await exec;
+    expect(interaction.reply).toHaveBeenCalledTimes(1);
+    expect(editMock).toHaveBeenCalledTimes(1);
+    expect(interaction.user.send).not.toHaveBeenCalled();
+  });
 });
