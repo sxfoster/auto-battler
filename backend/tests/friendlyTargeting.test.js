@@ -5,6 +5,7 @@ describe('Friendly ability targeting', () => {
   test('Divine Light heals the caster', () => {
     const cleric = createCombatant({ hero_id: 4, ability_id: 3511 }, 'enemy', 0);
     const player = createCombatant({ hero_id: 1 }, 'player', 0);
+    player.attack = 0;
     cleric.currentHp -= 3;
     cleric.currentEnergy = 2;
     cleric.speed = 10;
@@ -17,19 +18,27 @@ describe('Friendly ability targeting', () => {
     expect(engine.battleLog.some(l => l.message.includes('heals'))).toBe(true);
   });
 
-  test('Regrowth heals the caster', () => {
+  test('Regrowth heals over time', () => {
     const druid = createCombatant({ hero_id: 5, ability_id: 3612 }, 'enemy', 0);
     const player = createCombatant({ hero_id: 1 }, 'player', 0);
+    player.attack = 0;
     druid.currentHp -= 2;
     druid.currentEnergy = 2;
     druid.speed = 10;
     const engine = new GameEngine([druid, player]);
     engine.startRound();
-    engine.processTurn();
-    const updated = engine.combatants.find(c => c.id === druid.id);
-    expect(updated.currentHp).toBe(updated.maxHp);
+    engine.processTurn(); // druid casts Regrowth
+    let updated = engine.combatants.find(c => c.id === druid.id);
+    // should not heal immediately
+    expect(updated.currentHp).toBe(druid.maxHp - 2);
     expect(engine.battleLog.some(l => l.message.includes('uses Regrowth'))).toBe(true);
-    expect(engine.battleLog.some(l => l.message.includes('heals'))).toBe(true);
+    // next round - heal should trigger
+    engine.processTurn(); // player's turn
+    engine.startRound();
+    engine.processTurn(); // druid's next turn, regeneration ticks
+    updated = engine.combatants.find(c => c.id === druid.id);
+    expect(updated.currentHp).toBe(druid.maxHp - 2 + 2);
+    expect(engine.battleLog.some(l => l.message.includes('regenerates 2 HP'))).toBe(true);
   });
 
   test('lack of energy causes cleric to attack the enemy', () => {

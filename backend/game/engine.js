@@ -73,15 +73,22 @@ class GameEngine {
        }
 
        const healSelfMatch = ability.effect.match(/heal yourself for (\d+) HP/i);
+       const hotMatch = ability.effect.match(/Heal .*? for (\d+) HP per turn over (\d+) turns/i);
        if (healSelfMatch) {
            healingDone = parseInt(healSelfMatch[1], 10);
            healTarget = attacker;
-       } else {
-           const generalHealMatch = ability.effect.match(/Heal .*? for (\d+) HP/i);
+       } else if (!hotMatch) {
+           const generalHealMatch = ability.effect.match(/Heal .*? for (\d+) HP(?!\s*per turn)/i);
            if (generalHealMatch) {
                healingDone = parseInt(generalHealMatch[1], 10);
                healTarget = target;
            }
+       }
+
+       if (hotMatch) {
+           const amount = parseInt(hotMatch[1], 10);
+           const turns = parseInt(hotMatch[2], 10);
+           target.statusEffects.push({ name: ability.name, healPerTurn: amount, turnsRemaining: turns });
        }
 
        if (healTarget && healingDone > 0) {
@@ -107,6 +114,11 @@ class GameEngine {
                descParts.push(`heals ${healTarget.heroData.name} for ${healingDone} HP`);
            }
        }
+       if (hotMatch) {
+           const amount = parseInt(hotMatch[1], 10);
+           const turns = parseInt(hotMatch[2], 10);
+           descParts.push(`applies Regrowth (${amount} HP per turn for ${turns} turns)`);
+       }
 
        // check for additional text in ability.effect not covered above
        let remaining = ability.effect;
@@ -117,7 +129,8 @@ class GameEngine {
            remaining = remaining.replace(dmgRegex, '').trim();
        }
        remaining = remaining.replace(/heal yourself for \d+ HP\.?/i, '')
-                           .replace(/Heal .*? for \d+ HP\.?/i, '')
+                           .replace(/Heal .*? for \d+ HP per turn over \d+ turns\.?/i, '')
+                           .replace(/Heal .*? for \d+ HP(?! per turn)\.?/i, '')
                            .trim();
        if (remaining.toLowerCase().startsWith('and ')) {
            remaining = remaining.slice(4);
@@ -151,7 +164,14 @@ class GameEngine {
          this.log({ type: 'status', message: `${combatant.heroData.name} is stunned and misses the turn.` });
          skip = true;
        }
-       // Future status effect processing (poison, etc.) would go here.
+       combatant.statusEffects.forEach(status => {
+         if (status.name === 'Regrowth') {
+           this.applyHeal(combatant, status.healPerTurn);
+           this.log({ type: 'status', message: `${combatant.heroData.name} regenerates ${status.healPerTurn} HP.` });
+           status.turnsRemaining -= 1;
+         }
+       });
+       combatant.statusEffects = combatant.statusEffects.filter(s => s.turnsRemaining === undefined || s.turnsRemaining > 0);
        return skip;
    }
 
