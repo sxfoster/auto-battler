@@ -37,6 +37,13 @@ async function execute(interaction) {
   );
   const challengeId = result.insertId;
 
+  const announcementChannel = await interaction.client.channels.fetch(process.env.PVP_CHANNEL_ID);
+  const publicMessage = await announcementChannel.send({
+    content: `${interaction.user.username} has challenged ${target.username}!`
+  });
+
+  await db.query('UPDATE pvp_battles SET message_id = ?, channel_id = ? WHERE id = ?', [publicMessage.id, announcementChannel.id, challengeId]);
+
   const row = new ActionRowBuilder().addComponents(
     new ButtonBuilder()
       .setCustomId(`challenge-accept:${challengeId}`)
@@ -52,7 +59,7 @@ async function execute(interaction) {
   await interaction.reply({ content: `Challenge sent to ${target.username}.`, ephemeral: true });
 
   // automatically expire the challenge after 5 minutes
-  setTimeout(() => expireChallenge(challengeId, interaction.user), 5 * 60 * 1000);
+  setTimeout(() => expireChallenge(challengeId, interaction.user, interaction.client), 5 * 60 * 1000);
 }
 
 async function handleAccept(interaction) {
@@ -63,12 +70,27 @@ async function handleAccept(interaction) {
   if (!battle || battle.status !== 'pending' || Date.now() - new Date(battle.created_at).getTime() > 5 * 60 * 1000) {
     if (battle && battle.status === 'pending') {
       await db.query('UPDATE pvp_battles SET status = ? WHERE id = ?', ['expired', id]);
+      try {
+        const channel = await interaction.client.channels.fetch(battle.channel_id);
+        const msg = await channel.messages.fetch(battle.message_id);
+        await msg.edit({ content: 'Challenge Expired.' });
+      } catch (e) {
+        /* ignore */
+      }
     }
     await interaction.update({ content: 'This challenge has expired.', components: [] });
     return;
   }
 
   await db.query('UPDATE pvp_battles SET status = ? WHERE id = ?', ['accepted', id]);
+
+  try {
+    const channel = await interaction.client.channels.fetch(battle.channel_id);
+    const msg = await channel.messages.fetch(battle.message_id);
+    await msg.edit({ content: `${interaction.user.username} has accepted the challenge!` });
+  } catch (e) {
+    /* ignore */
+  }
 
   const [challengerRows] = await db.query('SELECT * FROM users WHERE id = ?', [battle.challenger_id]);
   const [targetRows] = await db.query('SELECT * FROM users WHERE id = ?', [battle.challenged_id]);
@@ -134,6 +156,15 @@ async function handleAccept(interaction) {
     /* ignore */
   }
 
+  try {
+    const channel = await interaction.client.channels.fetch(battle.channel_id);
+    await channel.send({
+      content: `⚔️ Victory! ${engine.winner === 'player' ? challenger.name : opponent.name} has defeated ${engine.winner === 'player' ? opponent.name : challenger.name} in a duel!`
+    });
+  } catch (e) {
+    /* ignore */
+  }
+
   await interaction.update({ content: 'Challenge accepted! Battle complete.', components: [] });
 }
 
@@ -141,11 +172,31 @@ async function handleDecline(interaction) {
   const [, idStr] = interaction.customId.split(':');
   const id = Number(idStr);
   await db.query('UPDATE pvp_battles SET status = ? WHERE id = ?', ['declined', id]);
+
+  const [rows] = await db.query('SELECT * FROM pvp_battles WHERE id = ?', [id]);
+  const battle = rows[0];
+  try {
+    const channel = await interaction.client.channels.fetch(battle.channel_id);
+    const msg = await channel.messages.fetch(battle.message_id);
+    await msg.edit({ content: 'Challenge Declined.' });
+  } catch (e) {
+    /* ignore */
+  }
+
   await interaction.update({ content: 'Challenge declined.', components: [] });
 }
 
-async function expireChallenge(id, challenger) {
+async function expireChallenge(id, challenger, client) {
   await db.query('UPDATE pvp_battles SET status = ? WHERE id = ?', ['expired', id]);
+  const [rows] = await db.query('SELECT * FROM pvp_battles WHERE id = ?', [id]);
+  const battle = rows[0];
+  try {
+    const channel = await client.channels.fetch(battle.channel_id);
+    const msg = await channel.messages.fetch(battle.message_id);
+    await msg.edit({ content: 'Challenge Expired.' });
+  } catch (e) {
+    /* ignore */
+  }
   try {
     await challenger.send(`Your challenge #${id} has expired.`);
   } catch (e) {
