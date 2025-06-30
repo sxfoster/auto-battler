@@ -28,7 +28,7 @@ describe('inventory command', () => {
     };
     await inventory.execute(interaction);
     expect(interaction.reply).toHaveBeenCalledWith(expect.objectContaining({ embeds: expect.any(Array) }));
-    expect(interaction.reply.mock.calls[0][0].ephemeral).toBeUndefined();
+    expect(interaction.reply.mock.calls[0][0].ephemeral).toBe(true);
     const fields = interaction.reply.mock.calls[0][0].embeds[0].data.fields;
     expect(fields[0].value).toContain('Stalwart Defender (Common)');
     expect(fields[1].value).toContain('Power Strike');

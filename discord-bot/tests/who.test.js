@@ -33,7 +33,7 @@ describe('who command', () => {
     expect(fields[0].value).toBe('Tester');
     expect(fields[1].value).toBe('Stalwart Defender (Common)');
     expect(fields[4].value).toContain('Power Strike');
-    expect(interaction.reply.mock.calls[0][0].ephemeral).toBeUndefined();
+    expect(interaction.reply.mock.calls[0][0].ephemeral).toBe(true);
   });
 
   test('public reply when user lacks a class', async () => {
@@ -44,7 +44,7 @@ describe('who command', () => {
     };
     await who.execute(interaction);
     expect(interaction.reply).toHaveBeenCalledWith(expect.objectContaining({ embeds: expect.any(Array) }));
-    expect(interaction.reply.mock.calls[0][0].ephemeral).toBeUndefined();
+    expect(interaction.reply.mock.calls[0][0].ephemeral).toBe(true);
   });
 
   test('shows None when no ability equipped', async () => {

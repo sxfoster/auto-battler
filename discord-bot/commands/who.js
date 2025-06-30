@@ -62,7 +62,7 @@ async function execute(interaction) {
     ],
     mentionedUser.displayAvatarURL()
   );
-  await interaction.reply({ embeds: [embed] });
+  await interaction.reply({ embeds: [embed], ephemeral: true });
 }
 
 module.exports = { data, execute };
