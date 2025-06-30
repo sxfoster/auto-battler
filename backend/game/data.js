@@ -274,6 +274,7 @@ const allPossibleAbilities = [
     { id: 3411, type: 'ability', name: 'Chaos Bolt', class: 'Raw Power Mage', rarity: 'Common', art: 'https://placehold.co/150x126/ef4444/FFFFFF?text=Ability', imageUrl: 'https://placehold.co/300x400/1e293b/ffffff?text=Chaos%20Bolt', effect: 'Deal 3 damage of a random element.', energyCost: 2, category: 'Offense' },
     { id: 4104, type: 'ability', name: 'Backstab', class: 'Shadow Striker', rarity: 'Common', art: '...', imageUrl: 'https://placehold.co/300x400/1e293b/ffffff?text=Backstab', effect: 'Deal 2 damage, or 4 damage if the enemy is stunned or distracted.', energyCost: 2, category: 'Offense' },
     { id: 4201, type: 'ability', name: 'Fireball', class: 'Arcane Savant', rarity: 'Common', art: '...', imageUrl: 'https://placehold.co/300x400/1e293b/ffffff?text=Fireball', effect: 'Deal 3 fire damage to a single target.', energyCost: 2, category: 'Offense' },
+    { id: 4301, type: 'ability', name: 'Armor Break', class: 'Stalwart Defender', rarity: 'Common', art: '...', imageUrl: 'https://placehold.co/300x400/1e293b/ffffff?text=Armor%20Break', effect: 'Apply Armor Break for 2 turns (target takes +1 damage).', energyCost: 2, category: 'Offense' },
 ];
 // NOTE: Placeholder art links ('...') and new IDs have been assigned.
 

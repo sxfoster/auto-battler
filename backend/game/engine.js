@@ -43,7 +43,15 @@ class GameEngine {
    applyDamage(attacker, target, baseDamage, options = {}) {
        const { log = true } = options;
        const defense = target.defense || 0;
-       const effective = Math.max(1, baseDamage - defense);
+       let bonus = 0;
+       if (target.statusEffects) {
+           for (const eff of target.statusEffects) {
+               if (eff.name === 'Armor Break') {
+                   bonus += eff.bonusDamage || 1;
+               }
+           }
+       }
+       const effective = Math.max(1, baseDamage - defense + bonus);
        target.currentHp = Math.max(0, target.currentHp - effective);
        if (log) {
            if (attacker === target) {
@@ -116,6 +124,18 @@ class GameEngine {
            this.log({ type: 'status', message: `↳ ${target.heroData.name} is poisoned.` });
        }
 
+       if (/confuse/i.test(ability.effect)) {
+           target.statusEffects.push({ name: 'Confuse', turnsRemaining: 1, sourceAbility: ability.name });
+           this.log({ type: 'status', message: `↳ ${target.heroData.name} is confused.` });
+       }
+
+       if (/Armor Break/i.test(ability.effect)) {
+           const match = ability.effect.match(/(\d+) turns?/i);
+           const turns = match ? parseInt(match[1], 10) : 2;
+           target.statusEffects.push({ name: 'Armor Break', bonusDamage: 1, turnsRemaining: turns, sourceAbility: ability.name });
+           this.log({ type: 'status', message: `↳ ${target.heroData.name} suffers Armor Break.` });
+       }
+
        // first log line - announce ability usage
        this.log({ type: 'ability-cast', message: `${attacker.heroData.name} uses ${ability.name}!` });
 
@@ -176,20 +196,23 @@ class GameEngine {
 
    processStatuses(combatant) {
        let skip = false;
-       for (const effect of [...combatant.statusEffects]) {
-           if (effect.name === 'Regrowth') {
-               this.applyHeal(combatant, effect.healing);
-               this.log({ type: 'status', message: `💚 ${combatant.heroData.name} is healed for ${effect.healing} by Regrowth.` });
-           } else if (effect.name === 'Poison') {
-               const dealt = this.applyDamage(combatant, combatant, effect.damage, { log: false });
-               this.log({ type: 'status', message: `☣️ ${combatant.heroData.name} takes ${dealt} poison damage.` });
-           }
-           effect.turnsRemaining -= 1;
-           if (effect.turnsRemaining <= 0) {
-               combatant.statusEffects = combatant.statusEffects.filter(e => e !== effect);
-               this.log({ type: 'status', message: `${effect.name} on ${combatant.heroData.name} has worn off.` });
-           }
-       }
+        for (const effect of [...combatant.statusEffects]) {
+            if (effect.name === 'Regrowth') {
+                this.applyHeal(combatant, effect.healing);
+                this.log({ type: 'status', message: `💚 ${combatant.heroData.name} is healed for ${effect.healing} by Regrowth.` });
+            } else if (effect.name === 'Poison') {
+                const dealt = this.applyDamage(combatant, combatant, effect.damage, { log: false });
+                this.log({ type: 'status', message: `☣️ ${combatant.heroData.name} takes ${dealt} poison damage.` });
+            }
+
+            if (effect.name !== 'Confuse') {
+                effect.turnsRemaining -= 1;
+                if (effect.turnsRemaining <= 0) {
+                    combatant.statusEffects = combatant.statusEffects.filter(e => e !== effect);
+                    this.log({ type: 'status', message: `${effect.name} on ${combatant.heroData.name} has worn off.` });
+                }
+            }
+        }
 
        if (combatant.statusEffects.some(s => s.name === 'Stun')) {
            this.log({ type: 'status', message: `${combatant.heroData.name} is stunned and misses the turn.` });
@@ -224,7 +247,21 @@ class GameEngine {
        const wasSkipped = this.processStatuses(attacker);
        if (this.checkVictory()) return;
 
+       let confused = attacker.statusEffects.find(s => s.name === 'Confuse');
+
        if (!wasSkipped) {
+           if (confused) {
+               if (Math.random() < 0.5) {
+                   this.log({ type: 'status', message: `${attacker.heroData.name} is confused and misses the turn.` });
+                   attacker.statusEffects = attacker.statusEffects.filter(e => e !== confused);
+                   this.log({ type: 'status', message: `Confuse on ${attacker.heroData.name} has worn off.` });
+                   attacker.currentEnergy = (attacker.currentEnergy || 0) + 1;
+                   return;
+               } else {
+                   attacker.statusEffects = attacker.statusEffects.filter(e => e !== confused);
+                   this.log({ type: 'status', message: `Confuse on ${attacker.heroData.name} has worn off.` });
+               }
+           }
            const enemies = this.combatants.filter(c => c.team !== attacker.team && c.currentHp > 0);
            if (enemies.length > 0) {
                const ability = attacker.abilityData;

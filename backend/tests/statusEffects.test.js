@@ -47,4 +47,58 @@ describe('Status effect processing', () => {
     expect(t.statusEffects.length).toBe(0);
     expect(engine.battleLog.some(l => l.message.includes('poison damage'))).toBe(true);
   });
+
+  test('Illusionary Strike confusion can cause misses', () => {
+    const player = createCombatant({ hero_id: 1 }, 'player', 0);
+    const enemy = createCombatant({ hero_id: 1 }, 'enemy', 0);
+    const engine = new GameEngine([player, enemy]);
+    const ability = { name: 'Illusionary Strike', effect: 'Deal 2 damage and confuse the target (50% chance they miss their next action).' };
+
+    engine.applyAbilityEffect(player, enemy, ability);
+    const p = engine.combatants.find(c => c.id === player.id);
+    const e = engine.combatants.find(c => c.id === enemy.id);
+    expect(e.statusEffects.some(s => s.name === 'Confuse')).toBe(true);
+
+    jest.spyOn(Math, 'random').mockReturnValueOnce(0.3);
+    engine.turnQueue = [e];
+    const before = p.currentHp;
+    engine.processTurn();
+    const updatedP = engine.combatants.find(c => c.id === p.id);
+    expect(updatedP.currentHp).toBe(before);
+    expect(engine.battleLog.some(l => l.message.includes('misses the turn'))).toBe(true);
+
+    engine.applyAbilityEffect(p, e, ability);
+    expect(e.statusEffects.some(s => s.name === 'Confuse')).toBe(true);
+    jest.spyOn(Math, 'random').mockReturnValueOnce(0.7);
+    engine.turnQueue = [e];
+    const before2 = updatedP.currentHp;
+    engine.processTurn();
+    const updatedP2 = engine.combatants.find(c => c.id === p.id);
+    const expectedDamage = Math.max(1, e.attack - p.defense);
+    expect(updatedP2.currentHp).toBe(before2 - expectedDamage);
+  });
+
+  test('Armor Break increases damage while active', () => {
+    const attacker = createCombatant({ hero_id: 1 }, 'player', 0);
+    const target = createCombatant({ hero_id: 1 }, 'enemy', 0);
+    const engine = new GameEngine([attacker, target]);
+    const atk = engine.combatants.find(c => c.id === attacker.id);
+    const tgt = engine.combatants.find(c => c.id === target.id);
+    const ability = { name: 'Armor Break', effect: 'Apply Armor Break for 2 turns (target takes +1 damage).' };
+
+    engine.applyAbilityEffect(atk, tgt, ability);
+    expect(tgt.statusEffects.some(s => s.name === 'Armor Break')).toBe(true);
+
+    const base = atk.attack;
+    const damage1 = engine.applyDamage(atk, tgt, base, { log: false });
+    expect(damage1).toBe(base - tgt.defense + 1);
+
+    engine.processStatuses(tgt);
+    const damage2 = engine.applyDamage(atk, tgt, base, { log: false });
+    expect(damage2).toBe(base - tgt.defense + 1);
+
+    engine.processStatuses(tgt);
+    const damage3 = engine.applyDamage(atk, tgt, base, { log: false });
+    expect(damage3).toBe(base - tgt.defense);
+  });
 });
