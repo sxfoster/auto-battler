@@ -185,7 +185,11 @@ class GameEngine {
            const enemies = this.combatants.filter(c => c.team !== attacker.team && c.currentHp > 0);
            if (enemies.length > 0) {
                const ability = attacker.abilityData;
-               const cost = ability ? ability.energyCost || 1 : 1;
+               const cost = ability ? ability.energyCost || 1 : 0;
+
+               if (ability) {
+                   console.log(`${attacker.heroData.name} is checking if they can use ${ability.name}.`);
+               }
 
                // Always perform the auto-attack first
                this.applyDamage(attacker, enemies[0], attacker.attack);
@@ -198,6 +202,7 @@ class GameEngine {
                    : remainingEnemies[0];
 
                if (ability && attacker.abilityCharges > 0 && attacker.currentEnergy >= cost && abilityTarget) {
+                   console.log(`${attacker.heroData.name} spends ${cost} energy to use ${ability.name}.`);
                    this.applyAbilityEffect(attacker, abilityTarget, ability);
                    attacker.currentEnergy -= cost;
                    attacker.abilityCharges -= 1;
@@ -214,6 +219,8 @@ class GameEngine {
                            attacker.abilityData = null;
                        }
                    }
+               } else if (ability) {
+                   console.log(`${attacker.heroData.name} has ${attacker.currentEnergy} energy and requires ${cost}. Unable to use ${ability.name}.`);
                }
            }
        }
