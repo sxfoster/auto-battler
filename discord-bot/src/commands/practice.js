@@ -168,22 +168,28 @@ async function execute(interaction) {
 
   const logBuffer = Buffer.from(finalLogString, 'utf-8');
 
-  try {
-    if (typeof interaction.user.send === 'function') {
-      await interaction.user.send({
-        content: 'Here is the full transcript of your last battle:',
-        files: [{ attachment: logBuffer, name: `battle-log-${Date.now()}.txt` }]
+  if (user.dm_battle_logs_enabled) {
+    try {
+      if (typeof interaction.user.send === 'function') {
+        await interaction.user.send({
+          content: 'Here is the full transcript of your last battle:',
+          files: [{ attachment: logBuffer, name: `battle-log-${Date.now()}.txt` }]
+        });
+      } else {
+        throw new Error('DM function unavailable');
+      }
+    } catch (error) {
+      console.error(`Could not send battle log DM to ${interaction.user.tag}.`, error);
+      await interaction.followUp({
+        content:
+          "I couldn't DM you the full battle log. Please check your privacy settings if you'd like to receive them in the future.",
+        ephemeral: true
       });
-    } else {
-      throw new Error('DM function unavailable');
     }
-  } catch (error) {
-    console.error(`Could not send battle log DM to ${interaction.user.tag}.`, error);
-    await interaction.followUp({
-      content:
-        "I couldn't DM you the full battle log. Please check your privacy settings if you'd like to receive them in the future.",
-      ephemeral: true
-    });
+  } else {
+    console.log(
+      `[DM DISABLED] Skipping battle log DM for ${interaction.user.username} (dm_battle_logs_enabled = false)`
+    );
   }
 }
 

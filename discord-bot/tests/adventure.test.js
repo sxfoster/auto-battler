@@ -111,7 +111,7 @@ describe('adventure command', () => {
     expect(abilityCardService.getCards).toHaveBeenCalledWith(1);
     expect(userService.addAbility).not.toHaveBeenCalled();
     const calls = interaction.followUp.mock.calls.filter(c => c[0].ephemeral);
-    expect(calls.length).toBe(1);
+    expect(calls.length).toBe(0);
   });
 
   test('battle log is included in embed', async () => {
