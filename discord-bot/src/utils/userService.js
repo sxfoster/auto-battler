@@ -55,6 +55,14 @@ async function markTutorialComplete(discordId) {
   await db.query('UPDATE users SET tutorial_completed = 1 WHERE discord_id = ?', [discordId]);
 }
 
+async function updateSettings(discordId, settings) {
+  const columns = Object.keys(settings)
+    .map(key => `${key} = ?`)
+    .join(', ');
+  const values = Object.values(settings);
+  await db.query(`UPDATE users SET ${columns} WHERE discord_id = ?`, [...values, discordId]);
+}
+
 module.exports = {
   getUser,
   createUser,
@@ -63,5 +71,6 @@ module.exports = {
   addAbility,
   getInventory,
   setActiveAbility,
-  markTutorialComplete
+  markTutorialComplete,
+  updateSettings
 };
