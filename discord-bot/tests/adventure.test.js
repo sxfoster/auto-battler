@@ -2,11 +2,16 @@ jest.mock('../src/utils/userService', () => ({
   getUser: jest.fn(),
   addAbility: jest.fn(),
   createUser: jest.fn(),
-  setActiveAbility: jest.fn()
+  setActiveAbility: jest.fn(),
+  setDmPreference: jest.fn()
 }));
 jest.mock('../src/utils/abilityCardService', () => ({
   getCards: jest.fn()
 }));
+jest.mock('../src/utils/embedBuilder', () => {
+  const actual = jest.requireActual('../src/utils/embedBuilder');
+  return { ...actual, sendCardDM: jest.fn() };
+});
 jest.mock('../../backend/game/engine');
 
 const utils = require('../../backend/game/utils');
@@ -16,6 +21,8 @@ const { allPossibleAbilities, allPossibleHeroes } = require('../../backend/game/
 const baseHeroes = allPossibleHeroes.filter(h => h.isBase);
 const userService = require('../src/utils/userService');
 const abilityCardService = require('../src/utils/abilityCardService');
+const embedBuilder = require('../src/utils/embedBuilder');
+const settings = require('../commands/settings');
 const GameEngine = require('../../backend/game/engine');
 
 describe('adventure command', () => {
@@ -186,5 +193,67 @@ describe('adventure command', () => {
     const interaction = { user: { id: '123', username: 'tester' }, reply: jest.fn().mockResolvedValue(), followUp: jest.fn().mockResolvedValue() };
     await adventure.execute(interaction);
     expect(userService.setActiveAbility).toHaveBeenCalledWith('123', 99);
+  });
+
+  test('battle log DM skipped when preference disabled via settings', async () => {
+    const settingsInteraction = {
+      user: { id: '123' },
+      options: {
+        getSubcommand: jest.fn().mockReturnValue('battle_logs'),
+        getBoolean: jest.fn().mockReturnValue(false)
+      },
+      reply: jest.fn().mockResolvedValue()
+    };
+    await settings.execute(settingsInteraction);
+    expect(userService.setDmPreference).toHaveBeenCalledWith('123', 'dm_battle_logs_enabled', false);
+
+    userService.getUser.mockResolvedValue({
+      id: 1,
+      discord_id: '123',
+      class: 'Warrior',
+      equipped_ability_id: 50,
+      dm_battle_logs_enabled: false,
+      dm_item_drops_enabled: true
+    });
+    abilityCardService.getCards.mockResolvedValue([{ id: 50, ability_id: 3111, charges: 5 }]);
+    const interaction = {
+      user: { id: '123', username: 'tester', send: jest.fn().mockResolvedValue() },
+      reply: jest.fn().mockResolvedValue(),
+      followUp: jest.fn().mockResolvedValue()
+    };
+    await adventure.execute(interaction);
+    expect(interaction.user.send).not.toHaveBeenCalled();
+  });
+
+  test('item drop DM not sent when disabled via settings', async () => {
+    const settingsInteraction = {
+      user: { id: '123' },
+      options: {
+        getSubcommand: jest.fn().mockReturnValue('item_drops'),
+        getBoolean: jest.fn().mockReturnValue(false)
+      },
+      reply: jest.fn().mockResolvedValue()
+    };
+    await settings.execute(settingsInteraction);
+    expect(userService.setDmPreference).toHaveBeenCalledWith('123', 'dm_item_drops_enabled', false);
+
+    userService.getUser.mockResolvedValue({
+      id: 1,
+      discord_id: '123',
+      class: 'Warrior',
+      equipped_ability_id: 50,
+      dm_battle_logs_enabled: true,
+      dm_item_drops_enabled: false
+    });
+    abilityCardService.getCards.mockResolvedValue([{ id: 50, ability_id: 3111, charges: 5 }]);
+    jest.spyOn(Math, 'random').mockReturnValue(0);
+    const interaction = {
+      user: { id: '123', username: 'tester', send: jest.fn().mockResolvedValue() },
+      reply: jest.fn().mockResolvedValue(),
+      followUp: jest.fn().mockResolvedValue()
+    };
+    await adventure.execute(interaction);
+    expect(embedBuilder.sendCardDM).not.toHaveBeenCalled();
+    Math.random.mockRestore();
   });
 });
