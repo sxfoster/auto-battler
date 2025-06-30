@@ -67,6 +67,17 @@ describe('adventure command', () => {
     expect(interaction.followUp).toHaveBeenCalledWith(expect.objectContaining({ embeds: expect.any(Array) }));
   });
 
+  test('warns when equipped ability has no charges', async () => {
+    userService.getUser.mockResolvedValue({ id: 1, discord_id: '123', class: 'Warrior', equipped_ability_id: 50 });
+    abilityCardService.getCards.mockResolvedValue([{ id: 50, ability_id: 3111, charges: 0 }]);
+    const interaction = { user: { id: '123' }, reply: jest.fn().mockResolvedValue(), followUp: jest.fn().mockResolvedValue() };
+    await adventure.execute(interaction);
+    expect(createCombatantSpy).not.toHaveBeenCalled();
+    expect(interaction.reply).toHaveBeenCalledWith(
+      expect.objectContaining({ ephemeral: true, content: expect.stringContaining('Warning'), components: expect.any(Array) })
+    );
+  });
+
   test('ability drop message sent', async () => {
     userService.getUser.mockResolvedValue({ id: 1, discord_id: '123', class: 'Warrior', equipped_ability_id: 50 });
     abilityCardService.getCards.mockResolvedValue([{ id: 50, ability_id: 3111, charges: 5 }]);

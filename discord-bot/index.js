@@ -74,6 +74,15 @@ client.on(Events.InteractionCreate, async interaction => {
       await challengeHandlers.handleAccept(interaction);
     } else if (interaction.customId.startsWith('challenge-decline:')) {
       await challengeHandlers.handleDecline(interaction);
+    } else if (interaction.customId.startsWith('open-inventory:')) {
+      const inventoryCommand = client.commands.get('inventory');
+      interaction.options = { getSubcommand: () => 'show' };
+      await inventoryCommand.execute(interaction);
+    } else if (interaction.customId.startsWith('proceed-battle:')) {
+      await interaction.update({ content: 'Proceeding to battle...', components: [] });
+      const adventureCommand = client.commands.get('adventure');
+      interaction.bypassChargeCheck = true;
+      await adventureCommand.execute(interaction);
     }
   }
 });
