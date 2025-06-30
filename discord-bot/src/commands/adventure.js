@@ -186,6 +186,16 @@ async function execute(interaction) {
 
   await interaction.followUp({ embeds: [summaryEmbed] });
 
+  if (engine.finalPlayerState.equipped_ability_id) {
+    await userService.setActiveAbility(
+      interaction.user.id,
+      engine.finalPlayerState.equipped_ability_id
+    );
+    console.log(
+      `[INVENTORY] User ${interaction.user.username} auto-equipped card ID: ${engine.finalPlayerState.equipped_ability_id}`
+    );
+  }
+
   const finalLogString = fullLog
     .map(entry => {
       let prefix = `[R${entry.round}]`;

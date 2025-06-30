@@ -1,7 +1,8 @@
 jest.mock('../src/utils/userService', () => ({
   getUser: jest.fn(),
   addAbility: jest.fn(),
-  createUser: jest.fn()
+  createUser: jest.fn(),
+  setActiveAbility: jest.fn()
 }));
 jest.mock('../src/utils/abilityCardService', () => ({
   getCards: jest.fn()
@@ -28,7 +29,8 @@ describe('adventure command', () => {
         yield { combatants: [], log: [{ round: 1, type: 'info', message: 'log' }] };
       },
       runFullGame: jest.fn(),
-      winner: 'player'
+      winner: 'player',
+      finalPlayerState: {}
     }));
   });
 
@@ -99,7 +101,8 @@ describe('adventure command', () => {
     GameEngine.mockImplementationOnce(() => ({
       runGameSteps: function* () { yield { combatants: [], log: ['log'] }; },
       runFullGame: jest.fn(),
-      winner: 'enemy'
+      winner: 'enemy',
+      finalPlayerState: {}
     }));
     userService.getUser.mockResolvedValue({ id: 1, discord_id: '123', class: 'Warrior', equipped_ability_id: 50 });
     abilityCardService.getCards.mockResolvedValue([{ id: 50, ability_id: 3111, charges: 5 }]);
@@ -120,7 +123,8 @@ describe('adventure command', () => {
         ] };
       },
       runFullGame: jest.fn(),
-      winner: 'player'
+      winner: 'player',
+      finalPlayerState: {}
     }));
     userService.getUser.mockResolvedValue({ id: 1, discord_id: '123', class: 'Barbarian', equipped_ability_id: 50 });
     abilityCardService.getCards.mockResolvedValue([{ id: 50, ability_id: 3111, charges: 5 }]);
@@ -155,7 +159,8 @@ describe('adventure command', () => {
         yield { combatants: [], log: logs };
       },
       runFullGame: jest.fn(),
-      winner: 'player'
+      winner: 'player',
+      finalPlayerState: {}
     }));
     userService.getUser.mockResolvedValue({ id: 1, discord_id: '123', class: 'Barbarian', equipped_ability_id: 50 });
     abilityCardService.getCards.mockResolvedValue([{ id: 50, ability_id: 3111, charges: 5 }]);
@@ -167,5 +172,19 @@ describe('adventure command', () => {
     expect(lines.length).toBe(20);
     expect(lines[0].includes('11')).toBe(true);
     expect(lines[19].includes('30')).toBe(true);
+  });
+
+  test('updates equipped ability when auto-equipped during battle', async () => {
+    GameEngine.mockImplementationOnce(() => ({
+      runGameSteps: function* () { yield { combatants: [], log: [] }; },
+      runFullGame: jest.fn(),
+      winner: 'player',
+      finalPlayerState: { equipped_ability_id: 99 }
+    }));
+    userService.getUser.mockResolvedValue({ id: 1, discord_id: '123', class: 'Warrior', equipped_ability_id: 50 });
+    abilityCardService.getCards.mockResolvedValue([{ id: 50, ability_id: 3111, charges: 5 }]);
+    const interaction = { user: { id: '123', username: 'tester' }, reply: jest.fn().mockResolvedValue(), followUp: jest.fn().mockResolvedValue() };
+    await adventure.execute(interaction);
+    expect(userService.setActiveAbility).toHaveBeenCalledWith('123', 99);
   });
 });

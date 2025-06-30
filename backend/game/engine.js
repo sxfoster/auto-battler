@@ -16,6 +16,7 @@ class GameEngine {
         this.winner = null;
         this.roundCounter = 0;
         this.extraActionTaken = {}; // Tracks extra actions per round
+        this.finalPlayerState = {}; // Will store final state changes
     }
 
     log(entry, level = 'detail') {
@@ -366,6 +367,10 @@ class GameEngine {
                            const next = attacker.deck.splice(idx, 1)[0];
                            attacker.abilityData = next;
                            attacker.abilityCharges = next.charges;
+                           if (attacker.team === 'player') {
+                               this.finalPlayerState.equipped_ability_id = next.cardId;
+                               this.log({ type: 'info', message: `${attacker.name} automatically equipped a new ${next.name} card!` });
+                           }
                        } else {
                            attacker.abilityData = null;
                        }
@@ -412,7 +417,10 @@ class GameEngine {
        for (const _ of this.runGameSteps()) {
            // exhaust generator to completion
        }
-       return this.battleLog;
+       return {
+           battleLog: this.battleLog,
+           finalPlayerState: this.finalPlayerState
+       };
    }
 }
 
