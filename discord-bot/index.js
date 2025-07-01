@@ -80,7 +80,21 @@ client.on(Events.InteractionCreate, async interaction => {
       await auctionHandlers.handleBuySelect(interaction);
     }
   } else if (interaction.isButton()) {
-    if (interaction.customId === 'inventory-equip-start') {
+    const [customId, targetUserId] = interaction.customId.split(':');
+
+    if (targetUserId && interaction.user.id !== targetUserId) {
+      return interaction.reply({ content: "This isn't your adventure!", ephemeral: true });
+    }
+
+    if (customId === 'continue-adventure') {
+      await interaction.update({ content: 'Delving deeper into the caves...', components: [] });
+      const command = client.commands.get('adventure');
+      if (command) {
+        await command.execute(interaction);
+      }
+    } else if (customId === 'back-to-town') {
+      await interaction.update({ content: 'You head back to the relative safety of the town.', components: [] });
+    } else if (customId === 'inventory-equip-start') {
       await inventoryHandlers.handleEquipButton(interaction);
     } else if (interaction.customId === 'inventory-merge-start') {
       await inventoryHandlers.handleMergeButton(interaction);

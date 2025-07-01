@@ -93,8 +93,10 @@ describe('adventure command', () => {
     const summaryCall = interaction.followUp.mock.calls.find(c => Array.isArray(c[0].components));
     expect(summaryCall).toBeDefined();
     expect(summaryCall[0]).toEqual(expect.objectContaining({ embeds: expect.any(Array), components: expect.any(Array) }));
-    const components = summaryCall[0].components;
-    expect(components[0].components[0].data.custom_id).toBe('nav-town');
+    const components = summaryCall[0].components[0].components;
+    expect(components).toHaveLength(2);
+    expect(components[0].data.custom_id).toBe('back-to-town');
+    expect(components[1].data.custom_id).toBe(`continue-adventure:${interaction.user.id}`);
   });
 
   test('warns when equipped ability has no charges', async () => {
