@@ -8,8 +8,14 @@ jest.mock('../src/utils/abilityCardService', () => ({
   getCards: jest.fn(),
   setEquippedCard: jest.fn()
 }));
+jest.mock('../src/utils/weaponService', () => ({
+  getWeapons: jest.fn(),
+  getWeapon: jest.fn(),
+  setEquippedWeapon: jest.fn()
+}));
 const userService = require('../src/utils/userService');
 const abilityCardService = require('../src/utils/abilityCardService');
+const weaponService = require('../src/utils/weaponService');
 const gameData = require('../util/gameData');
 const { allPossibleAbilities } = require('../../backend/game/data');
 
@@ -17,6 +23,8 @@ describe('inventory command', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     gameData.gameData.abilities = new Map(allPossibleAbilities.map(a => [a.id, a]));
+    weaponService.getWeapons.mockResolvedValue([]);
+    weaponService.getWeapon.mockResolvedValue(null);
   });
 
   test('public reply when user has a class', async () => {
@@ -24,6 +32,7 @@ describe('inventory command', () => {
     abilityCardService.getCards.mockResolvedValue([
       { id: 42, ability_id: 3111, charges: 5 }
     ]);
+    weaponService.getWeapons.mockResolvedValue([]);
     const interaction = {
       user: { id: '123', displayAvatarURL: jest.fn().mockReturnValue('https://example.com/avatar.png') },
       options: { getSubcommand: jest.fn().mockReturnValue('show') },
@@ -40,6 +49,7 @@ describe('inventory command', () => {
   test('shows inventory for user with no archetype', async () => {
     userService.getUser.mockResolvedValue({ id: 1, name: 'Tester', class: null, equipped_ability_id: null });
     abilityCardService.getCards.mockResolvedValue([]);
+    weaponService.getWeapons.mockResolvedValue([]);
     const interaction = {
       user: { id: '123', displayAvatarURL: jest.fn().mockReturnValue('https://example.com/avatar.png') },
       options: { getSubcommand: jest.fn().mockReturnValue('show') },
@@ -69,13 +79,14 @@ describe('inventory command', () => {
       { id: 42, ability_id: 3111, charges: 5 },
       { id: 43, ability_id: 3111, charges: 3 }
     ]);
+    weaponService.getWeapons.mockResolvedValue([]);
     const interaction = {
       user: { id: '123', displayAvatarURL: jest.fn().mockReturnValue('https://example.com/avatar.png') },
       options: { getSubcommand: jest.fn().mockReturnValue('show') },
       reply: jest.fn().mockResolvedValue()
     };
     await inventory.execute(interaction);
-    expect(interaction.reply.mock.calls[0][0].embeds[0].data.fields[2].value).toContain('Power Strike');
+    expect(interaction.reply.mock.calls[0][0].embeds[0].data.fields[3].value).toContain('Select a category');
   });
 
   test('set subcommand shows dropdown', async () => {

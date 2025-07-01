@@ -8,6 +8,7 @@ const client = new Client({ intents: [GatewayIntentBits.Guilds] });
 client.commands = new Collection();
 
 const inventoryHandlers = require('./commands/inventory');
+const invViewHandlers = require('./src/utils/inventoryHandlers');
 const challengeHandlers = require('./src/commands/challenge');
 const auctionHandlers = require('./src/utils/auctionHouseHandlers');
 
@@ -69,6 +70,8 @@ client.on(Events.InteractionCreate, async interaction => {
       await inventoryHandlers.handleAbilitySelect(interaction);
     } else if (interaction.customId === 'equip-card') {
       await inventoryHandlers.handleEquipSelect(interaction);
+    } else if (interaction.customId === 'weapon-select') {
+      await inventoryHandlers.handleWeaponSelect(interaction);
     } else if (interaction.customId === 'merge-ability-select') {
       await inventoryHandlers.handleMergeSelect(interaction);
     } else if (interaction.customId === 'ah-sell-select') {
@@ -83,6 +86,12 @@ client.on(Events.InteractionCreate, async interaction => {
       await inventoryHandlers.handleMergeButton(interaction);
     } else if (interaction.customId === 'set-ability') {
       await inventoryHandlers.handleSetAbilityButton(interaction);
+    } else if (interaction.customId === 'set-weapon') {
+      await inventoryHandlers.handleSetWeaponButton(interaction);
+    } else if (interaction.customId === 'inv-view-abilities') {
+      await invViewHandlers.showAbilities(interaction);
+    } else if (interaction.customId === 'inv-view-weapons') {
+      await invViewHandlers.showWeapons(interaction);
     } else if (interaction.customId.startsWith('challenge-accept:')) {
       await challengeHandlers.handleAccept(interaction);
     } else if (interaction.customId.startsWith('challenge-decline:')) {
