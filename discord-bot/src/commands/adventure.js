@@ -10,6 +10,7 @@ const abilityCardService = require('../utils/abilityCardService');
 const weaponService = require('../utils/weaponService');
 const { sendCardDM } = require('../utils/embedBuilder');
 const { runBattleLoop, sendBattleLogDM, formatLog } = require('../utils/battleRunner');
+const { createBackToTownRow } = require('../utils/navigation');
 
 const GameEngine = require('../../../backend/game/engine');
 const { createCombatant } = require('../../../backend/game/utils');
@@ -209,7 +210,7 @@ async function execute(interaction) {
     .setColor(engine.winner === 'player' ? '#57F287' : '#ED4245')
     .setDescription(narrativeDescription);
 
-  await interaction.followUp({ embeds: [summaryEmbed] });
+  await interaction.followUp({ embeds: [summaryEmbed], components: [createBackToTownRow()] });
 
   if (engine.finalPlayerState.equipped_ability_id) {
     await userService.setActiveAbility(

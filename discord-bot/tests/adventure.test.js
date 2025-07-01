@@ -90,7 +90,11 @@ describe('adventure command', () => {
       0
     );
     expect(interaction.reply).toHaveBeenCalledWith(expect.objectContaining({ content: expect.stringContaining('Goblin') }));
-    expect(interaction.followUp).toHaveBeenCalledWith(expect.objectContaining({ embeds: expect.any(Array) }));
+    const summaryCall = interaction.followUp.mock.calls.find(c => Array.isArray(c[0].components));
+    expect(summaryCall).toBeDefined();
+    expect(summaryCall[0]).toEqual(expect.objectContaining({ embeds: expect.any(Array), components: expect.any(Array) }));
+    const components = summaryCall[0].components;
+    expect(components[0].components[0].data.custom_id).toBe('nav-town');
   });
 
   test('warns when equipped ability has no charges', async () => {
