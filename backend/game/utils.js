@@ -33,13 +33,27 @@ function createCombatant(playerData, team, position) {
 
     if (!hero) return null;
 
-    // Simplified stat calculation (can be expanded later)
+    // Calculate final stats including equipment bonuses
     const finalStats = {
         hp: hero.hp,
-        attack: hero.attack + (weapon ? weapon.statBonuses.ATK || 0 : 0),
+        attack: hero.attack,
         speed: hero.speed,
-        defense: (hero.defense || 0) + (armor ? armor.statBonuses.Block || 0 : 0)
+        defense: hero.defense || 0
     };
+
+    if (weapon && weapon.statBonuses) {
+        finalStats.attack += weapon.statBonuses.ATK || 0;
+        finalStats.hp += weapon.statBonuses.HP || 0;
+        finalStats.speed += weapon.statBonuses.SPD || 0;
+        finalStats.defense += weapon.statBonuses.DEFENSE || 0;
+    }
+
+    if (armor && armor.statBonuses) {
+        finalStats.attack += armor.statBonuses.ATK || 0;
+        finalStats.hp += armor.statBonuses.HP || 0;
+        finalStats.speed += armor.statBonuses.SPD || 0;
+        finalStats.defense += armor.statBonuses.DEFENSE || 0;
+    }
 
     return {
         id: `${team}-hero-${position}`,

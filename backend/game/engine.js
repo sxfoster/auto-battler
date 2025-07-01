@@ -58,6 +58,15 @@ class GameEngine {
        }
    }
 
+   applyStatusEffect(target, name, duration = 2, extra = {}) {
+       const effect = { name, turnsRemaining: duration, ...extra };
+       if (name === 'Poison' && effect.damage === undefined) {
+           effect.damage = 1;
+       }
+       target.statusEffects.push(effect);
+       this.log({ type: 'status', message: `↳ ${target.name} is ${name.toLowerCase()}.` });
+   }
+
    applyDamage(attacker, target, baseDamage, options = {}) {
        const { log = true } = options;
        let defense = target.defense || 0;
@@ -341,6 +350,14 @@ class GameEngine {
 
                // Always perform the auto-attack first
                this.applyDamage(attacker, targetEnemy, attacker.attack);
+
+               const weapon = attacker.weaponData;
+               if (weapon && weapon.passiveEffect && weapon.passiveEffect.trigger === 'on_auto_attack') {
+                   if (Math.random() < weapon.passiveEffect.chance) {
+                       const eff = weapon.passiveEffect;
+                       this.applyStatusEffect(targetEnemy, eff.effect, eff.duration, { amount: eff.amount });
+                   }
+               }
                if (this.checkVictory()) return;
 
                // Re-evaluate potential targets in case the first enemy was defeated
