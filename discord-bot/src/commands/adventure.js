@@ -165,6 +165,9 @@ async function execute(interaction) {
   if (engine.winner === 'player') {
     await userService.incrementPveWin(user.id);
 
+    const xpGained = 10;
+    const xpResult = await userService.addXp(user.id, xpGained);
+
     let lootMessages = [];
     if (goblinLoot.gold > 0) {
       await userService.addGold(user.id, goblinLoot.gold);
@@ -188,14 +191,14 @@ async function execute(interaction) {
       );
     }
 
+    lootMessages.push(`earned **${xpGained} XP**`);
+
     let lootString = 'and was victorious!';
     if (lootMessages.length > 0) {
       lootString = 'and ' + lootMessages.join(', ') + '!';
     }
 
     narrativeDescription = `${interaction.user.username} defeated the goblin ${lootString}`;
-
-    const xpResult = await userService.addXp(user.id, 10);
     if (xpResult.leveledUp) {
       await interaction.followUp({
         content: `🎉 **Congratulations, ${interaction.user.username}! You have reached Level ${xpResult.newLevel}!** 🎉`

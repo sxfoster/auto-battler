@@ -2,7 +2,8 @@ const inventory = require('../commands/inventory');
 
 jest.mock('../src/utils/userService', () => ({
   getUser: jest.fn(),
-  createUser: jest.fn()
+  createUser: jest.fn(),
+  XP_THRESHOLDS: { 1: 5000, 2: 12500, 3: 22500, 4: Infinity }
 }));
 jest.mock('../src/utils/abilityCardService', () => ({
   getCards: jest.fn(),
@@ -42,8 +43,9 @@ describe('inventory command', () => {
     expect(interaction.reply).toHaveBeenCalledWith(expect.objectContaining({ embeds: expect.any(Array) }));
     expect(interaction.reply.mock.calls[0][0].ephemeral).toBe(true);
     const fields = interaction.reply.mock.calls[0][0].embeds[0].data.fields;
-    expect(fields[0].value).toContain('Stalwart Defender (Common)');
-    expect(fields[1].value).toContain('Power Strike');
+    const fieldMap = Object.fromEntries(fields.map(f => [f.name, f.value]));
+    expect(fieldMap.Archetype).toContain('Stalwart Defender (Common)');
+    expect(fieldMap['Equipped Ability']).toContain('Power Strike');
     const navButton = interaction.reply.mock.calls[0][0].components
       .flatMap(r => r.components)
       .find(c => c.data?.custom_id === 'nav-town');
@@ -62,7 +64,8 @@ describe('inventory command', () => {
     await inventory.execute(interaction);
     expect(interaction.reply).toHaveBeenCalledWith(expect.objectContaining({ embeds: expect.any(Array) }));
     const fields = interaction.reply.mock.calls[0][0].embeds[0].data.fields;
-    expect(fields[0].value).toContain('No Archetype Selected');
+    const fieldMap = Object.fromEntries(fields.map(f => [f.name, f.value]));
+    expect(fieldMap.Archetype).toContain('No Archetype Selected');
     const navButton = interaction.reply.mock.calls[0][0].components
       .flatMap(r => r.components)
       .find(c => c.data?.custom_id === 'nav-town');
@@ -98,7 +101,9 @@ describe('inventory command', () => {
       reply: jest.fn().mockResolvedValue()
     };
     await inventory.execute(interaction);
-    expect(interaction.reply.mock.calls[0][0].embeds[0].data.fields[3].value).toContain('Select a category');
+    const fields = interaction.reply.mock.calls[0][0].embeds[0].data.fields;
+    const fieldMap = Object.fromEntries(fields.map(f => [f.name, f.value]));
+    expect(fieldMap.Backpack).toContain('Select a category');
     const navButton = interaction.reply.mock.calls[0][0].components
       .flatMap(r => r.components)
       .find(c => c.data?.custom_id === 'nav-town');
