@@ -6,6 +6,7 @@ function createBackToTownRow() {
       .setCustomId('nav-town')
       .setLabel('Back to Town')
       .setStyle(ButtonStyle.Secondary)
+      .setEmoji('🏠')
   );
 }
 
