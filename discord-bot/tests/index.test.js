@@ -73,3 +73,22 @@ test('nav-town button calls town command', async () => {
   await handler(interaction);
   expect(town.execute).toHaveBeenCalledWith(interaction);
 });
+
+test('continue-adventure button calls adventure command', async () => {
+  const client = discord.__clients[0];
+  const handler = client.listeners('interactionCreate')[0];
+  const adventure = { execute: jest.fn() };
+  client.commands.set('adventure', adventure);
+  const interaction = {
+    isChatInputCommand: jest.fn(() => false),
+    isAutocomplete: jest.fn(() => false),
+    isStringSelectMenu: jest.fn(() => false),
+    isButton: jest.fn(() => true),
+    customId: 'continue-adventure:123',
+    user: { id: '123' },
+    update: jest.fn().mockResolvedValue()
+  };
+  await handler(interaction);
+  expect(interaction.update).toHaveBeenCalled();
+  expect(adventure.execute).toHaveBeenCalledWith(interaction);
+});

@@ -10,7 +10,6 @@ const abilityCardService = require('../utils/abilityCardService');
 const weaponService = require('../utils/weaponService');
 const { sendCardDM } = require('../utils/embedBuilder');
 const { runBattleLoop, sendBattleLogDM, formatLog } = require('../utils/battleRunner');
-const { createBackToTownRow } = require('../utils/components');
 
 const GameEngine = require('../../../backend/game/engine');
 const { createCombatant } = require('../../../backend/game/utils');
@@ -144,9 +143,13 @@ async function execute(interaction) {
 
   console.log(`[BATTLE START] Player ${playerClass} vs Goblin ${goblinBase.name}`);
 
-  await respond(interaction, {
-    content: `${interaction.user.username} delves into the goblin cave and encounters a ferocious Goblin ${goblinBase.name}! The battle begins!`
-  });
+  const startMessage = `${interaction.user.username} delves into the goblin cave and encounters a ferocious Goblin ${goblinBase.name}! The battle begins!`;
+
+  if (typeof interaction.isButton === 'function' && interaction.isButton()) {
+    await interaction.channel.send(startMessage);
+  } else {
+    await respond(interaction, { content: startMessage });
+  }
 
   const engine = new GameEngine([player, goblin]);
   const { fullLog } = await runBattleLoop(interaction, engine, { waitMs: 250 });
@@ -213,7 +216,18 @@ async function execute(interaction) {
     .setColor(engine.winner === 'player' ? '#57F287' : '#ED4245')
     .setDescription(narrativeDescription);
 
-  await interaction.followUp({ embeds: [summaryEmbed], components: [createBackToTownRow()] });
+  const row = new ActionRowBuilder().addComponents(
+    new ButtonBuilder()
+      .setCustomId('back-to-town')
+      .setLabel('Back to Town')
+      .setStyle(ButtonStyle.Secondary),
+    new ButtonBuilder()
+      .setCustomId(`continue-adventure:${interaction.user.id}`)
+      .setLabel('Continue Adventuring')
+      .setStyle(ButtonStyle.Success)
+  );
+
+  await interaction.followUp({ embeds: [summaryEmbed], components: [row] });
 
   if (engine.finalPlayerState.equipped_ability_id) {
     await userService.setActiveAbility(
