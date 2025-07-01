@@ -5,6 +5,7 @@ jest.mock('../src/utils/userService', () => ({
   setActiveAbility: jest.fn(),
   setDmPreference: jest.fn(),
   addGold: jest.fn(),
+  addXp: jest.fn().mockResolvedValue({ leveledUp: false, newLevel: 1 }),
   incrementPveWin: jest.fn(),
   incrementPveLoss: jest.fn()
 }));
