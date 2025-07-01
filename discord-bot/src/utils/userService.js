@@ -2,6 +2,14 @@ const db = require('../../util/database');
 const abilityCards = require('./abilityCardService');
 const { allPossibleAbilities } = require('../../../backend/game/data');
 
+// XP required to reach each level
+const XP_THRESHOLDS = {
+  1: 5000,
+  2: 12500,
+  3: 22500,
+  4: Infinity // Level cap
+};
+
 async function getUser(discordId) {
   const [rows] = await db.query('SELECT * FROM users WHERE discord_id = ?', [discordId]);
   return rows[0] || null;
@@ -48,6 +56,29 @@ async function incrementPvpLoss(userId) {
 async function addGold(userId, amount) {
   if (amount === 0) return;
   await db.query('UPDATE users SET gold = gold + ? WHERE id = ?', [amount, userId]);
+}
+
+// Award XP and handle level ups
+async function addXp(userId, amount) {
+  const [rows] = await db.query('SELECT id, level, xp FROM users WHERE id = ?', [userId]);
+  const user = rows[0];
+  if (!user || user.level >= 4) {
+    return { leveledUp: false, newLevel: user ? user.level : undefined };
+  }
+
+  const newXp = user.xp + amount;
+  let newLevel = user.level;
+  let leveledUp = false;
+
+  if (newXp >= XP_THRESHOLDS[user.level]) {
+    newLevel++;
+    leveledUp = true;
+    await db.query('UPDATE users SET level = ?, xp = ? WHERE id = ?', [newLevel, newXp, user.id]);
+  } else {
+    await db.query('UPDATE users SET xp = ? WHERE id = ?', [newXp, user.id]);
+  }
+
+  return { leveledUp, newLevel };
 }
 
 async function getLeaderboardData() {
@@ -115,5 +146,6 @@ module.exports = {
   incrementPvpWin,
   incrementPvpLoss,
   addGold,
+  addXp,
   getLeaderboardData
 };
