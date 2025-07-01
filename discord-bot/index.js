@@ -131,6 +131,11 @@ client.on(Events.InteractionCreate, async interaction => {
       if (auctionhouseCommand) {
         await auctionhouseCommand.execute(interaction);
       }
+    } else if (interaction.customId === 'nav-town') {
+      const townCommand = client.commands.get('town');
+      if (townCommand) {
+        await townCommand.execute(interaction);
+      }
     }
   } else if (interaction.isModalSubmit()) {
     if (interaction.customId.startsWith('ah-sell-modal:')) {
