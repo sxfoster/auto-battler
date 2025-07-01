@@ -4,7 +4,10 @@ async function createListing(sellerId, card, price) {
   const connection = await db.getConnection();
   try {
     await connection.beginTransaction();
-    await connection.query('DELETE FROM user_ability_cards WHERE id = ?', [card.id]);
+    await connection.query(
+      'DELETE FROM user_ability_cards WHERE id = ? AND user_id = ?',
+      [card.id, sellerId]
+    );
     await connection.query(
       'INSERT INTO auction_house_listings (seller_id, ability_id, charges, price) VALUES (?, ?, ?, ?)',
       [sellerId, card.ability_id, card.charges, price]
