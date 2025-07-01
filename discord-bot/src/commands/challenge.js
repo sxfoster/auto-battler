@@ -3,7 +3,7 @@ const userService = require('../utils/userService');
 const abilityCardService = require('../utils/abilityCardService');
 const db = require('../../util/database');
 const config = require('../../util/config');
-const { allPossibleHeroes } = require('../../../backend/game/data');
+const gameData = require('../../util/gameData');
 const { createCombatant } = require('../../../backend/game/utils');
 const GameEngine = require('../../../backend/game/engine');
 
@@ -13,6 +13,7 @@ const data = new SlashCommandBuilder()
   .addUserOption(opt => opt.setName('target').setDescription('User to challenge').setRequired(true));
 
 async function execute(interaction) {
+  const allPossibleHeroes = gameData.getHeroes();
   if (!config.PVP_CHANNEL_ID) {
     console.error('PVP_CHANNEL_ID is not set in the .env file.');
     return interaction.reply({

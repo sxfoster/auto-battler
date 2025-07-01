@@ -3,7 +3,8 @@ const userService = require('../src/utils/userService');
 const { buildBattleEmbed } = require('../src/utils/embedBuilder');
 const GameEngine = require('../../backend/game/engine');
 const { createCombatant } = require('../../backend/game/utils');
-const { allPossibleHeroes, allPossibleAbilities } = require('../../backend/game/data');
+const gameData = require('../util/gameData');
+
 
 function formatLog(entry) {
   const prefix = `[R${entry.round}]`;
@@ -19,6 +20,8 @@ const data = new SlashCommandBuilder()
   .setDescription('Start the guided tutorial');
 
 async function execute(interaction) {
+  const allPossibleHeroes = gameData.getHeroes();
+  const allPossibleAbilities = Array.from(gameData.gameData.abilities.values());
   let user = await userService.getUser(interaction.user.id);
   if (!user) {
     await userService.createUser(interaction.user.id, interaction.user.username);

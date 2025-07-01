@@ -13,9 +13,12 @@ jest.mock('../../backend/game/engine');
 const userService = require('../src/utils/userService');
 const db = require('../util/database');
 const GameEngine = require('../../backend/game/engine');
+const gameData = require('../util/gameData');
+const { allPossibleHeroes } = require('../../backend/game/data');
 
 beforeEach(() => {
   jest.clearAllMocks();
+  gameData.gameData.heroes = new Map(allPossibleHeroes.map(h => [h.id, h]));
   GameEngine.mockImplementation(() => ({
     runFullGame: jest.fn(),
     battleLog: [],

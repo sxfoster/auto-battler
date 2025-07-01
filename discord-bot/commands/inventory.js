@@ -8,7 +8,11 @@ const {
 const { simple } = require('../src/utils/embedBuilder');
 const userService = require('../src/utils/userService');
 const abilityCardService = require('../src/utils/abilityCardService');
-const { allPossibleAbilities } = require('../../backend/game/data');
+const gameData = require('../util/gameData');
+
+function getAllAbilities() {
+  return Array.from(gameData.gameData.abilities.values());
+}
 
 const data = new SlashCommandBuilder()
   .setName('inventory')
@@ -45,6 +49,7 @@ const data = new SlashCommandBuilder()
   );
 
 async function execute(interaction) {
+  const allPossibleAbilities = getAllAbilities();
   const sub = interaction.options.getSubcommand(false) || 'show';
   let user = await userService.getUser(interaction.user.id);
   if (!user) {
@@ -159,6 +164,7 @@ async function execute(interaction) {
 }
 
 async function handleSetAbilityButton(interaction) {
+  const allPossibleAbilities = getAllAbilities();
   const user = await userService.getUser(interaction.user.id);
   if (!user) {
     await interaction.reply({ content: 'User not found.', ephemeral: true });
@@ -187,6 +193,7 @@ async function handleSetAbilityButton(interaction) {
 }
 
 async function handleAbilitySelect(interaction) {
+  const allPossibleAbilities = getAllAbilities();
   const abilityId = parseInt(interaction.values[0], 10);
   const user = await userService.getUser(interaction.user.id);
   if (!user) {
@@ -224,6 +231,7 @@ async function handleAbilitySelect(interaction) {
 }
 
 async function handleEquipSelect(interaction) {
+  const allPossibleAbilities = getAllAbilities();
   const cardId = parseInt(interaction.values[0], 10);
   const user = await userService.getUser(interaction.user.id);
   if (!user) {
@@ -251,6 +259,7 @@ async function handleEquipButton(interaction) {
 }
 
 async function handleMergeButton(interaction) {
+  const allPossibleAbilities = getAllAbilities();
   const user = await userService.getUser(interaction.user.id);
   const cards = await abilityCardService.getCards(user.id);
 
@@ -283,6 +292,7 @@ async function handleMergeButton(interaction) {
 }
 
 async function handleMergeSelect(interaction) {
+  const allPossibleAbilities = getAllAbilities();
   const abilityId = parseInt(interaction.values[0], 10);
   const user = await userService.getUser(interaction.user.id);
   const allCards = await abilityCardService.getCards(user.id);
@@ -309,6 +319,7 @@ async function handleMergeSelect(interaction) {
 }
 
 async function autocomplete(interaction) {
+  const allPossibleAbilities = getAllAbilities();
   const sub = interaction.options.getSubcommand();
   const focused = interaction.options.getFocused();
   const user = await userService.getUser(interaction.user.id);

@@ -8,10 +8,14 @@ const {
 const userService = require('./userService');
 const abilityCardService = require('./abilityCardService');
 const auctionService = require('./auctionHouseService');
-const { allPossibleAbilities } = require('../../../backend/game/data');
+const gameData = require('../../util/gameData');
+
+function getAllAbilities() {
+  return Array.from(gameData.gameData.abilities.values());
+}
 
 function abilityName(id) {
-  const ability = allPossibleAbilities.find(a => a.id === id);
+  const ability = getAllAbilities().find(a => a.id === id);
   return ability ? ability.name : `Ability ${id}`;
 }
 

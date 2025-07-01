@@ -1,6 +1,10 @@
 const db = require('../../util/database');
 const abilityCards = require('./abilityCardService');
-const { allPossibleAbilities } = require('../../../backend/game/data');
+const gameData = require('../../util/gameData');
+
+function getAllAbilities() {
+  return Array.from(gameData.gameData.abilities.values());
+}
 
 // XP required to reach each level
 const XP_THRESHOLDS = {
@@ -101,7 +105,7 @@ async function getInventory(discordId) {
   if (!user) return [];
   const cards = await abilityCards.getCards(user.id);
   return cards.map(card => {
-    const ability = allPossibleAbilities.find(a => a.id === card.ability_id);
+    const ability = getAllAbilities().find(a => a.id === card.ability_id);
     return {
       name: ability ? ability.name : `Ability ${card.ability_id}`,
       charges: card.charges,

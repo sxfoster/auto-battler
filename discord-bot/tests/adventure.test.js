@@ -23,6 +23,7 @@ jest.spyOn(utils, 'createCombatant');
 const adventure = require('../src/commands/adventure');
 const { allPossibleAbilities, allPossibleHeroes } = require('../../backend/game/data');
 const baseHeroes = allPossibleHeroes.filter(h => h.isBase);
+const gameData = require('../util/gameData');
 const userService = require('../src/utils/userService');
 const abilityCardService = require('../src/utils/abilityCardService');
 const embedBuilder = require('../src/utils/embedBuilder');
@@ -33,6 +34,8 @@ describe('adventure command', () => {
   let createCombatantSpy;
   beforeEach(() => {
     jest.clearAllMocks();
+    gameData.gameData.heroes = new Map(allPossibleHeroes.map(h => [h.id, h]));
+    gameData.gameData.abilities = new Map(allPossibleAbilities.map(a => [a.id, a]));
     abilityCardService.getCards.mockResolvedValue([]);
     createCombatantSpy = utils.createCombatant;
     GameEngine.mockImplementation(() => ({
