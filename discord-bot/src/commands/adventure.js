@@ -10,7 +10,7 @@ const abilityCardService = require('../utils/abilityCardService');
 const weaponService = require('../utils/weaponService');
 const { sendCardDM } = require('../utils/embedBuilder');
 const { runBattleLoop, sendBattleLogDM, formatLog } = require('../utils/battleRunner');
-const { createBackToTownRow } = require('../utils/navigation');
+const { createBackToTownRow } = require('../utils/components');
 
 const GameEngine = require('../../../backend/game/engine');
 const { createCombatant } = require('../../../backend/game/utils');
