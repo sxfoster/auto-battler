@@ -1,5 +1,7 @@
 // GameEngine handles simple auto-attack combat rounds
 
+const { allPossibleMinions } = require('./data');
+
 let abilityCardService;
 try {
     abilityCardService = require('../../discord-bot/src/utils/abilityCardService');
@@ -175,7 +177,6 @@ class GameEngine {
 
        if (ability.summons) {
            const summonKeys = Array.isArray(ability.summons) ? ability.summons : [ability.summons];
-           const { allPossibleMinions } = require('./data');
            for (const key of summonKeys) {
                const minionData = allPossibleMinions[key];
                if (minionData) {
