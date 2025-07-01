@@ -136,6 +136,7 @@ async function setDmPreference(discordId, preferenceKey, isEnabled) {
 }
 
 module.exports = {
+  XP_THRESHOLDS,
   getUser,
   createUser,
   getUserByName,

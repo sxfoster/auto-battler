@@ -7,6 +7,7 @@ const {
 } = require('discord.js');
 const { simple } = require('../src/utils/embedBuilder');
 const userService = require('../src/utils/userService');
+const { XP_THRESHOLDS } = require('../src/utils/userService');
 const abilityCardService = require('../src/utils/abilityCardService');
 const weaponService = require('../src/utils/weaponService');
 const { createBackToTownRow } = require('../src/utils/components');
@@ -103,9 +104,21 @@ async function execute(interaction) {
       }
     }
 
+    let xpDisplay = 'MAX LEVEL';
+    if (user.level < 4) {
+      const nextLevelXp = XP_THRESHOLDS[user.level];
+      const prevLevelXp = XP_THRESHOLDS[user.level - 1] || 0;
+      const currentLevelProgress = user.xp - prevLevelXp;
+      const xpForThisLevel = nextLevelXp - prevLevelXp;
+      xpDisplay = `${currentLevelProgress} / ${xpForThisLevel}`;
+    }
+
     const embed = simple(
       'Player Inventory',
       [
+        { name: 'Player', value: user.name },
+        { name: 'Level', value: `${user.level}`, inline: true },
+        { name: 'XP', value: xpDisplay, inline: true },
         { name: 'Archetype', value: archetype },
         { name: 'Equipped Ability', value: equippedName, inline: true },
         { name: 'Equipped Weapon', value: equippedWeapon ? equippedWeapon.name : 'None', inline: true },
