@@ -271,23 +271,24 @@ class GameEngine {
 
    processStatuses(combatant) {
        let skip = false;
-        for (const effect of [...combatant.statusEffects]) {
-            if (effect.name === 'Regrowth') {
-                this.applyHeal(combatant, effect.healing);
-                this.log({ type: 'status', message: `💚 ${combatant.name} is healed for ${effect.healing} by Regrowth.` });
-            } else if (effect.name === 'Poison') {
-                const dealt = this.applyDamage(combatant, combatant, effect.damage, { log: false });
-                this.log({ type: 'status', message: `☣️ ${combatant.name} takes ${dealt} poison damage.` });
-            }
+       for (let i = combatant.statusEffects.length - 1; i >= 0; i--) {
+           const effect = combatant.statusEffects[i];
+           if (effect.name === 'Regrowth') {
+               this.applyHeal(combatant, effect.healing);
+               this.log({ type: 'status', message: `💚 ${combatant.name} is healed for ${effect.healing} by Regrowth.` });
+           } else if (effect.name === 'Poison') {
+               const dealt = this.applyDamage(combatant, combatant, effect.damage, { log: false });
+               this.log({ type: 'status', message: `☣️ ${combatant.name} takes ${dealt} poison damage.` });
+           }
 
-            if (effect.name !== 'Confuse') {
-                effect.turnsRemaining -= 1;
-                if (effect.turnsRemaining <= 0) {
-                    combatant.statusEffects = combatant.statusEffects.filter(e => e !== effect);
-                    this.log({ type: 'status', message: `${effect.name} on ${combatant.name} has worn off.` });
-                }
-            }
-        }
+           if (effect.name !== 'Confuse') {
+               effect.turnsRemaining -= 1;
+               if (effect.turnsRemaining <= 0) {
+                   this.log({ type: 'status', message: `${effect.name} on ${combatant.name} has worn off.` });
+                   combatant.statusEffects.splice(i, 1);
+               }
+           }
+       }
 
        if (combatant.statusEffects.some(s => s.name === 'Stun')) {
            this.log({ type: 'status', message: `${combatant.name} is stunned and misses the turn.` });
