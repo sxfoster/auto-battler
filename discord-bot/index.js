@@ -109,6 +109,28 @@ client.on(Events.InteractionCreate, async interaction => {
       await auctionHandlers.handleSellButton(interaction);
     } else if (interaction.customId === 'ah-buy-start') {
       await auctionHandlers.handleBuyButton(interaction);
+    } else if (interaction.customId === 'town-adventure') {
+      const adventureCommand = client.commands.get('adventure');
+      if (adventureCommand) {
+        await interaction.deferUpdate();
+        await adventureCommand.execute(interaction);
+      }
+    } else if (interaction.customId === 'town-inventory') {
+      const inventoryCommand = client.commands.get('inventory');
+      if (inventoryCommand) {
+        interaction.options = { getSubcommand: () => 'show' };
+        await inventoryCommand.execute(interaction);
+      }
+    } else if (interaction.customId === 'town-leaderboard') {
+      const leaderboardCommand = client.commands.get('leaderboard');
+      if (leaderboardCommand) {
+        await leaderboardCommand.execute(interaction);
+      }
+    } else if (interaction.customId === 'town-auctionhouse') {
+      const auctionhouseCommand = client.commands.get('auctionhouse');
+      if (auctionhouseCommand) {
+        await auctionhouseCommand.execute(interaction);
+      }
     }
   } else if (interaction.isModalSubmit()) {
     if (interaction.customId.startsWith('ah-sell-modal:')) {
