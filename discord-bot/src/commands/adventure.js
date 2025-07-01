@@ -17,6 +17,14 @@ const gameData = require('../../util/gameData');
 const classAbilityMap = require('../data/classAbilityMap');
 const { allPossibleWeapons } = require('../../../backend/game/data');
 
+// Level-based chance for goblins to spawn with gear
+const GOBLIN_GEAR_CHANCES = {
+  1: { ability: 0.25, weapon: 0.05 },
+  2: { ability: 0.5, weapon: 0.25 },
+  3: { ability: 0.75, weapon: 0.5 },
+  4: { ability: 1, weapon: 0.75 }
+};
+
 function respond(interaction, options) {
   if (interaction.deferred || interaction.replied) {
     return interaction.followUp(options);
@@ -55,9 +63,34 @@ async function execute(interaction) {
 
   const cards = await abilityCardService.getCards(user.id);
   const weapons = await weaponService.getWeapons(user.id);
-  const totalItems = cards.length + weapons.length;
   const equippedCard = cards.find(c => c.id === user.equipped_ability_id);
   const deck = cards.filter(c => c.id !== user.equipped_ability_id);
+
+  // Determine goblin loadout and loot based on player level
+  const playerLevel = user.level || 1;
+  const chances = GOBLIN_GEAR_CHANCES[playerLevel] || GOBLIN_GEAR_CHANCES[1];
+
+  const goblinLoot = {
+    gold: Math.random() < 0.25 ? 1 : 0,
+    ability: null,
+    weapon: null
+  };
+
+  if (Math.random() < chances.ability) {
+    const commonAbilities = allPossibleAbilities.filter(
+      a => a.class === goblinBase.class && a.rarity === 'Common'
+    );
+    if (commonAbilities.length > 0) {
+      goblinLoot.ability = commonAbilities[Math.floor(Math.random() * commonAbilities.length)];
+    }
+  }
+
+  if (Math.random() < chances.weapon) {
+    const commonWeapons = allPossibleWeapons.filter(w => w.rarity === 'Common');
+    if (commonWeapons.length > 0) {
+      goblinLoot.weapon = commonWeapons[Math.floor(Math.random() * commonWeapons.length)];
+    }
+  }
 
   if (!interaction.bypassChargeCheck && equippedCard && equippedCard.charges <= 0) {
     const hasOtherChargedCopy = cards.some(
@@ -86,10 +119,6 @@ async function execute(interaction) {
     }
   }
 
-  const goblinAbilityPool = allPossibleAbilities
-    .filter(a => a.class === goblinBase.class && a.rarity === 'Common');
-  const goblinAbilities = goblinAbilityPool.map(a => a.id);
-
   const equippedWeaponRow = user.equipped_weapon_id
     ? await weaponService.getWeapon(user.equipped_weapon_id)
     : null;
@@ -102,18 +131,11 @@ async function execute(interaction) {
     weapon_id: equippedWeaponRow ? equippedWeaponRow.weapon_id : null
   }, 'player', 0);
 
-  let goblinWeapon = null;
-  if ((user.level ?? 1) >= 2 && Math.random() < 0.5) {
-    const commonWeapons = allPossibleWeapons.filter(w => w.rarity === 'Common');
-    if (commonWeapons.length > 0) {
-      goblinWeapon = commonWeapons[Math.floor(Math.random() * commonWeapons.length)];
-    }
-  }
-
   const goblin = createCombatant({
     hero_id: goblinBase.id,
-    deck: goblinAbilities,
-    weapon_id: goblinWeapon ? goblinWeapon.id : null
+    deck: [],
+    ability_id: goblinLoot.ability ? goblinLoot.ability.id : null,
+    weapon_id: goblinLoot.weapon ? goblinLoot.weapon.id : null
   }, 'enemy', 0);
 
   goblin.heroData = { ...goblin.heroData, name: `Goblin ${goblinBase.name}` };
@@ -134,53 +156,43 @@ async function execute(interaction) {
     }`
   );
 
-  if (engine.winner === 'player') {
-    await userService.incrementPveWin(user.id);
-  } else {
-    await userService.incrementPveLoss(user.id);
-  }
-
   let narrativeDescription = '';
   let lootDrop = null;
   const adventurerName = `**${interaction.user.username}**`;
   const enemyName = `a **Goblin ${goblinBase.name}**`;
 
   if (engine.winner === 'player') {
-    const goldDropped = Math.floor(Math.random() * 3);
-    await userService.addGold(user.id, goldDropped);
-    let dropText = `and found **${goldDropped} gold**.`;
+    await userService.incrementPveWin(user.id);
 
-    if (goblinWeapon) {
-      await weaponService.addWeapon(user.id, goblinWeapon.id);
-      dropText = `and recovered a **${goblinWeapon.name}** and **${goldDropped} gold**!`;
+    let lootMessages = [];
+    if (goblinLoot.gold > 0) {
+      await userService.addGold(user.id, goblinLoot.gold);
+      lootMessages.push(`found **${goblinLoot.gold} gold**`);
+    }
+
+    if (goblinLoot.weapon) {
+      await weaponService.addWeapon(user.id, goblinLoot.weapon.id);
+      lootMessages.push(`recovered a **${goblinLoot.weapon.name}**`);
       console.log(
-        `[ITEM LOOT] User: ${interaction.user.username} looted Weapon: ${goblinWeapon.name} (ID: ${goblinWeapon.id})`
+        `[ITEM LOOT] User: ${interaction.user.username} looted Weapon: ${goblinLoot.weapon.name} (ID: ${goblinLoot.weapon.id})`
       );
     }
 
-    narrativeDescription = `${interaction.user.username} was victorious ${dropText}`;
-
-    if (Math.random() < 0.5) {
-      let lootOptions = allPossibleAbilities.filter(
-        a => a.class === goblinBase.class
+    if (goblinLoot.ability) {
+      await userService.addAbility(interaction.user.id, goblinLoot.ability.id);
+      lootMessages.push(`recovered the **${goblinLoot.ability.name}** card`);
+      lootDrop = goblinLoot.ability;
+      console.log(
+        `[ITEM LOOT] User: ${interaction.user.username} looted Ability: ${goblinLoot.ability.name} (ID: ${goblinLoot.ability.id})`
       );
-
-      const level = user.level ?? 1;
-      if (level >= 1 && level <= 4) {
-        lootOptions = lootOptions.filter(a => a.rarity === 'Common');
-      }
-
-      if (totalItems < 25) {
-        lootDrop = lootOptions[Math.floor(Math.random() * lootOptions.length)];
-        if (lootDrop) {
-          narrativeDescription += ` They also found **${lootDrop.name}**.`;
-          console.log(
-            `[ITEM LOOT] User: ${interaction.user.username} looted Ability: ${lootDrop.name} (ID: ${lootDrop.id})`
-          );
-          await userService.addAbility(interaction.user.id, lootDrop.id);
-        }
-      }
     }
+
+    let lootString = 'and was victorious!';
+    if (lootMessages.length > 0) {
+      lootString = 'and ' + lootMessages.join(', ') + '!';
+    }
+
+    narrativeDescription = `${interaction.user.username} defeated the goblin ${lootString}`;
 
     const xpResult = await userService.addXp(user.id, 10);
     if (xpResult.leveledUp) {
@@ -189,6 +201,7 @@ async function execute(interaction) {
       });
     }
   } else {
+    await userService.incrementPveLoss(user.id);
     narrativeDescription = `${adventurerName} adventured into the goblin caves and encountered ${enemyName} who defeated them.`;
   }
 
