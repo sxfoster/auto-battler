@@ -1,7 +1,7 @@
 const { SlashCommandBuilder } = require('discord.js');
 const userService = require('../src/utils/userService');
 const { sendCardDM } = require('../src/utils/embedBuilder');
-const { allPossibleAbilities } = require('../../backend/game/data');
+const gameData = require('../util/gameData');
 
 const data = new SlashCommandBuilder()
   .setName('admin')
@@ -26,6 +26,7 @@ const data = new SlashCommandBuilder()
   );
 
 async function execute(interaction) {
+  const allPossibleAbilities = Array.from(gameData.gameData.abilities.values());
   if (!interaction.member?.roles?.cache?.some(r => r.name === 'Game Master')) {
     await interaction.reply({
       content: 'You do not have the necessary permissions to use this command.',
@@ -78,6 +79,7 @@ async function execute(interaction) {
 }
 
 async function autocomplete(interaction) {
+  const allPossibleAbilities = Array.from(gameData.gameData.abilities.values());
   const focused = interaction.options.getFocused();
   const filtered = allPossibleAbilities
     .filter(a => a.name.toLowerCase().includes(focused.toLowerCase()))

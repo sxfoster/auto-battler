@@ -2,10 +2,8 @@ const { SlashCommandBuilder } = require('discord.js');
 const { simple } = require('../src/utils/embedBuilder');
 const userService = require('../src/utils/userService');
 const abilityCardService = require('../src/utils/abilityCardService');
-const {
-  allPossibleHeroes,
-  allPossibleAbilities
-} = require('../../backend/game/data');
+const gameData = require('../util/gameData');
+
 
 const data = new SlashCommandBuilder()
   .setName('who')
@@ -17,6 +15,8 @@ const data = new SlashCommandBuilder()
   );
 
 async function execute(interaction) {
+  const allPossibleHeroes = gameData.getHeroes();
+  const allPossibleAbilities = Array.from(gameData.gameData.abilities.values());
   const mentionedUser = interaction.options.getUser('user');
   const user = await userService.getUser(mentionedUser.id);
 

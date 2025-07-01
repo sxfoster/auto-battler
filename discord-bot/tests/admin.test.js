@@ -10,6 +10,8 @@ jest.mock('../src/utils/embedBuilder', () => ({
 
 const userService = require('../src/utils/userService');
 const { sendCardDM } = require('../src/utils/embedBuilder');
+const gameData = require('../util/gameData');
+const { allPossibleAbilities } = require('../../backend/game/data');
 
 function createInteraction(role = 'Game Master') {
   return {
@@ -27,6 +29,7 @@ function createInteraction(role = 'Game Master') {
 describe('admin grant-ability command', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    gameData.gameData.abilities = new Map(allPossibleAbilities.map(a => [a.id, a]));
   });
 
   test('requires Game Master role', async () => {
