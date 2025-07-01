@@ -128,9 +128,15 @@ async function execute(interaction) {
     narrativeDescription = `${adventurerName} was victorious and found **${goldDropped} gold**!`;
 
     if (Math.random() < 0.5) {
-      const lootOptions = allPossibleAbilities.filter(
-        a => a.class === goblinBase.class && a.rarity === 'Common'
+      let lootOptions = allPossibleAbilities.filter(
+        a => a.class === goblinBase.class
       );
+
+      const level = user.level ?? 1;
+      if (level >= 1 && level <= 4) {
+        lootOptions = lootOptions.filter(a => a.rarity === 'Common');
+      }
+
       lootDrop = lootOptions[Math.floor(Math.random() * lootOptions.length)];
       if (lootDrop) {
         narrativeDescription += ` They also found **${lootDrop.name}**.`;
@@ -139,6 +145,13 @@ async function execute(interaction) {
         );
         await userService.addAbility(interaction.user.id, lootDrop.id);
       }
+    }
+
+    const xpResult = await userService.addXp(user.id, 10);
+    if (xpResult.leveledUp) {
+      await interaction.followUp({
+        content: `🎉 **Congratulations, ${interaction.user.username}! You have reached Level ${xpResult.newLevel}!** 🎉`
+      });
     }
   } else {
     narrativeDescription = `${adventurerName} adventured into the goblin caves and encountered ${enemyName} who defeated them.`;
