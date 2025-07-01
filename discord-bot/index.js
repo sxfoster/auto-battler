@@ -8,6 +8,7 @@ client.commands = new Collection();
 
 const inventoryHandlers = require('./commands/inventory');
 const challengeHandlers = require('./src/commands/challenge');
+const auctionHandlers = require('./src/utils/auctionHouseHandlers');
 
 const commandDirs = [
   path.join(__dirname, 'commands'),
@@ -68,6 +69,10 @@ client.on(Events.InteractionCreate, async interaction => {
       await inventoryHandlers.handleEquipSelect(interaction);
     } else if (interaction.customId === 'merge-ability-select') {
       await inventoryHandlers.handleMergeSelect(interaction);
+    } else if (interaction.customId === 'ah-sell-select') {
+      await auctionHandlers.handleSellSelect(interaction);
+    } else if (interaction.customId === 'ah-buy-select') {
+      await auctionHandlers.handleBuySelect(interaction);
     }
   } else if (interaction.isButton()) {
     if (interaction.customId === 'inventory-equip-start') {
@@ -89,6 +94,14 @@ client.on(Events.InteractionCreate, async interaction => {
       const adventureCommand = client.commands.get('adventure');
       interaction.bypassChargeCheck = true;
       await adventureCommand.execute(interaction);
+    } else if (interaction.customId === 'ah-sell-start') {
+      await auctionHandlers.handleSellButton(interaction);
+    } else if (interaction.customId === 'ah-buy-start') {
+      await auctionHandlers.handleBuyButton(interaction);
+    }
+  } else if (interaction.isModalSubmit()) {
+    if (interaction.customId.startsWith('ah-sell-modal:')) {
+      await auctionHandlers.handleSellModal(interaction);
     }
   }
 });
