@@ -81,4 +81,34 @@ async function sendCardDM(user, card) {
   await user.send({ embeds: [embed] });
 }
 
-module.exports = { simple, sendCardDM, buildCardEmbed, buildBattleEmbed };
+function buildWeaponEmbed(weapon) {
+  const embed = new EmbedBuilder()
+    .setColor('#29b6f6')
+    .setTitle(weapon.name)
+    .setTimestamp()
+    .setFooter({ text: 'Auto-Battler Bot' })
+    .addFields(
+      { name: 'Rarity', value: weapon.rarity, inline: true },
+      { name: 'Type', value: 'Weapon', inline: true }
+    );
+
+  if (weapon.statBonuses) {
+    const stats = Object.entries(weapon.statBonuses)
+      .map(([stat, value]) => `${stat}: ${value > 0 ? '+' : ''}${value}`)
+      .join(', ');
+    embed.addFields({ name: 'Stat Bonuses', value: stats });
+  }
+
+  if (weapon.passiveEffect) {
+    embed.addFields({ name: 'Passive Effect', value: `Triggers ${weapon.passiveEffect.effect}` });
+  }
+
+  return embed;
+}
+
+async function sendWeaponDM(user, weapon) {
+  const embed = buildWeaponEmbed(weapon).setTitle('✨ You received a new weapon! ✨');
+  await user.send({ embeds: [embed] });
+}
+
+module.exports = { simple, sendCardDM, buildCardEmbed, buildBattleEmbed, sendWeaponDM, buildWeaponEmbed };

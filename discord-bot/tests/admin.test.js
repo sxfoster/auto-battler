@@ -5,19 +5,24 @@ jest.mock('../src/utils/userService', () => ({
   addAbility: jest.fn()
 }));
 jest.mock('../src/utils/embedBuilder', () => ({
-  sendCardDM: jest.fn()
+  sendCardDM: jest.fn(),
+  sendWeaponDM: jest.fn()
+}));
+jest.mock('../src/utils/weaponService', () => ({
+  addWeapon: jest.fn()
 }));
 
 const userService = require('../src/utils/userService');
-const { sendCardDM } = require('../src/utils/embedBuilder');
+const { sendCardDM, sendWeaponDM } = require('../src/utils/embedBuilder');
+const weaponService = require('../src/utils/weaponService');
 const gameData = require('../util/gameData');
-const { allPossibleAbilities } = require('../../backend/game/data');
+const { allPossibleAbilities, allPossibleWeapons } = require('../../backend/game/data');
 
-function createInteraction(role = 'Game Master') {
+function createInteraction(role = 'Game Master', sub = 'grant-ability') {
   return {
     member: { roles: { cache: { some: jest.fn(fn => fn({ name: role })) } } },
     options: {
-      getSubcommand: jest.fn().mockReturnValue('grant-ability'),
+      getSubcommand: jest.fn().mockReturnValue(sub),
       getUser: jest.fn().mockReturnValue({ id: '200', username: 'Target' }),
       getString: jest.fn()
     },
@@ -45,6 +50,7 @@ describe('admin grant-ability command', () => {
   test('errors when ability not found', async () => {
     const interaction = createInteraction();
     interaction.options.getString.mockReturnValue('Nonexistent');
+    userService.getUser.mockResolvedValue({ id: 1 });
     await admin.execute(interaction);
     expect(interaction.reply).toHaveBeenCalledWith(expect.objectContaining({
       ephemeral: true,
@@ -92,7 +98,7 @@ describe('admin grant-ability command', () => {
 
   test('autocomplete suggests ability names', async () => {
     const interaction = {
-      options: { getFocused: jest.fn().mockReturnValue('Power') },
+      options: { getFocused: jest.fn().mockReturnValue({ name: 'ability', value: 'Power' }) },
       respond: jest.fn().mockResolvedValue()
     };
     await admin.autocomplete(interaction);
@@ -102,7 +108,91 @@ describe('admin grant-ability command', () => {
 
   test('autocomplete does not suggest nonexistent abilities', async () => {
     const interaction = {
-      options: { getFocused: jest.fn().mockReturnValue('Nonexistent') },
+      options: { getFocused: jest.fn().mockReturnValue({ name: 'ability', value: 'Nonexistent' }) },
+      respond: jest.fn().mockResolvedValue()
+    };
+    await admin.autocomplete(interaction);
+    const options = interaction.respond.mock.calls[0][0];
+    expect(options).toHaveLength(0);
+  });
+});
+
+describe('admin grant-weapon command', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  test('requires Game Master role', async () => {
+    const interaction = createInteraction('Player', 'grant-weapon');
+    interaction.options.getString.mockReturnValue('Worn Sword');
+    await admin.execute(interaction);
+    expect(interaction.reply).toHaveBeenCalledWith(expect.objectContaining({
+      ephemeral: true,
+      content: expect.stringContaining('necessary permissions')
+    }));
+  });
+
+  test('errors when weapon not found', async () => {
+    const interaction = createInteraction('Game Master', 'grant-weapon');
+    interaction.options.getString.mockReturnValue('Nonexistent');
+    await admin.execute(interaction);
+    expect(interaction.reply).toHaveBeenCalledWith(expect.objectContaining({
+      ephemeral: true,
+      content: expect.stringContaining('Could not find a weapon')
+    }));
+  });
+
+  test('errors when user not found', async () => {
+    const interaction = createInteraction('Game Master', 'grant-weapon');
+    interaction.options.getString.mockReturnValue('Worn Sword');
+    userService.getUser.mockResolvedValue(null);
+    await admin.execute(interaction);
+    expect(interaction.reply).toHaveBeenCalledWith(expect.objectContaining({
+      ephemeral: true,
+      content: expect.stringContaining('has not started playing yet')
+    }));
+  });
+
+  test('grants weapon and sends DM', async () => {
+    const interaction = createInteraction('Game Master', 'grant-weapon');
+    interaction.options.getString.mockReturnValue('Worn Sword');
+    userService.getUser.mockResolvedValue({ id: 1 });
+    weaponService.addWeapon.mockResolvedValue(99);
+    await admin.execute(interaction);
+    expect(weaponService.addWeapon).toHaveBeenCalled();
+    expect(sendWeaponDM).toHaveBeenCalled();
+    expect(interaction.reply).toHaveBeenCalledWith(expect.objectContaining({
+      ephemeral: true,
+      content: expect.stringContaining('successfully granted')
+    }));
+  });
+
+  test('notifies when weapon DM fails', async () => {
+    const interaction = createInteraction('Game Master', 'grant-weapon');
+    interaction.options.getString.mockReturnValue('Worn Sword');
+    userService.getUser.mockResolvedValue({ id: 1 });
+    weaponService.addWeapon.mockResolvedValue(99);
+    sendWeaponDM.mockRejectedValue(new Error('fail'));
+    await admin.execute(interaction);
+    expect(sendWeaponDM).toHaveBeenCalled();
+    expect(interaction.followUp).toHaveBeenCalledWith(
+      expect.objectContaining({ ephemeral: true })
+    );
+  });
+
+  test("autocomplete suggests weapon names", async () => {
+    const interaction = {
+      options: { getFocused: jest.fn().mockReturnValue({ name: 'weapon', value: 'Worn' }) },
+      respond: jest.fn().mockResolvedValue()
+    };
+    await admin.autocomplete(interaction);
+    const options = interaction.respond.mock.calls[0][0];
+    expect(options.some(o => o.name.includes("Worn"))).toBe(true);
+  });
+
+  test("autocomplete does not suggest nonexistent weapons", async () => {
+    const interaction = {
+      options: { getFocused: jest.fn().mockReturnValue({ name: 'weapon', value: 'Nonexistent' }) },
       respond: jest.fn().mockResolvedValue()
     };
     await admin.autocomplete(interaction);
