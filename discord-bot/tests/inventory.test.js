@@ -44,6 +44,10 @@ describe('inventory command', () => {
     const fields = interaction.reply.mock.calls[0][0].embeds[0].data.fields;
     expect(fields[0].value).toContain('Stalwart Defender (Common)');
     expect(fields[1].value).toContain('Power Strike');
+    const navButton = interaction.reply.mock.calls[0][0].components
+      .flatMap(r => r.components)
+      .find(c => c.data?.custom_id === 'nav-town');
+    expect(navButton).toBeDefined();
   });
 
   test('shows inventory for user with no archetype', async () => {
@@ -59,6 +63,10 @@ describe('inventory command', () => {
     expect(interaction.reply).toHaveBeenCalledWith(expect.objectContaining({ embeds: expect.any(Array) }));
     const fields = interaction.reply.mock.calls[0][0].embeds[0].data.fields;
     expect(fields[0].value).toContain('No Archetype Selected');
+    const navButton = interaction.reply.mock.calls[0][0].components
+      .flatMap(r => r.components)
+      .find(c => c.data?.custom_id === 'nav-town');
+    expect(navButton).toBeDefined();
   });
 
   test('creates user when not found', async () => {
@@ -71,6 +79,10 @@ describe('inventory command', () => {
     await inventory.execute(interaction);
     expect(userService.createUser).toHaveBeenCalledWith('123', 'Tester');
     expect(interaction.reply).toHaveBeenCalledWith(expect.objectContaining({ embeds: expect.any(Array) }));
+    const navButton = interaction.reply.mock.calls[0][0].components
+      .flatMap(r => r.components)
+      .find(c => c.data?.custom_id === 'nav-town');
+    expect(navButton).toBeDefined();
   });
 
   test('lists ability cards in backpack', async () => {
@@ -87,6 +99,10 @@ describe('inventory command', () => {
     };
     await inventory.execute(interaction);
     expect(interaction.reply.mock.calls[0][0].embeds[0].data.fields[3].value).toContain('Select a category');
+    const navButton = interaction.reply.mock.calls[0][0].components
+      .flatMap(r => r.components)
+      .find(c => c.data?.custom_id === 'nav-town');
+    expect(navButton).toBeDefined();
   });
 
   test('set subcommand shows dropdown', async () => {

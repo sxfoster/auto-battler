@@ -9,6 +9,7 @@ const { simple } = require('../src/utils/embedBuilder');
 const userService = require('../src/utils/userService');
 const abilityCardService = require('../src/utils/abilityCardService');
 const weaponService = require('../src/utils/weaponService');
+const { createBackToTownRow } = require('../src/utils/navigation');
 const gameData = require('../util/gameData');
 
 function getAllAbilities() {
@@ -153,6 +154,7 @@ async function execute(interaction) {
     if (actionRow.components.length > 0) {
       replyOptions.components.push(actionRow);
     }
+    replyOptions.components.push(createBackToTownRow());
 
     await interaction.reply(replyOptions);
     return;
