@@ -24,6 +24,14 @@ CREATE TABLE IF NOT EXISTS user_ability_cards (
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
+-- Weapons owned by users
+CREATE TABLE IF NOT EXISTS user_weapons (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    weapon_id INT NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
 -- Equipped ability reference
 ALTER TABLE users
     ADD COLUMN equipped_ability_id INT DEFAULT NULL,
@@ -35,6 +43,11 @@ ALTER TABLE users
     ADD COLUMN tutorial_completed TINYINT(1) DEFAULT 0,
     ADD COLUMN dm_battle_logs_enabled TINYINT(1) DEFAULT 1,
     ADD COLUMN dm_item_drops_enabled TINYINT(1) DEFAULT 1;
+
+-- Equipped weapon reference
+ALTER TABLE users
+    ADD COLUMN equipped_weapon_id INT DEFAULT NULL,
+    ADD FOREIGN KEY (equipped_weapon_id) REFERENCES user_weapons(id) ON DELETE SET NULL;
 
 -- Champions owned by users
 CREATE TABLE IF NOT EXISTS user_champions (
