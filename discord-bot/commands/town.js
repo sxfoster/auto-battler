@@ -1,14 +1,16 @@
 const { SlashCommandBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, MessageFlags } = require('discord.js');
 
+const IMAGE_URL = 'YOUR_IMAGE_URL_HERE';
+
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('town')
         .setDescription('Visit the town to prepare for your next adventure.'),
     async execute(interaction) {
         const embed = new EmbedBuilder()
-            .setTitle('Welcome to the Town')
+            .setTitle('Welcome to Portal\'s Rest')
             .setDescription('The bustling town is full of adventurers. What would you like to do?')
-            .setImage('https://i.imgur.com/2pCIH22.png');
+            .setImage(IMAGE_URL.startsWith('http') ? IMAGE_URL : 'https://i.imgur.com/2pCIH22.png');
 
         const row = new ActionRowBuilder().addComponents(
             new ButtonBuilder()
