@@ -1,6 +1,7 @@
 // GameEngine handles simple auto-attack combat rounds
 
 const { allPossibleMinions } = require('./data');
+const { STATUS_EFFECTS } = require('./statusEffects');
 
 let abilityCardService;
 try {
@@ -45,7 +46,6 @@ class GameEngine {
    }
 
    applyCleanse(target) {
-       const { STATUS_EFFECTS } = require('./statusEffects');
        const effectsToRemove = target.statusEffects.filter(e => {
            const info = STATUS_EFFECTS[e.name];
            return info && info.type === 'debuff';
