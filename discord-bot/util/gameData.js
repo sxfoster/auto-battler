@@ -1,4 +1,9 @@
-const db = require('./database');
+const {
+    allPossibleHeroes,
+    allPossibleWeapons,
+    allPossibleArmors,
+    allPossibleAbilities
+} = require('../../backend/game/data');
 
 const gameData = {
     heroes: new Map(),
@@ -9,24 +14,19 @@ const gameData = {
 
 async function loadAllData() {
     try {
-        // Corrected SQL query with snake_case
-        const [heroes] = await db.execute('SELECT id, name, rarity, class, is_monster, trait, hp, attack, speed FROM heroes');
-        for (const hero of heroes) {
+        for (const hero of allPossibleHeroes) {
             gameData.heroes.set(hero.id, hero);
         }
 
-        const [weapons] = await db.execute('SELECT * FROM weapons');
-        for (const weapon of weapons) {
+        for (const weapon of allPossibleWeapons) {
             gameData.weapons.set(weapon.id, weapon);
         }
 
-        const [armors] = await db.execute('SELECT * FROM armors');
-        for (const armor of armors) {
+        for (const armor of allPossibleArmors) {
             gameData.armors.set(armor.id, armor);
         }
 
-        const [abilities] = await db.execute('SELECT * FROM abilities');
-        for (const ability of abilities) {
+        for (const ability of allPossibleAbilities) {
             gameData.abilities.set(ability.id, ability);
         }
 
