@@ -10,4 +10,8 @@ test('command posts welcome message with buy/sell buttons', async () => {
       ephemeral: true
     })
   );
+
+  const navButton =
+    interaction.reply.mock.calls[0][0].components[1].components[0].toJSON();
+  expect(navButton.custom_id).toBe('nav-town');
 });
