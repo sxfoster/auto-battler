@@ -24,7 +24,11 @@ describe('auctionHouseService', () => {
     await service.createListing(1, { id: 5, ability_id: 2, charges: 7 }, 100);
 
     expect(connection.beginTransaction).toHaveBeenCalled();
-    expect(connection.query).toHaveBeenNthCalledWith(1, 'DELETE FROM user_ability_cards WHERE id = ?', [5]);
+    expect(connection.query).toHaveBeenNthCalledWith(
+      1,
+      'DELETE FROM user_ability_cards WHERE id = ? AND user_id = ?',
+      [5, 1]
+    );
     expect(connection.query).toHaveBeenNthCalledWith(
       2,
       'INSERT INTO auction_house_listings (seller_id, ability_id, charges, price) VALUES (?, ?, ?, ?)',
