@@ -15,6 +15,7 @@ const {
   allPossibleAbilities,
   allPossibleHeroes
 } = require('../../backend/game/data');
+const gameData = require('../util/gameData');
 
 jest.spyOn(utils, 'createCombatant');
 
@@ -22,6 +23,8 @@ describe('tutorial command', () => {
   beforeEach(() => {
     jest.useFakeTimers();
     jest.clearAllMocks();
+    gameData.gameData.heroes = new Map(allPossibleHeroes.map(h => [h.id, h]));
+    gameData.gameData.abilities = new Map(allPossibleAbilities.map(a => [a.id, a]));
     GameEngine.mockImplementation(() => ({
       runGameSteps: function* () {
         yield { combatants: [], log: [{ round: 1, type: 'info', message: 'log' }] };

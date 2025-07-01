@@ -12,7 +12,7 @@ const { runBattleLoop, sendBattleLogDM, formatLog } = require('../utils/battleRu
 
 const GameEngine = require('../../../backend/game/engine');
 const { createCombatant } = require('../../../backend/game/utils');
-const { allPossibleHeroes, allPossibleAbilities } = require('../../../backend/game/data');
+const gameData = require('../../util/gameData');
 const classAbilityMap = require('../data/classAbilityMap');
 
 function respond(interaction, options) {
@@ -27,6 +27,8 @@ const data = new SlashCommandBuilder()
   .setDescription('Enter the goblin cave for a practice battle');
 
 async function execute(interaction) {
+  const allPossibleHeroes = gameData.getHeroes();
+  const allPossibleAbilities = Array.from(gameData.gameData.abilities.values());
   let user = await userService.getUser(interaction.user.id);
   if (!user) {
     await userService.createUser(interaction.user.id, interaction.user.username);

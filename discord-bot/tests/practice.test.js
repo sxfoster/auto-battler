@@ -13,11 +13,15 @@ const userService = require('../src/utils/userService');
 const abilityCardService = require('../src/utils/abilityCardService');
 const GameEngine = require('../../backend/game/engine');
 const utils = require('../../backend/game/utils');
+const gameData = require('../util/gameData');
+const { allPossibleHeroes, allPossibleAbilities } = require('../../backend/game/data');
 
 jest.spyOn(utils, 'createCombatant');
 
 beforeEach(() => {
   jest.clearAllMocks();
+  gameData.gameData.heroes = new Map(allPossibleHeroes.map(h => [h.id, h]));
+  gameData.gameData.abilities = new Map(allPossibleAbilities.map(a => [a.id, a]));
   GameEngine.mockImplementation(() => ({
     runGameSteps: function* () {
       yield { combatants: [], log: [{ round: 1, type: 'info', level: 'summary', message: 'log' }] };

@@ -2,6 +2,7 @@ const { Client, Collection, GatewayIntentBits, Events } = require('discord.js');
 const fs = require('node:fs');
 const path = require('node:path');
 const config = require('./util/config');
+const gameData = require('./util/gameData');
 
 const client = new Client({ intents: [GatewayIntentBits.Guilds] });
 client.commands = new Collection();
@@ -26,8 +27,9 @@ for (const dir of commandDirs) {
   }
 }
 
-client.once(Events.ClientReady, () => {
+client.once(Events.ClientReady, async () => {
   console.log(`✅ Logged in as ${client.user.tag}!`);
+  await gameData.loadAllData();
 });
 
 client.on(Events.InteractionCreate, async interaction => {

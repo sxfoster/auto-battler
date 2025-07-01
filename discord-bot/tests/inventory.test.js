@@ -10,10 +10,13 @@ jest.mock('../src/utils/abilityCardService', () => ({
 }));
 const userService = require('../src/utils/userService');
 const abilityCardService = require('../src/utils/abilityCardService');
+const gameData = require('../util/gameData');
+const { allPossibleAbilities } = require('../../backend/game/data');
 
 describe('inventory command', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    gameData.gameData.abilities = new Map(allPossibleAbilities.map(a => [a.id, a]));
   });
 
   test('public reply when user has a class', async () => {
