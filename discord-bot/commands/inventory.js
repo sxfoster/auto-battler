@@ -9,7 +9,7 @@ const { simple } = require('../src/utils/embedBuilder');
 const userService = require('../src/utils/userService');
 const abilityCardService = require('../src/utils/abilityCardService');
 const weaponService = require('../src/utils/weaponService');
-const { createBackToTownRow } = require('../src/utils/navigation');
+const { createBackToTownRow } = require('../src/utils/components');
 const gameData = require('../util/gameData');
 
 function getAllAbilities() {

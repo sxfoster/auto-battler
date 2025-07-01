@@ -1,5 +1,5 @@
 const { SlashCommandBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
-const { createBackToTownRow } = require('../src/utils/navigation');
+const { createBackToTownRow } = require('../src/utils/components');
 
 const data = new SlashCommandBuilder()
   .setName('auctionhouse')
