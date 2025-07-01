@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder } = require('discord.js');
+const { SlashCommandBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, MessageFlags } = require('discord.js');
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -8,7 +8,7 @@ module.exports = {
         const embed = new EmbedBuilder()
             .setTitle('Welcome to the Town')
             .setDescription('The bustling town is full of adventurers. What would you like to do?')
-            .setImage('https://i.imgur.com/pB33g2h.png');
+            .setImage('https://i.imgur.com/2pCIH22.png');
 
         const row = new ActionRowBuilder().addComponents(
             new ButtonBuilder()
@@ -36,7 +36,7 @@ module.exports = {
         await interaction.reply({
             embeds: [embed],
             components: [row],
-            ephemeral: true
+            flags: [MessageFlags.Ephemeral]
         });
     }
 };
