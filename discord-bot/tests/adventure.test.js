@@ -12,6 +12,11 @@ jest.mock('../src/utils/userService', () => ({
 jest.mock('../src/utils/abilityCardService', () => ({
   getCards: jest.fn()
 }));
+jest.mock('../src/utils/weaponService', () => ({
+  getWeapons: jest.fn(),
+  getWeapon: jest.fn(),
+  addWeapon: jest.fn()
+}));
 jest.mock('../src/utils/embedBuilder', () => {
   const actual = jest.requireActual('../src/utils/embedBuilder');
   return { ...actual, sendCardDM: jest.fn() };
@@ -21,11 +26,12 @@ jest.mock('../../backend/game/engine');
 const utils = require('../../backend/game/utils');
 jest.spyOn(utils, 'createCombatant');
 const adventure = require('../src/commands/adventure');
-const { allPossibleAbilities, allPossibleHeroes } = require('../../backend/game/data');
+const { allPossibleAbilities, allPossibleHeroes, allPossibleWeapons } = require('../../backend/game/data');
 const baseHeroes = allPossibleHeroes.filter(h => h.isBase);
 const gameData = require('../util/gameData');
 const userService = require('../src/utils/userService');
 const abilityCardService = require('../src/utils/abilityCardService');
+const weaponService = require('../src/utils/weaponService');
 const embedBuilder = require('../src/utils/embedBuilder');
 const settings = require('../commands/settings');
 const GameEngine = require('../../backend/game/engine');
@@ -36,7 +42,11 @@ describe('adventure command', () => {
     jest.clearAllMocks();
     gameData.gameData.heroes = new Map(allPossibleHeroes.map(h => [h.id, h]));
     gameData.gameData.abilities = new Map(allPossibleAbilities.map(a => [a.id, a]));
+    gameData.gameData.weapons = new Map(allPossibleWeapons.map(w => [w.id, w]));
     abilityCardService.getCards.mockResolvedValue([]);
+    weaponService.getWeapons.mockResolvedValue([]);
+    weaponService.getWeapon.mockResolvedValue(null);
+    weaponService.addWeapon.mockResolvedValue();
     createCombatantSpy = utils.createCombatant;
     GameEngine.mockImplementation(() => ({
       runGameSteps: function* () {
@@ -97,6 +107,7 @@ describe('adventure command', () => {
   test('ability drop message sent', async () => {
     userService.getUser.mockResolvedValue({ id: 1, discord_id: '123', class: 'Warrior', equipped_ability_id: 50 });
     abilityCardService.getCards.mockResolvedValue([{ id: 50, ability_id: 3111, charges: 5 }]);
+    weaponService.getWeapons.mockResolvedValue([]);
     const interaction = { user: { id: '123', username: 'tester' }, reply: jest.fn().mockResolvedValue(), followUp: jest.fn().mockResolvedValue() };
     jest.spyOn(Math, 'random').mockReturnValue(0);
     await adventure.execute(interaction);
@@ -109,6 +120,17 @@ describe('adventure command', () => {
     expect(interaction.followUp).toHaveBeenCalledWith(
       expect.objectContaining({ embeds: expect.any(Array) })
     );
+  });
+
+  test('weapon drop awarded for level 2+', async () => {
+    userService.getUser.mockResolvedValue({ id: 1, discord_id: '123', class: 'Warrior', equipped_ability_id: 50, level: 2 });
+    abilityCardService.getCards.mockResolvedValue([{ id: 50, ability_id: 3111, charges: 5 }]);
+    weaponService.getWeapons.mockResolvedValue([]);
+    const interaction = { user: { id: '123', username: 'tester' }, reply: jest.fn().mockResolvedValue(), followUp: jest.fn().mockResolvedValue() };
+    jest.spyOn(Math, 'random').mockReturnValue(0);
+    await adventure.execute(interaction);
+    expect(weaponService.addWeapon).toHaveBeenCalled();
+    Math.random.mockRestore();
   });
 
   test('no ability drop when defeated', async () => {

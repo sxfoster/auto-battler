@@ -7,6 +7,7 @@ const {
 } = require('discord.js');
 const userService = require('../utils/userService');
 const abilityCardService = require('../utils/abilityCardService');
+const weaponService = require('../utils/weaponService');
 const { sendCardDM } = require('../utils/embedBuilder');
 const { runBattleLoop, sendBattleLogDM, formatLog } = require('../utils/battleRunner');
 
@@ -29,6 +30,7 @@ const data = new SlashCommandBuilder()
 async function execute(interaction) {
   const allPossibleHeroes = gameData.getHeroes();
   const allPossibleAbilities = Array.from(gameData.gameData.abilities.values());
+  const allPossibleWeapons = Array.from(gameData.gameData.weapons.values());
   let user = await userService.getUser(interaction.user.id);
   if (!user) {
     await userService.createUser(interaction.user.id, interaction.user.username);
@@ -52,6 +54,8 @@ async function execute(interaction) {
   }
 
   const cards = await abilityCardService.getCards(user.id);
+  const weapons = await weaponService.getWeapons(user.id);
+  const totalItems = cards.length + weapons.length;
   const equippedCard = cards.find(c => c.id === user.equipped_ability_id);
   const deck = cards.filter(c => c.id !== user.equipped_ability_id);
 
@@ -86,14 +90,26 @@ async function execute(interaction) {
     .filter(a => a.class === goblinBase.class && a.rarity === 'Common');
   const goblinAbilities = goblinAbilityPool.map(a => a.id);
 
+  const equippedWeaponRow = user.equipped_weapon_id
+    ? await weaponService.getWeapon(user.equipped_weapon_id)
+    : null;
+
   const player = createCombatant({
     hero_id: playerHero.id,
     ability_card: equippedCard,
     deck: deck,
-    name: interaction.user.username
+    name: interaction.user.username,
+    weapon_id: equippedWeaponRow ? equippedWeaponRow.weapon_id : null
   }, 'player', 0);
 
-  const goblin = createCombatant({ hero_id: goblinBase.id, deck: goblinAbilities }, 'enemy', 0);
+  let goblinWeaponId = null;
+  if ((user.level ?? 1) >= 2) {
+    const commonWeapons = allPossibleWeapons.filter(w => w.rarity === 'Common');
+    const rand = commonWeapons[Math.floor(Math.random() * commonWeapons.length)];
+    goblinWeaponId = rand.id;
+  }
+
+  const goblin = createCombatant({ hero_id: goblinBase.id, deck: goblinAbilities, weapon_id: goblinWeaponId }, 'enemy', 0);
 
   goblin.heroData = { ...goblin.heroData, name: `Goblin ${goblinBase.name}` };
   goblin.name = goblin.heroData.name;
@@ -139,13 +155,27 @@ async function execute(interaction) {
         lootOptions = lootOptions.filter(a => a.rarity === 'Common');
       }
 
-      lootDrop = lootOptions[Math.floor(Math.random() * lootOptions.length)];
-      if (lootDrop) {
-        narrativeDescription += ` They also found **${lootDrop.name}**.`;
+      if (totalItems < 25) {
+        lootDrop = lootOptions[Math.floor(Math.random() * lootOptions.length)];
+        if (lootDrop) {
+          narrativeDescription += ` They also found **${lootDrop.name}**.`;
+          console.log(
+            `[ITEM LOOT] User: ${interaction.user.username} looted Ability: ${lootDrop.name} (ID: ${lootDrop.id})`
+          );
+          await userService.addAbility(interaction.user.id, lootDrop.id);
+        }
+      }
+    }
+
+    if ((user.level ?? 1) >= 2 && Math.random() < 0.5) {
+      const weaponPool = allPossibleWeapons.filter(w => w.rarity === 'Common');
+      const weaponDrop = weaponPool[Math.floor(Math.random() * weaponPool.length)];
+      if (weaponDrop && totalItems < 25) {
+        narrativeDescription += ` They also found **${weaponDrop.name}**.`;
         console.log(
-          `[ITEM LOOT] User: ${interaction.user.username} looted Ability: ${lootDrop.name} (ID: ${lootDrop.id})`
+          `[ITEM LOOT] User: ${interaction.user.username} looted Weapon: ${weaponDrop.name} (ID: ${weaponDrop.id})`
         );
-        await userService.addAbility(interaction.user.id, lootDrop.id);
+        await weaponService.addWeapon(user.id, weaponDrop.id);
       }
     }
 

@@ -8,10 +8,15 @@ const {
 const { simple } = require('../src/utils/embedBuilder');
 const userService = require('../src/utils/userService');
 const abilityCardService = require('../src/utils/abilityCardService');
+const weaponService = require('../src/utils/weaponService');
 const gameData = require('../util/gameData');
 
 function getAllAbilities() {
   return Array.from(gameData.gameData.abilities.values());
+}
+
+function getAllWeapons() {
+  return Array.from(gameData.gameData.weapons.values());
 }
 
 const data = new SlashCommandBuilder()
@@ -59,7 +64,9 @@ async function execute(interaction) {
 
   if (sub === 'show') {
     const cards = await abilityCardService.getCards(user.id);
-    const list = cards.length
+    const weapons = await weaponService.getWeapons(user.id);
+
+    const abilityList = cards.length
       ? cards
           .map(c => {
             const ability = allPossibleAbilities.find(a => a.id === c.ability_id);
@@ -69,28 +76,55 @@ async function execute(interaction) {
           .join('\n')
       : 'Your backpack is empty.';
 
+    const weaponList = weapons.length
+      ? weapons
+          .map(w => {
+            const weapon = getAllWeapons().find(a => a.id === w.weapon_id);
+            return weapon ? weapon.name : `Weapon ${w.weapon_id}`;
+          })
+          .join('\n')
+      : 'Your backpack is empty.';
+
     const equippedCard = cards.find(c => c.id === user.equipped_ability_id);
     const equippedAbility = equippedCard
       ? allPossibleAbilities.find(a => a.id === equippedCard.ability_id)
       : null;
-    const equippedName = equippedAbility
-      ? equippedAbility.name
-      : 'None';
+    const equippedName = equippedAbility ? equippedAbility.name : 'None';
     const archetype = equippedAbility
       ? `${equippedAbility.class} (${equippedAbility.rarity})`
       : 'No Archetype Selected';
 
+    let equippedWeapon = null;
+    if (user.equipped_weapon_id) {
+      const wRow = await weaponService.getWeapon(user.equipped_weapon_id);
+      if (wRow) {
+        equippedWeapon = getAllWeapons().find(w => w.id === wRow.weapon_id);
+      }
+    }
+
     const embed = simple(
       'Player Inventory',
       [
-        { name: 'Player', value: `${user.name} - ${archetype}` },
-        { name: 'Equipped', value: equippedName },
-        { name: 'Backpack', value: list }
+        { name: 'Archetype', value: archetype },
+        { name: 'Equipped Ability', value: equippedName, inline: true },
+        { name: 'Equipped Weapon', value: equippedWeapon ? equippedWeapon.name : 'None', inline: true },
+        { name: 'Backpack', value: 'Select a category to view items.' }
       ],
       interaction.user.displayAvatarURL()
     );
 
-    const row = new ActionRowBuilder();
+    const filterRow = new ActionRowBuilder().addComponents(
+      new ButtonBuilder()
+        .setCustomId('inv-view-abilities')
+        .setLabel('Abilities')
+        .setStyle(ButtonStyle.Secondary),
+      new ButtonBuilder()
+        .setCustomId('inv-view-weapons')
+        .setLabel('Weapons')
+        .setStyle(ButtonStyle.Secondary)
+    );
+
+    const actionRow = new ActionRowBuilder();
     const abilityCounts = cards.reduce((acc, card) => {
       acc[card.ability_id] = (acc[card.ability_id] || 0) + 1;
       return acc;
@@ -98,7 +132,7 @@ async function execute(interaction) {
     const hasDuplicates = Object.values(abilityCounts).some(count => count > 1);
 
     if (hasDuplicates) {
-      row.addComponents(
+      actionRow.addComponents(
         new ButtonBuilder()
           .setCustomId('inventory-merge-start')
           .setLabel('Merge Duplicates')
@@ -106,18 +140,18 @@ async function execute(interaction) {
       );
     }
 
-    if (cards.length > 0) {
-      row.addComponents(
+    if (cards.length > 0 || weapons.length > 0) {
+      actionRow.addComponents(
         new ButtonBuilder()
           .setCustomId('inventory-equip-start')
-          .setLabel('Equip Ability')
+          .setLabel('Equip Item')
           .setStyle(ButtonStyle.Success)
       );
     }
 
-    const replyOptions = { embeds: [embed], ephemeral: true };
-    if (row.components.length > 0) {
-      replyOptions.components = [row];
+    const replyOptions = { embeds: [embed], ephemeral: true, components: [filterRow] };
+    if (actionRow.components.length > 0) {
+      replyOptions.components.push(actionRow);
     }
 
     await interaction.reply(replyOptions);
@@ -254,8 +288,68 @@ async function handleEquipSelect(interaction) {
   await interaction.update({ content: msg, components: [], embeds: [], ephemeral: true });
 }
 
+async function handleSetWeaponButton(interaction) {
+  const allWeapons = getAllWeapons();
+  const user = await userService.getUser(interaction.user.id);
+  if (!user) {
+    await interaction.reply({ content: 'User not found.', ephemeral: true });
+    return;
+  }
+
+  const weapons = await weaponService.getWeapons(user.id);
+  if (!weapons.length) {
+    await interaction.reply({ content: 'You have no weapons.', ephemeral: true });
+    return;
+  }
+
+  const menu = new StringSelectMenuBuilder()
+    .setCustomId('weapon-select')
+    .setPlaceholder('Select a weapon')
+    .addOptions(
+      weapons.map(w => {
+        const base = allWeapons.find(a => a.id === w.weapon_id);
+        const name = base ? base.name : `Weapon ${w.weapon_id}`;
+        return { label: name, value: String(w.id) };
+      })
+    );
+  const row = new ActionRowBuilder().addComponents(menu);
+  await interaction.reply({ content: 'Choose a weapon to equip:', components: [row], ephemeral: true });
+}
+
+async function handleWeaponSelect(interaction) {
+  const allWeapons = getAllWeapons();
+  const weaponInstId = parseInt(interaction.values[0], 10);
+  const user = await userService.getUser(interaction.user.id);
+  if (!user) {
+    await interaction.update({ content: 'User not found.', components: [], ephemeral: true });
+    return;
+  }
+
+  const weapon = await weaponService.getWeapon(weaponInstId);
+  if (!weapon || weapon.user_id !== user.id) {
+    await interaction.update({ content: 'Weapon not found.', components: [], ephemeral: true });
+    return;
+  }
+
+  await weaponService.setEquippedWeapon(user.id, weaponInstId);
+
+  const base = allWeapons.find(a => a.id === weapon.weapon_id);
+  const name = base ? base.name : 'Weapon';
+  await interaction.update({ content: `You have equipped ${name}.`, components: [], embeds: [], ephemeral: true });
+}
+
 async function handleEquipButton(interaction) {
-  await handleSetAbilityButton(interaction);
+  const row = new ActionRowBuilder().addComponents(
+    new ButtonBuilder()
+      .setCustomId('set-ability')
+      .setLabel('Ability')
+      .setStyle(ButtonStyle.Primary),
+    new ButtonBuilder()
+      .setCustomId('set-weapon')
+      .setLabel('Weapon')
+      .setStyle(ButtonStyle.Primary)
+  );
+  await interaction.reply({ content: 'What type of item would you like to equip?', components: [row], ephemeral: true });
 }
 
 async function handleMergeButton(interaction) {
@@ -347,6 +441,8 @@ module.exports = {
   handleMergeSelect,
   handleEquipSelect,
   handleSetAbilityButton,
+  handleSetWeaponButton,
+  handleWeaponSelect,
   handleAbilitySelect,
   autocomplete
 };
