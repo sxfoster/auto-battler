@@ -76,20 +76,20 @@ small **gold** reward added directly to their balance.
 
 ## Using `/auctionhouse`
 
-The Auction House lets players trade ability cards and other items. Use `/auctionhouse browse`
-to view current listings. To sell an item run:
+`/auctionhouse` now opens a button-driven menu instead of using
+separate subcommands. The reply contains **Buy Cards** and **Sell Cards**
+buttons which guide you through purchasing or listing ability cards.
 
-```bash
-/auctionhouse sell item:"Power Strike" price:100
-```
+- **Buying** – Click **Buy Cards** to view the cheapest listings for each
+  ability. Each listing includes a **Purchase** button. Selecting it
+  opens a confirmation modal and, once confirmed, transfers the gold and
+  delivers the card to your backpack.
+- **Selling** – Press **Sell Cards** to open a modal where you choose one
+  of your ability cards and set a price. Submitting creates the
+  listing and removes the card from your inventory until sold.
 
-To place a bid on an existing listing:
-
-```bash
-/auctionhouse bid listing_id:42 amount:150
-```
-
-Listings remain active until they expire or the seller cancels them.
+Listings stay active until another player purchases them or the seller
+cancels the post.
 
 ## Settings
 
