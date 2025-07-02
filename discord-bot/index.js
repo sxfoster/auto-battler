@@ -4,6 +4,7 @@ const path = require('node:path');
 const config = require('./util/config');
 const gameData = require('./util/gameData');
 const { routeInteraction } = require('./src/utils/interactionRouter');
+const feedback = require('./src/utils/feedback');
 
 const client = new Client({ intents: [GatewayIntentBits.Guilds] });
 client.commands = new Collection();
@@ -35,12 +36,7 @@ client.on(Events.InteractionCreate, async interaction => {
     await routeInteraction(interaction);
   } catch (error) {
     console.error(`Unhandled error during interaction routing:`, error);
-    const replyOptions = { content: 'An unexpected error occurred.', ephemeral: true };
-    if (interaction.replied || interaction.deferred) {
-      await interaction.followUp(replyOptions);
-    } else {
-      await interaction.reply(replyOptions);
-    }
+    await feedback.sendError(interaction, 'Unexpected Error', 'An unexpected error occurred.');
   }
 });
 

@@ -6,6 +6,7 @@ const config = require('../../util/config');
 const gameData = require('../../util/gameData');
 const { createCombatant } = require('../../../backend/game/utils');
 const GameEngine = require('../../../backend/game/engine');
+const feedback = require('../utils/feedback');
 
 const data = new SlashCommandBuilder()
   .setName('challenge')
@@ -16,24 +17,30 @@ async function execute(interaction) {
   const allPossibleHeroes = gameData.getHeroes();
   if (!config.PVP_CHANNEL_ID) {
     console.error('PVP_CHANNEL_ID is not set in the .env file.');
-    return interaction.reply({
-      content: 'Error: The challenge channel is not configured. Please contact an admin.',
-      ephemeral: true
-    });
+    await feedback.sendError(
+      interaction,
+      'Configuration Error',
+      'The challenge channel is not configured. Please contact an admin.'
+    );
+    return;
   }
   const target = interaction.options.getUser('target');
   if (target.id === interaction.user.id) {
-    await interaction.reply({ content: 'You cannot challenge yourself.', ephemeral: true });
+    await feedback.sendError(interaction, 'Invalid Target', 'You cannot challenge yourself.');
     return;
   }
   if (target.bot) {
-    await interaction.reply({ content: 'You cannot challenge bots.', ephemeral: true });
+    await feedback.sendError(interaction, 'Invalid Target', 'You cannot challenge bots.');
     return;
   }
   const challengerUser = await userService.getUser(interaction.user.id);
   const targetUser = await userService.getUser(target.id);
   if (!challengerUser || !challengerUser.class || !targetUser || !targetUser.class) {
-    await interaction.reply({ content: 'Both players must have a character and class selected.', ephemeral: true });
+    await feedback.sendError(
+      interaction,
+      'Missing Character',
+      'Both players must have a character and class selected.'
+    );
     return;
   }
 
@@ -224,11 +231,11 @@ async function handleAccept(interaction) {
   }
 
   if (dmFailed) {
-    await interaction.followUp({
-      content:
-        "I couldn't DM one or both players the battle log. Please check your privacy settings.",
-      ephemeral: true
-    });
+    await feedback.sendInfo(
+      interaction,
+      'DM Failed',
+      "I couldn't DM one or both players the battle log. Please check your privacy settings."
+    );
   }
 
   await interaction.update({ content: 'Challenge accepted! Battle complete.', components: [] });

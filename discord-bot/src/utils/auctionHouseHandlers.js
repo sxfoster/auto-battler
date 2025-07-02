@@ -10,6 +10,7 @@ const abilityCardService = require('./abilityCardService');
 const auctionService = require('./auctionHouseService');
 const gameData = require('../../util/gameData');
 const { createBackToTownRow } = require('./components');
+const feedback = require('./feedback');
 
 function getAllAbilities() {
   return Array.from(gameData.gameData.abilities.values());
@@ -23,12 +24,12 @@ function abilityName(id) {
 async function handleSellButton(interaction) {
   const user = await userService.getUser(interaction.user.id);
   if (!user) {
-    await interaction.reply({ content: 'User not found.', ephemeral: true });
+    await feedback.sendError(interaction, 'User Not Found', 'User not found.');
     return;
   }
   const cards = await abilityCardService.getCards(user.id);
   if (!cards.length) {
-    await interaction.reply({ content: 'You have no ability cards to sell.', ephemeral: true });
+    await feedback.sendError(interaction, 'No Cards', 'You have no ability cards to sell.');
     return;
   }
   const menu = new StringSelectMenuBuilder()
@@ -48,13 +49,15 @@ async function handleSellSelect(interaction) {
   const cardId = parseInt(interaction.values[0], 10);
   const user = await userService.getUser(interaction.user.id);
   if (!user) {
-    await interaction.update({ content: 'User not found.', components: [], ephemeral: true });
+    await interaction.update({ components: [], embeds: [], content: undefined });
+    await feedback.sendError(interaction, 'User Not Found', 'User not found.');
     return;
   }
   const cards = await abilityCardService.getCards(user.id);
   const card = cards.find(c => c.id === cardId);
   if (!card) {
-    await interaction.update({ content: 'Card not found.', components: [], ephemeral: true });
+    await interaction.update({ components: [], embeds: [], content: undefined });
+    await feedback.sendError(interaction, 'Card Not Found', 'Card not found.');
     return;
   }
 
@@ -75,18 +78,18 @@ async function handleSellModal(interaction) {
   const cardId = parseInt(idStr, 10);
   const price = parseInt(interaction.fields.getTextInputValue('price'), 10);
   if (isNaN(price) || price <= 0) {
-    await interaction.reply({ content: 'Invalid price.', ephemeral: true });
+    await feedback.sendError(interaction, 'Invalid Price', 'Invalid price.');
     return;
   }
   const user = await userService.getUser(interaction.user.id);
   if (!user) {
-    await interaction.reply({ content: 'User not found.', ephemeral: true });
+    await feedback.sendError(interaction, 'User Not Found', 'User not found.');
     return;
   }
   const cards = await abilityCardService.getCards(user.id);
   const card = cards.find(c => c.id === cardId);
   if (!card) {
-    await interaction.reply({ content: 'Card not found.', ephemeral: true });
+    await feedback.sendError(interaction, 'Card Not Found', 'Card not found.');
     return;
   }
   try {
@@ -94,14 +97,14 @@ async function handleSellModal(interaction) {
     await interaction.reply({ content: `✅ Listed ${abilityName(card.ability_id)} for ${price} gold.`, ephemeral: true });
   } catch (err) {
     console.error('Failed to create listing', err);
-    await interaction.reply({ content: 'Failed to create listing.', ephemeral: true });
+    await feedback.sendError(interaction, 'Listing Failed', 'Failed to create listing.');
   }
 }
 
 async function handleBuyButton(interaction) {
   const listings = await auctionService.getCheapestListings();
   if (!listings.length) {
-    await interaction.reply({ content: 'No listings available.', ephemeral: true });
+    await feedback.sendError(interaction, 'No Listings', 'No listings available.');
     return;
   }
   const menu = new StringSelectMenuBuilder()
@@ -121,7 +124,8 @@ async function handleBuySelect(interaction) {
   const listingId = parseInt(interaction.values[0], 10);
   const user = await userService.getUser(interaction.user.id);
   if (!user) {
-    await interaction.update({ content: 'User not found.', components: [], ephemeral: true });
+    await interaction.update({ components: [], embeds: [], content: undefined });
+    await feedback.sendError(interaction, 'User Not Found', 'User not found.');
     return;
   }
   try {
@@ -134,7 +138,8 @@ async function handleBuySelect(interaction) {
     });
   } catch (err) {
     console.error('Purchase failed', err);
-    await interaction.update({ content: err.message || 'Purchase failed.', components: [], ephemeral: true });
+    await interaction.update({ components: [], embeds: [], content: undefined });
+    await feedback.sendError(interaction, 'Purchase Failed', err.message || 'Purchase failed.');
   }
 }
 

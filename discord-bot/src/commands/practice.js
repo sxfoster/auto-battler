@@ -13,6 +13,7 @@ const GameEngine = require('../../../backend/game/engine');
 const { createCombatant } = require('../../../backend/game/utils');
 const gameData = require('../../util/gameData');
 const classAbilityMap = require('../data/classAbilityMap');
+const feedback = require('../utils/feedback');
 
 function respond(interaction, options) {
   if (interaction.deferred || interaction.replied) {
@@ -37,7 +38,7 @@ async function execute(interaction) {
   const playerClass = classAbilityMap[user.class] || user.class || 'Stalwart Defender';
   const playerHero = allPossibleHeroes.find(h => h.class === playerClass && h.isBase);
   if (!playerHero) {
-    await respond(interaction, { content: 'Required hero data missing.', ephemeral: true });
+    await feedback.sendError(interaction, 'Data Missing', 'Required hero data missing.');
     return;
   }
 
@@ -46,7 +47,7 @@ async function execute(interaction) {
   const goblinBase = baseHeroes[Math.floor(Math.random() * baseHeroes.length)];
 
   if (!goblinBase) {
-    await respond(interaction, { content: 'Required goblin data missing.', ephemeral: true });
+    await feedback.sendError(interaction, 'Data Missing', 'Required goblin data missing.');
     return;
   }
 
