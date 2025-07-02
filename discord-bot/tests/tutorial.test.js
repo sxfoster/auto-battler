@@ -5,7 +5,10 @@ jest.mock('../src/utils/userService', () => ({
   createUser: jest.fn(),
   setActiveAbility: jest.fn(),
   setUserClass: jest.fn(),
-  markTutorialComplete: jest.fn()
+  markTutorialComplete: jest.fn(),
+  setUserState: jest.fn(),
+  setTutorialStep: jest.fn(),
+  completeTutorial: jest.fn()
 }));
 jest.mock('../src/utils/weaponService', () => ({
   addWeapon: jest.fn(),
@@ -45,7 +48,7 @@ describe('tutorial command', () => {
   });
 
   test('creates a user when none exists', async () => {
-    userService.getUser.mockResolvedValueOnce(null).mockResolvedValueOnce({ id: 1 });
+    userService.getUser.mockResolvedValue(null);
     const interaction = { user: { id: '1', username: 'Tester' }, reply: jest.fn(), followUp: jest.fn() };
     await tutorial.execute(interaction);
     expect(userService.createUser).toHaveBeenCalledWith('1', 'Tester');

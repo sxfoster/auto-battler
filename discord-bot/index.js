@@ -1,18 +1,13 @@
-const { Client, Collection, GatewayIntentBits, Events, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
+const { Client, Collection, GatewayIntentBits, Events } = require('discord.js');
 const fs = require('node:fs');
 const path = require('node:path');
 const config = require('./util/config');
 const gameData = require('./util/gameData');
-const userService = require('./src/utils/userService');
-const settingsCommand = require('./commands/settings');
+const { routeInteraction } = require('./src/utils/interactionRouter');
 
 const client = new Client({ intents: [GatewayIntentBits.Guilds] });
 client.commands = new Collection();
 
-const inventoryHandlers = require('./commands/inventory');
-const invViewHandlers = require('./src/utils/inventoryHandlers');
-const challengeHandlers = require('./src/commands/challenge');
-const auctionHandlers = require('./src/utils/auctionHouseHandlers');
 
 const commandDirs = [
   path.join(__dirname, 'commands'),
@@ -36,190 +31,15 @@ client.once(Events.ClientReady, async () => {
 });
 
 client.on(Events.InteractionCreate, async interaction => {
-  const existing = await userService.getUser(interaction.user.id);
-  if (!existing) {
-    await userService.createUser(interaction.user.id, interaction.user.username);
-  }
-  const userState = await userService.getUserState(interaction.user.id);
-
-  if (userState && userState.state === 'in_tutorial') {
-    const tutorialCommand = client.commands.get('tutorial');
-    if (tutorialCommand && typeof tutorialCommand.handleInteraction === 'function') {
-      await tutorialCommand.handleInteraction(interaction, userState);
-    } else if (interaction.isChatInputCommand()) {
-      await interaction.reply({ content: 'Tutorial unavailable.', ephemeral: true });
-    }
-    return;
-  }
-
-  if (interaction.isChatInputCommand()) {
-    const command = client.commands.get(interaction.commandName);
-    if (!command) return;
-
-    try {
-      await command.execute(interaction);
-    } catch (error) {
-      console.error(
-        `Error executing ${interaction.commandName}`,
-        {
-          interactionId: interaction.id,
-          userId: interaction.user?.id,
-          error
-        }
-      );
-      const replyOptions = { content: 'There was an error executing this command!', ephemeral: true };
-      if (interaction.replied || interaction.deferred) {
-        await interaction.followUp(replyOptions);
-      } else {
-        await interaction.reply(replyOptions);
-      }
-    }
-  } else if (interaction.isAutocomplete()) {
-    const command = client.commands.get(interaction.commandName);
-    if (command && typeof command.autocomplete === 'function') {
-      try {
-        await command.autocomplete(interaction);
-      } catch (error) {
-        console.error(`Error handling autocomplete for ${interaction.commandName}`, error);
-      }
-    }
-  } else if (interaction.isStringSelectMenu()) {
-    if (interaction.customId === 'ability-select') {
-      await inventoryHandlers.handleAbilitySelect(interaction);
-    } else if (interaction.customId === 'equip-card') {
-      await inventoryHandlers.handleEquipSelect(interaction);
-    } else if (interaction.customId === 'weapon-select') {
-      await inventoryHandlers.handleWeaponSelect(interaction);
-    } else if (interaction.customId === 'merge-ability-select') {
-      await inventoryHandlers.handleMergeSelect(interaction);
-    } else if (interaction.customId === 'ah-sell-select') {
-      await auctionHandlers.handleSellSelect(interaction);
-    } else if (interaction.customId === 'ah-buy-select') {
-      await auctionHandlers.handleBuySelect(interaction);
-    }
-  } else if (interaction.isButton()) {
-    const [customId, targetUserId] = interaction.customId.split(':');
-
-    if (targetUserId && interaction.user.id !== targetUserId) {
-      return interaction.reply({ content: "This isn't your adventure!", ephemeral: true });
-    }
-
-    if (customId === 'continue-adventure') {
-      await interaction.update({ content: 'Delving deeper into the caves...', components: [] });
-      const command = client.commands.get('adventure');
-      if (command) {
-        await command.execute(interaction);
-      }
-    } else if (customId === 'back-to-town') {
-      const townCommand = client.commands.get('town');
-      if (townCommand) {
-        await townCommand.execute(interaction);
-      }
-    } else if (customId === 'inventory-equip-start') {
-      await inventoryHandlers.handleEquipButton(interaction);
-    } else if (interaction.customId === 'inventory-merge-start') {
-      await inventoryHandlers.handleMergeButton(interaction);
-    } else if (interaction.customId === 'set-ability') {
-      await inventoryHandlers.handleSetAbilityButton(interaction);
-    } else if (interaction.customId === 'set-weapon') {
-      await inventoryHandlers.handleSetWeaponButton(interaction);
-    } else if (interaction.customId === 'inv-view-abilities') {
-      await invViewHandlers.showAbilities(interaction);
-    } else if (interaction.customId === 'inv-view-weapons') {
-      await invViewHandlers.showWeapons(interaction);
-    } else if (interaction.customId.startsWith('challenge-accept:')) {
-      await challengeHandlers.handleAccept(interaction);
-    } else if (interaction.customId.startsWith('challenge-decline:')) {
-      await challengeHandlers.handleDecline(interaction);
-    } else if (interaction.customId.startsWith('open-inventory:')) {
-      const inventoryCommand = client.commands.get('inventory');
-      interaction.options = { getSubcommand: () => 'show' };
-      await inventoryCommand.execute(interaction);
-    } else if (interaction.customId.startsWith('proceed-battle:')) {
-      await interaction.update({ content: 'Proceeding to battle...', components: [] });
-      const adventureCommand = client.commands.get('adventure');
-      interaction.bypassChargeCheck = true;
-      await adventureCommand.execute(interaction);
-    } else if (interaction.customId === 'ah-sell-start') {
-      await auctionHandlers.handleSellButton(interaction);
-    } else if (interaction.customId === 'ah-buy-start') {
-      await auctionHandlers.handleBuyButton(interaction);
-    } else if (interaction.customId === 'town-adventure') {
-      const state = await userService.getUserState(interaction.user.id);
-      if (state.location !== 'town') {
-        return interaction.reply({ content: 'You are not in town.', ephemeral: true });
-      }
-      const adventureCommand = client.commands.get('adventure');
-      if (adventureCommand) {
-        await interaction.deferUpdate();
-        await adventureCommand.execute(interaction);
-      }
-    } else if (interaction.customId === 'town-inventory') {
-      const state = await userService.getUserState(interaction.user.id);
-      if (state.location !== 'town') {
-        return interaction.reply({ content: 'You are not in town.', ephemeral: true });
-      }
-      const inventoryCommand = client.commands.get('inventory');
-      if (inventoryCommand) {
-        interaction.options = { getSubcommand: () => 'show' };
-        await inventoryCommand.execute(interaction);
-      }
-    } else if (interaction.customId === 'town-leaderboard') {
-      const state = await userService.getUserState(interaction.user.id);
-      if (state.location !== 'town') {
-        return interaction.reply({ content: 'You are not in town.', ephemeral: true });
-      }
-      const leaderboardCommand = client.commands.get('leaderboard');
-      if (leaderboardCommand) {
-        await leaderboardCommand.execute(interaction);
-      }
-    } else if (interaction.customId === 'town-auctionhouse') {
-      const state = await userService.getUserState(interaction.user.id);
-      if (state.location !== 'town') {
-        return interaction.reply({ content: 'You are not in town.', ephemeral: true });
-      }
-      const auctionhouseCommand = client.commands.get('auctionhouse');
-      if (auctionhouseCommand) {
-        await auctionhouseCommand.execute(interaction);
-      }
-    } else if (interaction.customId === 'nav-town') {
-      await userService.setUserLocation(interaction.user.id, 'town');
-      const townCommand = client.commands.get('town');
-      if (townCommand) {
-        await townCommand.execute(interaction);
-      }
-    } else if (interaction.customId === 'toggle_battle_logs') {
-      const user = await userService.getUser(interaction.user.id);
-      const newValue = !user.dm_battle_logs_enabled;
-      await userService.setDmPreference(
-        interaction.user.id,
-        'dm_battle_logs_enabled',
-        newValue
-      );
-      user.dm_battle_logs_enabled = newValue;
-      await interaction.update(settingsCommand.buildSettingsResponse(user));
-    } else if (interaction.customId === 'toggle_item_drops') {
-      const user = await userService.getUser(interaction.user.id);
-      const newValue = !user.dm_item_drops_enabled;
-      await userService.setDmPreference(
-        interaction.user.id,
-        'dm_item_drops_enabled',
-        newValue
-      );
-      user.dm_item_drops_enabled = newValue;
-      await interaction.update(settingsCommand.buildSettingsResponse(user));
-    } else if (interaction.customId === 'cycle_log_verbosity') {
-      const user = await userService.getUser(interaction.user.id);
-      const order = ['summary', 'detailed', 'combat_only'];
-      const idx = order.indexOf(user.log_verbosity || 'summary');
-      const next = order[(idx + 1) % order.length];
-      await userService.setLogVerbosity(interaction.user.id, next);
-      user.log_verbosity = next;
-      await interaction.update(settingsCommand.buildSettingsResponse(user));
-    }
-  } else if (interaction.isModalSubmit()) {
-    if (interaction.customId.startsWith('ah-sell-modal:')) {
-      await auctionHandlers.handleSellModal(interaction);
+  try {
+    await routeInteraction(interaction);
+  } catch (error) {
+    console.error(`Unhandled error during interaction routing:`, error);
+    const replyOptions = { content: 'An unexpected error occurred.', ephemeral: true };
+    if (interaction.replied || interaction.deferred) {
+      await interaction.followUp(replyOptions);
+    } else {
+      await interaction.reply(replyOptions);
     }
   }
 });
