@@ -129,6 +129,35 @@ async function setActiveAbility(discordId, cardId) {
   return { discordId, cardId };
 }
 
+// ------ State Management ------
+
+async function getUserState(discordId) {
+  const [rows] = await db.query(
+    'SELECT state, location, tutorial_step FROM users WHERE discord_id = ?',
+    [discordId]
+  );
+  return rows[0] || null;
+}
+
+async function setUserState(discordId, newState) {
+  await db.query('UPDATE users SET state = ? WHERE discord_id = ?', [newState, discordId]);
+}
+
+async function setUserLocation(discordId, newLocation) {
+  await db.query('UPDATE users SET location = ? WHERE discord_id = ?', [newLocation, discordId]);
+}
+
+async function setTutorialStep(discordId, newStep) {
+  await db.query('UPDATE users SET tutorial_step = ? WHERE discord_id = ?', [newStep, discordId]);
+}
+
+async function completeTutorial(discordId) {
+  await db.query(
+    "UPDATE users SET tutorial_completed = 1, state = 'active', location = 'town', tutorial_step = 'complete' WHERE discord_id = ?",
+    [discordId]
+  );
+}
+
 async function markTutorialComplete(discordId) {
   await db.query('UPDATE users SET tutorial_completed = 1 WHERE discord_id = ?', [discordId]);
 }
@@ -159,6 +188,11 @@ module.exports = {
   addAbility,
   getInventory,
   setActiveAbility,
+  getUserState,
+  setUserState,
+  setUserLocation,
+  setTutorialStep,
+  completeTutorial,
   markTutorialComplete,
   setDmPreference,
   setLogVerbosity,
