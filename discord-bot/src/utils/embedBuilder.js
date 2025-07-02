@@ -99,8 +99,9 @@ function buildWeaponEmbed(weapon) {
     embed.addFields({ name: 'Stat Bonuses', value: stats });
   }
 
-  if (weapon.passiveEffect) {
-    embed.addFields({ name: 'Passive Effect', value: `Triggers ${weapon.passiveEffect.effect}` });
+  if (weapon.procs && weapon.procs.length > 0) {
+    const names = weapon.procs.map(p => p.effect).join(', ');
+    embed.addFields({ name: 'Procs', value: names });
   }
 
   return embed;
