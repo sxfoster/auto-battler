@@ -17,7 +17,9 @@ const {
 } = require('../../backend/game/data');
 
 
+// Track temporary tutorial state per user
 const tutorialLoot = new Map();
+const tutorialState = new Map();
 
 const data = new SlashCommandBuilder()
   .setName('tutorial')
@@ -34,47 +36,30 @@ async function execute(interaction) {
     await interaction.reply({ content: 'You have already completed the tutorial.', ephemeral: true });
     return;
   }
+  // Step 1 - Lore introduction
+  await interaction.reply({ content: 'https://youtu.be/9dPwnqhRQwU', ephemeral: true });
 
-  const scenes = [
-    {
-      title: 'The Shattering',
-      text: 'The sky burned once. Reality fractured. And from the heart of the ruin, the first Echo was born.',
-      videoUrl: 'https://youtu.be/9dPwnqhRQwU'
-    }
-  ];
-
-  const firstScene = scenes[0];
-
-  // Send the video URL first so Discord embeds the video player
-  await interaction.reply({ content: firstScene.videoUrl, ephemeral: true });
-
-  // Follow up with the lore embed
-  const loreEmbed = new EmbedBuilder()
-    .setTitle(firstScene.title)
-    .setDescription(firstScene.text)
+  const introEmbed = new EmbedBuilder()
+    .setTitle('Edgar Pain')
+    .setDescription('Stay only for a moment, and cover your ears.')
     .setColor('#29b6f6');
 
-  await interaction.followUp({ embeds: [loreEmbed], ephemeral: true });
+  await interaction.followUp({ embeds: [introEmbed], ephemeral: true });
 
-  for (let i = 1; i < scenes.length; i++) {
-    const scene = scenes[i];
-    const embed = new EmbedBuilder().setTitle(scene.title).setDescription(scene.text).setImage(scene.image);
-    await interaction.followUp({ embeds: [embed], ephemeral: true });
-  }
-
-  const finalEmbed = new EmbedBuilder()
-    .setTitle('First Encounter')
-    .setDescription('A goblin ambushes you on the road! Choose how you will defend yourself.')
-    .setImage('https://placehold.co/600x400?text=First+Encounter');
+  // Step 2 - Welcome to town
+  const townEmbed = new EmbedBuilder()
+    .setTitle("Welcome to Portal's Rest")
+    .setDescription('The bustling town is full of opportunities. Where will you go?')
+    .setImage('https://i.imgur.com/2pCIH22.png');
 
   const row = new ActionRowBuilder().addComponents(
-    new ButtonBuilder().setCustomId('tutorial_select_tank').setLabel('Stalwart Defender').setEmoji('🛡️').setStyle(ButtonStyle.Primary),
-    new ButtonBuilder().setCustomId('tutorial_select_dps').setLabel('Raging Fighter').setEmoji('⚔️').setStyle(ButtonStyle.Primary),
-    new ButtonBuilder().setCustomId('tutorial_select_healer').setLabel('Divine Healer').setEmoji('❤️‍🩹').setStyle(ButtonStyle.Primary),
-    new ButtonBuilder().setCustomId('tutorial_select_support').setLabel('Inspiring Artist').setEmoji('🎶').setStyle(ButtonStyle.Primary)
+    new ButtonBuilder().setCustomId('tutorial_auctionhouse').setLabel('Auction House').setStyle(ButtonStyle.Primary),
+    new ButtonBuilder().setCustomId('tutorial_inventory').setLabel('Inventory').setStyle(ButtonStyle.Secondary),
+    new ButtonBuilder().setCustomId('tutorial_adventure').setLabel('Adventure').setStyle(ButtonStyle.Success)
   );
 
-  await interaction.followUp({ embeds: [finalEmbed], components: [row], ephemeral: true });
+  tutorialState.set(interaction.user.id, { step: 'town' });
+  await interaction.followUp({ embeds: [townEmbed], components: [row], ephemeral: true });
 }
 
 async function runTutorial(interaction, archetype) {
@@ -153,4 +138,4 @@ async function runTutorial(interaction, archetype) {
   await interaction.followUp({ embeds: [victoryEmbed], components: [lootRow], ephemeral: true });
 }
 
-module.exports = { data, execute, runTutorial, tutorialLoot };
+module.exports = { data, execute, runTutorial, tutorialLoot, tutorialState };
