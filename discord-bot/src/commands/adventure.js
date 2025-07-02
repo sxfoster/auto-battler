@@ -71,29 +71,44 @@ async function execute(interaction) {
   };
 
   if (Math.random() < equipChance) {
-    const weaponPool = allPossibleWeapons.filter(w => w.rarity === 'Common');
+    const weaponPool = allPossibleWeapons.filter(
+      w => w.rarity === 'Common' || w.rarity === 'Uncommon'
+    );
     const weapon = weaponPool[Math.floor(Math.random() * weaponPool.length)];
     goblinEquipment.weapon_id = weapon.id;
     goblinLoot.weapon = weapon;
     xpToAward += 10;
+    if (weapon.rarity === 'Uncommon') {
+      xpToAward += 50;
+    }
   }
 
   if (Math.random() < equipChance) {
-    const armorPool = allPossibleArmors.filter(a => a.rarity === 'Common');
+    const armorPool = allPossibleArmors.filter(
+      a => a.rarity === 'Common' || a.rarity === 'Uncommon'
+    );
     const armor = armorPool[Math.floor(Math.random() * armorPool.length)];
     goblinEquipment.armor_id = armor.id;
     xpToAward += 10;
+    if (armor.rarity === 'Uncommon') {
+      xpToAward += 50;
+    }
   }
 
   if (Math.random() < equipChance) {
     const abilityPool = allPossibleAbilities.filter(
-      a => a.rarity === 'Common' && a.class === goblinBase.class
+      a =>
+        (a.rarity === 'Common' || a.rarity === 'Uncommon') &&
+        a.class === goblinBase.class
     );
     if (abilityPool.length > 0) {
       const ability = abilityPool[Math.floor(Math.random() * abilityPool.length)];
       goblinEquipment.ability_id = ability.id;
       goblinLoot.ability = ability;
       xpToAward += 10;
+      if (ability.rarity === 'Uncommon') {
+        xpToAward += 50;
+      }
     }
   }
   // --- END: Dynamic Goblin and XP Logic ---
