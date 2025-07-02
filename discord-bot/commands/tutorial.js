@@ -18,6 +18,8 @@ const {
 } = require('../../backend/game/data');
 
 
+const tutorialLoot = new Map();
+
 function formatLog(entry) {
   const prefix = `[R${entry.round}]`;
   let text = entry.message;
@@ -100,7 +102,19 @@ async function runTutorial(interaction, archetype) {
     defense: 0
   };
 
-  const engine = new GameEngine([player, goblin]);
+  tutorialLoot.set(interaction.user.id, {
+    weapon: rustyKnife ? rustyKnife.name : null,
+    ability: ability.name
+  });
+
+  const startEmbed = new EmbedBuilder()
+    .setTitle('Ambush!')
+    .setDescription(
+      "While traveling to Portal's Rest, a greedy goblin leaps from the bushes, blocking your path!"
+    );
+  await interaction.followUp({ embeds: [startEmbed], ephemeral: true });
+
+  const engine = new GameEngine([player, goblin], { isNarrative: true, playerName: interaction.user.username });
   const wait = ms => new Promise(r => setTimeout(r, ms));
   let logText = '';
   let battleMessage;
@@ -116,30 +130,18 @@ async function runTutorial(interaction, archetype) {
     }
   }
 
-  const lootMessage = rustyKnife ? `The Tutorial Goblin dropped a **${rustyKnife.name}** and **${ability.name}**.` : `The Tutorial Goblin dropped **${ability.name}**.`;
+  const victoryEmbed = new EmbedBuilder()
+    .setTitle('Victory!')
+    .setDescription('The goblin collapses at your feet.');
 
-  const summaryEmbed = new EmbedBuilder().setColor('#57F287').setDescription(`Victory! ${lootMessage}`);
-  await interaction.followUp({ embeds: [summaryEmbed], ephemeral: true });
+  const lootRow = new ActionRowBuilder().addComponents(
+    new ButtonBuilder()
+      .setCustomId('tutorial_loot_goblin')
+      .setLabel('Loot the Goblin')
+      .setStyle(ButtonStyle.Primary)
+  );
 
-  await interaction.followUp({ content: "Congratulations on your victory! Use the /inventory show command to see what's in your backpack.", ephemeral: true });
-
-  setTimeout(() => {
-    interaction.followUp({
-      content:
-        '**Tip:** The bot will sometimes send you DMs with full battle logs or new items you\'ve found. If you find this too noisy, you can turn them off!\n\n' +
-        '• Use `/settings battle_logs enabled:False` to disable battle log DMs.\n' +
-        '• Use `/settings item_drops enabled:False` to disable new item DMs.',
-      ephemeral: true
-    });
-  }, 10000);
-
-  setTimeout(async () => {
-    await interaction.followUp({
-      content: 'You can now use /adventure to battle monsters, /challenge @user to duel other players, and /who @user to inspect a character.',
-      ephemeral: true
-    });
-    await userService.markTutorialComplete(interaction.user.id);
-  }, 15000);
+  await interaction.followUp({ embeds: [victoryEmbed], components: [lootRow], ephemeral: true });
 }
 
-module.exports = { data, execute, runTutorial };
+module.exports = { data, execute, runTutorial, tutorialLoot };

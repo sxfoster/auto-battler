@@ -12,7 +12,7 @@ try {
 }
 
 class GameEngine {
-    constructor(combatants) {
+    constructor(combatants, options = {}) {
         this.combatants = combatants.map(c => ({
             attacksMade: 0,
             hitsTaken: 0,
@@ -26,13 +26,36 @@ class GameEngine {
         this.extraActionTaken = {}; // Tracks extra actions per round
         this.finalPlayerState = {}; // Will store final state changes
         this.procEngine = new ProcEngine(this.battleLog);
+        this.narrativeMode = options.isNarrative || false;
+        this.playerName = options.playerName || (this.combatants.find(c => c.team === 'player')?.name);
     }
 
-    log(entry, level = 'detail') {
+    log(entry, level = 'detail', isNarrative = false) {
         if (typeof entry === 'string') {
             entry = { type: 'info', message: entry };
         }
+        if (this.narrativeMode || isNarrative) {
+            entry = { ...entry, message: this.formatNarrative(entry.message) };
+        }
         this.battleLog.push({ round: this.roundCounter, level, ...entry });
+    }
+
+    formatNarrative(message) {
+        if (!this.playerName || typeof message !== 'string') return message;
+        const name = this.playerName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        let result = message
+            .replace(new RegExp(`^${name} hits`, 'i'), 'You strike')
+            .replace(new RegExp(`^${name} uses`, 'i'), 'You use')
+            .replace(new RegExp(`^${name} takes`, 'i'), 'You take')
+            .replace(new RegExp(`^${name}'s`, 'i'), 'Your')
+            .replace(new RegExp(`${name}'s`, 'gi'), 'your')
+            .replace(new RegExp(`${name}`, 'gi'), 'you');
+        result = result.replace(/You hits/gi, 'You hit');
+        result = result.replace(/You uses/gi, 'You use');
+        result = result.replace(/You takes/gi, 'You take');
+        if (result.startsWith('you ')) result = 'You ' + result.slice(4);
+        if (result.startsWith('you')) result = 'You' + result.slice(3);
+        return result;
     }
 
     getEffectiveSpeed(combatant) {

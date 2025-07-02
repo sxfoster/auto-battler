@@ -1,4 +1,4 @@
-const { Client, Collection, GatewayIntentBits, Events } = require('discord.js');
+const { Client, Collection, GatewayIntentBits, Events, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
 const fs = require('node:fs');
 const path = require('node:path');
 const config = require('./util/config');
@@ -143,6 +143,33 @@ client.on(Events.InteractionCreate, async interaction => {
       if (tutorial && typeof tutorial.runTutorial === 'function') {
         await tutorial.runTutorial(interaction, 'Inspiring Artist');
       }
+    } else if (interaction.customId === 'tutorial_loot_goblin') {
+      const tutorial = client.commands.get('tutorial');
+      const loot = tutorial?.tutorialLoot.get(interaction.user.id);
+      const items = [];
+      if (loot?.weapon) items.push(loot.weapon);
+      if (loot?.ability) items.push(loot.ability + ' ability card');
+      const lootDesc = items.length
+        ? `You search the goblin's crude burlap sack and find ${items.join(' and ')}.`
+        : 'The goblin carried nothing of value.';
+      const embed = new EmbedBuilder()
+        .setTitle('Loot Acquired!')
+        .setDescription(lootDesc);
+      const row = new ActionRowBuilder().addComponents(
+        new ButtonBuilder()
+          .setCustomId('tutorial_go_to_town')
+          .setLabel('Go to Town')
+          .setStyle(ButtonStyle.Primary)
+      );
+      await interaction.update({ embeds: [embed], components: [row] });
+    } else if (interaction.customId === 'tutorial_go_to_town') {
+      const townCommand = client.commands.get('town');
+      if (townCommand) {
+        await townCommand.execute(interaction);
+      }
+      const tutorial = client.commands.get('tutorial');
+      tutorial?.tutorialLoot.delete(interaction.user.id);
+      await userService.markTutorialComplete(interaction.user.id);
     } else if (interaction.customId.startsWith('proceed-battle:')) {
       await interaction.update({ content: 'Proceeding to battle...', components: [] });
       const adventureCommand = client.commands.get('adventure');
