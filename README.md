@@ -34,6 +34,19 @@ npm start
 
 By default it runs on `http://localhost:3000` and prints `Server is running!` to the console.
 
+### Running Tests
+
+Install dependencies in the `backend` directory before executing the Jest suite:
+
+```bash
+cd backend
+npm install
+npm test
+```
+
+`npm test` invokes Jest. The tests will fail to run if the dependencies have not been installed.
+
+
 ## Documentation
 
 The `docs` directory hosts the game design document, technical overview and other reference material.  See [docs/README.md](docs/README.md) for a full listing.  Developers should read [docs/technical_overview.md](docs/technical_overview.md) for a code walkthrough and [docs/event_schema.md](docs/event_schema.md) for the battle log message format.
