@@ -78,6 +78,9 @@ async function execute(interaction) {
     goblinEquipment.weapon_id = weapon.id;
     goblinLoot.weapon = weapon;
     xpToAward += 10;
+    if (weapon.rarity === 'Uncommon') {
+      xpToAward += 50;
+    }
   }
 
   if (Math.random() < equipChance) {
@@ -86,6 +89,9 @@ async function execute(interaction) {
     const armor = armorPool[Math.floor(Math.random() * armorPool.length)];
     goblinEquipment.armor_id = armor.id;
     xpToAward += 10;
+    if (armor.rarity === 'Uncommon') {
+      xpToAward += 50;
+    }
   }
 
   let uncommonAbilitySelected = false;
@@ -99,6 +105,9 @@ async function execute(interaction) {
       goblinEquipment.ability_id = ability.id;
       goblinLoot.ability = ability;
       xpToAward += 10;
+      if (ability.rarity === 'Uncommon') {
+        xpToAward += 50;
+      }
       if (useUncommon && ability.rarity === 'Uncommon') {
         uncommonAbilitySelected = true;
       }
