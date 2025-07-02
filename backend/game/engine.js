@@ -62,13 +62,20 @@ class GameEngine {
        }
    }
 
-   applyStatusEffect(target, name, duration = 2, extra = {}) {
+   applyStatusEffect(target, name, duration = 2, extra = {}, source = null) {
        const effect = { name, turnsRemaining: duration, ...extra };
        if (name === 'Poison' && effect.damage === undefined) {
            effect.damage = 1;
        }
        target.statusEffects.push(effect);
        this.log({ type: 'status', message: `↳ ${target.name} is ${name.toLowerCase()}.` });
+       this.procEngine.trigger('on_status_applied', {
+           attacker: source,
+           defender: target,
+           allCombatants: this.combatants,
+           applyDamage: this.applyDamage.bind(this),
+           applyStatus: this.applyStatusEffect.bind(this)
+       });
    }
 
    applyDamage(attacker, target, baseDamage, options = {}) {

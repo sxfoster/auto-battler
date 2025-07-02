@@ -38,7 +38,7 @@ describe('Data-Driven Proc System', () => {
     const attacker = createCombatant({ hero_id: 1 }, 'enemy', 0);
     const engine = new GameEngine([attacker, defender]);
     
-    engine.applyStatusEffect(defender, 'Stun', 1);
+    engine.applyStatusEffect(defender, 'Stun', 1, {}, attacker);
 
     // The proc engine would need to be triggered on status application to prevent it.
     // This requires a new trigger point 'on_status_applied'.

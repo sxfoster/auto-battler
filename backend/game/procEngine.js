@@ -69,7 +69,7 @@ class ProcEngine {
             }
             case 'apply_status':
                 if (!proc.chance || Math.random() < proc.chance) {
-                    context.applyStatus(defender, proc.status, proc.duration, { damage: proc.value });
+                    context.applyStatus(defender, proc.status, proc.duration, { damage: proc.value }, attacker);
                 }
                 break;
             case 'bonus_damage':
@@ -79,12 +79,15 @@ class ProcEngine {
                 break;
             case 'apply_status_to_attacker':
                 if (!proc.chance || Math.random() < proc.chance) {
-                    context.applyStatus(attacker, proc.status, proc.duration, { damage: proc.value });
+                    context.applyStatus(attacker, proc.status, proc.duration, { damage: proc.value }, attacker);
                 }
+                break;
+            case 'immune_to_status':
+                defender.statusEffects = defender.statusEffects.filter(s => s.name !== proc.status);
                 break;
             default:
                 if (!proc.chance || Math.random() < proc.chance) {
-                    context.applyStatus(defender, proc.effect, proc.duration, { amount: proc.amount });
+                    context.applyStatus(defender, proc.effect, proc.duration, { amount: proc.amount }, attacker);
                 }
                 break;
             // Add more effect handlers here...
