@@ -1,5 +1,6 @@
 const { buildBattleEmbed } = require('./embedBuilder');
 const userService = require('./userService');
+const { ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
 
 const MAX_LOG_LINES = 20;
 
@@ -56,7 +57,32 @@ async function runBattleLoop(interaction, engine, { waitMs = 1000 } = {}) {
   const fullLog = [];
   const user = await userService.getUser(interaction.user.id);
   const verbosity = user?.log_verbosity || 'summary';
+  let lastEmbed = null;
   for (const step of engine.runGameSteps()) {
+    if (step.type === 'PAUSE') {
+      if (battleMessage && lastEmbed) {
+        const row = new ActionRowBuilder().addComponents(
+          new ButtonBuilder()
+            .setCustomId('tutorial_continue')
+            .setLabel('Continue Battle')
+            .setStyle(ButtonStyle.Primary)
+        );
+        await battleMessage.edit({ embeds: [lastEmbed], components: [row] });
+        try {
+          const btn = await battleMessage.awaitMessageComponent({
+            filter: i =>
+              i.customId === 'tutorial_continue' &&
+              i.user.id === interaction.user.id,
+            time: 60000
+          });
+          await btn.update({ components: [] });
+        } catch (e) {
+          await battleMessage.edit({ components: [] });
+        }
+      }
+      continue;
+    }
+
     fullLog.push(...step.log);
     let displayLog;
     if (verbosity === 'detailed') {
@@ -70,12 +96,12 @@ async function runBattleLoop(interaction, engine, { waitMs = 1000 } = {}) {
     }
     const lines = displayLog.map(formatLog);
     const logText = lines.slice(-MAX_LOG_LINES).join('\n');
-    const embed = buildBattleEmbed(step.combatants, logText);
+    lastEmbed = buildBattleEmbed(step.combatants, logText);
     if (!battleMessage) {
-      battleMessage = await interaction.followUp({ embeds: [embed] });
+      battleMessage = await interaction.followUp({ embeds: [lastEmbed] });
     } else {
       await new Promise(r => setTimeout(r, waitMs));
-      await battleMessage.edit({ embeds: [embed] });
+      await battleMessage.edit({ embeds: [lastEmbed] });
     }
   }
   return { fullLog };

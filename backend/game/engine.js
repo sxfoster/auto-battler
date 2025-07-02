@@ -28,6 +28,8 @@ class GameEngine {
         this.procEngine = new ProcEngine(this.battleLog);
         this.narrativeMode = options.isNarrative || false;
         this.playerName = options.playerName || (this.combatants.find(c => c.team === 'player')?.name);
+        this.abilityPauseShown = false;
+        this.pendingPause = null;
     }
 
     log(entry, level = 'detail', isNarrative = false) {
@@ -242,7 +244,7 @@ class GameEngine {
 
         if (/confuse/i.test(ability.effect)) {
             target.statusEffects.push({ name: 'Confuse', turnsRemaining: 1, sourceAbility: ability.name });
-            this.log({ type: 'status', message: `❓ ${target.name} is afflicted with Confuse from ${attacker.name}'s [${ability.name}].` });
+            this.log({ type: 'status', message: `❓ ${target.name} is confused by ${attacker.name}'s [${ability.name}].` });
         }
 
         if (/Armor Break/i.test(ability.effect)) {
@@ -461,7 +463,8 @@ class GameEngine {
                        level: 'detail',
                        attacker: attacker.name,
                        target: targetEnemy.name,
-                       details: damageDetails
+                       details: damageDetails,
+                       message: `${attacker.name} damage calc`
                    });
                }
                context.damage = dealt;
@@ -518,6 +521,16 @@ class GameEngine {
 
        if (this.checkVictory()) return;
        attacker.currentEnergy = (attacker.currentEnergy || 0) + 1;
+       if (
+           attacker.team === 'player' &&
+           attacker.abilityData &&
+           attacker.abilityCharges > 0 &&
+           !this.abilityPauseShown &&
+           attacker.currentEnergy >= (attacker.abilityData.energyCost || 1)
+       ) {
+           this.pendingPause = { type: 'PAUSE', reason: 'ABILITY_READY' };
+           this.abilityPauseShown = true;
+       }
    }
 
 
@@ -550,6 +563,11 @@ class GameEngine {
                if (this.battleLog.length > lastIndex) {
                    yield { combatants: this.combatants.map(c => ({ ...c })), log: this.battleLog.slice(lastIndex) };
                    lastIndex = this.battleLog.length;
+               }
+               if (this.pendingPause) {
+                   const pause = this.pendingPause;
+                   this.pendingPause = null;
+                   yield pause;
                }
            }
        }

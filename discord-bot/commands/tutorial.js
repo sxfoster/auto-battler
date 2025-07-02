@@ -8,7 +8,6 @@ const {
 const userService = require('../src/utils/userService');
 const weaponService = require('../src/utils/weaponService');
 const abilityCardService = require('../src/utils/abilityCardService');
-const { buildBattleEmbed } = require('../src/utils/embedBuilder');
 const GameEngine = require('../../backend/game/engine');
 const { createCombatant } = require('../../backend/game/utils');
 const {
@@ -19,15 +18,6 @@ const {
 
 
 const tutorialLoot = new Map();
-
-function formatLog(entry) {
-  const prefix = `[R${entry.round}]`;
-  let text = entry.message;
-  if (entry.type === 'round') text = `**${text}**`;
-  else if (entry.type === 'victory' || entry.type === 'defeat') text = `🏆 **${text}** 🏆`;
-  else if (entry.type === 'ability-cast') text = `*${text}*`;
-  return `${prefix} ${text}`;
-}
 
 const data = new SlashCommandBuilder()
   .setName('tutorial')
@@ -45,9 +35,43 @@ async function execute(interaction) {
     return;
   }
 
-  const embed = new EmbedBuilder()
-    .setTitle('Choose Your Starting Archetype')
-    .setDescription('Select a role that matches your preferred playstyle. This choice will grant you a hero and a powerful ability.');
+  const scenes = [
+    {
+      title: 'The Shattering',
+      text: 'Long ago a cataclysm ripped the world apart, scattering magic into crystalline Ability Cards.',
+      image: 'https://placehold.co/600x400?text=Shattering'
+    },
+    {
+      title: 'Echoes',
+      text: 'Those who could wield these cards became known as Echo Knights.',
+      image: 'https://placehold.co/600x400?text=Echoes'
+    },
+    {
+      title: 'Resonance',
+      text: 'Combining cards lets a knight resonate with incredible power.',
+      image: 'https://placehold.co/600x400?text=Resonance'
+    },
+    {
+      title: 'Anchors in Reality',
+      text: 'Stable towns like Portal\'s Rest act as anchors against the chaos.',
+      image: 'https://placehold.co/600x400?text=Anchors'
+    }
+  ];
+
+  await interaction.reply({
+    embeds: [new EmbedBuilder().setTitle(scenes[0].title).setDescription(scenes[0].text).setImage(scenes[0].image)],
+    ephemeral: true
+  });
+  for (let i = 1; i < scenes.length; i++) {
+    const scene = scenes[i];
+    const embed = new EmbedBuilder().setTitle(scene.title).setDescription(scene.text).setImage(scene.image);
+    await interaction.followUp({ embeds: [embed], ephemeral: true });
+  }
+
+  const finalEmbed = new EmbedBuilder()
+    .setTitle('First Encounter')
+    .setDescription('A goblin ambushes you on the road! Choose how you will defend yourself.')
+    .setImage('https://placehold.co/600x400?text=First+Encounter');
 
   const row = new ActionRowBuilder().addComponents(
     new ButtonBuilder().setCustomId('tutorial_select_tank').setLabel('Stalwart Defender').setEmoji('🛡️').setStyle(ButtonStyle.Primary),
@@ -56,7 +80,7 @@ async function execute(interaction) {
     new ButtonBuilder().setCustomId('tutorial_select_support').setLabel('Inspiring Artist').setEmoji('🎶').setStyle(ButtonStyle.Primary)
   );
 
-  await interaction.reply({ embeds: [embed], components: [row], ephemeral: true });
+  await interaction.followUp({ embeds: [finalEmbed], components: [row], ephemeral: true });
 }
 
 async function runTutorial(interaction, archetype) {
@@ -115,20 +139,8 @@ async function runTutorial(interaction, archetype) {
   await interaction.followUp({ embeds: [startEmbed], ephemeral: true });
 
   const engine = new GameEngine([player, goblin], { isNarrative: true, playerName: interaction.user.username });
-  const wait = ms => new Promise(r => setTimeout(r, ms));
-  let logText = '';
-  let battleMessage;
-  for (const step of engine.runGameSteps()) {
-    const lines = step.log.map(formatLog);
-    logText = [logText, ...lines].filter(Boolean).join('\n');
-    const embed = buildBattleEmbed(step.combatants, logText);
-    if (!battleMessage) {
-      battleMessage = await interaction.followUp({ embeds: [embed], ephemeral: true });
-    } else {
-      await wait(1000);
-      await battleMessage.edit({ embeds: [embed] });
-    }
-  }
+  const { runBattleLoop } = require('../src/utils/battleRunner');
+  await runBattleLoop(interaction, engine, { waitMs: 1000 });
 
   const victoryEmbed = new EmbedBuilder()
     .setTitle('Victory!')

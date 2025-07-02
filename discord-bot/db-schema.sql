@@ -20,7 +20,7 @@ CREATE TABLE IF NOT EXISTS user_ability_cards (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL,
     ability_id INT NOT NULL,
-    charges INT DEFAULT 10,
+    charges INT DEFAULT 20,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 

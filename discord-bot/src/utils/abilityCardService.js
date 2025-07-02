@@ -1,7 +1,7 @@
 const db = require('../../util/database');
 
 // Add a new ability card to the user's inventory with configurable charges
-async function addCard(userId, abilityId, charges = 10) {
+async function addCard(userId, abilityId, charges = 20) {
   const [result] = await db.query(
     'INSERT INTO user_ability_cards (user_id, ability_id, charges) VALUES (?, ?, ?)',
     [userId, abilityId, charges]
