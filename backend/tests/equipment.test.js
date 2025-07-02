@@ -1,5 +1,6 @@
 const GameEngine = require('../game/engine');
 const { createCombatant } = require('../game/utils');
+const { allPossibleWeapons } = require('../game/data');
 
 describe('Equipment bonuses and passives', () => {
   test('stat bonuses are applied from equipment', () => {
@@ -13,6 +14,10 @@ describe('Equipment bonuses and passives', () => {
   });
 
   test('weapon passive effect triggers on auto attack', () => {
+    const weapon = allPossibleWeapons.find(w => w.id === 1302);
+    const proc = weapon.procs ? weapon.procs[0] : weapon.passiveEffect;
+    expect(proc.effect).toBe('Poison');
+
     const attacker = createCombatant({ hero_id: 1, weapon_id: 1302 }, 'player', 0);
     const target = createCombatant({ hero_id: 1 }, 'enemy', 0);
     const engine = new GameEngine([attacker, target]);
@@ -20,6 +25,6 @@ describe('Equipment bonuses and passives', () => {
     jest.spyOn(Math, 'random').mockReturnValueOnce(0.1); // trigger proc
     engine.processTurn();
     const updated = engine.combatants.find(c => c.id === target.id);
-    expect(updated.statusEffects.some(e => e.name === 'Poison')).toBe(true);
+    expect(updated.statusEffects.some(e => e.name === proc.effect)).toBe(true);
   });
 });
