@@ -31,7 +31,10 @@ class ProcEngine {
                     if (proc.once_per_combat && this.onceMap.has(key)) continue;
                     if (proc.once_per_combat) this.onceMap.add(key);
 
-                    this.executeEffect(proc, { ...context, owner: combatant });
+                    const prevOwner = context.owner;
+                    context.owner = combatant;
+                    this.executeEffect(proc, context);
+                    context.owner = prevOwner;
                 }
             }
         }
