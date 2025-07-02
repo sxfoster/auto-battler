@@ -21,6 +21,17 @@ const {
 const tutorialLoot = new Map();
 const tutorialState = new Map();
 
+// This function will handle all interactions for a user in the tutorial.
+async function handleInteraction(interaction, user) {
+  switch (user.tutorial_step) {
+    case 'welcome':
+      // Future welcome step logic goes here
+      break;
+    default:
+      break;
+  }
+}
+
 const data = new SlashCommandBuilder()
   .setName('tutorial')
   .setDescription('Start the guided tutorial');
@@ -138,4 +149,4 @@ async function runTutorial(interaction, archetype) {
   await interaction.followUp({ embeds: [victoryEmbed], components: [lootRow], ephemeral: true });
 }
 
-module.exports = { data, execute, runTutorial, tutorialLoot, tutorialState };
+module.exports = { data, execute, runTutorial, tutorialLoot, tutorialState, handleInteraction };

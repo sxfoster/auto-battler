@@ -39,6 +39,18 @@ async function setUserClass(discordId, className) {
   await db.query('UPDATE users SET class = ? WHERE discord_id = ?', [className, discordId]);
 }
 
+async function setUserState(discordId, state) {
+  await db.query('UPDATE users SET state = ? WHERE discord_id = ?', [state, discordId]);
+}
+
+async function setTutorialStep(discordId, step) {
+  await db.query('UPDATE users SET tutorial_step = ? WHERE discord_id = ?', [step, discordId]);
+}
+
+async function setLocation(discordId, location) {
+  await db.query('UPDATE users SET location = ? WHERE discord_id = ?', [location, discordId]);
+}
+
 // Add an ability card to the user's inventory
 async function addAbility(discordId, abilityId) {
   const user = await getUser(discordId);
@@ -156,6 +168,9 @@ module.exports = {
   createUser,
   getUserByName,
   setUserClass,
+  setUserState,
+  setTutorialStep,
+  setLocation,
   addAbility,
   getInventory,
   setActiveAbility,
