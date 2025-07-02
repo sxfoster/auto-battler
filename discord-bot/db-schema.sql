@@ -100,6 +100,10 @@ CREATE TABLE IF NOT EXISTS pvp_battles (
 ALTER TABLE users
     ADD COLUMN gold INT UNSIGNED DEFAULT 0;
 
+-- Log verbosity preference
+ALTER TABLE users
+    ADD COLUMN log_verbosity ENUM('summary','detailed','combat_only') NOT NULL DEFAULT 'summary';
+
 -- Auction house listings
 CREATE TABLE IF NOT EXISTS auction_house_listings (
     id INT AUTO_INCREMENT PRIMARY KEY,

@@ -1,18 +1,17 @@
 const settings = require('../commands/settings');
 
 jest.mock('../src/utils/userService', () => ({
-  setDmPreference: jest.fn()
+  getUser: jest.fn(),
+  createUser: jest.fn(),
+  setDmPreference: jest.fn(),
+  setLogVerbosity: jest.fn()
 }));
 
 const userService = require('../src/utils/userService');
 
-function createInteraction(sub, enabled) {
+function createInteraction() {
   return {
-    user: { id: '123' },
-    options: {
-      getSubcommand: jest.fn().mockReturnValue(sub),
-      getBoolean: jest.fn().mockReturnValue(enabled)
-    },
+    user: { id: '123', username: 'tester' },
     reply: jest.fn().mockResolvedValue()
   };
 }
@@ -20,17 +19,29 @@ function createInteraction(sub, enabled) {
 describe('settings command', () => {
   beforeEach(() => jest.clearAllMocks());
 
-  test('updates battle log preference', async () => {
-    const interaction = createInteraction('battle_logs', true);
+  test('shows current settings', async () => {
+    userService.getUser.mockResolvedValue({
+      dm_battle_logs_enabled: true,
+      dm_item_drops_enabled: false,
+      log_verbosity: 'summary'
+    });
+    const interaction = createInteraction();
     await settings.execute(interaction);
-    expect(userService.setDmPreference).toHaveBeenCalledWith('123', 'dm_battle_logs_enabled', true);
-    expect(interaction.reply).toHaveBeenCalledWith(expect.objectContaining({ ephemeral: true }));
+    expect(userService.getUser).toHaveBeenCalledWith('123');
+    expect(interaction.reply).toHaveBeenCalledWith(
+      expect.objectContaining({ ephemeral: true, embeds: expect.any(Array), components: expect.any(Array) })
+    );
   });
 
-  test('updates item drop preference', async () => {
-    const interaction = createInteraction('item_drops', false);
+  test('creates user when missing', async () => {
+    userService.getUser.mockResolvedValueOnce(null).mockResolvedValueOnce({
+      dm_battle_logs_enabled: true,
+      dm_item_drops_enabled: true,
+      log_verbosity: 'summary'
+    });
+    const interaction = createInteraction();
     await settings.execute(interaction);
-    expect(userService.setDmPreference).toHaveBeenCalledWith('123', 'dm_item_drops_enabled', false);
+    expect(userService.createUser).toHaveBeenCalledWith('123', 'tester');
     expect(interaction.reply).toHaveBeenCalledWith(expect.objectContaining({ ephemeral: true }));
   });
 });

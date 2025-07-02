@@ -33,7 +33,6 @@ const userService = require('../src/utils/userService');
 const abilityCardService = require('../src/utils/abilityCardService');
 const weaponService = require('../src/utils/weaponService');
 const embedBuilder = require('../src/utils/embedBuilder');
-const settings = require('../commands/settings');
 const GameEngine = require('../../backend/game/engine');
 
 describe('adventure command', () => {
@@ -233,15 +232,7 @@ describe('adventure command', () => {
   });
 
   test('battle log DM skipped when preference disabled via settings', async () => {
-    const settingsInteraction = {
-      user: { id: '123' },
-      options: {
-        getSubcommand: jest.fn().mockReturnValue('battle_logs'),
-        getBoolean: jest.fn().mockReturnValue(false)
-      },
-      reply: jest.fn().mockResolvedValue()
-    };
-    await settings.execute(settingsInteraction);
+    await userService.setDmPreference('123', 'dm_battle_logs_enabled', false);
     expect(userService.setDmPreference).toHaveBeenCalledWith('123', 'dm_battle_logs_enabled', false);
 
     userService.getUser.mockResolvedValue({
@@ -263,15 +254,7 @@ describe('adventure command', () => {
   });
 
   test('item drop DM not sent when disabled via settings', async () => {
-    const settingsInteraction = {
-      user: { id: '123' },
-      options: {
-        getSubcommand: jest.fn().mockReturnValue('item_drops'),
-        getBoolean: jest.fn().mockReturnValue(false)
-      },
-      reply: jest.fn().mockResolvedValue()
-    };
-    await settings.execute(settingsInteraction);
+    await userService.setDmPreference('123', 'dm_item_drops_enabled', false);
     expect(userService.setDmPreference).toHaveBeenCalledWith('123', 'dm_item_drops_enabled', false);
 
     userService.getUser.mockResolvedValue({
