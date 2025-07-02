@@ -27,23 +27,65 @@ describe('Data-Driven Proc System', () => {
     engine.processTurn();
 
     const updatedAttacker = engine.combatants.find(c => c.id === attacker.id);
-    // This test requires a more advanced ProcEngine that can handle 'on_hit' and reflect damage.
-    // For now, we'll placeholder the expectation.
-    // expect(updatedAttacker.currentHp).toBe(initialAttackerHp - 1);
-    // expect(engine.battleLog.some(l => l.message.includes('Thorns procs!'))).toBe(true);
+    expect(updatedAttacker.currentHp).toBe(initialAttackerHp - 1);
+    expect(engine.battleLog.some(l => l.message.includes('reflect_damage'))).toBe(true);
   });
 
   test('Immune to Stun proc prevents stun status', () => {
     const defender = createCombatant({ hero_id: 1, armor_id: 2303 }, 'player', 0); // Juggernaut Armor
     const attacker = createCombatant({ hero_id: 1 }, 'enemy', 0);
     const engine = new GameEngine([attacker, defender]);
-    
+
     engine.applyStatusEffect(defender, 'Stun', 1);
 
-    // The proc engine would need to be triggered on status application to prevent it.
-    // This requires a new trigger point 'on_status_applied'.
-    // For now, we'll placeholder the expectation.
-    // expect(defender.statusEffects.some(s => s.name === 'Stun')).toBe(false);
+    expect(defender.statusEffects.some(s => s.name === 'Stun')).toBe(false);
+  });
+
+  test('Permanent defense reduction proc on hit', () => {
+    const attacker = createCombatant({ hero_id: 1, weapon_id: 1403 }, 'player', 0); // Sunforge Maul
+    const defender = createCombatant({ hero_id: 1 }, 'enemy', 0);
+    const engine = new GameEngine([attacker, defender]);
+    engine.turnQueue = [attacker];
+
+    const initialDefense = defender.defense;
+    engine.processTurn();
+
+    const updatedDef = engine.combatants.find(c => c.id === defender.id);
+    expect(updatedDef.defense).toBe(initialDefense - 1);
+  });
+
+  test('Weapon grants extra attack on kill', () => {
+    const attacker = createCombatant({ hero_id: 1, weapon_id: 1104 }, 'player', 0); // Dragonfang Blade
+    const defender = createCombatant({ hero_id: 2001 }, 'enemy', 0);
+    defender.currentHp = 1;
+    const engine = new GameEngine([attacker, defender]);
+    engine.turnQueue = [attacker];
+
+    engine.processTurn();
+    expect(engine.turnQueue[0]).toBe(attacker);
+  });
+
+  test('Apprentice Rod heals on ability use', () => {
+    const attacker = createCombatant({ hero_id: 11, weapon_id: 1702, ability_id: 3111 }, 'player', 0);
+    const target = createCombatant({ hero_id: 1 }, 'enemy', 0);
+    attacker.currentEnergy = 2;
+    const engine = new GameEngine([attacker, target]);
+    engine.turnQueue = [attacker, target];
+
+    const hpBefore = attacker.currentHp;
+    engine.processTurn();
+    const updated = engine.combatants.find(c => c.id === attacker.id);
+    expect(updated.currentHp).toBe(hpBefore + 2);
+  });
+
+  test('Energy gain at combat start', () => {
+    const c = createCombatant({ hero_id: 11, weapon_id: 1704 }, 'player', 0); // Archmage Catalyst
+    const enemy = createCombatant({ hero_id: 1 }, 'enemy', 0);
+    const engine = new GameEngine([c, enemy]);
+
+    engine.runGameSteps().next();
+    const updated = engine.combatants.find(u => u.id === c.id);
+    expect(updated.currentEnergy).toBe(1);
   });
 
   test('Bonus damage proc triggers on low HP target', () => {
