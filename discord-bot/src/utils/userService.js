@@ -11,7 +11,13 @@ const XP_THRESHOLDS = {
   1: 5000,
   2: 12500,
   3: 22500,
-  4: Infinity // Level cap
+  4: 35000,
+  5: 50000,
+  6: 67500,
+  7: 87500,
+  8: 110000,
+  9: 135000,
+  10: Infinity // Level cap
 };
 
 async function getUser(discordId) {
@@ -66,8 +72,9 @@ async function addGold(userId, amount) {
 async function addXp(userId, amount) {
   const [rows] = await db.query('SELECT id, level, xp FROM users WHERE id = ?', [userId]);
   const user = rows[0];
-  if (!user || user.level >= 4) {
-    return { leveledUp: false, newLevel: user ? user.level : undefined };
+  if (!user) return null;
+  if (user.level >= 10) {
+    return { leveledUp: false, newLevel: user.level };
   }
 
   const newXp = user.xp + amount;

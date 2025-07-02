@@ -3,7 +3,18 @@ const inventory = require('../commands/inventory');
 jest.mock('../src/utils/userService', () => ({
   getUser: jest.fn(),
   createUser: jest.fn(),
-  XP_THRESHOLDS: { 1: 5000, 2: 12500, 3: 22500, 4: Infinity }
+  XP_THRESHOLDS: {
+    1: 5000,
+    2: 12500,
+    3: 22500,
+    4: 35000,
+    5: 50000,
+    6: 67500,
+    7: 87500,
+    8: 110000,
+    9: 135000,
+    10: Infinity
+  }
 }));
 jest.mock('../src/utils/abilityCardService', () => ({
   getCards: jest.fn(),

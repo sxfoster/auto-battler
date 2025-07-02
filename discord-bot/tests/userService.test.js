@@ -52,10 +52,10 @@ describe('userService.addXp', () => {
   });
 
   test('no xp when at level cap', async () => {
-    db.query.mockResolvedValueOnce([[{ id: 1, level: 4, xp: 22500 }]]);
+    db.query.mockResolvedValueOnce([[{ id: 1, level: 10, xp: 135000 }]]);
 
     const result = await userService.addXp(1, 10);
     expect(db.query).toHaveBeenCalledTimes(1);
-    expect(result).toEqual({ leveledUp: false, newLevel: 4 });
+    expect(result).toEqual({ leveledUp: false, newLevel: 10 });
   });
 });
