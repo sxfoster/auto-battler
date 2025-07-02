@@ -32,6 +32,12 @@ function buildFinalLog(logEntries) {
         case 'ability-cast':
           message = `✨ ${message}`;
           break;
+        case 'damage_calculation': {
+          const { baseDamage, bonusDamage, defenseMitigation, finalDamage } = entry.details;
+          const attacker = entry.attacker;
+          const target = entry.target;
+          return `${prefix} ${attacker} attacks ${target}! (Base: ${baseDamage}, Buffs: +${bonusDamage}) ➞ (Defense: ${defenseMitigation}) ➞ Final Damage: ${finalDamage}`;
+        }
         case 'defeat':
         case 'victory':
           message = `🏆 ${message} 🏆`;

@@ -90,15 +90,15 @@ describe('Status effect processing', () => {
     expect(tgt.statusEffects.some(s => s.name === 'Armor Break')).toBe(true);
 
     const base = atk.attack;
-    const damage1 = engine.applyDamage(atk, tgt, base, { log: false });
-    expect(damage1).toBe(base - tgt.defense + 1);
+    const result1 = engine.applyDamage(atk, tgt, base, { log: false });
+    expect(result1.finalDamage).toBe(base - tgt.defense + 1);
 
     engine.processStatuses(tgt);
-    const damage2 = engine.applyDamage(atk, tgt, base, { log: false });
-    expect(damage2).toBe(base - tgt.defense + 1);
+    const result2 = engine.applyDamage(atk, tgt, base, { log: false });
+    expect(result2.finalDamage).toBe(base - tgt.defense + 1);
 
     engine.processStatuses(tgt);
-    const damage3 = engine.applyDamage(atk, tgt, base, { log: false });
-    expect(damage3).toBe(base - tgt.defense);
+    const result3 = engine.applyDamage(atk, tgt, base, { log: false });
+    expect(result3.finalDamage).toBe(base - tgt.defense);
   });
 });
