@@ -5,6 +5,7 @@ const config = require('./util/config');
 const gameData = require('./util/gameData');
 const { routeInteraction } = require('./src/utils/interactionRouter');
 const feedback = require('./src/utils/feedback');
+const userService = require('./src/utils/userService');
 
 const client = new Client({ intents: [GatewayIntentBits.Guilds] });
 client.commands = new Collection();
@@ -42,6 +43,27 @@ client.on(Events.InteractionCreate, async interaction => {
             interaction,
             selectedArchetype
           );
+        }
+        return;
+      }
+    } else if (typeof interaction.isButton === 'function' && interaction.isButton()) {
+      if (interaction.customId === 'tutorial_loot_weapon') {
+        const tutorialCommand = client.commands.get('tutorial');
+        if (tutorialCommand) {
+          await tutorialCommand.handleLootChoice(interaction, 'weapon');
+        }
+        return;
+      } else if (interaction.customId === 'tutorial_loot_ability') {
+        const tutorialCommand = client.commands.get('tutorial');
+        if (tutorialCommand) {
+          await tutorialCommand.handleLootChoice(interaction, 'ability');
+        }
+        return;
+      } else if (interaction.customId === 'tutorial_go_to_town') {
+        await userService.completeTutorial(interaction.user.id);
+        const townCommand = client.commands.get('town');
+        if (townCommand) {
+          await townCommand.execute(interaction);
         }
         return;
       }

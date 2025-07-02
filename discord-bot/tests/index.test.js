@@ -9,6 +9,8 @@ jest.mock('fs', () => ({
 
 jest.mock('../util/config', () => ({ DISCORD_TOKEN: 'token' }));
 
+jest.mock('../src/utils/userService', () => ({ completeTutorial: jest.fn() }));
+
 jest.mock('../src/utils/interactionRouter', () => ({ routeInteraction: jest.fn() }));
 const { routeInteraction } = require('../src/utils/interactionRouter');
 
