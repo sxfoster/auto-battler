@@ -6,14 +6,19 @@ jest.mock('../src/utils/userService', () => ({
   addAbility: jest.fn(),
   markTutorialComplete: jest.fn()
 }));
+jest.mock('../src/utils/weaponService', () => ({
+  addWeapon: jest.fn()
+}));
 jest.mock('../../backend/game/engine');
 
 const userService = require('../src/utils/userService');
+const weaponService = require('../src/utils/weaponService');
 const GameEngine = require('../../backend/game/engine');
 const utils = require('../../backend/game/utils');
 const {
   allPossibleAbilities,
-  allPossibleHeroes
+  allPossibleHeroes,
+  allPossibleWeapons
 } = require('../../backend/game/data');
 const gameData = require('../util/gameData');
 
@@ -77,6 +82,8 @@ describe('tutorial command', () => {
           (allPossibleHeroes.find(h => h.isBase) || allPossibleHeroes[0]).class
     )[0].id;
     expect(userService.addAbility).toHaveBeenCalledWith('1', abilityId);
+    const rustyKnifeId = allPossibleWeapons.find(w => w.name === 'Rusty Knife').id;
+    expect(weaponService.addWeapon).toHaveBeenCalledWith(1, rustyKnifeId);
     jest.runAllTimers();
     await Promise.resolve();
     expect(userService.markTutorialComplete).toHaveBeenCalledWith('1');

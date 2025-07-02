@@ -1,9 +1,14 @@
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
 const userService = require('../src/utils/userService');
+const weaponService = require('../src/utils/weaponService');
 const { buildBattleEmbed } = require('../src/utils/embedBuilder');
 const GameEngine = require('../../backend/game/engine');
 const { createCombatant } = require('../../backend/game/utils');
-const gameData = require('../util/gameData');
+const {
+  allPossibleHeroes,
+  allPossibleAbilities,
+  allPossibleWeapons
+} = require('../../backend/game/data');
 
 
 function formatLog(entry) {
@@ -20,8 +25,6 @@ const data = new SlashCommandBuilder()
   .setDescription('Start the guided tutorial');
 
 async function execute(interaction) {
-  const allPossibleHeroes = gameData.getHeroes();
-  const allPossibleAbilities = Array.from(gameData.gameData.abilities.values());
   let user = await userService.getUser(interaction.user.id);
   if (!user) {
     await userService.createUser(interaction.user.id, interaction.user.username);
@@ -38,10 +41,12 @@ async function execute(interaction) {
     const baseHero = allPossibleHeroes.find(h => h.isBase) || allPossibleHeroes[0];
     const player = createCombatant({ hero_id: baseHero.id }, 'player', 0);
 
+    const rustyKnife = allPossibleWeapons.find(w => w.name === 'Rusty Knife');
+
     const goblin = {
       id: 'enemy-0',
       heroData: { name: 'Tutorial Goblin', hp: 10, attack: 1, speed: 1, defense: 0 },
-      weaponData: null,
+      weaponData: rustyKnife,
       armorData: null,
       abilityData: null,
       abilityCharges: 0,
@@ -53,7 +58,7 @@ async function execute(interaction) {
       currentEnergy: 0,
       statusEffects: [],
       hp: 10,
-      attack: 1,
+      attack: 1 + (rustyKnife ? rustyKnife.statBonuses.ATK || 0 : 0),
       speed: 1,
       defense: 0
     };
@@ -88,13 +93,21 @@ async function execute(interaction) {
         a.category === 'Offense' &&
         a.class === baseHero.class
     );
-    const drop =
+    const abilityDrop =
       commonOffenseAbilities[Math.floor(Math.random() * commonOffenseAbilities.length)];
-    await userService.addAbility(interaction.user.id, drop.id);
+
+    await userService.addAbility(interaction.user.id, abilityDrop.id);
+    if (rustyKnife) {
+      await weaponService.addWeapon(user.id, rustyKnife.id);
+    }
+
+    const lootMessage = rustyKnife
+      ? `The Tutorial Goblin dropped a **${rustyKnife.name}** and **${abilityDrop.name}**.`
+      : `The Tutorial Goblin dropped **${abilityDrop.name}**.`;
 
     const summaryEmbed = new EmbedBuilder()
       .setColor('#57F287')
-      .setDescription(`Victory! The Tutorial Goblin dropped **${drop.name}**.`);
+      .setDescription(`Victory! ${lootMessage}`);
     await interaction.followUp({ embeds: [summaryEmbed], ephemeral: true });
 
     interaction.followUp({
@@ -105,7 +118,7 @@ async function execute(interaction) {
 
     setTimeout(() => {
       interaction.followUp({
-        content: `Now, equip your new ability using the command: /inventory set ability:${drop.name}`,
+        content: `Now, equip your new ability using the command: /inventory set ability:${abilityDrop.name}`,
         ephemeral: true
       });
     }, 5000);
