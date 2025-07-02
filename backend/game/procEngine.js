@@ -24,11 +24,15 @@ class ProcEngine {
 
                 for (const proc of item.procs) {
                     if (proc.trigger === eventName && this.checkConditions(proc, context)) {
+                        context.owner = combatant;
                         this.executeEffect(proc, context);
                     }
                 }
             }
         }
+        delete context.owner;
+
+        return context;
     }
 
     // Checks if all conditions for a proc are met.
@@ -48,6 +52,8 @@ class ProcEngine {
             if (!hasStatus) return false;
         }
 
+        if (proc.condition.is_melee && context.is_melee === false) return false;
+
         // Add more condition checks here as needed...
 
         return true;
@@ -55,9 +61,10 @@ class ProcEngine {
 
     // Executes the proc's effect.
     executeEffect(proc, context) {
-        const { attacker, defender, allCombatants } = context;
+        const { attacker, defender, allCombatants, owner } = context;
 
-        this.log({ type: 'proc', message: `✨ ${attacker.name}'s ${proc.effect} procs!` }, 'summary');
+        const ownerName = owner ? owner.name : attacker.name;
+        this.log({ type: 'proc', message: `✨ ${ownerName}'s ${proc.effect} procs!` }, 'summary');
 
         switch (proc.effect) {
             case 'cleave': {
@@ -69,7 +76,7 @@ class ProcEngine {
             }
             case 'apply_status':
                 if (!proc.chance || Math.random() < proc.chance) {
-                    context.applyStatus(defender, proc.status, proc.duration, { damage: proc.value });
+                    context.applyStatus(defender, proc.status, proc.duration, { damage: proc.value }, owner);
                 }
                 break;
             case 'bonus_damage':
@@ -79,12 +86,22 @@ class ProcEngine {
                 break;
             case 'apply_status_to_attacker':
                 if (!proc.chance || Math.random() < proc.chance) {
-                    context.applyStatus(attacker, proc.status, proc.duration, { damage: proc.value });
+                    context.applyStatus(attacker, proc.status, proc.duration, { damage: proc.value }, owner);
+                }
+                break;
+            case 'reflect_damage':
+                if (!proc.chance || Math.random() < proc.chance) {
+                    context.applyDamage(owner, attacker, proc.value);
+                }
+                break;
+            case 'immune_to_status':
+                if (context.status === proc.status) {
+                    context.preventStatus = true;
                 }
                 break;
             default:
                 if (!proc.chance || Math.random() < proc.chance) {
-                    context.applyStatus(defender, proc.effect, proc.duration, { amount: proc.amount });
+                    context.applyStatus(defender, proc.effect, proc.duration, { amount: proc.amount }, owner);
                 }
                 break;
             // Add more effect handlers here...

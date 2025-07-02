@@ -62,13 +62,30 @@ class GameEngine {
        }
    }
 
-   applyStatusEffect(target, name, duration = 2, extra = {}) {
+   applyStatusEffect(target, name, duration = 2, extra = {}, source = null) {
        const effect = { name, turnsRemaining: duration, ...extra };
        if (name === 'Poison' && effect.damage === undefined) {
            effect.damage = 1;
        }
+       const context = {
+           attacker: source || target,
+           defender: target,
+           status: name,
+           effect,
+           allCombatants: this.combatants,
+           applyDamage: this.applyDamage.bind(this),
+           applyStatus: this.applyStatusEffect.bind(this),
+           is_melee: true
+       };
+       this.procEngine.trigger('on_status_applied', context);
+       if (context.preventStatus) {
+           this.log({ type: 'status', message: `${target.name} resists ${name}.` });
+           return false;
+       }
        target.statusEffects.push(effect);
-       this.log({ type: 'status', message: `↳ ${target.name} is ${name.toLowerCase()}.` });
+       const msgName = name === 'Confuse' ? 'confused' : name.toLowerCase();
+       this.log({ type: 'status', message: `↳ ${target.name} is ${msgName}.` });
+       return true;
    }
 
    applyDamage(attacker, target, baseDamage, options = {}) {
@@ -145,8 +162,7 @@ class GameEngine {
        if (hotMatch) {
            const healing = parseInt(hotMatch[1], 10);
            const turns = parseInt(hotMatch[2], 10);
-           target.statusEffects.push({ name: 'Regrowth', healing, turnsRemaining: turns, sourceAbility: ability.name });
-           this.log({ type: 'status', message: `↳ ${target.name} is blessed with Regrowth.` });
+           this.applyStatusEffect(target, 'Regrowth', turns, { healing, sourceAbility: ability.name }, attacker);
        }
 
        const poisonMatchDetailed = ability.effect.match(/apply Poison \((\d+) dmg\/turn for (\d+) turns\)/i);
@@ -154,27 +170,23 @@ class GameEngine {
        if (poisonMatchDetailed || poisonMatchSimple) {
            const damage = poisonMatchDetailed ? parseInt(poisonMatchDetailed[1], 10) : 1;
            const turns = poisonMatchDetailed ? parseInt(poisonMatchDetailed[2], 10) : parseInt(poisonMatchSimple[1], 10);
-           target.statusEffects.push({ name: 'Poison', damage, turnsRemaining: turns, sourceAbility: ability.name });
-           this.log({ type: 'status', message: `↳ ${target.name} is poisoned.` });
+           this.applyStatusEffect(target, 'Poison', turns, { damage, sourceAbility: ability.name }, attacker);
        }
 
        if (/confuse/i.test(ability.effect)) {
-           target.statusEffects.push({ name: 'Confuse', turnsRemaining: 1, sourceAbility: ability.name });
-           this.log({ type: 'status', message: `↳ ${target.name} is confused.` });
+           this.applyStatusEffect(target, 'Confuse', 1, { sourceAbility: ability.name }, attacker);
        }
 
        if (/Armor Break/i.test(ability.effect)) {
            const match = ability.effect.match(/(\d+) turns?/i);
            const turns = match ? parseInt(match[1], 10) : 2;
-           target.statusEffects.push({ name: 'Armor Break', bonusDamage: 1, turnsRemaining: turns, sourceAbility: ability.name });
-           this.log({ type: 'status', message: `↳ ${target.name} suffers Armor Break.` });
+           this.applyStatusEffect(target, 'Armor Break', turns, { bonusDamage: 1, sourceAbility: ability.name }, attacker);
        }
 
        if (/Defense Down/i.test(ability.effect)) {
            const match = ability.effect.match(/Defense Down for (\d+) turns?/i);
            const turns = match ? parseInt(match[1], 10) : 2;
-           target.statusEffects.push({ name: 'Defense Down', turnsRemaining: turns, sourceAbility: ability.name });
-           this.log({ type: 'status', message: `↳ ${target.name} suffers Defense Down.` });
+           this.applyStatusEffect(target, 'Defense Down', turns, { sourceAbility: ability.name }, attacker);
        }
 
        if (ability.summons) {
@@ -361,21 +373,24 @@ class GameEngine {
                    defender: targetEnemy,
                    allCombatants: this.combatants,
                    applyDamage: this.applyDamage.bind(this),
-                   applyStatus: this.applyStatusEffect.bind(this)
+                   applyStatus: this.applyStatusEffect.bind(this),
+                   is_melee: true
                });
                this.procEngine.trigger('on_hit', {
                    attacker,
                    defender: targetEnemy,
                    allCombatants: this.combatants,
                    applyDamage: this.applyDamage.bind(this),
-                   applyStatus: this.applyStatusEffect.bind(this)
+                   applyStatus: this.applyStatusEffect.bind(this),
+                   is_melee: true
                });
                this.procEngine.trigger('on_attacked', {
                    attacker,
                    defender: targetEnemy,
                    allCombatants: this.combatants,
                    applyDamage: this.applyDamage.bind(this),
-                   applyStatus: this.applyStatusEffect.bind(this)
+                   applyStatus: this.applyStatusEffect.bind(this),
+                   is_melee: true
                });
                if (this.checkVictory()) return;
 

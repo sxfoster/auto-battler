@@ -7,7 +7,7 @@ describe('Data-Driven Proc System', () => {
     const target1 = createCombatant({ hero_id: 2001 }, 'enemy', 0);
     const target2 = createCombatant({ hero_id: 2001 }, 'enemy', 1);
     const engine = new GameEngine([attacker, target1, target2]);
-    engine.turnQueue = [attacker];
+    engine.turnQueue = [engine.combatants.find(c => c.id === attacker.id)];
 
     const initialHp = target2.currentHp;
     engine.processTurn();
@@ -21,16 +21,14 @@ describe('Data-Driven Proc System', () => {
     const defender = createCombatant({ hero_id: 1, armor_id: 2203 }, 'player', 0); // Vanguard Mail
     const attacker = createCombatant({ hero_id: 2001 }, 'enemy', 0);
     const engine = new GameEngine([attacker, defender]);
-    engine.turnQueue = [attacker];
+    engine.turnQueue = [engine.combatants.find(c => c.id === attacker.id)];
 
     const initialAttackerHp = attacker.currentHp;
     engine.processTurn();
 
     const updatedAttacker = engine.combatants.find(c => c.id === attacker.id);
-    // This test requires a more advanced ProcEngine that can handle 'on_hit' and reflect damage.
-    // For now, we'll placeholder the expectation.
-    // expect(updatedAttacker.currentHp).toBe(initialAttackerHp - 1);
-    // expect(engine.battleLog.some(l => l.message.includes('Thorns procs!'))).toBe(true);
+    expect(updatedAttacker.currentHp).toBe(initialAttackerHp - 1);
+    expect(engine.battleLog.some(l => l.message.includes('reflect_damage procs!'))).toBe(true);
   });
 
   test('Immune to Stun proc prevents stun status', () => {
@@ -40,10 +38,8 @@ describe('Data-Driven Proc System', () => {
     
     engine.applyStatusEffect(defender, 'Stun', 1);
 
-    // The proc engine would need to be triggered on status application to prevent it.
-    // This requires a new trigger point 'on_status_applied'.
-    // For now, we'll placeholder the expectation.
-    // expect(defender.statusEffects.some(s => s.name === 'Stun')).toBe(false);
+    expect(defender.statusEffects.some(s => s.name === 'Stun')).toBe(false);
+    expect(engine.battleLog.some(l => l.message.includes('immune_to_status procs!'))).toBe(true);
   });
 
   test('Bonus damage proc triggers on low HP target', () => {
@@ -51,7 +47,7 @@ describe('Data-Driven Proc System', () => {
     const defender = createCombatant({ hero_id: 2001 }, 'enemy', 0);
     defender.currentHp = defender.maxHp * 0.4; // Set HP below 50%
     const engine = new GameEngine([attacker, defender]);
-    engine.turnQueue = [attacker];
+    engine.turnQueue = [engine.combatants.find(c => c.id === attacker.id)];
 
     const initialDefenderHp = defender.currentHp;
     const baseDamage = attacker.attack - defender.defense;
