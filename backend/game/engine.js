@@ -182,36 +182,36 @@ class GameEngine {
            const healing = parseInt(hotMatch[1], 10);
            const turns = parseInt(hotMatch[2], 10);
            target.statusEffects.push({ name: 'Regrowth', healing, turnsRemaining: turns, sourceAbility: ability.name });
-           this.log({ type: 'status', message: `↳ ${target.name} is blessed with Regrowth.` });
+           this.log({ type: 'status', message: `💚 ${target.name} gains Regrowth (${healing} HP/turn for ${turns} turns) from ${attacker.name}'s [${ability.name}].` });
        }
 
-       const poisonMatchDetailed = ability.effect.match(/apply Poison \((\d+) dmg\/turn for (\d+) turns\)/i);
-       const poisonMatchSimple = ability.effect.match(/poison .* for (\d+) turns/i);
-       if (poisonMatchDetailed || poisonMatchSimple) {
-           const damage = poisonMatchDetailed ? parseInt(poisonMatchDetailed[1], 10) : 1;
-           const turns = poisonMatchDetailed ? parseInt(poisonMatchDetailed[2], 10) : parseInt(poisonMatchSimple[1], 10);
-           target.statusEffects.push({ name: 'Poison', damage, turnsRemaining: turns, sourceAbility: ability.name });
-           this.log({ type: 'status', message: `↳ ${target.name} is poisoned.` });
-       }
+        const poisonMatchDetailed = ability.effect.match(/apply Poison \((\d+) dmg\/turn for (\d+) turns\)/i);
+        const poisonMatchSimple = ability.effect.match(/poison .* for (\d+) turns/i);
+        if (poisonMatchDetailed || poisonMatchSimple) {
+            const damage = poisonMatchDetailed ? parseInt(poisonMatchDetailed[1], 10) : 1;
+            const turns = poisonMatchDetailed ? parseInt(poisonMatchDetailed[2], 10) : parseInt(poisonMatchSimple[1], 10);
+            target.statusEffects.push({ name: 'Poison', damage, turnsRemaining: turns, sourceAbility: ability.name });
+            this.log({ type: 'status', message: `☣️ ${target.name} is afflicted with Poison (${damage} dmg/turn for ${turns} turns) from ${attacker.name}'s [${ability.name}].` });
+        }
 
-       if (/confuse/i.test(ability.effect)) {
-           target.statusEffects.push({ name: 'Confuse', turnsRemaining: 1, sourceAbility: ability.name });
-           this.log({ type: 'status', message: `↳ ${target.name} is confused.` });
-       }
+        if (/confuse/i.test(ability.effect)) {
+            target.statusEffects.push({ name: 'Confuse', turnsRemaining: 1, sourceAbility: ability.name });
+            this.log({ type: 'status', message: `❓ ${target.name} is afflicted with Confuse from ${attacker.name}'s [${ability.name}].` });
+        }
 
-       if (/Armor Break/i.test(ability.effect)) {
-           const match = ability.effect.match(/(\d+) turns?/i);
-           const turns = match ? parseInt(match[1], 10) : 2;
-           target.statusEffects.push({ name: 'Armor Break', bonusDamage: 1, turnsRemaining: turns, sourceAbility: ability.name });
-           this.log({ type: 'status', message: `↳ ${target.name} suffers Armor Break.` });
-       }
+        if (/Armor Break/i.test(ability.effect)) {
+            const match = ability.effect.match(/(\d+) turns?/i);
+            const turns = match ? parseInt(match[1], 10) : 2;
+            target.statusEffects.push({ name: 'Armor Break', bonusDamage: 1, turnsRemaining: turns, sourceAbility: ability.name });
+            this.log({ type: 'status', message: `🛡️ ${target.name} suffers Armor Break for ${turns} turns from ${attacker.name}'s [${ability.name}].` });
+        }
 
-       if (/Defense Down/i.test(ability.effect)) {
-           const match = ability.effect.match(/Defense Down for (\d+) turns?/i);
-           const turns = match ? parseInt(match[1], 10) : 2;
-           target.statusEffects.push({ name: 'Defense Down', turnsRemaining: turns, sourceAbility: ability.name });
-           this.log({ type: 'status', message: `↳ ${target.name} suffers Defense Down.` });
-       }
+        if (/Defense Down/i.test(ability.effect)) {
+            const match = ability.effect.match(/Defense Down for (\d+) turns?/i);
+            const turns = match ? parseInt(match[1], 10) : 2;
+            target.statusEffects.push({ name: 'Defense Down', turnsRemaining: turns, sourceAbility: ability.name });
+            this.log({ type: 'status', message: `🛡️ ${target.name} suffers Defense Down for ${turns} turns from ${attacker.name}'s [${ability.name}].` });
+        }
 
        if (ability.summons) {
            const summonKeys = Array.isArray(ability.summons) ? ability.summons : [ability.summons];

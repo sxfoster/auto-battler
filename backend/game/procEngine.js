@@ -31,6 +31,7 @@ class ProcEngine {
                     if (proc.once_per_combat && this.onceMap.has(key)) continue;
                     if (proc.once_per_combat) this.onceMap.add(key);
 
+                    this.executeEffect(proc, { ...context, owner: combatant, item });
                     const prevOwner = context.owner;
                     context.owner = combatant;
                     this.executeEffect(proc, context);
@@ -66,10 +67,11 @@ class ProcEngine {
 
     // Executes the proc's effect.
     executeEffect(proc, context) {
-        const { attacker, defender, allCombatants, owner } = context;
+        const { attacker, defender, allCombatants, owner, item } = context;
         const actor = owner || attacker;
 
-        this.log({ type: 'proc', message: `✨ ${actor.name}'s ${proc.effect} procs!` }, 'summary');
+        const itemName = item ? `[${item.name}]` : 'Unknown Item';
+        this.log({ type: 'proc', message: `✨ ${itemName} on ${actor.name} procs ${proc.effect}!` }, 'summary');
 
         switch (proc.effect) {
             case 'cleave': {
