@@ -119,7 +119,7 @@ describe('adventure command', () => {
     await adventure.execute(interaction);
     expect(abilityCardService.getCards).toHaveBeenCalledWith(1);
     const expectedId = allPossibleAbilities.find(
-      a => a.class === baseHeroes[0].class && a.rarity === 'Common'
+      a => a.class === baseHeroes[0].class && a.rarity === 'Uncommon'
     ).id;
     expect(userService.addAbility).toHaveBeenCalledWith('123', expectedId);
     Math.random.mockRestore();
@@ -190,7 +190,7 @@ describe('adventure command', () => {
     await adventure.execute(interaction);
     expect(abilityCardService.getCards).toHaveBeenCalledWith(1);
     const expectedDrop = allPossibleAbilities.find(
-      a => a.class === baseHeroes[index].class && a.rarity === 'Common'
+      a => a.class === baseHeroes[index].class && a.rarity === 'Uncommon'
     ).id;
     expect(userService.addAbility).toHaveBeenCalledWith('123', expectedDrop);
     Math.random.mockRestore();

@@ -61,6 +61,7 @@ async function execute(interaction) {
   // --- START: Dynamic Goblin and XP Logic ---
   const playerLevel = user.level || 1;
   const equipChance = playerLevel * 0.10;
+  const upgradeToUncommonChance = 0.10 * playerLevel;
   let xpToAward = 10;
 
   const goblinEquipment = {};
@@ -71,7 +72,8 @@ async function execute(interaction) {
   };
 
   if (Math.random() < equipChance) {
-    const weaponPool = allPossibleWeapons.filter(w => w.rarity === 'Common');
+    const useUncommon = Math.random() < upgradeToUncommonChance;
+    const weaponPool = allPossibleWeapons.filter(w => w.rarity === (useUncommon ? 'Uncommon' : 'Common'));
     const weapon = weaponPool[Math.floor(Math.random() * weaponPool.length)];
     goblinEquipment.weapon_id = weapon.id;
     goblinLoot.weapon = weapon;
@@ -79,21 +81,27 @@ async function execute(interaction) {
   }
 
   if (Math.random() < equipChance) {
-    const armorPool = allPossibleArmors.filter(a => a.rarity === 'Common');
+    const useUncommon = Math.random() < upgradeToUncommonChance;
+    const armorPool = allPossibleArmors.filter(a => a.rarity === (useUncommon ? 'Uncommon' : 'Common'));
     const armor = armorPool[Math.floor(Math.random() * armorPool.length)];
     goblinEquipment.armor_id = armor.id;
     xpToAward += 10;
   }
 
+  let uncommonAbilitySelected = false;
   if (Math.random() < equipChance) {
+    const useUncommon = Math.random() < upgradeToUncommonChance;
     const abilityPool = allPossibleAbilities.filter(
-      a => a.rarity === 'Common' && a.class === goblinBase.class
+      a => a.rarity === (useUncommon ? 'Uncommon' : 'Common') && a.class === goblinBase.class
     );
     if (abilityPool.length > 0) {
       const ability = abilityPool[Math.floor(Math.random() * abilityPool.length)];
       goblinEquipment.ability_id = ability.id;
       goblinLoot.ability = ability;
       xpToAward += 10;
+      if (useUncommon && ability.rarity === 'Uncommon') {
+        uncommonAbilitySelected = true;
+      }
     }
   }
   // --- END: Dynamic Goblin and XP Logic ---
@@ -144,12 +152,15 @@ async function execute(interaction) {
     ...goblinEquipment
   }, 'enemy', 0);
 
-  goblin.heroData = { ...goblin.heroData, name: `Goblin ${goblinBase.name}` };
+  const goblinName = uncommonAbilitySelected
+    ? `Veteran Goblin ${goblinBase.name}`
+    : `Goblin ${goblinBase.name}`;
+  goblin.heroData = { ...goblin.heroData, name: goblinName };
   goblin.name = goblin.heroData.name;
 
-  console.log(`[BATTLE START] Player ${playerClass} vs Goblin ${goblinBase.name}`);
+  console.log(`[BATTLE START] Player ${playerClass} vs ${goblin.name}`);
 
-  const startMessage = `${interaction.user.username} delves into the goblin cave and encounters a ferocious Goblin ${goblinBase.name}! The battle begins!`;
+  const startMessage = `${interaction.user.username} delves into the goblin cave and encounters a ferocious ${goblin.name}! The battle begins!`;
 
   if (typeof interaction.isButton === 'function' && interaction.isButton()) {
     await interaction.channel.send(startMessage);
@@ -169,7 +180,7 @@ async function execute(interaction) {
   let narrativeDescription = '';
   let lootDrop = null;
   const adventurerName = `**${interaction.user.username}**`;
-  const enemyName = `a **Goblin ${goblinBase.name}**`;
+  const enemyName = `a **${goblin.name}**`;
 
   if (engine.winner === 'player') {
     await userService.incrementPveWin(user.id);
