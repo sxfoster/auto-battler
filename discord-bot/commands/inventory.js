@@ -105,7 +105,7 @@ async function execute(interaction) {
     }
 
     let xpDisplay = 'MAX LEVEL';
-    if (user.level < 4) {
+    if (XP_THRESHOLDS[user.level] !== Infinity) {
       const nextLevelXp = XP_THRESHOLDS[user.level];
       const prevLevelXp = XP_THRESHOLDS[user.level - 1] || 0;
       const currentLevelProgress = user.xp - prevLevelXp;
