@@ -39,7 +39,7 @@ async function execute(interaction) {
     {
       title: 'The Shattering',
       text: 'The sky burned once. Reality fractured. And from the heart of the ruin, the first Echo was born.',
-      videoUrl: 'http://strahde.com/game/videos/Intro.mp4'
+      videoUrl: 'https://youtu.be/9dPwnqhRQwU'
     }
   ];
 
