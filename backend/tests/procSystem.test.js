@@ -7,7 +7,7 @@ describe('Data-Driven Proc System', () => {
     const target1 = createCombatant({ hero_id: 2001 }, 'enemy', 0);
     const target2 = createCombatant({ hero_id: 2001 }, 'enemy', 1);
     const engine = new GameEngine([attacker, target1, target2]);
-    engine.turnQueue = [attacker];
+    engine.turnQueue = [engine.combatants.find(c => c.id === attacker.id)];
 
     const initialHp = target2.currentHp;
     engine.processTurn();
@@ -21,7 +21,7 @@ describe('Data-Driven Proc System', () => {
     const defender = createCombatant({ hero_id: 1, armor_id: 2203 }, 'player', 0); // Vanguard Mail
     const attacker = createCombatant({ hero_id: 2001 }, 'enemy', 0);
     const engine = new GameEngine([attacker, defender]);
-    engine.turnQueue = [attacker];
+    engine.turnQueue = [engine.combatants.find(c => c.id === attacker.id)];
 
     const initialAttackerHp = attacker.currentHp;
     engine.processTurn();
@@ -35,17 +35,18 @@ describe('Data-Driven Proc System', () => {
     const defender = createCombatant({ hero_id: 1, armor_id: 2303 }, 'player', 0); // Juggernaut Armor
     const attacker = createCombatant({ hero_id: 1 }, 'enemy', 0);
     const engine = new GameEngine([attacker, defender]);
+    const internalDefender = engine.combatants.find(c => c.id === defender.id);
 
-    engine.applyStatusEffect(defender, 'Stun', 1);
+    engine.applyStatusEffect(internalDefender, 'Stun', 1);
 
-    expect(defender.statusEffects.some(s => s.name === 'Stun')).toBe(false);
+    expect(internalDefender.statusEffects.some(s => s.name === 'Stun')).toBe(false);
   });
 
   test('Permanent defense reduction proc on hit', () => {
     const attacker = createCombatant({ hero_id: 1, weapon_id: 1403 }, 'player', 0); // Sunforge Maul
     const defender = createCombatant({ hero_id: 1 }, 'enemy', 0);
     const engine = new GameEngine([attacker, defender]);
-    engine.turnQueue = [attacker];
+    engine.turnQueue = [engine.combatants.find(c => c.id === attacker.id)];
 
     const initialDefense = defender.defense;
     engine.processTurn();
@@ -59,10 +60,11 @@ describe('Data-Driven Proc System', () => {
     const defender = createCombatant({ hero_id: 2001 }, 'enemy', 0);
     defender.currentHp = 1;
     const engine = new GameEngine([attacker, defender]);
-    engine.turnQueue = [attacker];
+    engine.turnQueue = [engine.combatants.find(c => c.id === attacker.id)];
 
     engine.processTurn();
-    expect(engine.turnQueue[0]).toBe(attacker);
+    const internalAttacker = engine.combatants.find(c => c.id === attacker.id);
+    expect(engine.turnQueue[0]).toBe(internalAttacker);
   });
 
   test('Apprentice Rod heals on ability use', () => {
@@ -70,9 +72,12 @@ describe('Data-Driven Proc System', () => {
     const target = createCombatant({ hero_id: 1 }, 'enemy', 0);
     attacker.currentEnergy = 2;
     const engine = new GameEngine([attacker, target]);
-    engine.turnQueue = [attacker, target];
+    const internalAttacker = engine.combatants.find(c => c.id === attacker.id);
+    const internalTarget = engine.combatants.find(c => c.id === target.id);
+    engine.turnQueue = [internalAttacker, internalTarget];
 
-    const hpBefore = attacker.currentHp;
+    internalAttacker.currentHp -= 2; // ensure heal has effect
+    const hpBefore = internalAttacker.currentHp;
     engine.processTurn();
     const updated = engine.combatants.find(c => c.id === attacker.id);
     expect(updated.currentHp).toBe(hpBefore + 2);
@@ -93,7 +98,7 @@ describe('Data-Driven Proc System', () => {
     const defender = createCombatant({ hero_id: 2001 }, 'enemy', 0);
     defender.currentHp = defender.maxHp * 0.4; // Set HP below 50%
     const engine = new GameEngine([attacker, defender]);
-    engine.turnQueue = [attacker];
+    engine.turnQueue = [engine.combatants.find(c => c.id === attacker.id)];
 
     const initialDefenderHp = defender.currentHp;
     const baseDamage = attacker.attack - defender.defense;
@@ -101,5 +106,45 @@ describe('Data-Driven Proc System', () => {
     
     const updatedDefender = engine.combatants.find(c => c.id === defender.id);
     expect(updatedDefender.currentHp).toBe(initialDefenderHp - (baseDamage + 2));
+  });
+
+  test('Ignore block proc bypasses some defense', () => {
+    const attacker = createCombatant({ hero_id: 1, weapon_id: 1202 }, 'player', 0); // Battle Axe
+    const defender = createCombatant({ hero_id: 1 }, 'enemy', 0);
+    const engine = new GameEngine([attacker, defender]);
+    engine.turnQueue = [engine.combatants.find(c => c.id === attacker.id)];
+
+    const base = attacker.attack - defender.defense;
+    engine.processTurn();
+    const updated = engine.combatants.find(c => c.id === defender.id);
+    expect(updated.currentHp).toBe(defender.maxHp - (base + 1));
+  });
+
+  test('Captain\'s Bulwark grants ally defense on combat start', () => {
+    const bulwark = createCombatant({ hero_id: 1, armor_id: 2204 }, 'player', 0);
+    const ally = createCombatant({ hero_id: 1 }, 'player', 1);
+    const enemy = createCombatant({ hero_id: 1 }, 'enemy', 0);
+    const engine = new GameEngine([bulwark, ally, enemy]);
+
+    engine.runGameSteps().next();
+    const allyInternal = engine.combatants.find(c => c.id === ally.id);
+    expect(allyInternal.defense).toBe(ally.defense + 1);
+  });
+
+  test('Arcane Shielding blocks targeted ability', () => {
+    const defender = createCombatant({ hero_id: 1, armor_id: 2402 }, 'player', 0); // Arcane Shielding
+    const attacker = createCombatant({ hero_id: 1, ability_id: 3111 }, 'enemy', 0);
+    attacker.currentEnergy = 2;
+    const engine = new GameEngine([attacker, defender]);
+    const atk = engine.combatants.find(c => c.id === attacker.id);
+    const def = engine.combatants.find(c => c.id === defender.id);
+    engine.turnQueue = [atk];
+
+    const hpBefore = def.currentHp;
+    const base = attacker.attack - def.defense;
+    const expected = hpBefore - Math.max(1, base);
+    engine.processTurn();
+    const after = engine.combatants.find(c => c.id === defender.id);
+    expect(after.currentHp).toBe(expected);
   });
 });

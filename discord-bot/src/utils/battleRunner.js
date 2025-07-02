@@ -1,4 +1,5 @@
 const { buildBattleEmbed } = require('./embedBuilder');
+const userService = require('./userService');
 
 const MAX_LOG_LINES = 20;
 
@@ -47,10 +48,21 @@ function buildFinalLog(logEntries) {
 async function runBattleLoop(interaction, engine, { waitMs = 1000 } = {}) {
   let battleMessage;
   const fullLog = [];
+  const user = await userService.getUser(interaction.user.id);
+  const verbosity = user?.log_verbosity || 'summary';
   for (const step of engine.runGameSteps()) {
     fullLog.push(...step.log);
-    const summaryLog = fullLog.filter(entry => entry.level === 'summary');
-    const lines = summaryLog.map(formatLog);
+    let displayLog;
+    if (verbosity === 'detailed') {
+      displayLog = fullLog;
+    } else if (verbosity === 'combat_only') {
+      displayLog = fullLog.filter(entry =>
+        ['damage', 'heal', 'victory', 'defeat'].includes(entry.type)
+      );
+    } else {
+      displayLog = fullLog.filter(entry => entry.level === 'summary');
+    }
+    const lines = displayLog.map(formatLog);
     const logText = lines.slice(-MAX_LOG_LINES).join('\n');
     const embed = buildBattleEmbed(step.combatants, logText);
     if (!battleMessage) {

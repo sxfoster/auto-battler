@@ -3,6 +3,8 @@ const fs = require('node:fs');
 const path = require('node:path');
 const config = require('./util/config');
 const gameData = require('./util/gameData');
+const userService = require('./src/utils/userService');
+const settingsCommand = require('./commands/settings');
 
 const client = new Client({ intents: [GatewayIntentBits.Guilds] });
 client.commands = new Collection();
@@ -150,6 +152,34 @@ client.on(Events.InteractionCreate, async interaction => {
       if (townCommand) {
         await townCommand.execute(interaction);
       }
+    } else if (interaction.customId === 'toggle_battle_logs') {
+      const user = await userService.getUser(interaction.user.id);
+      const newValue = !user.dm_battle_logs_enabled;
+      await userService.setDmPreference(
+        interaction.user.id,
+        'dm_battle_logs_enabled',
+        newValue
+      );
+      user.dm_battle_logs_enabled = newValue;
+      await interaction.update(settingsCommand.buildSettingsResponse(user));
+    } else if (interaction.customId === 'toggle_item_drops') {
+      const user = await userService.getUser(interaction.user.id);
+      const newValue = !user.dm_item_drops_enabled;
+      await userService.setDmPreference(
+        interaction.user.id,
+        'dm_item_drops_enabled',
+        newValue
+      );
+      user.dm_item_drops_enabled = newValue;
+      await interaction.update(settingsCommand.buildSettingsResponse(user));
+    } else if (interaction.customId === 'cycle_log_verbosity') {
+      const user = await userService.getUser(interaction.user.id);
+      const order = ['summary', 'detailed', 'combat_only'];
+      const idx = order.indexOf(user.log_verbosity || 'summary');
+      const next = order[(idx + 1) % order.length];
+      await userService.setLogVerbosity(interaction.user.id, next);
+      user.log_verbosity = next;
+      await interaction.update(settingsCommand.buildSettingsResponse(user));
     }
   } else if (interaction.isModalSubmit()) {
     if (interaction.customId.startsWith('ah-sell-modal:')) {
