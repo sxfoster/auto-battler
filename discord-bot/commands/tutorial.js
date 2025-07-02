@@ -45,6 +45,7 @@ async function execute(interaction) {
 
     const goblin = {
       id: 'enemy-0',
+      name: 'Tutorial Goblin',
       heroData: { name: 'Tutorial Goblin', hp: 10, attack: 1, speed: 1, defense: 0 },
       weaponData: rustyKnife,
       armorData: null,
