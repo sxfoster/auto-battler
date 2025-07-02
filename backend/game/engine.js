@@ -354,10 +354,11 @@ class GameEngine {
                this.applyDamage(attacker, targetEnemy, attacker.attack);
 
                const weapon = attacker.weaponData;
-               if (weapon && weapon.passiveEffect && weapon.passiveEffect.trigger === 'on_auto_attack') {
-                   if (Math.random() < weapon.passiveEffect.chance) {
-                       const eff = weapon.passiveEffect;
-                       this.applyStatusEffect(targetEnemy, eff.effect, eff.duration, { amount: eff.amount });
+               if (weapon && Array.isArray(weapon.procs)) {
+                   for (const proc of weapon.procs) {
+                       if (proc.trigger === 'on_auto_attack' && Math.random() < (proc.chance ?? 1)) {
+                           this.applyStatusEffect(targetEnemy, proc.effect, proc.duration, { amount: proc.amount });
+                       }
                    }
                }
                if (this.checkVictory()) return;
