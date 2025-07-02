@@ -72,6 +72,16 @@ class ProcEngine {
                     context.applyStatus(defender, proc.status, proc.duration, { damage: proc.value });
                 }
                 break;
+            case 'bonus_damage':
+                if (!proc.chance || Math.random() < proc.chance) {
+                    context.applyDamage(attacker, defender, proc.value);
+                }
+                break;
+            case 'apply_status_to_attacker':
+                if (!proc.chance || Math.random() < proc.chance) {
+                    context.applyStatus(attacker, proc.status, proc.duration, { damage: proc.value });
+                }
+                break;
             default:
                 if (!proc.chance || Math.random() < proc.chance) {
                     context.applyStatus(defender, proc.effect, proc.duration, { amount: proc.amount });

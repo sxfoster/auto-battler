@@ -356,7 +356,14 @@ class GameEngine {
                // Always perform the auto-attack first
                this.applyDamage(attacker, targetEnemy, attacker.attack);
 
-               this.procEngine.trigger('on_auto_attack', {
+               this.procEngine.trigger('on_attack', {
+                   attacker,
+                   defender: targetEnemy,
+                   allCombatants: this.combatants,
+                   applyDamage: this.applyDamage.bind(this),
+                   applyStatus: this.applyStatusEffect.bind(this)
+               });
+               this.procEngine.trigger('on_hit', {
                    attacker,
                    defender: targetEnemy,
                    allCombatants: this.combatants,
@@ -381,6 +388,13 @@ class GameEngine {
                if (ability && attacker.abilityCharges > 0 && attacker.currentEnergy >= cost && abilityTarget) {
                    console.log(`${attacker.name} spends ${cost} energy to use ${ability.name}.`);
                    this.applyAbilityEffect(attacker, abilityTarget, ability);
+                   this.procEngine.trigger('on_ability_used', {
+                       attacker,
+                       defender: abilityTarget,
+                       allCombatants: this.combatants,
+                       applyDamage: this.applyDamage.bind(this),
+                       applyStatus: this.applyStatusEffect.bind(this)
+                   });
                    attacker.currentEnergy -= cost;
                    attacker.abilityCharges -= 1;
                    if (ability.cardId && !ability.isPractice) {
@@ -419,7 +433,7 @@ class GameEngine {
    *runGameSteps() {
        this.log({ type: 'start', message: '⚔️ --- Battle Starting --- ⚔️' });
        for (const c of this.combatants) {
-           this.procEngine.trigger('on_battle_start', {
+           this.procEngine.trigger('on_combat_start', {
                attacker: c,
                defender: null,
                allCombatants: this.combatants,
