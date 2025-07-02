@@ -95,7 +95,10 @@ client.on(Events.InteractionCreate, async interaction => {
         await command.execute(interaction);
       }
     } else if (customId === 'back-to-town') {
-      await interaction.update({ content: 'You head back to the relative safety of the town.', components: [] });
+      const townCommand = client.commands.get('town');
+      if (townCommand) {
+        await townCommand.execute(interaction);
+      }
     } else if (customId === 'inventory-equip-start') {
       await inventoryHandlers.handleEquipButton(interaction);
     } else if (interaction.customId === 'inventory-merge-start') {
