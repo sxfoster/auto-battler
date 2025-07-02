@@ -37,7 +37,7 @@ async function execute(interaction) {
     return;
   }
   // Step 1 - Lore introduction
-  await interaction.reply({ content: 'https://youtu.be/9dPwnqhRQwU', ephemeral: true });
+  await interaction.reply({ content: 'https://youtu.be/mnOVJ-ucQPM', ephemeral: true });
 
   const introEmbed = new EmbedBuilder()
     .setTitle('Edgar Pain')
