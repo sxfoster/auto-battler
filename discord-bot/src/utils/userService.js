@@ -142,6 +142,14 @@ async function setDmPreference(discordId, preferenceKey, isEnabled) {
   await db.query(`UPDATE users SET ${preferenceKey} = ? WHERE discord_id = ?`, [value, discordId]);
 }
 
+async function setLogVerbosity(discordId, verbosity) {
+  const allowed = ['summary', 'detailed', 'combat_only'];
+  if (!allowed.includes(verbosity)) {
+    throw new Error('Invalid verbosity');
+  }
+  await db.query('UPDATE users SET log_verbosity = ? WHERE discord_id = ?', [verbosity, discordId]);
+}
+
 module.exports = {
   XP_THRESHOLDS,
   getUser,
@@ -153,6 +161,7 @@ module.exports = {
   setActiveAbility,
   markTutorialComplete,
   setDmPreference,
+  setLogVerbosity,
   incrementPveWin,
   incrementPveLoss,
   incrementPvpWin,

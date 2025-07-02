@@ -9,6 +9,16 @@ jest.mock('fs', () => ({
   readdirSync: jest.fn(() => [])
 }));
 
+jest.mock('../src/utils/userService', () => ({
+  getUser: jest.fn().mockResolvedValue({
+    dm_battle_logs_enabled: true,
+    dm_item_drops_enabled: true,
+    log_verbosity: 'summary'
+  }),
+  setDmPreference: jest.fn(),
+  setLogVerbosity: jest.fn()
+}));
+
 jest.mock('../util/config', () => ({ DISCORD_TOKEN: 'token' }));
 
 jest.mock('discord.js', () => {
@@ -55,6 +65,7 @@ jest.mock('discord.js', () => {
 });
 
 const discord = require('discord.js');
+const userService = require('../src/utils/userService');
 
 require('../index.js');
 
@@ -91,4 +102,21 @@ test('continue-adventure button calls adventure command', async () => {
   await handler(interaction);
   expect(interaction.update).toHaveBeenCalled();
   expect(adventure.execute).toHaveBeenCalledWith(interaction);
+});
+
+test('toggle_battle_logs updates preference and refreshes message', async () => {
+  const client = discord.__clients[0];
+  const handler = client.listeners('interactionCreate')[0];
+  const interaction = {
+    isChatInputCommand: jest.fn(() => false),
+    isAutocomplete: jest.fn(() => false),
+    isStringSelectMenu: jest.fn(() => false),
+    isButton: jest.fn(() => true),
+    customId: 'toggle_battle_logs',
+    user: { id: '123' },
+    update: jest.fn().mockResolvedValue()
+  };
+  await handler(interaction);
+  expect(userService.setDmPreference).toHaveBeenCalledWith('123', 'dm_battle_logs_enabled', false);
+  expect(interaction.update).toHaveBeenCalled();
 });
