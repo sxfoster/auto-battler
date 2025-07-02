@@ -28,6 +28,7 @@ class GameEngine {
         this.procEngine = new ProcEngine(this.battleLog);
         this.narrativeMode = options.isNarrative || false;
         this.playerName = options.playerName || (this.combatants.find(c => c.team === 'player')?.name);
+        this.isTutorial = options.isTutorial || false;
         this.abilityPauseShown = false;
         this.pendingPause = null;
     }
@@ -522,6 +523,7 @@ class GameEngine {
        if (this.checkVictory()) return;
        attacker.currentEnergy = (attacker.currentEnergy || 0) + 1;
        if (
+           this.isTutorial &&
            attacker.team === 'player' &&
            attacker.abilityData &&
            attacker.abilityCharges > 0 &&
@@ -531,7 +533,7 @@ class GameEngine {
            this.pendingPause = { type: 'PAUSE', reason: 'ABILITY_READY' };
            this.abilityPauseShown = true;
        }
-   }
+  }
 
 
 
