@@ -13,10 +13,10 @@ describe('Equipment bonuses and passives', () => {
     expect(combatant.maxHp).toBe(22);
   });
 
-  test('weapon passive effect triggers on auto attack', () => {
+  test('weapon proc applies poison on hit', () => {
     const weapon = allPossibleWeapons.find(w => w.id === 1302);
-    const proc = weapon.procs ? weapon.procs[0] : weapon.passiveEffect;
-    expect(proc.effect).toBe('Poison');
+    const proc = weapon.procs[0];
+    expect(proc.effect).toBe('apply_status');
 
     const attacker = createCombatant({ hero_id: 1, weapon_id: 1302 }, 'player', 0);
     const target = createCombatant({ hero_id: 1 }, 'enemy', 0);
@@ -25,6 +25,6 @@ describe('Equipment bonuses and passives', () => {
     jest.spyOn(Math, 'random').mockReturnValueOnce(0.1); // trigger proc
     engine.processTurn();
     const updated = engine.combatants.find(c => c.id === target.id);
-    expect(updated.statusEffects.some(e => e.name === proc.effect)).toBe(true);
+    expect(updated.statusEffects.some(e => e.name === proc.status)).toBe(true);
   });
 });

@@ -12,7 +12,7 @@ try {
 
 class GameEngine {
     constructor(combatants) {
-        this.combatants = combatants.map(c => ({ ...c }));
+        this.combatants = combatants.map(c => ({ ...c, attacksMade: 0, hitsTaken: 0 }));
         this.turnQueue = [];
         this.battleLog = [];
         this.isBattleOver = false;
@@ -20,6 +20,118 @@ class GameEngine {
         this.roundCounter = 0;
         this.extraActionTaken = {}; // Tracks extra actions per round
         this.finalPlayerState = {}; // Will store final state changes
+    }
+
+    executeProcs(owner, trigger, context = {}) {
+        const sources = [];
+        if (owner.weaponData && Array.isArray(owner.weaponData.procs)) sources.push(...owner.weaponData.procs);
+        if (owner.armorData && Array.isArray(owner.armorData.procs)) sources.push(...owner.armorData.procs);
+        for (const proc of sources) {
+            if (proc.trigger !== trigger) continue;
+            if (proc.once_per_combat && proc._used) continue;
+            if (proc.condition && !this.checkProcCondition(proc.condition, owner, context)) continue;
+            if (proc.chance !== undefined && Math.random() > proc.chance) continue;
+            this.applyProcEffect(proc, owner, context);
+            if (proc.once_per_combat) proc._used = true;
+        }
+    }
+
+    checkProcCondition(cond = {}, owner, ctx) {
+        if (cond.first_attack && owner.attacksMade > 0) return false;
+        if (cond.first_hit_taken && owner.hitsTaken > 0) return false;
+        if (cond.target_hp_below !== undefined && ctx.target) {
+            if ((ctx.target.currentHp / ctx.target.maxHp) >= cond.target_hp_below) return false;
+        }
+        if (cond.target_has_status && ctx.target) {
+            const arr = Array.isArray(cond.target_has_status) ? cond.target_has_status : [cond.target_has_status];
+            if (!arr.some(s => ctx.target.statusEffects.some(e => e.name === s))) return false;
+        }
+        if (cond.attacker_is_faster && ctx.attacker && ctx.target) {
+            if (this.getEffectiveSpeed(ctx.attacker) <= this.getEffectiveSpeed(ctx.target)) return false;
+        }
+        if (cond.is_melee && !ctx.is_melee) return false;
+        if (cond.target_is_last_in_row && !ctx.target_is_last_in_row) return false;
+        return true;
+    }
+
+    applyProcEffect(proc, owner, ctx) {
+        switch (proc.effect) {
+            case 'cleave': {
+                const enemies = this.combatants.filter(c => c.team !== owner.team && c.currentHp > 0 && c !== ctx.target);
+                for (const enemy of enemies) {
+                    this.applyDamage(owner, enemy, proc.value || 1);
+                }
+                break;
+            }
+            case 'bonus_damage':
+                ctx.bonusDamage = (ctx.bonusDamage || 0) + (proc.value || 0);
+                break;
+            case 'double_damage':
+                ctx.damageMultiplier = (ctx.damageMultiplier || 1) * 2;
+                break;
+            case 'recoil_damage':
+                this.applyDamage(owner, owner, proc.value || 1);
+                break;
+            case 'ignore_block':
+                ctx.ignoreDefense = (ctx.ignoreDefense || 0) + (proc.value || 0);
+                break;
+            case 'extra_attack':
+                this.turnQueue.unshift(owner);
+                break;
+            case 'apply_status':
+                if (ctx.target) this.applyStatusEffect(ctx.target, proc.status, proc.duration, { damage: proc.value });
+                break;
+            case 'apply_status_to_attacker':
+                if (ctx.attacker) this.applyStatusEffect(ctx.attacker, proc.status, proc.duration, { damage: proc.value });
+                break;
+            case 'modify_stat': {
+                const target = proc.target === 'self' || !ctx.target ? owner : ctx.target;
+                target[proc.stat] = (target[proc.stat] || 0) + (proc.value || 0);
+                break;
+            }
+            case 'cannot_be_evaded':
+                ctx.ignoreEvasion = true; // placeholder
+                break;
+            case 'heal_self':
+                this.applyHeal(owner, proc.value || 0);
+                break;
+            case 'boost_ability_damage':
+                owner.statusEffects.push({ name: 'Ability Damage Boost', amount: proc.value || 0, turnsRemaining: 1 });
+                break;
+            case 'gain_energy':
+                owner.currentEnergy = (owner.currentEnergy || 0) + (proc.value || 0);
+                break;
+            case 'apply_buff_to_ally': {
+                const ally = this.combatants.find(c => c.team === owner.team && c !== owner && c.currentHp > 0);
+                if (ally) ally[proc.stat] = (ally[proc.stat] || 0) + (proc.value || 0);
+                break;
+            }
+            case 'ignore_damage':
+            case 'nullify_damage':
+                ctx.ignoreDamage = true;
+                break;
+            case 'reflect_damage':
+                if (ctx.attacker) this.applyDamage(owner, ctx.attacker, proc.value || 0);
+                break;
+            case 'aura_buff_allies': {
+                const allies = this.combatants.filter(c => c.team === owner.team && c !== owner);
+                for (const al of allies) {
+                    al[proc.stat] = (al[proc.stat] || 0) + (proc.value || 0);
+                }
+                break;
+            }
+            case 'immune_to_status':
+                if (ctx.status === proc.status) ctx.cancelStatus = true;
+                break;
+            case 'block_ability':
+                ctx.blockAbility = true;
+                break;
+            case 'immune_to_damage_type':
+                if (ctx.damage_type === proc.damage_type) ctx.ignoreDamage = true;
+                break;
+            default:
+                break;
+        }
     }
 
     log(entry, level = 'detail') {
@@ -61,6 +173,9 @@ class GameEngine {
    }
 
    applyStatusEffect(target, name, duration = 2, extra = {}) {
+       const ctx = { status: name };
+       this.executeProcs(target, 'on_status_applied', ctx);
+       if (ctx.cancelStatus) return;
        const effect = { name, turnsRemaining: duration, ...extra };
        if (name === 'Poison' && effect.damage === undefined) {
            effect.damage = 1;
@@ -70,8 +185,8 @@ class GameEngine {
    }
 
    applyDamage(attacker, target, baseDamage, options = {}) {
-       const { log = true } = options;
-       let defense = target.defense || 0;
+       const { log = true, ignoreDefense = 0, multiplier = 1 } = options;
+       let defense = Math.max(0, (target.defense || 0) - ignoreDefense);
        if (target.statusEffects && target.statusEffects.some(s => s.name === 'Defense Down')) {
            defense = Math.max(0, defense - 1);
        }
@@ -83,7 +198,8 @@ class GameEngine {
                }
            }
        }
-       const effective = Math.max(1, baseDamage - defense + bonus);
+       const dmg = Math.max(1, Math.round((baseDamage * multiplier)));
+       const effective = Math.max(1, dmg - defense + bonus);
        target.currentHp = Math.max(0, target.currentHp - effective);
        if (log) {
            if (attacker === target) {
@@ -263,12 +379,12 @@ class GameEngine {
        }
    }
 
-   startRound() {
-       this.roundCounter++;
-       this.log({ type: 'round', message: `--- Round ${this.roundCounter} ---` }, 'summary');
-       this.extraActionTaken = {}; // reset extra action tracking each round
-       this.turnQueue = this.computeTurnQueue();
-   }
+    startRound() {
+        this.roundCounter++;
+        this.log({ type: 'round', message: `--- Round ${this.roundCounter} ---` }, 'summary');
+        this.extraActionTaken = {}; // reset extra action tracking each round
+        this.turnQueue = this.computeTurnQueue();
+    }
 
    processStatuses(combatant) {
        let skip = false;
@@ -350,17 +466,19 @@ class GameEngine {
                    }
                }
 
-               // Always perform the auto-attack first
-               this.applyDamage(attacker, targetEnemy, attacker.attack);
-
-               const weapon = attacker.weaponData;
-               if (weapon && Array.isArray(weapon.procs)) {
-                   for (const proc of weapon.procs) {
-                       if (proc.trigger === 'on_auto_attack' && Math.random() < (proc.chance ?? 1)) {
-                           this.applyStatusEffect(targetEnemy, proc.effect, proc.duration, { amount: proc.amount });
-                       }
-                   }
+               const ctx = { attacker, target: targetEnemy, first_attack: !attacker.attacksMade };
+               this.executeProcs(attacker, 'on_attack', ctx);
+               const dmg = attacker.attack + (ctx.bonusDamage || 0);
+               const dealt = this.applyDamage(attacker, targetEnemy, dmg, { ignoreDefense: ctx.ignoreDefense || 0, multiplier: ctx.damageMultiplier || 1 });
+               attacker.attacksMade = (attacker.attacksMade || 0) + 1;
+               targetEnemy.hitsTaken = (targetEnemy.hitsTaken || 0) + 1;
+               this.executeProcs(attacker, 'on_hit', { attacker, target: targetEnemy, damage: dealt });
+               this.executeProcs(targetEnemy, 'on_hit', { attacker, target: targetEnemy, damage: dealt, is_melee: true });
+               this.executeProcs(targetEnemy, 'on_attacked', { attacker, target: targetEnemy, damage: dealt, is_melee: true });
+               if (targetEnemy.currentHp <= 0) {
+                   this.executeProcs(attacker, 'on_kill', { target: targetEnemy });
                }
+
                if (this.checkVictory()) return;
 
                // Re-evaluate potential targets in case the first enemy was defeated
@@ -371,7 +489,14 @@ class GameEngine {
 
                if (ability && attacker.abilityCharges > 0 && attacker.currentEnergy >= cost && abilityTarget) {
                    console.log(`${attacker.name} spends ${cost} energy to use ${ability.name}.`);
-                   this.applyAbilityEffect(attacker, abilityTarget, ability);
+                   const ctxAbility = { attacker, target: abilityTarget, ability };
+                   this.executeProcs(abilityTarget, 'on_ability_targeted', ctxAbility);
+                   if (!ctxAbility.blockAbility) {
+                       this.applyAbilityEffect(attacker, abilityTarget, ability);
+                       this.executeProcs(attacker, 'on_ability_used', ctxAbility);
+                   } else {
+                       this.log({ type: 'info', message: `${abilityTarget.name}'s armor blocks the ability!` });
+                   }
                    attacker.currentEnergy -= cost;
                    attacker.abilityCharges -= 1;
                    if (ability.cardId && !ability.isPractice) {
@@ -409,6 +534,9 @@ class GameEngine {
 
    *runGameSteps() {
        this.log({ type: 'start', message: '⚔️ --- Battle Starting --- ⚔️' });
+       for (const c of this.combatants) {
+           this.executeProcs(c, 'on_combat_start', { combatant: c });
+       }
        let lastIndex = 0;
        yield { combatants: this.combatants.map(c => ({ ...c })), log: this.battleLog.slice(lastIndex) };
        lastIndex = this.battleLog.length;
