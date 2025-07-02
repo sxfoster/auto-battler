@@ -13,7 +13,11 @@ try {
 
 class GameEngine {
     constructor(combatants) {
-        this.combatants = combatants.map(c => ({ ...c }));
+        this.combatants = combatants.map(c => ({
+            attacksMade: 0,
+            hitsTaken: 0,
+            ...c
+        }));
         this.turnQueue = [];
         this.battleLog = [];
         this.isBattleOver = false;
@@ -63,6 +67,10 @@ class GameEngine {
    }
 
    applyStatusEffect(target, name, duration = 2, extra = {}) {
+       const context = { attacker: null, defender: target, statusName: name };
+       this.procEngine.trigger('on_status_applied', context);
+       if (context.cancelStatus) return;
+
        const effect = { name, turnsRemaining: duration, ...extra };
        if (name === 'Poison' && effect.damage === undefined) {
            effect.damage = 1;
@@ -72,7 +80,7 @@ class GameEngine {
    }
 
    applyDamage(attacker, target, baseDamage, options = {}) {
-       const { log = true } = options;
+       const { log = true, ignoreDefense = 0 } = options;
        let defense = target.defense || 0;
        if (target.statusEffects && target.statusEffects.some(s => s.name === 'Defense Down')) {
            defense = Math.max(0, defense - 1);
@@ -85,7 +93,7 @@ class GameEngine {
                }
            }
        }
-       const effective = Math.max(1, baseDamage - defense + bonus);
+       const effective = Math.max(1, baseDamage - Math.max(0, defense - ignoreDefense) + bonus);
        target.currentHp = Math.max(0, target.currentHp - effective);
        if (log) {
            if (attacker === target) {
@@ -95,12 +103,40 @@ class GameEngine {
            }
            if (target.currentHp <= 0) {
                this.log({ type: 'status', message: `💀 ${target.name} has been defeated.` }, 'summary');
+               this.procEngine.trigger('on_kill', {
+                   attacker,
+                   defender: target,
+                   allCombatants: this.combatants,
+                   applyDamage: this.applyDamage.bind(this),
+                   applyStatus: this.applyStatusEffect.bind(this),
+                   applyHeal: this.applyHeal.bind(this),
+                   turnQueue: this.turnQueue
+               });
            }
+       }
+       if (effective > 0) {
+           target.hitsTaken = (target.hitsTaken || 0) + 1;
        }
        return effective;
    }
 
-   applyAbilityEffect(attacker, target, ability) {
+  applyAbilityEffect(attacker, target, ability) {
+
+       const targetContext = {
+           attacker,
+           defender: target,
+           ability,
+           allCombatants: this.combatants,
+           applyDamage: this.applyDamage.bind(this),
+           applyStatus: this.applyStatusEffect.bind(this),
+           applyHeal: this.applyHeal.bind(this),
+           turnQueue: this.turnQueue
+       };
+       this.procEngine.trigger('on_ability_targeted', targetContext);
+       if (targetContext.cancelAbility) {
+           this.log({ type: 'info', message: `${target.name} resists the ability!` });
+           return;
+       }
 
        let damageDealt = 0; // actual damage after mitigation
        let healingDone = 0;
@@ -353,30 +389,29 @@ class GameEngine {
                    }
                }
 
-               // Always perform the auto-attack first
-               this.applyDamage(attacker, targetEnemy, attacker.attack);
+               const context = {
+                   attacker,
+                   defender: targetEnemy,
+                   allCombatants: this.combatants,
+                   applyDamage: this.applyDamage.bind(this),
+                   applyStatus: this.applyStatusEffect.bind(this),
+                   applyHeal: this.applyHeal.bind(this),
+                   turnQueue: this.turnQueue
+               };
 
-               this.procEngine.trigger('on_attack', {
-                   attacker,
-                   defender: targetEnemy,
-                   allCombatants: this.combatants,
-                   applyDamage: this.applyDamage.bind(this),
-                   applyStatus: this.applyStatusEffect.bind(this)
-               });
-               this.procEngine.trigger('on_hit', {
-                   attacker,
-                   defender: targetEnemy,
-                   allCombatants: this.combatants,
-                   applyDamage: this.applyDamage.bind(this),
-                   applyStatus: this.applyStatusEffect.bind(this)
-               });
-               this.procEngine.trigger('on_attacked', {
-                   attacker,
-                   defender: targetEnemy,
-                   allCombatants: this.combatants,
-                   applyDamage: this.applyDamage.bind(this),
-                   applyStatus: this.applyStatusEffect.bind(this)
-               });
+               this.procEngine.trigger('on_attack', context);
+               this.procEngine.trigger('on_attacked', context);
+
+               let dealt = 0;
+               if (!context.cancelDamage) {
+                   dealt = this.applyDamage(attacker, targetEnemy, attacker.attack, {
+                       ignoreDefense: context.ignoreDefense || 0
+                   });
+                   attacker.attacksMade = (attacker.attacksMade || 0) + 1;
+               }
+               context.damage = dealt;
+
+               this.procEngine.trigger('on_hit', context);
                if (this.checkVictory()) return;
 
                // Re-evaluate potential targets in case the first enemy was defeated
@@ -393,7 +428,9 @@ class GameEngine {
                        defender: abilityTarget,
                        allCombatants: this.combatants,
                        applyDamage: this.applyDamage.bind(this),
-                       applyStatus: this.applyStatusEffect.bind(this)
+                       applyStatus: this.applyStatusEffect.bind(this),
+                       applyHeal: this.applyHeal.bind(this),
+                       turnQueue: this.turnQueue
                    });
                    attacker.currentEnergy -= cost;
                    attacker.abilityCharges -= 1;
@@ -438,7 +475,9 @@ class GameEngine {
                defender: null,
                allCombatants: this.combatants,
                applyDamage: this.applyDamage.bind(this),
-               applyStatus: this.applyStatusEffect.bind(this)
+               applyStatus: this.applyStatusEffect.bind(this),
+               applyHeal: this.applyHeal.bind(this),
+               turnQueue: this.turnQueue
            });
        }
        let lastIndex = 0;
