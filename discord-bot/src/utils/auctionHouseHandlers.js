@@ -9,6 +9,7 @@ const userService = require('./userService');
 const abilityCardService = require('./abilityCardService');
 const auctionService = require('./auctionHouseService');
 const gameData = require('../../util/gameData');
+const { createBackToTownRow } = require('./components');
 
 function getAllAbilities() {
   return Array.from(gameData.gameData.abilities.values());
@@ -125,9 +126,10 @@ async function handleBuySelect(interaction) {
   }
   try {
     const listing = await auctionService.purchaseListing(user.id, listingId, interaction.client);
+    const navigationRow = createBackToTownRow();
     await interaction.update({
-      content: `✅ Purchased ${abilityName(listing.ability_id)} for ${listing.price} gold.`,
-      components: [],
+      content: `✅ You have successfully purchased **${abilityName(listing.ability_id)}** for ${listing.price} gold.`,
+      components: [navigationRow],
       ephemeral: true
     });
   } catch (err) {
