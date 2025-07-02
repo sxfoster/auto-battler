@@ -1,9 +1,10 @@
 const { SlashCommandBuilder } = require('discord.js');
 const userService = require('../src/utils/userService');
-const { sendCardDM, sendWeaponDM } = require('../src/utils/embedBuilder');
+const { sendCardDM, sendWeaponDM, sendItemDM } = require('../src/utils/embedBuilder');
 const gameData = require('../util/gameData');
-const { allPossibleWeapons } = require('../../backend/game/data');
+const { allPossibleWeapons, allPossibleArmors } = require('../../backend/game/data');
 const weaponService = require('../src/utils/weaponService');
+const armorService = require('../src/utils/armorService');
 
 const data = new SlashCommandBuilder()
   .setName('admin')
@@ -37,6 +38,21 @@ const data = new SlashCommandBuilder()
         opt
           .setName('weapon')
           .setDescription('Name of the weapon to grant')
+          .setRequired(true)
+          .setAutocomplete(true)
+      )
+  )
+  .addSubcommand(sub =>
+    sub
+      .setName('grant-armor')
+      .setDescription('Grant an armor to a player.')
+      .addUserOption(opt =>
+        opt.setName('user').setDescription('Recipient of the armor').setRequired(true)
+      )
+      .addStringOption(opt =>
+        opt
+          .setName('armor')
+          .setDescription('Name of the armor to grant')
           .setRequired(true)
           .setAutocomplete(true)
       )
@@ -124,6 +140,34 @@ async function execute(interaction) {
         ephemeral: true
       });
     }
+  } else if (sub === 'grant-armor') {
+    const armorName = interaction.options.getString('armor');
+    const armor = allPossibleArmors.find(a => a.name.toLowerCase() === armorName.toLowerCase());
+
+    if (!armor) {
+      await interaction.reply({
+        content: `Error: Could not find an armor named ${armorName}.`,
+        ephemeral: true
+      });
+      return;
+    }
+
+    await armorService.addArmor(user.id, armor.id);
+
+    await interaction.reply({
+      content: `You have successfully granted ${armor.name} to ${target.username}.`,
+      ephemeral: true
+    });
+
+    try {
+      await sendItemDM(target, { ...armor, type: 'Armor' });
+    } catch (err) {
+      console.error('Failed to DM armor:', err);
+      await interaction.followUp({
+        content: "I couldn't DM the armor. Please check the target's privacy settings.",
+        ephemeral: true
+      });
+    }
   }
 }
 
@@ -140,6 +184,10 @@ async function autocomplete(interaction) {
     choices = allPossibleWeapons
       .filter(w => w.name.toLowerCase().includes(focusedOption.value.toLowerCase()))
       .map(w => ({ name: w.name, value: w.name }));
+  } else if (focusedOption.name === 'armor') {
+    choices = allPossibleArmors
+      .filter(a => a.name.toLowerCase().includes(focusedOption.value.toLowerCase()))
+      .map(a => ({ name: a.name, value: a.name }));
   }
 
   await interaction.respond(choices.slice(0, 25));

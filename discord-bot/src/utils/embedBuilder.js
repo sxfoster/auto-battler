@@ -111,4 +111,23 @@ async function sendWeaponDM(user, weapon) {
   await user.send({ embeds: [embed] });
 }
 
-module.exports = { simple, sendCardDM, buildCardEmbed, buildBattleEmbed, sendWeaponDM, buildWeaponEmbed };
+function buildItemEmbed(item) {
+  const embed = new EmbedBuilder()
+    .setColor('#29b6f6')
+    .setTitle(item.name)
+    .setTimestamp()
+    .setFooter({ text: 'Auto-Battler Bot' })
+    .addFields(
+      { name: 'Rarity', value: item.rarity, inline: true },
+      { name: 'Type', value: item.type || 'Item', inline: true }
+    );
+
+  return embed;
+}
+
+async function sendItemDM(user, item) {
+  const embed = buildItemEmbed(item).setTitle(`✨ You received a new ${item.type}! ✨`);
+  await user.send({ embeds: [embed] });
+}
+
+module.exports = { simple, sendCardDM, buildCardEmbed, buildBattleEmbed, sendWeaponDM, buildWeaponEmbed, buildItemEmbed, sendItemDM };

@@ -6,17 +6,22 @@ jest.mock('../src/utils/userService', () => ({
 }));
 jest.mock('../src/utils/embedBuilder', () => ({
   sendCardDM: jest.fn(),
-  sendWeaponDM: jest.fn()
+  sendWeaponDM: jest.fn(),
+  sendItemDM: jest.fn()
 }));
 jest.mock('../src/utils/weaponService', () => ({
   addWeapon: jest.fn()
 }));
+jest.mock('../src/utils/armorService', () => ({
+  addArmor: jest.fn()
+}));
 
 const userService = require('../src/utils/userService');
-const { sendCardDM, sendWeaponDM } = require('../src/utils/embedBuilder');
+const { sendCardDM, sendWeaponDM, sendItemDM } = require('../src/utils/embedBuilder');
 const weaponService = require('../src/utils/weaponService');
+const armorService = require('../src/utils/armorService');
 const gameData = require('../util/gameData');
-const { allPossibleAbilities, allPossibleWeapons } = require('../../backend/game/data');
+const { allPossibleAbilities, allPossibleWeapons, allPossibleArmors } = require('../../backend/game/data');
 
 function createInteraction(role = 'Game Master', sub = 'grant-ability') {
   return {
@@ -193,6 +198,90 @@ describe('admin grant-weapon command', () => {
   test("autocomplete does not suggest nonexistent weapons", async () => {
     const interaction = {
       options: { getFocused: jest.fn().mockReturnValue({ name: 'weapon', value: 'Nonexistent' }) },
+      respond: jest.fn().mockResolvedValue()
+    };
+    await admin.autocomplete(interaction);
+    const options = interaction.respond.mock.calls[0][0];
+    expect(options).toHaveLength(0);
+  });
+});
+
+describe('admin grant-armor command', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  test('requires Game Master role', async () => {
+    const interaction = createInteraction('Player', 'grant-armor');
+    interaction.options.getString.mockReturnValue('Leather Padding');
+    await admin.execute(interaction);
+    expect(interaction.reply).toHaveBeenCalledWith(expect.objectContaining({
+      ephemeral: true,
+      content: expect.stringContaining('necessary permissions')
+    }));
+  });
+
+  test('errors when armor not found', async () => {
+    const interaction = createInteraction('Game Master', 'grant-armor');
+    interaction.options.getString.mockReturnValue('Nonexistent');
+    await admin.execute(interaction);
+    expect(interaction.reply).toHaveBeenCalledWith(expect.objectContaining({
+      ephemeral: true,
+      content: expect.stringContaining('Could not find an armor')
+    }));
+  });
+
+  test('errors when user not found', async () => {
+    const interaction = createInteraction('Game Master', 'grant-armor');
+    interaction.options.getString.mockReturnValue('Leather Padding');
+    userService.getUser.mockResolvedValue(null);
+    await admin.execute(interaction);
+    expect(interaction.reply).toHaveBeenCalledWith(expect.objectContaining({
+      ephemeral: true,
+      content: expect.stringContaining('has not started playing yet')
+    }));
+  });
+
+  test('grants armor and sends DM', async () => {
+    const interaction = createInteraction('Game Master', 'grant-armor');
+    interaction.options.getString.mockReturnValue('Leather Padding');
+    userService.getUser.mockResolvedValue({ id: 1 });
+    armorService.addArmor.mockResolvedValue(99);
+    await admin.execute(interaction);
+    expect(armorService.addArmor).toHaveBeenCalled();
+    expect(sendItemDM).toHaveBeenCalled();
+    expect(interaction.reply).toHaveBeenCalledWith(expect.objectContaining({
+      ephemeral: true,
+      content: expect.stringContaining('successfully granted')
+    }));
+  });
+
+  test('notifies when armor DM fails', async () => {
+    const interaction = createInteraction('Game Master', 'grant-armor');
+    interaction.options.getString.mockReturnValue('Leather Padding');
+    userService.getUser.mockResolvedValue({ id: 1 });
+    armorService.addArmor.mockResolvedValue(99);
+    sendItemDM.mockRejectedValue(new Error('fail'));
+    await admin.execute(interaction);
+    expect(sendItemDM).toHaveBeenCalled();
+    expect(interaction.followUp).toHaveBeenCalledWith(
+      expect.objectContaining({ ephemeral: true })
+    );
+  });
+
+  test('autocomplete suggests armor names', async () => {
+    const interaction = {
+      options: { getFocused: jest.fn().mockReturnValue({ name: 'armor', value: 'Leather' }) },
+      respond: jest.fn().mockResolvedValue()
+    };
+    await admin.autocomplete(interaction);
+    const options = interaction.respond.mock.calls[0][0];
+    expect(options.some(o => o.name.includes('Leather'))).toBe(true);
+  });
+
+  test('autocomplete does not suggest nonexistent armors', async () => {
+    const interaction = {
+      options: { getFocused: jest.fn().mockReturnValue({ name: 'armor', value: 'Nonexistent' }) },
       respond: jest.fn().mockResolvedValue()
     };
     await admin.autocomplete(interaction);
