@@ -39,22 +39,7 @@ async function execute(interaction) {
     {
       title: 'The Shattering',
       text: 'The sky burned once. Reality fractured. And from the heart of the ruin, the first Echo was born.',
-      videoUrl: 'https://your-cdn.com/the_shattering.mp4'
-    },
-    {
-      title: 'Echoes',
-      text: 'Those who could wield these cards became known as Echo Knights.',
-      image: 'https://placehold.co/600x400?text=Echoes'
-    },
-    {
-      title: 'Resonance',
-      text: 'Combining cards lets a knight resonate with incredible power.',
-      image: 'https://placehold.co/600x400?text=Resonance'
-    },
-    {
-      title: 'Anchors in Reality',
-      text: 'Stable towns like Portal\'s Rest act as anchors against the chaos.',
-      image: 'https://placehold.co/600x400?text=Anchors'
+      videoUrl: 'http://strahde.com/game/videos/Intro.mp4'
     }
   ];
 
