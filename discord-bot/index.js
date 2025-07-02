@@ -5,6 +5,8 @@ const config = require('./util/config');
 const gameData = require('./util/gameData');
 const userService = require('./src/utils/userService');
 const settingsCommand = require('./commands/settings');
+const abilityCardService = require('./src/utils/abilityCardService');
+const { allPossibleAbilities } = require('../backend/game/data');
 
 const client = new Client({ intents: [GatewayIntentBits.Guilds] });
 client.commands = new Collection();
@@ -37,6 +39,22 @@ client.once(Events.ClientReady, async () => {
 
 client.on(Events.InteractionCreate, async interaction => {
   if (interaction.isChatInputCommand()) {
+    let user = await userService.getUser(interaction.user.id);
+    if (!user) {
+      await userService.createUser(interaction.user.id, interaction.user.username);
+      user = await userService.getUser(interaction.user.id);
+    }
+
+    if (interaction.commandName !== 'tutorial' && !user.tutorial_completed) {
+      const tut = client.commands.get('tutorial');
+      if (tut) {
+        await tut.execute(interaction);
+      } else {
+        await interaction.reply({ content: 'Tutorial unavailable.', ephemeral: true });
+      }
+      return;
+    }
+
     const command = client.commands.get(interaction.commandName);
     if (!command) return;
 
@@ -119,6 +137,71 @@ client.on(Events.InteractionCreate, async interaction => {
       const inventoryCommand = client.commands.get('inventory');
       interaction.options = { getSubcommand: () => 'show' };
       await inventoryCommand.execute(interaction);
+    } else if (interaction.customId === 'tutorial_auctionhouse') {
+      const tutorial = client.commands.get('tutorial');
+      const state = tutorial?.tutorialState.get(interaction.user.id) || {};
+      const common = allPossibleAbilities.filter(a => a.rarity === 'Common');
+      const ability = common[Math.floor(Math.random() * common.length)];
+      state.ability = ability;
+      state.step = 'auction';
+      tutorial?.tutorialState.set(interaction.user.id, state);
+      await userService.addGold(interaction.user.id, 5);
+      const embed = new EmbedBuilder()
+        .setTitle('Edgar Pain')
+        .setDescription(`I have slipped 5 gold into your pocket. Purchase this card: **${ability.name}**.`);
+      const row = new ActionRowBuilder().addComponents(
+        new ButtonBuilder().setCustomId('tutorial_purchase_card').setLabel('Purchase').setStyle(ButtonStyle.Primary)
+      );
+      await interaction.update({ embeds: [embed], components: [row] });
+    } else if (interaction.customId === 'tutorial_purchase_card') {
+      const tutorial = client.commands.get('tutorial');
+      const state = tutorial?.tutorialState.get(interaction.user.id);
+      if (!state?.ability) return;
+      const user = await userService.getUser(interaction.user.id);
+      const cardId = await abilityCardService.addCard(user.id, state.ability.id, 40);
+      state.cardId = cardId;
+      state.step = 'inventory';
+      tutorial.tutorialState.set(interaction.user.id, state);
+      const embed = new EmbedBuilder()
+        .setTitle('Card Purchased')
+        .setDescription(`You bought **${state.ability.name}**. Let's see it in your inventory.`);
+      const row = new ActionRowBuilder().addComponents(
+        new ButtonBuilder().setCustomId('tutorial_open_inventory').setLabel('Open Inventory').setStyle(ButtonStyle.Primary)
+      );
+      await interaction.update({ embeds: [embed], components: [row] });
+    } else if (interaction.customId === 'tutorial_open_inventory') {
+      const tutorial = client.commands.get('tutorial');
+      const state = tutorial?.tutorialState.get(interaction.user.id);
+      if (!state?.cardId) return;
+      const cards = await abilityCardService.getCards((await userService.getUser(interaction.user.id)).id);
+      const card = cards.find(c => c.id === state.cardId);
+      const ability = allPossibleAbilities.find(a => a.id === card.ability_id);
+      const embed = new EmbedBuilder()
+        .setTitle('Inventory')
+        .setDescription(`In your backpack you see **${ability.name}**.`);
+      const row = new ActionRowBuilder().addComponents(
+        new ButtonBuilder().setCustomId(`tutorial_equip_card:${card.id}`).setLabel('Equip').setStyle(ButtonStyle.Primary)
+      );
+      await interaction.update({ embeds: [embed], components: [row] });
+    } else if (interaction.customId.startsWith('tutorial_equip_card:')) {
+      const cardId = parseInt(interaction.customId.split(':')[1], 10);
+      await userService.setActiveAbility(interaction.user.id, cardId);
+      const tutorial = client.commands.get('tutorial');
+      const state = tutorial?.tutorialState.get(interaction.user.id) || {};
+      state.step = 'battle';
+      tutorial?.tutorialState.set(interaction.user.id, state);
+      const embed = new EmbedBuilder()
+        .setTitle('Ready for Adventure')
+        .setDescription('Excellent choice. Let us test your mettle.');
+      const row = new ActionRowBuilder().addComponents(
+        new ButtonBuilder().setCustomId('tutorial_start_adventure').setLabel('Begin').setStyle(ButtonStyle.Success)
+      );
+      await interaction.update({ embeds: [embed], components: [row] });
+    } else if (interaction.customId === 'tutorial_start_adventure') {
+      const tutorial = client.commands.get('tutorial');
+      const state = tutorial?.tutorialState.get(interaction.user.id);
+      if (!state?.ability) return;
+      await tutorial.runTutorial(interaction, state.ability.class);
     } else if (interaction.customId === 'tutorial_select_tank') {
       await interaction.update({ content: 'You have chosen the path of the Stalwart Defender!', components: [] });
       const tutorial = client.commands.get('tutorial');
