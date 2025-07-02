@@ -181,7 +181,9 @@ describe('adventure command', () => {
   test('drops correct ability based on goblin class', async () => {
     const targetName = 'Brawler';
     const index = baseHeroes.findIndex(h => h.name === targetName);
-    jest.spyOn(Math, 'random').mockReturnValue(index / baseHeroes.length + 0.0001);
+    const randSpy = jest.spyOn(Math, 'random');
+    randSpy.mockImplementationOnce(() => index / baseHeroes.length + 0.0001);
+    randSpy.mockReturnValue(0);
     userService.getUser.mockResolvedValue({ id: 1, discord_id: '123', class: 'Warrior', equipped_ability_id: 50 });
     abilityCardService.getCards.mockResolvedValue([{ id: 50, ability_id: 3111, charges: 5 }]);
     const interaction = { user: { id: '123', username: 'tester', send: jest.fn().mockResolvedValue() }, reply: jest.fn().mockResolvedValue(), followUp: jest.fn().mockResolvedValue() };

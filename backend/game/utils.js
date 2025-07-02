@@ -1,5 +1,21 @@
 const { allPossibleHeroes, allPossibleWeapons, allPossibleArmors, allPossibleAbilities } = require('./data');
 
+// Stat growth per level for each class
+const statGrowth = {
+    'Stalwart Defender': { hp: 3, attack: 1 },
+    'Holy Warrior': { hp: 3, attack: 1 },
+    'Raging Fighter': { hp: 2, attack: 2 },
+    'Raw Power Mage': { hp: 2, attack: 2 },
+    'Divine Healer': { hp: 2, attack: 1 },
+    'Nature Shaper': { hp: 2, attack: 1 },
+    'Inspiring Artist': { hp: 2, attack: 1 },
+    'Wilderness Expert': { hp: 2, attack: 2 },
+    'Mystic Deceiver': { hp: 2, attack: 1 },
+    'Shadow Striker': { hp: 1, attack: 2 },
+    'Arcane Savant': { hp: 1, attack: 2 },
+    'default': { hp: 2, attack: 1 }
+};
+
 function createCombatant(playerData, team, position) {
     // Determine the equipped ability from either an ability card or raw id
     const abilityId = playerData.ability_card
@@ -33,10 +49,17 @@ function createCombatant(playerData, team, position) {
 
     if (!hero) return null;
 
-    // Calculate final stats including equipment bonuses
+    // --- START: Player Stat Scaling Logic ---
+    const level = playerData.level || 1;
+    const growth = statGrowth[hero.class] || statGrowth['default'];
+
+    const bonusHp = (level - 1) * growth.hp;
+    const bonusAttack = (level - 1) * growth.attack;
+
+    // Calculate final stats including equipment bonuses and level scaling
     const finalStats = {
-        hp: hero.hp,
-        attack: hero.attack,
+        hp: hero.hp + bonusHp,
+        attack: hero.attack + bonusAttack,
         speed: hero.speed,
         defense: hero.defense || 0
     };
@@ -58,6 +81,7 @@ function createCombatant(playerData, team, position) {
     return {
         id: `${team}-hero-${position}`,
         name: playerData.name || hero.name,
+        level: level,
         heroData: hero,
         weaponData: weapon,
         armorData: armor,

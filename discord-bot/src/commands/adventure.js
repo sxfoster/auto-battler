@@ -15,15 +15,7 @@ const GameEngine = require('../../../backend/game/engine');
 const { createCombatant } = require('../../../backend/game/utils');
 const gameData = require('../../util/gameData');
 const classAbilityMap = require('../data/classAbilityMap');
-const { allPossibleWeapons } = require('../../../backend/game/data');
-
-// Level-based chance for goblins to spawn with gear
-const GOBLIN_GEAR_CHANCES = {
-  1: { ability: 0.25, weapon: 0.05 },
-  2: { ability: 0.5, weapon: 0.25 },
-  3: { ability: 0.75, weapon: 0.5 },
-  4: { ability: 1, weapon: 0.75 }
-};
+const { allPossibleWeapons, allPossibleArmors, allPossibleAbilities } = require('../../../backend/game/data');
 
 function respond(interaction, options) {
   if (interaction.deferred || interaction.replied) {
@@ -66,31 +58,45 @@ async function execute(interaction) {
   const equippedCard = cards.find(c => c.id === user.equipped_ability_id);
   const deck = cards.filter(c => c.id !== user.equipped_ability_id);
 
-  // Determine goblin loadout and loot based on player level
+  // --- START: Dynamic Goblin and XP Logic ---
   const playerLevel = user.level || 1;
-  const chances = GOBLIN_GEAR_CHANCES[playerLevel] || GOBLIN_GEAR_CHANCES[1];
+  const equipChance = playerLevel * 0.10;
+  let xpToAward = 10;
 
+  const goblinEquipment = {};
   const goblinLoot = {
     gold: Math.random() < 0.25 ? 1 : 0,
     ability: null,
     weapon: null
   };
 
-  if (Math.random() < chances.ability) {
-    const commonAbilities = allPossibleAbilities.filter(
-      a => a.class === goblinBase.class && a.rarity === 'Common'
-    );
-    if (commonAbilities.length > 0) {
-      goblinLoot.ability = commonAbilities[Math.floor(Math.random() * commonAbilities.length)];
-    }
+  if (Math.random() < equipChance) {
+    const weaponPool = allPossibleWeapons.filter(w => w.rarity === 'Common');
+    const weapon = weaponPool[Math.floor(Math.random() * weaponPool.length)];
+    goblinEquipment.weapon_id = weapon.id;
+    goblinLoot.weapon = weapon;
+    xpToAward += 10;
   }
 
-  if (Math.random() < chances.weapon) {
-    const commonWeapons = allPossibleWeapons.filter(w => w.rarity === 'Common');
-    if (commonWeapons.length > 0) {
-      goblinLoot.weapon = commonWeapons[Math.floor(Math.random() * commonWeapons.length)];
+  if (Math.random() < equipChance) {
+    const armorPool = allPossibleArmors.filter(a => a.rarity === 'Common');
+    const armor = armorPool[Math.floor(Math.random() * armorPool.length)];
+    goblinEquipment.armor_id = armor.id;
+    xpToAward += 10;
+  }
+
+  if (Math.random() < equipChance) {
+    const abilityPool = allPossibleAbilities.filter(
+      a => a.rarity === 'Common' && a.class === goblinBase.class
+    );
+    if (abilityPool.length > 0) {
+      const ability = abilityPool[Math.floor(Math.random() * abilityPool.length)];
+      goblinEquipment.ability_id = ability.id;
+      goblinLoot.ability = ability;
+      xpToAward += 10;
     }
   }
+  // --- END: Dynamic Goblin and XP Logic ---
 
   if (!interaction.bypassChargeCheck && equippedCard && equippedCard.charges <= 0) {
     const hasOtherChargedCopy = cards.some(
@@ -128,14 +134,14 @@ async function execute(interaction) {
     ability_card: equippedCard,
     deck: deck,
     name: interaction.user.username,
-    weapon_id: equippedWeaponRow ? equippedWeaponRow.weapon_id : null
+    weapon_id: equippedWeaponRow ? equippedWeaponRow.weapon_id : null,
+    level: playerLevel
   }, 'player', 0);
 
   const goblin = createCombatant({
     hero_id: goblinBase.id,
     deck: [],
-    ability_id: goblinLoot.ability ? goblinLoot.ability.id : null,
-    weapon_id: goblinLoot.weapon ? goblinLoot.weapon.id : null
+    ...goblinEquipment
   }, 'enemy', 0);
 
   goblin.heroData = { ...goblin.heroData, name: `Goblin ${goblinBase.name}` };
@@ -168,8 +174,7 @@ async function execute(interaction) {
   if (engine.winner === 'player') {
     await userService.incrementPveWin(user.id);
 
-    const xpGained = 10;
-    const xpResult = await userService.addXp(user.id, xpGained);
+    const xpResult = await userService.addXp(user.id, xpToAward);
 
     let lootMessages = [];
     if (goblinLoot.gold > 0) {
@@ -194,7 +199,7 @@ async function execute(interaction) {
       );
     }
 
-    lootMessages.push(`earned **${xpGained} XP**`);
+    lootMessages.push(`earned **${xpToAward} XP**`);
 
     let lootString = 'and was victorious!';
     if (lootMessages.length > 0) {
