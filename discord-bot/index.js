@@ -33,6 +33,19 @@ client.once(Events.ClientReady, async () => {
 
 client.on(Events.InteractionCreate, async interaction => {
   try {
+    if (typeof interaction.isStringSelectMenu === 'function' && interaction.isStringSelectMenu()) {
+      if (interaction.customId === 'tutorial_archetype_select') {
+        const selectedArchetype = interaction.values[0];
+        const tutorialCommand = client.commands.get('tutorial');
+        if (tutorialCommand) {
+          await tutorialCommand.showArchetypePreview(
+            interaction,
+            selectedArchetype
+          );
+        }
+        return;
+      }
+    }
     await routeInteraction(interaction);
   } catch (error) {
     console.error(`Unhandled error during interaction routing:`, error);

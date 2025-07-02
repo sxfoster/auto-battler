@@ -1,5 +1,6 @@
 const { buildBattleEmbed } = require('./embedBuilder');
 const userService = require('./userService');
+const feedback = require('./feedback');
 const { ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
 
 const MAX_LOG_LINES = 20;
@@ -52,7 +53,7 @@ function buildFinalLog(logEntries) {
     .join('\n');
 }
 
-async function runBattleLoop(interaction, engine, { waitMs = 1000 } = {}) {
+async function runBattleLoop(interaction, engine, { waitMs = 1000, isTutorial = false } = {}) {
   let battleMessage;
   const fullLog = [];
   const user = await userService.getUser(interaction.user.id);
@@ -97,6 +98,43 @@ async function runBattleLoop(interaction, engine, { waitMs = 1000 } = {}) {
     const lines = displayLog.map(formatLog);
     const logText = lines.slice(-MAX_LOG_LINES).join('\n');
     lastEmbed = buildBattleEmbed(step.combatants, logText);
+
+    if (isTutorial) {
+      const player = step.combatants.find(c => c.team === 'player');
+      if (
+        player &&
+        player.currentEnergy === 1 &&
+        !engine.tutorialFlags.energyExplained
+      ) {
+        engine.tutorialFlags.energyExplained = true;
+        if (battleMessage) {
+          await battleMessage.edit({ embeds: [lastEmbed] });
+        }
+        await feedback.sendInfo(
+          interaction,
+          "Edgar's Tip",
+          "See that? You've gathered 1 Energy. Save it up to unleash your special ability!"
+        );
+      }
+
+      if (
+        player &&
+        player.abilityData &&
+        player.currentEnergy >= player.abilityData.energyCost &&
+        !engine.tutorialFlags.abilityReady
+      ) {
+        engine.tutorialFlags.abilityReady = true;
+        if (battleMessage) {
+          await battleMessage.edit({ embeds: [lastEmbed] });
+        }
+        await feedback.sendInfo(
+          interaction,
+          "Edgar's Tip",
+          'Now! You have enough Energy! Unleash your power!'
+        );
+      }
+    }
+
     if (!battleMessage) {
       battleMessage = await interaction.followUp({ embeds: [lastEmbed] });
     } else {

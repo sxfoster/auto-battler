@@ -3,10 +3,12 @@ const {
   EmbedBuilder,
   ActionRowBuilder,
   ButtonBuilder,
-  ButtonStyle
+  ButtonStyle,
+  StringSelectMenuBuilder
 } = require('discord.js');
 const userService = require('../src/utils/userService');
 const { edgarPainEmbed } = require('../src/utils/embedBuilder');
+const { allPossibleHeroes, allPossibleAbilities } = require('../../backend/game/data');
 
 const data = new SlashCommandBuilder()
   .setName('tutorial')
@@ -101,6 +103,31 @@ async function runTutorial(interaction, className) {
   await interaction.followUp({ content: 'Tutorial complete!', ephemeral: true });
 }
 
+async function showArchetypePreview(interaction, archetype) {
+  const hero = allPossibleHeroes.find(h => h.class === archetype && h.isBase);
+  const ability = allPossibleAbilities.find(
+    a => a.class === archetype && a.rarity === 'Common'
+  );
+
+  const previewEmbed = edgarPainEmbed(
+    `The ${archetype}`,
+    `So, you have the heart of a ${archetype}. They are known for their resilience and powerful abilities like **${ability.name}**. Is this the path you wish to walk?`
+  ).addFields({ name: 'Starting Ability', value: ability.effect });
+
+  const row = new ActionRowBuilder().addComponents(
+    new ButtonBuilder()
+      .setCustomId(`tutorial_confirm_archetype:${archetype}`)
+      .setLabel(`Confirm ${archetype}`)
+      .setStyle(ButtonStyle.Success),
+    new ButtonBuilder()
+      .setCustomId('tutorial_choose_again')
+      .setLabel('Choose Again')
+      .setStyle(ButtonStyle.Secondary)
+  );
+
+  await interaction.update({ embeds: [previewEmbed], components: [row] });
+}
+
 async function execute(interaction) {
   let user = await userService.getUser(interaction.user.id);
   if (!user) {
@@ -123,12 +150,20 @@ async function execute(interaction) {
   // The user is now officially in the tutorial's first real step.
   await userService.setTutorialStep(interaction.user.id, 'archetype_selection_prompt');
 
-  // Present the archetype selection menu immediately after the ambush dialogue.
-  // (The implementation for this menu will be part of the Pillar 2 user story).
-  // For now, we can just send the embed.
-  await interaction.reply({ embeds: [ambushEmbed], ephemeral: true });
+  // --- ARCHETYPE SELECTION MENU ---
+  const archetypeMenu = new StringSelectMenuBuilder()
+    .setCustomId('tutorial_archetype_select')
+    .setPlaceholder('Choose your path...')
+    .addOptions([
+      { label: 'Stalwart Defender', description: 'A tough and resilient warrior.', value: 'Stalwart Defender' },
+      { label: 'Raging Fighter', description: 'A ferocious and aggressive combatant.', value: 'Raging Fighter' },
+      { label: 'Divine Healer', description: 'A supportive agent of healing and protection.', value: 'Divine Healer' },
+      { label: 'Wilderness Expert', description: 'A skilled hunter and tracker.', value: 'Wilderness Expert' }
+    ]);
 
-  // TODO: In the next user story, we will add the StringSelectMenuBuilder here.
+  const row = new ActionRowBuilder().addComponents(archetypeMenu);
+
+  await interaction.reply({ embeds: [ambushEmbed], components: [row], ephemeral: true });
 }
 
-module.exports = { data, execute, handleInteraction, runTutorial };
+module.exports = { data, execute, handleInteraction, runTutorial, showArchetypePreview };
