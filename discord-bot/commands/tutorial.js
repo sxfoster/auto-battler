@@ -132,7 +132,10 @@ async function runTutorial(interaction, archetype) {
     );
   await interaction.followUp({ embeds: [startEmbed], ephemeral: true });
 
-  const engine = new GameEngine([player, goblin], { isNarrative: true, playerName: interaction.user.username });
+  const engine = new GameEngine(
+    [player, goblin],
+    { isNarrative: true, playerName: interaction.user.username, isTutorial: true }
+  );
   const { runBattleLoop } = require('../src/utils/battleRunner');
   await runBattleLoop(interaction, engine, { waitMs: 1000 });
 
