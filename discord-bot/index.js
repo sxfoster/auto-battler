@@ -119,6 +119,30 @@ client.on(Events.InteractionCreate, async interaction => {
       const inventoryCommand = client.commands.get('inventory');
       interaction.options = { getSubcommand: () => 'show' };
       await inventoryCommand.execute(interaction);
+    } else if (interaction.customId === 'tutorial_select_tank') {
+      await interaction.update({ content: 'You have chosen the path of the Stalwart Defender!', components: [] });
+      const tutorial = client.commands.get('tutorial');
+      if (tutorial && typeof tutorial.runTutorial === 'function') {
+        await tutorial.runTutorial(interaction, 'Stalwart Defender');
+      }
+    } else if (interaction.customId === 'tutorial_select_dps') {
+      await interaction.update({ content: 'You have chosen the path of the Raging Fighter!', components: [] });
+      const tutorial = client.commands.get('tutorial');
+      if (tutorial && typeof tutorial.runTutorial === 'function') {
+        await tutorial.runTutorial(interaction, 'Raging Fighter');
+      }
+    } else if (interaction.customId === 'tutorial_select_healer') {
+      await interaction.update({ content: 'You have chosen the path of the Divine Healer!', components: [] });
+      const tutorial = client.commands.get('tutorial');
+      if (tutorial && typeof tutorial.runTutorial === 'function') {
+        await tutorial.runTutorial(interaction, 'Divine Healer');
+      }
+    } else if (interaction.customId === 'tutorial_select_support') {
+      await interaction.update({ content: 'You have chosen the path of the Inspiring Artist!', components: [] });
+      const tutorial = client.commands.get('tutorial');
+      if (tutorial && typeof tutorial.runTutorial === 'function') {
+        await tutorial.runTutorial(interaction, 'Inspiring Artist');
+      }
     } else if (interaction.customId.startsWith('proceed-battle:')) {
       await interaction.update({ content: 'Proceeding to battle...', components: [] });
       const adventureCommand = client.commands.get('adventure');

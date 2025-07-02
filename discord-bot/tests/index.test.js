@@ -120,6 +120,25 @@ test('continue-adventure button calls adventure command', async () => {
   expect(adventure.execute).toHaveBeenCalledWith(interaction);
 });
 
+test('tutorial selection buttons trigger runTutorial', async () => {
+  const client = discord.__clients[0];
+  const handler = client.listeners('interactionCreate')[0];
+  const tutorial = { execute: jest.fn(), runTutorial: jest.fn() };
+  client.commands.set('tutorial', tutorial);
+  const interaction = {
+    isChatInputCommand: jest.fn(() => false),
+    isAutocomplete: jest.fn(() => false),
+    isStringSelectMenu: jest.fn(() => false),
+    isButton: jest.fn(() => true),
+    customId: 'tutorial_select_tank',
+    update: jest.fn().mockResolvedValue(),
+    user: { id: '123' }
+  };
+  await handler(interaction);
+  expect(interaction.update).toHaveBeenCalled();
+  expect(tutorial.runTutorial).toHaveBeenCalledWith(interaction, 'Stalwart Defender');
+});
+
 test('toggle_battle_logs updates preference and refreshes message', async () => {
   const client = discord.__clients[0];
   const handler = client.listeners('interactionCreate')[0];
