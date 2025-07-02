@@ -14,6 +14,7 @@ For instructions on running the playable demo see [../auto-battler-react/README.
 - `ability_card_charge_gdd.md` – Design for the ability card and charge system.
 - `technical_overview.md` – Overview of the project structure and suggested improvements.
 - `event_schema.md` – JSON schema used by the battle simulator and log viewer.
+- `proc_system.md` – Format of weapon proc objects and how the engine resolves them.
 - `animation_timing_map.md` – Timing recommendations for battle animations.
 - `ui_ux_gdd.md` – UI/UX guidelines.
 
