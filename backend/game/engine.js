@@ -41,6 +41,45 @@ class GameEngine {
             .sort((a, b) => this.getEffectiveSpeed(b) - this.getEffectiveSpeed(a));
     }
 
+    runItemProcs(combatant, trigger, context = {}) {
+        const items = [combatant.weaponData, combatant.armorData];
+        for (const item of items) {
+            if (!item || !Array.isArray(item.procs)) continue;
+            for (const proc of item.procs) {
+                if (proc.trigger !== trigger) continue;
+                const chance = proc.chance != null ? proc.chance : 1;
+                if (Math.random() > chance) continue;
+                this.applyProcEffect(combatant, proc, context);
+            }
+        }
+    }
+
+    applyProcEffect(owner, proc, { target } = {}) {
+        const effect = proc.effect;
+        const duration = proc.duration || 1;
+        switch (effect) {
+            case 'Poison':
+            case 'Slow':
+            case 'Stun':
+            case 'Armor Break':
+            case 'Defense Down':
+                if (target) {
+                    this.applyStatusEffect(target, effect, duration, { amount: proc.amount });
+                }
+                break;
+            case 'BonusDamagePoisoned':
+                if (target && target.statusEffects.some(s => s.name === 'Poison')) {
+                    this.applyDamage(owner, target, proc.amount || 0);
+                }
+                break;
+            case 'ExtraEnergy':
+                owner.currentEnergy = (owner.currentEnergy || 0) + (proc.amount || 1);
+                break;
+            default:
+                break;
+        }
+    }
+
    applyHeal(caster, amount) {
        caster.currentHp = Math.min(caster.maxHp, caster.currentHp + amount);
    }
@@ -95,6 +134,7 @@ class GameEngine {
                this.log({ type: 'status', message: `💀 ${target.name} has been defeated.` }, 'summary');
            }
        }
+       this.runItemProcs(target, 'on_being_hit', { attacker });
        return effective;
    }
 
@@ -266,6 +306,11 @@ class GameEngine {
    startRound() {
        this.roundCounter++;
        this.log({ type: 'round', message: `--- Round ${this.roundCounter} ---` }, 'summary');
+       if (this.roundCounter === 1) {
+           for (const c of this.combatants) {
+               this.runItemProcs(c, 'start_combat', { target: null });
+           }
+       }
        this.extraActionTaken = {}; // reset extra action tracking each round
        this.turnQueue = this.computeTurnQueue();
    }
@@ -353,13 +398,7 @@ class GameEngine {
                // Always perform the auto-attack first
                this.applyDamage(attacker, targetEnemy, attacker.attack);
 
-               const weapon = attacker.weaponData;
-               if (weapon && weapon.passiveEffect && weapon.passiveEffect.trigger === 'on_auto_attack') {
-                   if (Math.random() < weapon.passiveEffect.chance) {
-                       const eff = weapon.passiveEffect;
-                       this.applyStatusEffect(targetEnemy, eff.effect, eff.duration, { amount: eff.amount });
-                   }
-               }
+               this.runItemProcs(attacker, 'on_attack', { target: targetEnemy });
                if (this.checkVictory()) return;
 
                // Re-evaluate potential targets in case the first enemy was defeated

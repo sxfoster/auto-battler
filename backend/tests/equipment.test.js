@@ -12,9 +12,13 @@ describe('Equipment bonuses and passives', () => {
     expect(combatant.maxHp).toBe(22);
   });
 
-  test('weapon passive effect triggers on auto attack', () => {
+  test('weapon proc triggers on auto attack', () => {
     const attacker = createCombatant({ hero_id: 1, weapon_id: 1302 }, 'player', 0);
     const target = createCombatant({ hero_id: 1 }, 'enemy', 0);
+    // define proc on the weapon
+    attacker.weaponData.procs = [
+      { trigger: 'on_attack', chance: 0.25, effect: 'Poison', duration: 2 }
+    ];
     const engine = new GameEngine([attacker, target]);
     engine.turnQueue = engine.computeTurnQueue();
     jest.spyOn(Math, 'random').mockReturnValueOnce(0.1); // trigger proc
