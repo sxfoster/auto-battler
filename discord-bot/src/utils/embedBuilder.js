@@ -131,4 +131,29 @@ async function sendItemDM(user, item) {
   await user.send({ embeds: [embed] });
 }
 
-module.exports = { simple, sendCardDM, buildCardEmbed, buildBattleEmbed, sendWeaponDM, buildWeaponEmbed, buildItemEmbed, sendItemDM };
+/**
+ * Creates a standardized embed for dialogue from the NPC guide, Edgar Pain.
+ * @param {string} title The title of the dialogue moment.
+ * @param {string} dialogue The text Edgar is saying.
+ * @returns {EmbedBuilder}
+ */
+function edgarPainEmbed(title, dialogue) {
+  return new EmbedBuilder()
+    .setColor('#8B4513')
+    .setTitle(title)
+    .setThumbnail('https://i.imgur.com/pB32Jfs.png')
+    .setDescription(dialogue)
+    .setFooter({ text: 'Edgar Pain', iconURL: 'https://i.imgur.com/pB32Jfs.png' });
+}
+
+module.exports = {
+  simple,
+  sendCardDM,
+  buildCardEmbed,
+  buildBattleEmbed,
+  sendWeaponDM,
+  buildWeaponEmbed,
+  buildItemEmbed,
+  sendItemDM,
+  edgarPainEmbed
+};

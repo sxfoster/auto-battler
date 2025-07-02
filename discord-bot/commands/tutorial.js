@@ -6,6 +6,7 @@ const {
   ButtonStyle
 } = require('discord.js');
 const userService = require('../src/utils/userService');
+const { edgarPainEmbed } = require('../src/utils/embedBuilder');
 
 const data = new SlashCommandBuilder()
   .setName('tutorial')
@@ -101,12 +102,33 @@ async function runTutorial(interaction, className) {
 }
 
 async function execute(interaction) {
-  const user = await userService.getUser(interaction.user.id);
-  if (user && user.tutorial_completed) {
+  let user = await userService.getUser(interaction.user.id);
+  if (!user) {
+    // This check is a safeguard; the router should have already created the user.
+    user = await userService.createUser(interaction.user.id, interaction.user.username);
+    await userService.setUserState(interaction.user.id, 'in_tutorial');
+  }
+
+  if (user.tutorial_completed) {
     await interaction.reply({ content: 'You have already completed the tutorial.', ephemeral: true });
     return;
   }
-  await startTutorial(interaction);
+
+  // --- NARRATIVE OPENING ---
+  const title = 'An Unwelcome Interruption';
+  const dialogue = "You are on the road to Portal's Rest when a guttural cry echoes from the trees. Goblins! I can hold them off, but you'll need to fight. This is your first real test, adventurer. Show me what you're made of!";
+
+  const ambushEmbed = edgarPainEmbed(title, dialogue);
+
+  // The user is now officially in the tutorial's first real step.
+  await userService.setTutorialStep(interaction.user.id, 'archetype_selection_prompt');
+
+  // Present the archetype selection menu immediately after the ambush dialogue.
+  // (The implementation for this menu will be part of the Pillar 2 user story).
+  // For now, we can just send the embed.
+  await interaction.reply({ embeds: [ambushEmbed], ephemeral: true });
+
+  // TODO: In the next user story, we will add the StringSelectMenuBuilder here.
 }
 
 module.exports = { data, execute, handleInteraction, runTutorial };

@@ -315,8 +315,9 @@ describe('adventure command', () => {
       followUp: jest.fn().mockResolvedValue()
     };
     await adventure.execute(interaction);
-    const ephemerals = interaction.followUp.mock.calls.filter(c => c[0].ephemeral);
-    expect(ephemerals.length).toBeGreaterThan(0);
+    const replyEphemerals = interaction.reply.mock.calls.filter(c => c[0].ephemeral);
+    const followEphemerals = interaction.followUp.mock.calls.filter(c => c[0].ephemeral);
+    expect(replyEphemerals.length + followEphemerals.length).toBeGreaterThan(0);
     Math.random.mockRestore();
   });
 });

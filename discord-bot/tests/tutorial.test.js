@@ -49,9 +49,12 @@ describe('tutorial command', () => {
 
   test('creates a user when none exists', async () => {
     userService.getUser.mockResolvedValue(null);
-    const interaction = { user: { id: '1', username: 'Tester' }, reply: jest.fn(), followUp: jest.fn() };
+    userService.createUser.mockResolvedValue({ id: 1, tutorial_completed: 0 });
+    const interaction = { user: { id: '1', username: 'Tester' }, reply: jest.fn() };
     await tutorial.execute(interaction);
     expect(userService.createUser).toHaveBeenCalledWith('1', 'Tester');
+    expect(userService.setUserState).toHaveBeenCalledWith('1', 'in_tutorial');
+    expect(interaction.reply).toHaveBeenCalledWith(expect.objectContaining({ embeds: expect.any(Array) }));
   });
 
   test('replies when already completed', async () => {
@@ -61,11 +64,12 @@ describe('tutorial command', () => {
     expect(interaction.reply).toHaveBeenCalledWith(expect.objectContaining({ ephemeral: true }));
   });
 
-  test('sends selection embed with buttons', async () => {
+  test('sends ambush embed and sets step', async () => {
     userService.getUser.mockResolvedValue({ id: 1, tutorial_completed: 0 });
-    const interaction = { user: { id: '1', username: 'Tester' }, reply: jest.fn(), followUp: jest.fn() };
+    const interaction = { user: { id: '1', username: 'Tester' }, reply: jest.fn() };
     await tutorial.execute(interaction);
-    expect(interaction.followUp).toHaveBeenCalledWith(expect.objectContaining({ components: expect.any(Array) }));
+    expect(interaction.reply).toHaveBeenCalledWith(expect.objectContaining({ embeds: expect.any(Array), ephemeral: true }));
+    expect(userService.setTutorialStep).toHaveBeenCalledWith('1', 'archetype_selection_prompt');
   });
 
   test('runTutorial awards items and marks completion', async () => {
