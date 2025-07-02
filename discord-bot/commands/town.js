@@ -1,4 +1,5 @@
 const { SlashCommandBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, MessageFlags } = require('discord.js');
+const userService = require('../src/utils/userService');
 
 const IMAGE_URL = 'YOUR_IMAGE_URL_HERE';
 
@@ -7,6 +8,7 @@ module.exports = {
         .setName('town')
         .setDescription('Visit the town to prepare for your next adventure.'),
     async execute(interaction) {
+        await userService.setUserLocation(interaction.user.id, 'town');
         const embed = new EmbedBuilder()
             .setTitle('Welcome to Portal\'s Rest')
             .setDescription('The bustling town is full of adventurers. What would you like to do?')

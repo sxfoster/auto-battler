@@ -104,6 +104,12 @@ ALTER TABLE users
 ALTER TABLE users
     ADD COLUMN log_verbosity ENUM('summary','detailed','combat_only') NOT NULL DEFAULT 'summary';
 
+-- User state tracking
+ALTER TABLE users
+    ADD COLUMN state VARCHAR(255) NOT NULL DEFAULT 'new',
+    ADD COLUMN location VARCHAR(255) DEFAULT NULL,
+    ADD COLUMN tutorial_step VARCHAR(255) DEFAULT NULL;
+
 -- Auction house listings
 CREATE TABLE IF NOT EXISTS auction_house_listings (
     id INT AUTO_INCREMENT PRIMARY KEY,
