@@ -6,6 +6,10 @@ jest.mock('../util/database', () => ({
 }));
 const db = require('../util/database');
 
+jest.mock('../../backend/game/data', () => ({
+  allPossibleAbilities: [{ id: 3, name: 'Mock Ability' }]
+}));
+
 describe('auctionHouseService', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -44,12 +48,13 @@ describe('auctionHouseService', () => {
     expect(db.query).toHaveBeenCalledWith(expect.stringContaining('auction_house_listings'));
   });
 
-  test('purchaseListing transfers gold and card', async () => {
+  test('purchaseListing transfers gold, notifies seller', async () => {
     const connection = {
       beginTransaction: jest.fn(),
-      query: jest.fn()
+      query: jest
+        .fn()
         .mockResolvedValueOnce([[{ id: 9, seller_id: 2, ability_id: 3, charges: 5, price: 20 }]])
-        .mockResolvedValueOnce([[{ gold: 50 }]])
+        .mockResolvedValueOnce([[{ gold: 50, name: 'Buyer' }]])
         .mockResolvedValue({}),
       commit: jest.fn(),
       rollback: jest.fn(),
@@ -57,11 +62,21 @@ describe('auctionHouseService', () => {
     };
     db.getConnection.mockResolvedValue(connection);
 
-    await service.purchaseListing(1, 9);
+    db.query.mockResolvedValueOnce([[{ discord_id: 'seller123' }]]);
+
+    const client = { users: { fetch: jest.fn().mockResolvedValue({ send: jest.fn() }) } };
+
+    await service.purchaseListing(1, 9, client);
 
     expect(connection.beginTransaction).toHaveBeenCalled();
-    expect(connection.query).toHaveBeenNthCalledWith(1, 'SELECT * FROM auction_house_listings WHERE id = ? FOR UPDATE', [9]);
+    expect(connection.query).toHaveBeenNthCalledWith(
+      1,
+      'SELECT * FROM auction_house_listings WHERE id = ? FOR UPDATE',
+      [9]
+    );
     expect(connection.commit).toHaveBeenCalled();
     expect(connection.release).toHaveBeenCalled();
+    expect(db.query).toHaveBeenCalledWith('SELECT discord_id FROM users WHERE id = ?', [2]);
+    expect(client.users.fetch).toHaveBeenCalledWith('seller123');
   });
 });
