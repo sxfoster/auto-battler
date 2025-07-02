@@ -78,29 +78,65 @@ async function handleInteraction(interaction, userState) {
 }
 
 async function runTutorial(interaction, className) {
-  const abilityCardService = require('../src/utils/abilityCardService');
-  const weaponService = require('../src/utils/weaponService');
   const gameData = require('../util/gameData');
+  const GameEngine = require('../../backend/game/engine');
+  const { createCombatant } = require('../../backend/game/utils');
+  const { runBattleLoop } = require('../src/utils/battleRunner');
 
   const user = await userService.getUser(interaction.user.id);
   if (!user) return;
 
-  const ability = Array.from(gameData.gameData.abilities.values()).find(a => a.class === className);
-  const weapon = Array.from(gameData.gameData.weapons.values())[0];
+  const ability = Array.from(gameData.gameData.abilities.values()).find(
+    a => a.class === className && a.rarity === 'Common'
+  );
+  const goblin = gameData.getHeroes().find(h => h.name === 'Goblin');
 
-  if (ability) {
-    const cardId = await abilityCardService.addCard(user.id, ability.id);
-    await userService.setActiveAbility(interaction.user.id, cardId);
+  const player = createCombatant(
+    {
+      hero_id: ability ? ability.id : 1,
+      ability_id: ability ? ability.id : null,
+      weapon_id: null,
+      name: interaction.user.username
+    },
+    'player',
+    0
+  );
+  const enemy = createCombatant({ hero_id: goblin.id }, 'enemy', 0);
+
+  const engine = new GameEngine([player, enemy], {
+    isTutorial: true,
+    playerName: interaction.user.username
+  });
+
+  await runBattleLoop(interaction, engine, { waitMs: 250, isTutorial: true });
+
+  if (engine.winner !== 'player') {
+    await interaction.followUp({ content: 'Defeated! Try again.', ephemeral: true });
+    return;
   }
 
-  if (weapon) {
-    const weaponInstanceId = await weaponService.addWeapon(user.id, weapon.id);
-    await weaponService.setEquippedWeapon(user.id, weaponInstanceId);
-  }
+  const lootEmbed = edgarPainEmbed(
+    "A Victor's Spoils",
+    'Well fought! The goblin dropped its crude weapon and a strange-looking scroll. We can only carry one. What will you take?'
+  );
+
+  const lootRow = new ActionRowBuilder().addComponents(
+    new ButtonBuilder()
+      .setCustomId('tutorial_loot_weapon')
+      .setLabel('Take the Rusty Knife')
+      .setStyle(ButtonStyle.Secondary)
+      .setEmoji('⚔️'),
+    new ButtonBuilder()
+      .setCustomId('tutorial_loot_ability')
+      .setLabel("Take the 'Power Strike' Scroll")
+      .setStyle(ButtonStyle.Primary)
+      .setEmoji('📜')
+  );
 
   await userService.setUserClass(interaction.user.id, className);
-  await userService.markTutorialComplete(interaction.user.id);
-  await interaction.followUp({ content: 'Tutorial complete!', ephemeral: true });
+  await userService.setTutorialStep(interaction.user.id, 'loot_choice');
+
+  await interaction.followUp({ embeds: [lootEmbed], components: [lootRow], ephemeral: true });
 }
 
 async function showArchetypePreview(interaction, archetype) {
@@ -126,6 +162,50 @@ async function showArchetypePreview(interaction, archetype) {
   );
 
   await interaction.update({ embeds: [previewEmbed], components: [row] });
+}
+
+async function handleLootChoice(interaction, choice) {
+  const weaponService = require('../src/utils/weaponService');
+  const abilityCardService = require('../src/utils/abilityCardService');
+  const gameData = require('../util/gameData');
+
+  const user = await userService.getUser(interaction.user.id);
+  if (!user) return;
+
+  let title = 'Spoils Taken';
+  let dialogue = '';
+
+  if (choice === 'weapon') {
+    const weapon = Array.from(gameData.gameData.weapons.values()).find(
+      w => w.name === 'Rusty Knife'
+    );
+    if (weapon) {
+      const weaponId = await weaponService.addWeapon(user.id, weapon.id);
+      await weaponService.setEquippedWeapon(user.id, weaponId);
+    }
+    dialogue =
+      "A fine choice. A warrior's strength is in their steel. You've equipped the Rusty Knife.";
+  } else {
+    const ability = Array.from(gameData.gameData.abilities.values()).find(
+      a => a.name === 'Power Strike'
+    );
+    if (ability) {
+      await abilityCardService.addCard(user.id, ability.id, 20);
+    }
+    dialogue =
+      "Wise. True power lies not in the weapon, but in the will to use it. A 'Power Strike' card has been added to your inventory.";
+  }
+
+  const finalEmbed = edgarPainEmbed(title, dialogue);
+  const row = new ActionRowBuilder().addComponents(
+    new ButtonBuilder()
+      .setCustomId('tutorial_go_to_town')
+      .setLabel('Go to Town')
+      .setStyle(ButtonStyle.Success)
+  );
+
+  await userService.setTutorialStep(interaction.user.id, 'town_arrival');
+  await interaction.update({ embeds: [finalEmbed], components: [row] });
 }
 
 async function execute(interaction) {
@@ -166,4 +246,4 @@ async function execute(interaction) {
   await interaction.reply({ embeds: [ambushEmbed], components: [row], ephemeral: true });
 }
 
-module.exports = { data, execute, handleInteraction, runTutorial, showArchetypePreview };
+module.exports = { data, execute, handleInteraction, runTutorial, showArchetypePreview, handleLootChoice };

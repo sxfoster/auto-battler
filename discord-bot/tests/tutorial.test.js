@@ -72,18 +72,32 @@ describe('tutorial command', () => {
     expect(userService.setTutorialStep).toHaveBeenCalledWith('1', 'archetype_selection_prompt');
   });
 
-  test('runTutorial awards items and marks completion', async () => {
+  test('runTutorial presents loot choice', async () => {
     userService.getUser.mockResolvedValue({ id: 1 });
-    abilityCardService.addCard.mockResolvedValue(10);
-    weaponService.addWeapon.mockResolvedValue(5);
     const interaction = { user: { id: '1', username: 'Tester' }, followUp: jest.fn() };
     await tutorial.runTutorial(interaction, 'Stalwart Defender');
-    expect(abilityCardService.addCard).toHaveBeenCalled();
-    expect(weaponService.addWeapon).toHaveBeenCalled();
-    expect(userService.setActiveAbility).toHaveBeenCalled();
-    expect(weaponService.setEquippedWeapon).toHaveBeenCalled();
     expect(userService.setUserClass).toHaveBeenCalledWith('1', 'Stalwart Defender');
-    jest.runAllTimers();
-    await Promise.resolve();
+    expect(userService.setTutorialStep).toHaveBeenCalledWith('1', 'loot_choice');
+    const call = interaction.followUp.mock.calls.find(c => c[0].embeds);
+    expect(call).toBeDefined();
+  });
+
+  test('handleLootChoice awards weapon', async () => {
+    userService.getUser.mockResolvedValue({ id: 1 });
+    const interaction = { user: { id: '1' }, update: jest.fn() };
+    await tutorial.handleLootChoice(interaction, 'weapon');
+    expect(weaponService.addWeapon).toHaveBeenCalled();
+    expect(weaponService.setEquippedWeapon).toHaveBeenCalled();
+    expect(userService.setTutorialStep).toHaveBeenCalledWith('1', 'town_arrival');
+    expect(interaction.update).toHaveBeenCalled();
+  });
+
+  test('handleLootChoice awards ability', async () => {
+    userService.getUser.mockResolvedValue({ id: 1 });
+    const interaction = { user: { id: '1' }, update: jest.fn() };
+    await tutorial.handleLootChoice(interaction, 'ability');
+    expect(abilityCardService.addCard).toHaveBeenCalled();
+    expect(userService.setTutorialStep).toHaveBeenCalledWith('1', 'town_arrival');
+    expect(interaction.update).toHaveBeenCalled();
   });
 });
