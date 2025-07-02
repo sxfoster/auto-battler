@@ -38,8 +38,8 @@ async function execute(interaction) {
   const scenes = [
     {
       title: 'The Shattering',
-      text: 'Long ago a cataclysm ripped the world apart, scattering magic into crystalline Ability Cards.',
-      image: 'https://placehold.co/600x400?text=Shattering'
+      text: 'The sky burned once. Reality fractured. And from the heart of the ruin, the first Echo was born.',
+      videoUrl: 'https://your-cdn.com/the_shattering.mp4'
     },
     {
       title: 'Echoes',
@@ -58,10 +58,19 @@ async function execute(interaction) {
     }
   ];
 
-  await interaction.reply({
-    embeds: [new EmbedBuilder().setTitle(scenes[0].title).setDescription(scenes[0].text).setImage(scenes[0].image)],
-    ephemeral: true
-  });
+  const firstScene = scenes[0];
+
+  // Send the video URL first so Discord embeds the video player
+  await interaction.reply({ content: firstScene.videoUrl, ephemeral: true });
+
+  // Follow up with the lore embed
+  const loreEmbed = new EmbedBuilder()
+    .setTitle(firstScene.title)
+    .setDescription(firstScene.text)
+    .setColor('#29b6f6');
+
+  await interaction.followUp({ embeds: [loreEmbed], ephemeral: true });
+
   for (let i = 1; i < scenes.length; i++) {
     const scene = scenes[i];
     const embed = new EmbedBuilder().setTitle(scene.title).setDescription(scene.text).setImage(scene.image);
