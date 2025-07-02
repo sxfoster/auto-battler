@@ -2,6 +2,7 @@
 
 const { allPossibleMinions } = require('./data');
 const { STATUS_EFFECTS } = require('./statusEffects');
+const ProcEngine = require('./procEngine');
 
 let abilityCardService;
 try {
@@ -20,6 +21,7 @@ class GameEngine {
         this.roundCounter = 0;
         this.extraActionTaken = {}; // Tracks extra actions per round
         this.finalPlayerState = {}; // Will store final state changes
+        this.procEngine = new ProcEngine(this.battleLog);
     }
 
     log(entry, level = 'detail') {
@@ -265,6 +267,7 @@ class GameEngine {
 
    startRound() {
        this.roundCounter++;
+       this.procEngine.roundCounter = this.roundCounter;
        this.log({ type: 'round', message: `--- Round ${this.roundCounter} ---` }, 'summary');
        this.extraActionTaken = {}; // reset extra action tracking each round
        this.turnQueue = this.computeTurnQueue();
@@ -353,14 +356,20 @@ class GameEngine {
                // Always perform the auto-attack first
                this.applyDamage(attacker, targetEnemy, attacker.attack);
 
-               const weapon = attacker.weaponData;
-               if (weapon && Array.isArray(weapon.procs)) {
-                   for (const proc of weapon.procs) {
-                       if (proc.trigger === 'on_auto_attack' && Math.random() < (proc.chance ?? 1)) {
-                           this.applyStatusEffect(targetEnemy, proc.effect, proc.duration, { amount: proc.amount });
-                       }
-                   }
-               }
+               this.procEngine.trigger('on_auto_attack', {
+                   attacker,
+                   defender: targetEnemy,
+                   allCombatants: this.combatants,
+                   applyDamage: this.applyDamage.bind(this),
+                   applyStatus: this.applyStatusEffect.bind(this)
+               });
+               this.procEngine.trigger('on_attacked', {
+                   attacker,
+                   defender: targetEnemy,
+                   allCombatants: this.combatants,
+                   applyDamage: this.applyDamage.bind(this),
+                   applyStatus: this.applyStatusEffect.bind(this)
+               });
                if (this.checkVictory()) return;
 
                // Re-evaluate potential targets in case the first enemy was defeated
@@ -409,6 +418,15 @@ class GameEngine {
 
    *runGameSteps() {
        this.log({ type: 'start', message: '⚔️ --- Battle Starting --- ⚔️' });
+       for (const c of this.combatants) {
+           this.procEngine.trigger('on_battle_start', {
+               attacker: c,
+               defender: null,
+               allCombatants: this.combatants,
+               applyDamage: this.applyDamage.bind(this),
+               applyStatus: this.applyStatusEffect.bind(this)
+           });
+       }
        let lastIndex = 0;
        yield { combatants: this.combatants.map(c => ({ ...c })), log: this.battleLog.slice(lastIndex) };
        lastIndex = this.battleLog.length;
