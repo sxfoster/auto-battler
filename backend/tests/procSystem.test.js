@@ -60,4 +60,21 @@ describe('Data-Driven Proc System', () => {
     const updatedDefender = engine.combatants.find(c => c.id === defender.id);
     expect(updatedDefender.currentHp).toBe(initialDefenderHp - (baseDamage + 2));
   });
+
+  test('Once per combat procs trigger only once', () => {
+    const attacker = createCombatant({ hero_id: 1 }, 'player', 0);
+    const defender = createCombatant({ hero_id: 2001 }, 'enemy', 0);
+    attacker.weaponData = {
+      name: 'Test Weapon',
+      procs: [{ trigger: 'on_attack', effect: 'bonus_damage', value: 1, once_per_combat: true }]
+    };
+    const engine = new GameEngine([attacker, defender]);
+    engine.turnQueue = [attacker];
+    engine.processTurn();
+    engine.turnQueue = [attacker];
+    engine.processTurn();
+
+    const logOccurrences = engine.battleLog.filter(l => l.message.includes('bonus_damage procs!')).length;
+    expect(logOccurrences).toBe(1);
+  });
 });

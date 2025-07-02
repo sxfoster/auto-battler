@@ -9,6 +9,21 @@ class ProcEngine {
             battleLog.push({ round: this.roundCounter, level, ...entry });
         };
         this.roundCounter = 0;
+        this.usedProcs = new Map();
+    }
+
+    hasProcTriggered(combatant, proc) {
+        const set = this.usedProcs.get(combatant.id);
+        return set ? set.has(proc) : false;
+    }
+
+    markProcTriggered(combatant, proc) {
+        let set = this.usedProcs.get(combatant.id);
+        if (!set) {
+            set = new Set();
+            this.usedProcs.set(combatant.id, set);
+        }
+        set.add(proc);
     }
 
     // A central function to check for any procs that should activate.
@@ -24,7 +39,13 @@ class ProcEngine {
 
                 for (const proc of item.procs) {
                     if (proc.trigger === eventName && this.checkConditions(proc, context)) {
+                        if (proc.once_per_combat && this.hasProcTriggered(combatant, proc)) {
+                            continue;
+                        }
                         this.executeEffect(proc, context);
+                        if (proc.once_per_combat) {
+                            this.markProcTriggered(combatant, proc);
+                        }
                     }
                 }
             }
