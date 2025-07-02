@@ -81,25 +81,41 @@ class GameEngine {
 
    applyDamage(attacker, target, baseDamage, options = {}) {
        const { log = true, ignoreDefense = 0 } = options;
+
+       // --- Calculate bonuses from attacker buffs ---
+       let bonusDamage = 0;
+       if (attacker.statusEffects && attacker.statusEffects.some(s => s.name === 'Attack Up')) {
+           bonusDamage += 2; // simple flat bonus for each Attack Up instance
+       }
+
+       // --- Calculate target defense value ---
        let defense = target.defense || 0;
        if (target.statusEffects && target.statusEffects.some(s => s.name === 'Defense Down')) {
            defense = Math.max(0, defense - 1);
        }
-       let bonus = 0;
+       if (target.statusEffects && target.statusEffects.some(s => s.name === 'Fortify')) {
+           defense += 1; // reduces damage by 1 while Fortify is active
+       }
+
+       // --- Bonus damage from target debuffs ---
        if (target.statusEffects) {
            for (const eff of target.statusEffects) {
                if (eff.name === 'Armor Break') {
-                   bonus += eff.bonusDamage || 1;
+                   bonusDamage += eff.bonusDamage || 1;
                }
            }
        }
-       const effective = Math.max(1, baseDamage - Math.max(0, defense - ignoreDefense) + bonus);
-       target.currentHp = Math.max(0, target.currentHp - effective);
+
+       const defenseMitigation = Math.max(0, defense - ignoreDefense);
+       const rawDamage = baseDamage + bonusDamage;
+       const finalDamage = Math.max(1, rawDamage - defenseMitigation);
+
+       target.currentHp = Math.max(0, target.currentHp - finalDamage);
        if (log) {
            if (attacker === target) {
-               this.log({ type: 'damage', message: `${target.name} takes ${effective} damage.` }, 'summary');
+               this.log({ type: 'damage', message: `${target.name} takes ${finalDamage} damage.` }, 'summary');
            } else {
-               this.log({ type: 'damage', message: `${attacker.name} hits ${target.name} for ${effective} damage.` }, 'summary');
+               this.log({ type: 'damage', message: `${attacker.name} hits ${target.name} for ${finalDamage} damage.` }, 'summary');
            }
            if (target.currentHp <= 0) {
                this.log({ type: 'status', message: `💀 ${target.name} has been defeated.` }, 'summary');
@@ -114,10 +130,15 @@ class GameEngine {
                });
            }
        }
-       if (effective > 0) {
+       if (finalDamage > 0) {
            target.hitsTaken = (target.hitsTaken || 0) + 1;
        }
-       return effective;
+       return {
+           baseDamage,
+           bonusDamage,
+           defenseMitigation,
+           finalDamage
+       };
    }
 
   applyAbilityEffect(attacker, target, ability) {
@@ -150,13 +171,15 @@ class GameEngine {
            multiTarget = true;
            const enemies = this.combatants.filter(c => c.team !== attacker.team && c.currentHp > 0);
            for (const enemy of enemies) {
-               damageDealt = this.applyDamage(attacker, enemy, base, { log: false });
+               const result = this.applyDamage(attacker, enemy, base, { log: false });
+               damageDealt = result.finalDamage;
            }
        } else {
            const damageMatch = ability.effect.match(/Deal (\d+) damage/i);
            if (damageMatch) {
                const base = parseInt(damageMatch[1], 10);
-               damageDealt = this.applyDamage(attacker, target, base, { log: false });
+               const result = this.applyDamage(attacker, target, base, { log: false });
+               damageDealt = result.finalDamage;
            }
        }
 
@@ -317,8 +340,8 @@ class GameEngine {
                this.applyHeal(combatant, effect.healing);
                this.log({ type: 'status', message: `💚 ${combatant.name} is healed for ${effect.healing} by Regrowth.` });
            } else if (effect.name === 'Poison') {
-               const dealt = this.applyDamage(combatant, combatant, effect.damage, { log: false });
-               this.log({ type: 'status', message: `☣️ ${combatant.name} takes ${dealt} poison damage.` });
+               const result = this.applyDamage(combatant, combatant, effect.damage, { log: false });
+               this.log({ type: 'status', message: `☣️ ${combatant.name} takes ${result.finalDamage} poison damage.` });
            }
 
            if (effect.name !== 'Confuse') {
@@ -403,11 +426,20 @@ class GameEngine {
                this.procEngine.trigger('on_attacked', context);
 
                let dealt = 0;
+               let damageDetails = null;
                if (!context.cancelDamage) {
-                   dealt = this.applyDamage(attacker, targetEnemy, attacker.attack, {
+                   damageDetails = this.applyDamage(attacker, targetEnemy, attacker.attack, {
                        ignoreDefense: context.ignoreDefense || 0
                    });
+                   dealt = damageDetails.finalDamage;
                    attacker.attacksMade = (attacker.attacksMade || 0) + 1;
+                   this.log({
+                       type: 'damage_calculation',
+                       level: 'detail',
+                       attacker: attacker.name,
+                       target: targetEnemy.name,
+                       details: damageDetails
+                   });
                }
                context.damage = dealt;
 
