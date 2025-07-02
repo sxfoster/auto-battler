@@ -108,7 +108,7 @@ async function handleBuyButton(interaction) {
     .setPlaceholder('Select a listing to buy')
     .addOptions(
       listings.map(listing => ({
-        label: `${abilityName(listing.ability_id)} - ${listing.price}g (${listing.charges}/10)`,
+        label: `${abilityName(listing.ability_id)} - ${listing.price}g (${listing.charges}/10) by ${listing.seller_name}`,
         value: String(listing.id)
       }))
     );
@@ -124,7 +124,7 @@ async function handleBuySelect(interaction) {
     return;
   }
   try {
-    const listing = await auctionService.purchaseListing(user.id, listingId);
+    const listing = await auctionService.purchaseListing(user.id, listingId, interaction.client);
     await interaction.update({
       content: `✅ Purchased ${abilityName(listing.ability_id)} for ${listing.price} gold.`,
       components: [],
