@@ -73,7 +73,9 @@ const BOOSTER_PACKS = {
 
 // Load commands
 const townCommand = require('./commands/town');
+const adventureCommand = require('./commands/adventure');
 client.commands.set(townCommand.data.name, townCommand);
+client.commands.set(adventureCommand.data.name, adventureCommand);
 
 client.once(Events.ClientReady, () => {
     console.log('Bot ready');
@@ -89,6 +91,32 @@ client.on(Events.InteractionCreate, async interaction => {
     }
 
     if (!interaction.isButton()) return;
+
+    // Navigation buttons for returning to town
+    if (interaction.customId === 'nav-town-new') {
+        const townCommand = client.commands.get('town');
+        if (townCommand) {
+            await townCommand.execute(interaction);
+        }
+        return;
+    }
+
+    if (interaction.customId === 'nav-town') {
+        const townEmbed = new EmbedBuilder()
+            .setTitle("Welcome to Portal's Rest")
+            .setDescription('The bustling town is full of adventurers. What would you like to do?')
+            .setImage('https://i.imgur.com/2pCIH22.png');
+
+        const townRow = new ActionRowBuilder().addComponents(
+            new ButtonBuilder().setCustomId('town-adventure').setLabel('Go on an Adventure').setStyle(ButtonStyle.Success).setEmoji('⚔️'),
+            new ButtonBuilder().setCustomId('town-inventory').setLabel('Check Inventory').setStyle(ButtonStyle.Secondary).setEmoji('🎒'),
+            new ButtonBuilder().setCustomId('town-leaderboard').setLabel('View Leaderboard').setStyle(ButtonStyle.Primary).setEmoji('🏆'),
+            new ButtonBuilder().setCustomId('town-auctionhouse').setLabel('Visit Auction House').setStyle(ButtonStyle.Primary).setEmoji('💰')
+        );
+
+        await interaction.update({ content: '', embeds: [townEmbed], components: [townRow] });
+        return;
+    }
 
     const userId = interaction.user.id;
 
@@ -215,6 +243,14 @@ client.on(Events.InteractionCreate, async interaction => {
                 new ButtonBuilder().setCustomId('back_to_town').setLabel('Back to Town').setStyle(ButtonStyle.Secondary).setEmoji('⬅️')
             );
             await interaction.editReply({ embeds: [marketEmbed], components: [storeButton, navigationRow] });
+            break;
+        }
+
+        case interaction.customId === 'town-adventure': {
+            const adventure = client.commands.get('adventure');
+            if (adventure) {
+                await adventure.execute(interaction);
+            }
             break;
         }
 
