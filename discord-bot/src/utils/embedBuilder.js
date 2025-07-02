@@ -40,7 +40,7 @@ function buildCardEmbed(card) {
       { name: 'Name', value: card.name, inline: true },
       { name: 'Class', value: card.class, inline: true },
       { name: 'Rarity', value: card.rarity, inline: true },
-      { name: 'Charges', value: '10/10', inline: true },
+      { name: 'Charges', value: '20/20', inline: true },
       { name: 'Description', value: card.effect }
     );
 

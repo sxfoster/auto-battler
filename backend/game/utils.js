@@ -40,10 +40,10 @@ function createCombatant(playerData, team, position) {
     const deckAbilities = (playerData.deck || []).map(entry => {
         if (typeof entry === 'object') {
             const a = allPossibleAbilities.find(ab => ab.id === entry.ability_id);
-            return a ? { ...a, cardId: entry.id, charges: entry.charges ?? 10 } : null;
+            return a ? { ...a, cardId: entry.id, charges: entry.charges ?? 20 } : null;
         } else {
             const a = allPossibleAbilities.find(ab => ab.id === entry);
-            return a ? { ...a, charges: 10 } : null;
+            return a ? { ...a, charges: 20 } : null;
         }
     }).filter(Boolean);
 

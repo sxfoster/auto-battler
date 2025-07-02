@@ -8,15 +8,15 @@ This system replaces temporary drafted abilities with persistent Ability Cards t
 ## 2. Core Mechanics
 ### 2.1 Acquiring Ability Cards
 - **Loot Drops:** Monsters have a chance to drop an Ability Card matching their class.
-- **Initial Charges:** Newly dropped cards start with **10/10** charges.
+- **Initial Charges:** Newly dropped cards start with **20/20** charges.
 
 ### 2.2 Inventory Management
 - **Stacking:** Duplicate cards do not merge; each occupies its own slot.
 - **Stack Limit:** Up to 25 copies of the same card may be held.
 - **Display:** `/inventory` lists each card with its current charge count, e.g.
-  - `Shield Bash 10/10`
-  - `Shield Bash 7/10`
-  - `Power Strike 0/10`
+  - `Shield Bash 20/20`
+  - `Shield Bash 7/20`
+  - `Power Strike 0/20`
 
 ### 2.3 Equipping and Using Abilities
 - **Setting an Ability:** Players select one card from their inventory to become their active ability. Only one ability can be set at a time. The planned `/inventory set <card name>` command in the Discord bot will handle this once implemented.
