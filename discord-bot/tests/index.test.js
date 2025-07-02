@@ -28,6 +28,15 @@ jest.mock('discord.js', () => {
     Collection: Map,
     GatewayIntentBits: { Guilds: 0 },
     Events: { ClientReady: 'ready', InteractionCreate: 'interactionCreate' },
+    EmbedBuilder: class {
+      setColor() { return this; }
+      setTitle() { return this; }
+      setDescription() { return this; }
+      setTimestamp() { return this; }
+      setFooter() { return this; }
+      setThumbnail() { return this; }
+      addFields() { return this; }
+    },
     __clients: clients
   };
 });
@@ -49,5 +58,7 @@ test('errors from router are handled', async () => {
   const interaction = { replied: false, deferred: false, reply: jest.fn(), followUp: jest.fn() };
   routeInteraction.mockRejectedValueOnce(new Error('fail'));
   await handler(interaction);
-  expect(interaction.reply).toHaveBeenCalledWith(expect.objectContaining({ content: 'An unexpected error occurred.' }));
+  expect(interaction.reply).toHaveBeenCalledWith(
+    expect.objectContaining({ embeds: expect.any(Array), ephemeral: true })
+  );
 });
