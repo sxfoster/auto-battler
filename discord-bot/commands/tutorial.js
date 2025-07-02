@@ -23,7 +23,9 @@ async function startTutorial(interaction) {
   await userService.setUserState(interaction.user.id, 'in_tutorial');
   await userService.setTutorialStep(interaction.user.id, 'town');
 
-  await interaction.reply({ content: 'https://youtu.be/mnOVJ-ucQPM', ephemeral: true });
+  // The initial welcome reply is sent by the interaction router. Use followUp
+  // for all subsequent tutorial messages to avoid InteractionAlreadyReplied.
+  await interaction.followUp({ content: 'https://youtu.be/mnOVJ-ucQPM', ephemeral: true });
 
   const introEmbed = new EmbedBuilder()
     .setTitle('Edgar Pain')
