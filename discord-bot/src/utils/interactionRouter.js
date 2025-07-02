@@ -1,5 +1,6 @@
 const userService = require('./userService');
 const settingsCommand = require('../../commands/settings');
+const feedback = require('./feedback');
 
 // Handles interactions for active users
 async function handleActiveInteraction(interaction, user) {
@@ -8,20 +9,32 @@ async function handleActiveInteraction(interaction, user) {
     if (!command) return;
 
     if (command.data && command.data.name === 'adventure' && user.location !== 'town') {
-      await interaction.reply({ content: 'You must be in town to go on an adventure.', ephemeral: true });
+      await feedback.sendError(
+        interaction,
+        'Action Not Available',
+        'You must be in town to go on an adventure. Use `/town` to return.'
+      );
       return;
     }
 
     await command.execute(interaction);
   } else if (interaction.isButton()) {
     if (user.location !== 'town' && interaction.customId.startsWith('town-')) {
-      await interaction.reply({ content: 'You must be in town to do that.', ephemeral: true });
+      await feedback.sendError(
+        interaction,
+        'Action Not Available',
+        'You must be in town to do that. Use `/town` to return.'
+      );
       return;
     }
 
     const [customId, targetUserId] = interaction.customId.split(':');
     if (targetUserId && interaction.user.id !== targetUserId) {
-      await interaction.reply({ content: "This isn't your adventure!", ephemeral: true });
+      await feedback.sendError(
+        interaction,
+        'Action Not Available',
+        "This isn't your adventure!"
+      );
       return;
     }
 
@@ -53,6 +66,19 @@ async function routeInteraction(interaction) {
     user = await userService.createUser(interaction.user.id, interaction.user.username);
     await userService.setUserState(interaction.user.id, 'in_tutorial');
     await userService.setTutorialStep(interaction.user.id, 'welcome');
+
+    await feedback.sendInfo(
+      interaction,
+      'Welcome, Adventurer!',
+      "Before you can explore, you need to learn the ropes. Let's start with the tutorial."
+    );
+
+    const tutorialCommand = interaction.client.commands.get('tutorial');
+    if (tutorialCommand) {
+      const userState = await userService.getUserState(interaction.user.id);
+      await tutorialCommand.handleInteraction(interaction, userState);
+    }
+    return;
   }
 
   const state = await userService.getUserState(interaction.user.id);
@@ -70,10 +96,18 @@ async function routeInteraction(interaction) {
       await handleActiveInteraction(interaction, user);
       break;
     case 'in_combat':
-      await interaction.reply({ content: 'You are in combat and cannot perform other actions now.', ephemeral: true });
+      await feedback.sendError(
+        interaction,
+        'Action Not Available',
+        'You cannot perform this action while in combat.'
+      );
       break;
     default:
-      await interaction.reply({ content: 'Your account is in an unknown state. Please contact an administrator.', ephemeral: true });
+      await feedback.sendError(
+        interaction,
+        'Unknown State',
+        'Your account is in an unknown state. Please contact an administrator.'
+      );
   }
 }
 

@@ -12,6 +12,7 @@ const abilityCardService = require('../src/utils/abilityCardService');
 const weaponService = require('../src/utils/weaponService');
 const { createBackToTownRow } = require('../src/utils/components');
 const gameData = require('../util/gameData');
+const feedback = require('../src/utils/feedback');
 
 function getAllAbilities() {
   return Array.from(gameData.gameData.abilities.values());
@@ -178,7 +179,7 @@ async function execute(interaction) {
     const abilityName = interaction.options.getString('ability');
     const ability = allPossibleAbilities.find(a => a.name.toLowerCase() === abilityName.toLowerCase());
     if (!ability) {
-      await interaction.reply({ content: 'Ability not found.', ephemeral: true });
+      await feedback.sendError(interaction, 'Ability Not Found', 'Ability not found.');
       return;
     }
 
@@ -186,7 +187,11 @@ async function execute(interaction) {
       c => c.ability_id === ability.id && c.charges > 0
     );
     if (!cards.length) {
-      await interaction.reply({ content: `You don't own any charged copies of ${ability.name}.`, ephemeral: true });
+      await feedback.sendError(
+        interaction,
+        'No Charged Copies',
+        `You don't own any charged copies of ${ability.name}.`
+      );
       return;
     }
 
@@ -216,14 +221,14 @@ async function handleSetAbilityButton(interaction) {
   const allPossibleAbilities = getAllAbilities();
   const user = await userService.getUser(interaction.user.id);
   if (!user) {
-    await interaction.reply({ content: 'User not found.', ephemeral: true });
+    await feedback.sendError(interaction, 'User Not Found', 'User not found.');
     return;
   }
 
   const cards = (await abilityCardService.getCards(user.id)).filter(c => c.charges > 0);
   const uniqueIds = [...new Set(cards.map(c => c.ability_id))];
   if (!uniqueIds.length) {
-    await interaction.reply({ content: 'You have no usable ability cards.', ephemeral: true });
+    await feedback.sendError(interaction, 'No Cards', 'You have no usable ability cards.');
     return;
   }
 
@@ -246,14 +251,16 @@ async function handleAbilitySelect(interaction) {
   const abilityId = parseInt(interaction.values[0], 10);
   const user = await userService.getUser(interaction.user.id);
   if (!user) {
-    await interaction.update({ content: 'User not found.', components: [], ephemeral: true });
+    await interaction.update({ components: [], embeds: [], content: undefined });
+    await feedback.sendError(interaction, 'User Not Found', 'User not found.');
     return;
   }
 
   const ability = allPossibleAbilities.find(a => a.id === abilityId);
   const abilityName = ability?.name || `Ability ${abilityId}`;
   if (!ability) {
-    await interaction.update({ content: 'Ability not found.', components: [], embeds: [], ephemeral: true });
+    await interaction.update({ components: [], embeds: [], content: undefined });
+    await feedback.sendError(interaction, 'Ability Not Found', 'Ability not found.');
     return;
   }
 
@@ -284,7 +291,8 @@ async function handleEquipSelect(interaction) {
   const cardId = parseInt(interaction.values[0], 10);
   const user = await userService.getUser(interaction.user.id);
   if (!user) {
-    await interaction.update({ content: 'User not found.', components: [], ephemeral: true });
+    await interaction.update({ components: [], embeds: [], content: undefined });
+    await feedback.sendError(interaction, 'User Not Found', 'User not found.');
     return;
   }
 
@@ -293,7 +301,8 @@ async function handleEquipSelect(interaction) {
   const ability = card ? allPossibleAbilities.find(a => a.id === card.ability_id) : null;
   const abilityName = ability?.name || 'Ability';
   if (!ability) {
-    await interaction.update({ content: 'Ability not found.', components: [], embeds: [], ephemeral: true });
+    await interaction.update({ components: [], embeds: [], content: undefined });
+    await feedback.sendError(interaction, 'Ability Not Found', 'Ability not found.');
     return;
   }
 
@@ -307,13 +316,13 @@ async function handleSetWeaponButton(interaction) {
   const allWeapons = getAllWeapons();
   const user = await userService.getUser(interaction.user.id);
   if (!user) {
-    await interaction.reply({ content: 'User not found.', ephemeral: true });
+    await feedback.sendError(interaction, 'User Not Found', 'User not found.');
     return;
   }
 
   const weapons = await weaponService.getWeapons(user.id);
   if (!weapons.length) {
-    await interaction.reply({ content: 'You have no weapons.', ephemeral: true });
+    await feedback.sendError(interaction, 'No Weapons', 'You have no weapons.');
     return;
   }
 
@@ -336,13 +345,15 @@ async function handleWeaponSelect(interaction) {
   const weaponInstId = parseInt(interaction.values[0], 10);
   const user = await userService.getUser(interaction.user.id);
   if (!user) {
-    await interaction.update({ content: 'User not found.', components: [], ephemeral: true });
+    await interaction.update({ components: [], embeds: [], content: undefined });
+    await feedback.sendError(interaction, 'User Not Found', 'User not found.');
     return;
   }
 
   const weapon = await weaponService.getWeapon(weaponInstId);
   if (!weapon || weapon.user_id !== user.id) {
-    await interaction.update({ content: 'Weapon not found.', components: [], ephemeral: true });
+    await interaction.update({ components: [], embeds: [], content: undefined });
+    await feedback.sendError(interaction, 'Weapon Not Found', 'Weapon not found.');
     return;
   }
 
@@ -380,7 +391,8 @@ async function handleMergeButton(interaction) {
   const mergeableAbilityIds = Object.keys(abilityCounts).filter(id => abilityCounts[id] > 1);
 
   if (mergeableAbilityIds.length === 0) {
-    return interaction.reply({ content: 'You have no abilities with duplicate cards to merge.', ephemeral: true });
+    await feedback.sendError(interaction, 'No Mergeable Abilities', 'You have no abilities with duplicate cards to merge.');
+    return;
   }
 
   const menu = new StringSelectMenuBuilder()
@@ -408,7 +420,9 @@ async function handleMergeSelect(interaction) {
   const cardsToMerge = allCards.filter(c => c.ability_id === abilityId);
 
   if (cardsToMerge.length <= 1) {
-    return interaction.update({ content: 'Not enough copies to merge.', components: [], ephemeral: true });
+    await interaction.update({ components: [], embeds: [], content: undefined });
+    await feedback.sendError(interaction, 'Merge Failed', 'Not enough copies to merge.');
+    return;
   }
 
   const totalCharges = cardsToMerge.reduce((sum, card) => sum + card.charges, 0);
