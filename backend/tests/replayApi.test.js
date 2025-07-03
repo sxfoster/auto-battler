@@ -1,10 +1,10 @@
 const request = require('supertest');
 
-jest.mock('../../discord-bot/util/database', () => ({
+jest.mock('../util/database', () => ({
   query: jest.fn(),
 }));
 
-const db = require('../../discord-bot/util/database');
+const db = require('../util/database');
 const app = require('../index');
 
 describe('GET /api/replays/:id', () => {
@@ -14,7 +14,7 @@ describe('GET /api/replays/:id', () => {
 
   test('returns battle log when replay exists', async () => {
     const log = { turns: [] };
-    db.query.mockResolvedValue([[{ battle_log: log }]]);
+    db.query.mockResolvedValue([[{ battle_log: JSON.stringify(log) }]]);
     const res = await request(app).get('/api/replays/1');
     expect(res.statusCode).toBe(200);
     expect(res.body).toEqual(log);
@@ -28,6 +28,6 @@ describe('GET /api/replays/:id', () => {
     db.query.mockResolvedValue([[]]);
     const res = await request(app).get('/api/replays/999');
     expect(res.statusCode).toBe(404);
-    expect(res.body).toEqual({ error: 'Not Found' });
+    expect(res.body).toEqual({ error: 'Replay not found' });
   });
 });

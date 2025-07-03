@@ -1,6 +1,6 @@
 const express = require('express');
 const cors = require('cors');
-const db = require('../discord-bot/util/database');
+const db = require('./util/database');
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -13,15 +13,22 @@ app.get('/', (req, res) => {
 });
 
 app.get('/api/replays/:id', async (req, res) => {
+  const { id } = req.params;
   try {
-    const [rows] = await db.query('SELECT battle_log FROM battle_replays WHERE id = ?', [req.params.id]);
+    const [rows] = await db.query(
+      'SELECT battle_log FROM battle_replays WHERE id = ?',
+      [id]
+    );
+
     if (rows.length === 0) {
-      return res.status(404).json({ error: 'Not Found' });
+      return res.status(404).json({ error: 'Replay not found' });
     }
-    res.json(rows[0].battle_log);
+
+    const battleLog = JSON.parse(rows[0].battle_log);
+    res.json(battleLog);
   } catch (err) {
-    console.error('Failed to fetch replay:', err);
-    res.status(500).json({ error: 'Server Error' });
+    console.error(`Error fetching replay ${id}:`, err);
+    res.status(500).json({ error: 'Internal Server Error' });
   }
 });
 
