@@ -1,5 +1,8 @@
-import React, { useEffect } from 'react' 
+import React, { useEffect } from 'react'
 import { DiscordSDK } from '@discord/embedded-app-sdk'
+
+// Log when the script is loaded to verify iframe execution
+console.log('[React App] App.jsx script loaded.');
 import { useGameStore } from './store.js'
 import AnimatedBackground from './components/AnimatedBackground.jsx'
 import DebugMenu from './components/DebugMenu.jsx'
@@ -18,8 +21,9 @@ import './style.css'
 const discordSdk = new DiscordSDK(import.meta.env.VITE_DISCORD_CLIENT_ID)
 
 async function setupDiscordSdk() {
+  console.log('[React App] Starting Discord SDK setup...');
   await discordSdk.ready();
-  console.log("Discord SDK is ready and connected.");
+  console.log('[React App] Discord SDK is ready!');
 
   // Authenticate to get the current user
   // TODO: This needs a valid OAuth2 access token
@@ -87,6 +91,7 @@ export default function App() {
 
   // Setup Discord SDK and multiplayer logic
   useEffect(() => {
+    console.log('[React App] App component mounted, attempting to set up SDK.');
     setupDiscordSdk();
   }, []);
 
