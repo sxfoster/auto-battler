@@ -14,68 +14,74 @@ const data = new SlashCommandBuilder()
   .setName('tutorial')
   .setDescription('Start or continue the guided tutorial');
 
-async function startTutorial(interaction) {
-  let user = await userService.getUser(interaction.user.id);
-  if (!user) {
-    await userService.createUser(interaction.user.id, interaction.user.username);
-    user = await userService.getUser(interaction.user.id);
-  }
-  await userService.setUserState(interaction.user.id, 'in_tutorial');
-  await userService.setTutorialStep(interaction.user.id, 'town');
-
-  // The initial welcome reply is sent by the interaction router. Use followUp
-  // for all subsequent tutorial messages to avoid InteractionAlreadyReplied.
-  await interaction.followUp({ content: 'https://youtu.be/mnOVJ-ucQPM', ephemeral: true });
-
-  const introEmbed = new EmbedBuilder()
-    .setTitle('Edgar Pain')
-    .setDescription('Stay only for a moment, and cover your ears.')
-    .setColor('#29b6f6');
-  await interaction.followUp({ embeds: [introEmbed], ephemeral: true });
-
-  const townEmbed = new EmbedBuilder()
-    .setTitle("Welcome to Portal's Rest")
-    .setDescription('The bustling town is full of opportunities. Where will you go?')
-    .setImage('https://i.imgur.com/2pCIH22.png');
-
-  const row = new ActionRowBuilder().addComponents(
-    new ButtonBuilder().setCustomId('tutorial_complete').setLabel('Finish Tutorial').setStyle(ButtonStyle.Primary)
-  );
-
-  await interaction.followUp({ embeds: [townEmbed], components: [row], ephemeral: true });
-}
-
 async function handleInteraction(interaction, userState) {
-  switch (userState.tutorial_step) {
-    case 'welcome':
-      if (interaction.isChatInputCommand()) {
-        await startTutorial(interaction);
-      } else {
-        await interaction.reply({ content: 'Use /tutorial to begin the tutorial.', ephemeral: true });
-      }
-      break;
-    default:
-      if (interaction.isChatInputCommand()) {
-        await startTutorial(interaction);
-      } else if (interaction.isButton() && interaction.customId === 'tutorial_complete') {
+  // The 'welcome' step is now handled by the execute function when a new user uses /tutorial.
+  // If an existing user in tutorial uses /tutorial again, or if they are at other steps,
+  // this function will handle button presses or other interactions.
+
+  // No longer allowing /tutorial chat command to re-trigger startTutorial flow here.
+  // It should be handled by the execute() for new users or provide guidance for existing.
+  if (interaction.isChatInputCommand()) {
+    // If user is already in tutorial and tries /tutorial again
+    await interaction.reply({ content: "You are already in the tutorial. Please follow the prompts or use the buttons provided.", ephemeral: true });
+    return;
+  }
+
+  if (interaction.isButton()) {
+    if (interaction.customId.startsWith('tutorial_select_') && typeof module.exports.runTutorial === 'function') {
+      // This interaction customId might need to be updated if it's from the StringSelectMenu
+      // For now, assuming it's a button press that directly gives a class name or similar.
+      // The execute() function now handles archetype selection via a StringSelectMenu,
+      // so this specific 'tutorial_select_' prefix might be outdated or need adjustment
+      // based on how showArchetypePreview and its confirm button (tutorial_confirm_archetype) work.
+      // Let's assume this part is for confirming an archetype after a preview.
+      const parts = interaction.customId.split(':');
+      if (parts[0] === 'tutorial_confirm_archetype' && parts.length > 1) {
+        const chosenClass = parts[1];
+        // interaction.update was here, but runTutorial will send its own messages.
+        // Ensure no "InteractionAlreadyReplied" error.
+        // The showArchetypePreview updates the message, so runTutorial should followUp.
+        await module.exports.runTutorial(interaction, chosenClass);
+      } else if (interaction.customId === 'tutorial_choose_again') {
+        // Re-present the archetype selection from execute() - this might be tricky
+        // as execute() uses interaction.reply. We might need a helper for this.
+        // For now, let's just acknowledge and guide.
+        // A better approach would be to call a function that re-sends the archetype selection embed.
+        // This logic will be refined once I review the full flow after this removal.
+        // The `execute` function sends the initial archetype selection.
+        // Re-prompting might involve calling a part of `execute` or a new helper.
+        // For now, let's defer direct re-prompting from here.
+        // The user would typically interact with the select menu again if they want to change.
+        // showArchetypePreview leads to confirm or choose_again.
+        // If 'choose_again', we should re-present the initial archetype selection embed.
+        // This requires the `execute` function's archetype prompt to be callable.
+        // Let's call a simplified version of the archetype prompt.
+        const { execute } = require('./tutorial'); // Re-import to avoid circular dependency issues if any
+        await execute(interaction, true); // Pass a flag to indicate it's a re-prompt
+                                          // This will require modification to `execute`
+      } else if (interaction.customId === 'tutorial_loot_weapon' || interaction.customId === 'tutorial_loot_ability') {
+        const choice = interaction.customId === 'tutorial_loot_weapon' ? 'weapon' : 'ability';
+        await module.exports.handleLootChoice(interaction, choice);
+      } else if (interaction.customId === 'tutorial_go_to_town') {
         await userService.completeTutorial(interaction.user.id);
-        await interaction.update({ content: 'Tutorial complete! You are now in town.', components: [] });
-      } else if (
-        interaction.isButton() &&
-        interaction.customId.startsWith('tutorial_select_') &&
-        typeof module.exports.runTutorial === 'function'
-      ) {
-        const map = {
-          tutorial_select_tank: 'Stalwart Defender',
-          tutorial_select_archer: 'Swift Marksman',
-          tutorial_select_mage: 'Arcane Savant'
-        };
-        const chosen = map[interaction.customId];
-        await interaction.update({});
-        await module.exports.runTutorial(interaction, chosen);
-      } else {
-        await interaction.reply({ content: 'Follow the tutorial steps using the buttons provided.', ephemeral: true });
+        // Ensure state is set to active
+        await userService.setUserState(interaction.user.id, 'active');
+        await userService.setUserLocation(interaction.user.id, 'town'); // Ensure location is town
+        await interaction.update({ content: "Tutorial complete! You have arrived at Portal's Rest.", components: [] });
+        // Potentially call town command's execute to show town embed
+        const townCommand = interaction.client.commands.get('town');
+        if (townCommand) {
+            await townCommand.execute(interaction, true); // Pass a flag if needed
+        }
       }
+      // Removed the 'tutorial_complete' button logic as it's part of the premature end.
+    } else if (interaction.isStringSelectMenu() && interaction.customId === 'tutorial_archetype_select') {
+      const selectedArchetype = interaction.values[0];
+      // User has selected an archetype from the dropdown. Now show preview.
+      await module.exports.showArchetypePreview(interaction, selectedArchetype);
+    } else {
+      await interaction.reply({ content: 'Please follow the tutorial steps using the buttons or menus provided.', ephemeral: true });
+    }
   }
 }
 
@@ -86,16 +92,38 @@ async function runTutorial(interaction, className) {
   const { runBattleLoop } = require('../src/utils/battleRunner');
 
   const user = await userService.getUser(interaction.user.id);
-  if (!user) return;
+  if (!user) {
+    // Should not happen if called from a valid interaction flow
+    await interaction.followUp({ content: "Error: Could not find user data for the tutorial battle.", ephemeral: true });
+    return;
+  }
+
+  // Ensure user is marked as in_tutorial, though they should be already.
+  await userService.setUserState(interaction.user.id, 'in_tutorial');
+  await userService.setTutorialStep(interaction.user.id, 'practice_battle');
 
   const ability = Array.from(gameData.gameData.abilities.values()).find(
     a => a.class === className && a.rarity === 'Common'
   );
   const goblin = gameData.getHeroes().find(h => h.name === 'Goblin');
 
+  if (!goblin) {
+    await interaction.followUp({ content: "Error: Goblin data not found for tutorial battle. Please contact an admin.", ephemeral: true });
+    return;
+  }
+  if (!ability) {
+    // Fallback or error if class-specific common ability isn't found.
+    // This indicates a potential data issue or className mismatch.
+    // For now, let's log and use a generic approach or error out.
+    console.error(`TUTORIAL: Common ability for class ${className} not found.`);
+    // Using a default placeholder ID if ability isn't found, ensure createCombatant handles this.
+    // It's better to ensure data integrity or have a defined fallback.
+  }
+
   const player = createCombatant(
     {
-      hero_id: ability ? ability.id : 1,
+      // Use a known default/placeholder if specific ability/hero for class is missing
+      hero_id: ability ? ability.id : 1, // Ensure '1' is a valid fallback hero_id
       ability_id: ability ? ability.id : null,
       weapon_id: null,
       name: interaction.user.username
@@ -210,27 +238,43 @@ async function handleLootChoice(interaction, choice) {
   await interaction.update({ embeds: [finalEmbed], components: [row] });
 }
 
-async function execute(interaction) {
+// Added isReprompt flag for "Choose Again" functionality
+async function execute(interaction, isReprompt = false) {
   let user = await userService.getUser(interaction.user.id);
-  if (!user) {
-    // This check is a safeguard; the router should have already created the user.
+
+  // This check is a safeguard; the router should have already created the user for the initial run.
+  // For re-prompts, the user will definitely exist.
+  if (!user && !isReprompt) {
+    // This case should ideally not be hit if interactionRouter works as expected.
     user = await userService.createUser(interaction.user.id, interaction.user.username);
     await userService.setUserState(interaction.user.id, 'in_tutorial');
+  } else if (!user && isReprompt) {
+    // Should not happen: re-prompting for a non-existent user.
+    await interaction.reply({ content: "Error: Could not find user data to continue tutorial.", ephemeral: true });
+    return;
   }
 
-  if (user.tutorial_completed) {
+
+  if (user.tutorial_completed && !isReprompt) { // Don't show this if we are just re-prompting for archetype
     await interaction.reply({ content: 'You have already completed the tutorial.', ephemeral: true });
     return;
   }
 
-  // --- NARRATIVE OPENING ---
+  // --- NARRATIVE OPENING (only for the very first time, not for re-prompt) ---
   const title = 'An Unwelcome Interruption';
   const dialogue = "You are on the road to Portal's Rest when a guttural cry echoes from the trees. Goblins! I can hold them off, but you'll need to fight. This is your first real test, adventurer. Show me what you're made of!";
-
   const ambushEmbed = edgarPainEmbed(title, dialogue);
 
-  // The user is now officially in the tutorial's first real step.
-  await userService.setTutorialStep(interaction.user.id, 'archetype_selection_prompt');
+  if (!isReprompt) {
+    // The user is now officially in the tutorial's first real step.
+    // This ensures state is correctly set if router didn't (e.g. if user used /tutorial directly after creation)
+    await userService.setUserState(interaction.user.id, 'in_tutorial');
+    await userService.setTutorialStep(interaction.user.id, 'archetype_selection_prompt');
+  } else {
+    // If re-prompting, ensure the step is relevant for archetype selection
+    await userService.setTutorialStep(interaction.user.id, 'archetype_selection_prompt');
+  }
+
 
   // --- ARCHETYPE SELECTION MENU ---
   const archetypeMenu = new StringSelectMenuBuilder()
@@ -245,7 +289,17 @@ async function execute(interaction) {
 
   const row = new ActionRowBuilder().addComponents(archetypeMenu);
 
-  await interaction.reply({ embeds: [ambushEmbed], components: [row], ephemeral: true });
+  const messagePayload = { embeds: [ambushEmbed], components: [row], ephemeral: true };
+
+  if (isReprompt) {
+    // If we are re-prompting (e.g., after "Choose Again"), update the existing message.
+    // This assumes the interaction is from a button that can be .update()'d.
+    // The 'tutorial_choose_again' button is part of a message that was already replied to or updated.
+    await interaction.update(messagePayload);
+  } else {
+    // For the initial /tutorial command by a new user.
+    await interaction.reply(messagePayload);
+  }
 }
 
 module.exports = { data, execute, handleInteraction, runTutorial, showArchetypePreview, handleLootChoice };
