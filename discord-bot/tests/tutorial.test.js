@@ -8,7 +8,8 @@ jest.mock('../src/utils/userService', () => ({
   markTutorialComplete: jest.fn(),
   setUserState: jest.fn(),
   setTutorialStep: jest.fn(),
-  completeTutorial: jest.fn()
+  completeTutorial: jest.fn(),
+  setUserLocation: jest.fn()
 }));
 jest.mock('../src/utils/weaponService', () => ({
   addWeapon: jest.fn(),
@@ -98,6 +99,65 @@ describe('tutorial command', () => {
     await tutorial.handleLootChoice(interaction, 'ability');
     expect(abilityCardService.addCard).toHaveBeenCalled();
     expect(userService.setTutorialStep).toHaveBeenCalledWith('1', 'town_arrival');
+    expect(interaction.update).toHaveBeenCalled();
+  });
+
+  test('confirm archetype only at correct step', async () => {
+    const runSpy = jest.spyOn(tutorial, 'runTutorial').mockResolvedValue();
+    const interaction = {
+      customId: 'tutorial_confirm_archetype:Stalwart Defender',
+      isButton: () => true,
+      isChatInputCommand: () => false,
+      reply: jest.fn(),
+      user: { id: '1' }
+    };
+    await tutorial.handleInteraction(interaction, { tutorial_step: 'loot_choice' });
+    expect(runSpy).not.toHaveBeenCalled();
+    expect(interaction.reply).toHaveBeenCalledWith(expect.objectContaining({ ephemeral: true }));
+
+    interaction.reply.mockClear();
+    runSpy.mockClear();
+    await tutorial.handleInteraction(interaction, { tutorial_step: 'archetype_selection_prompt' });
+    expect(runSpy).toHaveBeenCalledWith(interaction, 'Stalwart Defender');
+  });
+
+  test('loot choice only at loot_choice step', async () => {
+    const lootSpy = jest.spyOn(tutorial, 'handleLootChoice').mockResolvedValue();
+    const interaction = {
+      customId: 'tutorial_loot_weapon',
+      isButton: () => true,
+      isChatInputCommand: () => false,
+      reply: jest.fn(),
+      user: { id: '1' }
+    };
+    await tutorial.handleInteraction(interaction, { tutorial_step: 'practice_battle' });
+    expect(lootSpy).not.toHaveBeenCalled();
+    expect(interaction.reply).toHaveBeenCalledWith(expect.objectContaining({ ephemeral: true }));
+
+    interaction.reply.mockClear();
+    lootSpy.mockClear();
+    await tutorial.handleInteraction(interaction, { tutorial_step: 'loot_choice' });
+    expect(lootSpy).toHaveBeenCalledWith(interaction, 'weapon');
+  });
+
+  test('go to town only at town_arrival step', async () => {
+    const interaction = {
+      customId: 'tutorial_go_to_town',
+      isButton: () => true,
+      isChatInputCommand: () => false,
+      reply: jest.fn(),
+      update: jest.fn(),
+      user: { id: '1' },
+      client: { commands: new Map() }
+    };
+    await tutorial.handleInteraction(interaction, { tutorial_step: 'loot_choice' });
+    expect(userService.completeTutorial).not.toHaveBeenCalled();
+    expect(interaction.reply).toHaveBeenCalledWith(expect.objectContaining({ ephemeral: true }));
+
+    interaction.reply.mockClear();
+    userService.completeTutorial.mockClear();
+    await tutorial.handleInteraction(interaction, { tutorial_step: 'town_arrival' });
+    expect(userService.completeTutorial).toHaveBeenCalledWith('1');
     expect(interaction.update).toHaveBeenCalled();
   });
 });

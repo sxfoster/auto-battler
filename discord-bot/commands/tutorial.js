@@ -28,60 +28,55 @@ async function handleInteraction(interaction, userState) {
   }
 
   if (interaction.isButton()) {
-    if (interaction.customId.startsWith('tutorial_select_') && typeof module.exports.runTutorial === 'function') {
-      // This interaction customId might need to be updated if it's from the StringSelectMenu
-      // For now, assuming it's a button press that directly gives a class name or similar.
-      // The execute() function now handles archetype selection via a StringSelectMenu,
-      // so this specific 'tutorial_select_' prefix might be outdated or need adjustment
-      // based on how showArchetypePreview and its confirm button (tutorial_confirm_archetype) work.
-      // Let's assume this part is for confirming an archetype after a preview.
-      const parts = interaction.customId.split(':');
-      if (parts[0] === 'tutorial_confirm_archetype' && parts.length > 1) {
-        const chosenClass = parts[1];
-        // interaction.update was here, but runTutorial will send its own messages.
-        // Ensure no "InteractionAlreadyReplied" error.
-        // The showArchetypePreview updates the message, so runTutorial should followUp.
-        await module.exports.runTutorial(interaction, chosenClass);
-      } else if (interaction.customId === 'tutorial_choose_again') {
-        // Re-present the archetype selection from execute() - this might be tricky
-        // as execute() uses interaction.reply. We might need a helper for this.
-        // For now, let's just acknowledge and guide.
-        // A better approach would be to call a function that re-sends the archetype selection embed.
-        // This logic will be refined once I review the full flow after this removal.
-        // The `execute` function sends the initial archetype selection.
-        // Re-prompting might involve calling a part of `execute` or a new helper.
-        // For now, let's defer direct re-prompting from here.
-        // The user would typically interact with the select menu again if they want to change.
-        // showArchetypePreview leads to confirm or choose_again.
-        // If 'choose_again', we should re-present the initial archetype selection embed.
-        // This requires the `execute` function's archetype prompt to be callable.
-        // Let's call a simplified version of the archetype prompt.
-        const { execute } = require('./tutorial'); // Re-import to avoid circular dependency issues if any
-        await execute(interaction, true); // Pass a flag to indicate it's a re-prompt
-                                          // This will require modification to `execute`
-      } else if (interaction.customId === 'tutorial_loot_weapon' || interaction.customId === 'tutorial_loot_ability') {
-        const choice = interaction.customId === 'tutorial_loot_weapon' ? 'weapon' : 'ability';
-        await module.exports.handleLootChoice(interaction, choice);
-      } else if (interaction.customId === 'tutorial_go_to_town') {
-        await userService.completeTutorial(interaction.user.id);
-        // Ensure state is set to active
-        await userService.setUserState(interaction.user.id, 'active');
-        await userService.setUserLocation(interaction.user.id, 'town'); // Ensure location is town
-        await interaction.update({ content: "Tutorial complete! You have arrived at Portal's Rest.", components: [] });
-        // Potentially call town command's execute to show town embed
-        const townCommand = interaction.client.commands.get('town');
-        if (townCommand) {
-            await townCommand.execute(interaction, true); // Pass a flag if needed
-        }
+    const id = interaction.customId;
+
+    if (id.startsWith('tutorial_confirm_archetype')) {
+      if (userState.tutorial_step !== 'archetype_selection_prompt') {
+        await interaction.reply({ content: 'Please follow the tutorial steps using the buttons or menus provided.', ephemeral: true });
+        return;
       }
-      // Removed the 'tutorial_complete' button logic as it's part of the premature end.
-    } else if (interaction.isStringSelectMenu() && interaction.customId === 'tutorial_archetype_select') {
-      const selectedArchetype = interaction.values[0];
-      // User has selected an archetype from the dropdown. Now show preview.
-      await module.exports.showArchetypePreview(interaction, selectedArchetype);
+      const parts = id.split(':');
+      if (parts.length > 1) {
+        const chosenClass = parts[1];
+        await module.exports.runTutorial(interaction, chosenClass);
+      }
+    } else if (id === 'tutorial_choose_again') {
+      if (userState.tutorial_step !== 'archetype_selection_prompt') {
+        await interaction.reply({ content: 'Please follow the tutorial steps using the buttons or menus provided.', ephemeral: true });
+        return;
+      }
+      const { execute } = require('./tutorial');
+      await execute(interaction, true);
+    } else if (id === 'tutorial_loot_weapon' || id === 'tutorial_loot_ability') {
+      if (userState.tutorial_step !== 'loot_choice') {
+        await interaction.reply({ content: 'Please follow the tutorial steps using the buttons or menus provided.', ephemeral: true });
+        return;
+      }
+      const choice = id === 'tutorial_loot_weapon' ? 'weapon' : 'ability';
+      await module.exports.handleLootChoice(interaction, choice);
+    } else if (id === 'tutorial_go_to_town') {
+      if (userState.tutorial_step !== 'town_arrival') {
+        await interaction.reply({ content: 'Please follow the tutorial steps using the buttons or menus provided.', ephemeral: true });
+        return;
+      }
+      await userService.completeTutorial(interaction.user.id);
+      await userService.setUserState(interaction.user.id, 'active');
+      await userService.setUserLocation(interaction.user.id, 'town');
+      await interaction.update({ content: "Tutorial complete! You have arrived at Portal's Rest.", components: [] });
+      const townCommand = interaction.client.commands.get('town');
+      if (townCommand) {
+        await townCommand.execute(interaction, true);
+      }
     } else {
       await interaction.reply({ content: 'Please follow the tutorial steps using the buttons or menus provided.', ephemeral: true });
     }
+  } else if (interaction.isStringSelectMenu() && interaction.customId === 'tutorial_archetype_select') {
+    if (userState.tutorial_step !== 'archetype_selection_prompt') {
+      await interaction.reply({ content: 'Please follow the tutorial steps using the buttons or menus provided.', ephemeral: true });
+      return;
+    }
+    const selectedArchetype = interaction.values[0];
+    await module.exports.showArchetypePreview(interaction, selectedArchetype);
   }
 }
 
