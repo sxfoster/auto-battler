@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react'
+import React, { useEffect, useRef, useMemo, useCallback } from 'react'
 import Card from '../components/Card.jsx'
 import BattleLog from '../components/BattleLog.jsx'
 import useBattleLogic from '../hooks/useBattleLogic.js'
@@ -17,8 +17,25 @@ export default function BattleScene() {
 
   const sceneRef = useRef(null)
   const cardRefs = useRef({})
+  const lastLogIndex = useRef(0)
 
-  const handleAttack = (attackerId, targetId, dmg) => {
+  const STATUS_ICONS = useMemo(() => ({
+    Stun: 'fas fa-star',
+    Poison: 'fas fa-skull-crossbones',
+    Bleed: 'fas fa-droplet',
+    Burn: 'fas fa-fire-alt',
+    Slow: 'fas fa-hourglass-half',
+    Confuse: 'fas fa-question',
+    Root: 'fas fa-tree',
+    Shock: 'fas fa-bolt',
+    Vulnerable: 'fas fa-crosshairs',
+    'Defense Down': 'fas fa-shield-slash',
+    'Attack Up': 'fas fa-arrow-up',
+    Fortify: 'fas fa-arrow-up',
+    Regrowth: 'fas fa-leaf'
+  }), [])
+
+  const handleAttack = useCallback((attackerId, targetId, dmg) => {
     const attackerEl = cardRefs.current[attackerId]
     const targetEl = cardRefs.current[targetId]
     if (!attackerEl || !targetEl) return
@@ -32,7 +49,7 @@ export default function BattleScene() {
     spawnProjectile(attackerEl, targetEl)
     createHitSpark(targetEl)
     showCombatText(targetEl, `-${dmg}`, 'damage')
-  }
+  }, [])
 
   const spawnProjectile = (startEl, endEl) => {
     if (!sceneRef.current) return
@@ -73,8 +90,80 @@ export default function BattleScene() {
     setTimeout(() => popup.remove(), 1200)
   }
 
+  const flashStatusIcon = useCallback((targetEl, effect) => {
+    const container = targetEl.querySelector('.status-icon-container')
+    if (!container) return
+    const iconClass = STATUS_ICONS[effect]?.replace(/\s+/g, '.')
+    const icon = iconClass
+      ? container.querySelector(`i.${iconClass}`)
+      : null
+    const holder = icon ? icon.parentElement : document.createElement('div')
+    if (!icon) {
+      holder.className = 'status-icon synergy-flash'
+      holder.innerHTML = `<i class="${STATUS_ICONS[effect] || 'fas fa-star'}"></i>`
+      container.appendChild(holder)
+      setTimeout(() => holder.remove(), 600)
+    } else {
+      holder.classList.add('synergy-flash')
+      setTimeout(() => holder.classList.remove('synergy-flash'), 600)
+    }
+  }, [STATUS_ICONS])
+
   const { battleState, battleLog, isBattleOver, winner, processTurn } =
     useBattleLogic(combatants, { onAttack: handleAttack })
+
+  useEffect(() => {
+    const newEntries = battleLog.slice(lastLogIndex.current)
+    lastLogIndex.current = battleLog.length
+    newEntries.forEach(entry => {
+      const msg = entry.message || ''
+      const type = entry.eventType || entry.type || ''
+
+      if (type.toUpperCase() === 'DAMAGE_DEALT' || /hits .* for \d+ damage/.test(msg) || /takes \d+ damage/.test(msg)) {
+        const m1 = msg.match(/^(.*?) hits (.*?) for (\d+) damage/)
+        const m2 = msg.match(/^(.*?) takes (\d+) damage/)
+        let attackerName, targetName, amount
+        if (m1) {
+          attackerName = m1[1]; targetName = m1[2]; amount = parseInt(m1[3], 10)
+        } else if (m2) {
+          attackerName = m2[1]; targetName = m2[1]; amount = parseInt(m2[2], 10)
+        }
+        if (attackerName && targetName) {
+          const attacker = battleState.find(c => c.name === attackerName)
+          const target = battleState.find(c => c.name === targetName)
+          if (attacker && target) {
+            handleAttack(attacker.id, target.id, amount)
+          }
+        }
+      } else if (type.toUpperCase() === 'HEAL_APPLIED' || /heals .* for \d+/.test(msg) || /is healed for \d+/.test(msg)) {
+        const m1 = msg.match(/^(.*?) heals (.*?) for (\d+)/)
+        const m2 = msg.match(/^(.*?) heals for (\d+)/)
+        const m3 = msg.match(/^(.*?) is healed for (\d+)/)
+        let targetName, amount
+        if (m1) { targetName = m1[2]; amount = parseInt(m1[3],10) }
+        else if (m2) { targetName = m2[1]; amount = parseInt(m2[2],10) }
+        else if (m3) { targetName = m3[1]; amount = parseInt(m3[2],10) }
+        if (targetName) {
+          const target = battleState.find(c => c.name === targetName)
+          if (target) {
+            const el = cardRefs.current[target.id]
+            if (el) showCombatText(el, `+${amount}`, 'heal')
+          }
+        }
+      } else if (type.toUpperCase() === 'STATUS_EFFECT_APPLIED' || /afflicted with|gains|suffers/.test(msg)) {
+        if (/worn off/.test(msg)) return
+        const targetName = msg.replace(/^\W+/, '').split(' ')[0]
+        const effect = Object.keys(STATUS_ICONS).find(n => msg.includes(n))
+        if (targetName && effect) {
+          const target = battleState.find(c => c.name === targetName)
+          if (target) {
+            const el = cardRefs.current[target.id]
+            if (el) flashStatusIcon(el, effect)
+          }
+        }
+      }
+    })
+  }, [battleLog, battleState, STATUS_ICONS, flashStatusIcon, handleAttack])
 
   useEffect(() => {
     if (!isBattleOver) {
