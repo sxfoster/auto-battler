@@ -97,7 +97,7 @@ describe('adventure command', () => {
     );
     const components = summaryCall[0].components[0].components;
     expect(components).toHaveLength(2);
-    expect(components[0].data.custom_id).toBe('back-to-town');
+    expect(components[0].data.url).toContain('/replay/');
     expect(components[1].data.custom_id).toBe(`continue-adventure:${interaction.user.id}`);
     expect(db.query).toHaveBeenCalledWith(
       'INSERT INTO battle_replays (battle_log) VALUES (?)',

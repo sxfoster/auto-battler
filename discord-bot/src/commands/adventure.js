@@ -10,6 +10,7 @@ const abilityCardService = require('../utils/abilityCardService');
 const weaponService = require('../utils/weaponService');
 const { sendCardDM } = require('../utils/embedBuilder');
 const db = require('../../util/database');
+const config = require('../../util/config'); // Import config to get the web app URL
 
 const GameEngine = require('../../../backend/game/engine');
 const { createCombatant } = require('../../../backend/game/utils');
@@ -249,16 +250,24 @@ async function execute(interaction) {
     .setColor(engine.winner === 'player' ? '#57F287' : '#ED4245')
     .setDescription(narrativeDescription);
 
+  // --- MODIFICATION START: Add a button linking to the replay ---
+  // Note: You will need to add a WEB_APP_URL to your .env file.
+  const webAppUrl = config.WEB_APP_URL || 'http://localhost:5173'; // Fallback for local testing
+  const replayUrl = `${webAppUrl}/replay/${battleId}`;
+
   const row = new ActionRowBuilder().addComponents(
     new ButtonBuilder()
-      .setCustomId('back-to-town')
-      .setLabel('Back to Town')
-      .setStyle(ButtonStyle.Secondary),
+      .setLabel('View Battle Replay')
+      .setStyle(ButtonStyle.Link)
+      .setURL(replayUrl)
+      .setEmoji('🎥'),
     new ButtonBuilder()
       .setCustomId(`continue-adventure:${interaction.user.id}`)
       .setLabel('Continue Adventuring')
       .setStyle(ButtonStyle.Success)
+      .setEmoji('⚔️')
   );
+  // --- MODIFICATION END ---
 
   await interaction.followUp({ embeds: [summaryEmbed], components: [row] });
 
