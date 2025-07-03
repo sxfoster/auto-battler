@@ -23,7 +23,7 @@ async function createListing(sellerId, card, price) {
 }
 
 async function getCheapestListings() {
-  const [rows] = await db.query(`
+  const { rows } = await db.query(`
         SELECT t1.*, u.name as seller_name FROM auction_house_listings t1
         INNER JOIN (
             SELECT ability_id, MIN(price) as min_price
@@ -54,7 +54,7 @@ async function purchaseListing(buyerId, listingId, client) {
 
     await connection.commit();
     try {
-      const [sellerUserRows] = await db.query('SELECT discord_id FROM users WHERE id = ?', [listing.seller_id]);
+      const { rows: sellerUserRows } = await db.query('SELECT discord_id FROM users WHERE id = ?', [listing.seller_id]);
       if (sellerUserRows.length > 0) {
         const sellerDiscordId = sellerUserRows[0].discord_id;
         const seller = await client.users.fetch(sellerDiscordId);

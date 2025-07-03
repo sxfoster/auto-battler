@@ -2,7 +2,7 @@ const db = require('../../util/database');
 
 // Add a new weapon to a user's inventory
 async function addWeapon(userId, weaponId) {
-    const [result] = await db.query(
+    const result = await db.query(
         'INSERT INTO user_weapons (user_id, weapon_id) VALUES (?, ?)',
         [userId, weaponId]
     );
@@ -11,13 +11,13 @@ async function addWeapon(userId, weaponId) {
 
 // Get all weapons owned by a user
 async function getWeapons(userId) {
-    const [rows] = await db.query('SELECT * FROM user_weapons WHERE user_id = ?', [userId]);
+    const { rows } = await db.query('SELECT * FROM user_weapons WHERE user_id = ?', [userId]);
     return rows;
 }
 
 // Get a single weapon instance by its unique ID
 async function getWeapon(weaponInstanceId) {
-    const [rows] = await db.query('SELECT * FROM user_weapons WHERE id = ?', [weaponInstanceId]);
+    const { rows } = await db.query('SELECT * FROM user_weapons WHERE id = ?', [weaponInstanceId]);
     return rows[0] || null;
 }
 

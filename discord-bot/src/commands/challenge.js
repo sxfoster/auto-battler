@@ -50,7 +50,7 @@ async function execute(interaction) {
     `[CHALLENGE] ${challengerUser.name} (${challengerUser.discord_id}) is challenging ${targetUser.name} (${targetUser.discord_id}).`
   );
 
-  const [result] = await db.query(
+  const result = await db.query(
     'INSERT INTO pvp_battles (challenger_id, challenged_id, status) VALUES (?, ?, ?)',
     [challengerUser.id, targetUser.id, 'pending']
   );
@@ -101,7 +101,7 @@ async function execute(interaction) {
 async function handleAccept(interaction) {
   const [, idStr] = interaction.customId.split(':');
   const id = Number(idStr);
-  const [rows] = await db.query('SELECT * FROM pvp_battles WHERE id = ?', [id]);
+  const { rows } = await db.query('SELECT * FROM pvp_battles WHERE id = ?', [id]);
   const battle = rows[0];
   if (!battle || battle.status !== 'pending' || Date.now() - new Date(battle.created_at).getTime() > 5 * 60 * 1000) {
     if (battle && battle.status === 'pending') {
@@ -130,8 +130,8 @@ async function handleAccept(interaction) {
     /* ignore */
   }
 
-  const [challengerRows] = await db.query('SELECT discord_id FROM users WHERE id = ?', [battle.challenger_id]);
-  const [challengedRows] = await db.query('SELECT discord_id FROM users WHERE id = ?', [battle.challenged_id]);
+  const { rows: challengerRows } = await db.query('SELECT discord_id FROM users WHERE id = ?', [battle.challenger_id]);
+  const { rows: challengedRows } = await db.query('SELECT discord_id FROM users WHERE id = ?', [battle.challenged_id]);
   const challenger = await userService.getUser(challengerRows[0].discord_id);
   const challenged = await userService.getUser(challengedRows[0].discord_id);
 
@@ -262,7 +262,7 @@ async function handleDecline(interaction) {
   const id = Number(idStr);
   await db.query('UPDATE pvp_battles SET status = ? WHERE id = ?', ['declined', id]);
 
-  const [rows] = await db.query('SELECT * FROM pvp_battles WHERE id = ?', [id]);
+  const { rows } = await db.query('SELECT * FROM pvp_battles WHERE id = ?', [id]);
   const battle = rows[0];
   try {
     const channel = await interaction.client.channels.fetch(battle.channel_id);
@@ -276,7 +276,7 @@ async function handleDecline(interaction) {
 }
 
 async function expireChallenge(id, challenger, client) {
-  const [rows] = await db.query('SELECT * FROM pvp_battles WHERE id = ?', [id]);
+  const { rows } = await db.query('SELECT * FROM pvp_battles WHERE id = ?', [id]);
   const battle = rows[0];
   if (!battle || battle.status !== 'pending') {
     console.log(`[CHALLENGE] Challenge ${id} not pending. Skipping expiration.`);

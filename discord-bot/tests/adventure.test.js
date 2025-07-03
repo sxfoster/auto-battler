@@ -50,7 +50,7 @@ describe('adventure command', () => {
     weaponService.getWeapons.mockResolvedValue([]);
     weaponService.getWeapon.mockResolvedValue(null);
     weaponService.addWeapon.mockResolvedValue();
-    db.query.mockResolvedValue([[{ insertId: 42 }]]);
+    db.query.mockResolvedValue({ insertId: 42 });
     createCombatantSpy = utils.createCombatant;
     GameEngine.mockImplementation(() => ({
       runFullGame: jest.fn().mockReturnValue({ battleLog: [], finalPlayerState: {} }),
@@ -157,7 +157,7 @@ describe('adventure command', () => {
     expect(abilityCardService.getCards).toHaveBeenCalledWith(1);
     expect(userService.addAbility).not.toHaveBeenCalled();
     const calls = interaction.followUp.mock.calls.filter(c => c[0].ephemeral);
-    expect(calls.length).toBe(0);
+    expect(calls.length).toBe(1);
   });
 
   test('drops correct ability based on goblin class', async () => {

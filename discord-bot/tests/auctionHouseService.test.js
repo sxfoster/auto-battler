@@ -43,7 +43,7 @@ describe('auctionHouseService', () => {
   });
 
   test('getCheapestListings selects grouped cheapest', async () => {
-    db.query.mockResolvedValueOnce([[]]);
+    db.query.mockResolvedValueOnce({ rows: [] });
     await service.getCheapestListings();
     expect(db.query).toHaveBeenCalledWith(expect.stringContaining('auction_house_listings'));
   });
@@ -62,7 +62,7 @@ describe('auctionHouseService', () => {
     };
     db.getConnection.mockResolvedValue(connection);
 
-    db.query.mockResolvedValueOnce([[{ discord_id: 'seller123' }]]);
+    db.query.mockResolvedValueOnce({ rows: [{ discord_id: 'seller123' }] });
 
     const client = { users: { fetch: jest.fn().mockResolvedValue({ send: jest.fn() }) } };
 

@@ -1,7 +1,7 @@
 const userService = require('../src/utils/userService');
 
 jest.mock('../util/database', () => ({
-  query: jest.fn().mockResolvedValue([])
+  query: jest.fn().mockResolvedValue({ rows: [] })
 }));
 
 const db = require('../util/database');
@@ -32,7 +32,7 @@ describe('userService.addXp', () => {
 
   test('updates xp when below threshold', async () => {
     db.query
-      .mockResolvedValueOnce([[{ id: 1, level: 1, xp: 0 }]])
+      .mockResolvedValueOnce({ rows: [{ id: 1, level: 1, xp: 0 }] })
       .mockResolvedValueOnce();
 
     const result = await userService.addXp(1, 10);
@@ -43,7 +43,7 @@ describe('userService.addXp', () => {
 
   test('levels up when threshold reached', async () => {
     db.query
-      .mockResolvedValueOnce([[{ id: 1, level: 1, xp: 4995 }]])
+      .mockResolvedValueOnce({ rows: [{ id: 1, level: 1, xp: 4995 }] })
       .mockResolvedValueOnce();
 
     const result = await userService.addXp(1, 10);
@@ -52,7 +52,7 @@ describe('userService.addXp', () => {
   });
 
   test('no xp when at level cap', async () => {
-    db.query.mockResolvedValueOnce([[{ id: 1, level: 10, xp: 135000 }]]);
+    db.query.mockResolvedValueOnce({ rows: [{ id: 1, level: 10, xp: 135000 }] });
 
     const result = await userService.addXp(1, 10);
     expect(db.query).toHaveBeenCalledTimes(1);

@@ -1,4 +1,4 @@
-const mysql = require('mysql2');
+const mysql = require('mysql2/promise');
 const config = require('./config');
 
 const pool = mysql.createPool({
@@ -11,8 +11,16 @@ const pool = mysql.createPool({
   queueLimit: 0
 });
 
-const promisePool = pool.promise();
-
 console.log('✅ Database connection pool created.');
 
-module.exports = promisePool;
+async function query(sql, params = []) {
+  const [rows] = await pool.query(sql, params);
+  const insertId = rows.insertId !== undefined ? rows.insertId : undefined;
+  return { insertId, rows };
+}
+
+function getConnection() {
+  return pool.getConnection();
+}
+
+module.exports = { query, getConnection };
