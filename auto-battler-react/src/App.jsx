@@ -179,6 +179,7 @@ export default function App() {
 
   return (
     <Routes>
+      <Route path="/replay" element={<ReplayViewer />} />
       <Route path="/replay/:id" element={<ReplayViewer />} />
       <Route
         path="*"

@@ -1,0 +1,14 @@
+{
+  "battleId": 1,
+  "date": "2024-06-01T12:00:00Z",
+  "result": "Victory",
+  "combatants": [
+    {"id":"player-hero-0","team":"player","name":"Recruit","currentHp":22,"maxHp":22,"art":"https://placehold.co/100x150?text=Recruit"},
+    {"id":"enemy-hero-0","team":"enemy","name":"Goblin","currentHp":15,"maxHp":15,"art":"https://placehold.co/100x150?text=Goblin"}
+  ],
+  "events": [
+    {"turn":1,"actor":"player-hero-0","target":"enemy-hero-0","damage":6,"message":"Recruit hits Goblin for 6 damage."},
+    {"turn":1,"actor":"enemy-hero-0","target":"player-hero-0","damage":4,"message":"Goblin hits Recruit for 4 damage."},
+    {"turn":2,"actor":"player-hero-0","target":"enemy-hero-0","damage":9,"message":"Recruit hits Goblin for 9 damage."}
+  ]
+}

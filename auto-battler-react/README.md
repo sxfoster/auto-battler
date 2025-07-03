@@ -26,3 +26,12 @@ This installs `@eslint/js` and the other development dependencies required for l
 npm run dev   # start the Vite dev server
 npm run lint  # run ESLint
 ```
+
+## Replay Viewer
+
+A simple replay viewer is included for inspecting saved battle logs.
+Run the dev server and navigate to `http://localhost:5173/replay?id=sample` to load the example `public/sample_replay.json`.
+When connected to the backend you can replace `sample` with an actual replay id and the viewer will fetch `/api/replays/{id}`.
+
+The viewer is composed of `ReplayHeader`, `CombatantPanel`, `HPBar` and `TimelineControls` components.
+Use the play/pause and step buttons to advance through turns.
