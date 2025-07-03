@@ -58,6 +58,9 @@ async function runBattleLoop(interaction, engine, { waitMs = 1000, isTutorial = 
   const fullLog = [];
   const user = await userService.getUser(interaction.user.id);
   const verbosity = user?.log_verbosity || 'summary';
+  if (isTutorial && !engine.tutorialFlags) {
+    engine.tutorialFlags = { energyExplained: false, abilityReady: false };
+  }
   let lastEmbed = null;
   for (const step of engine.runGameSteps()) {
     if (step.type === 'PAUSE') {
