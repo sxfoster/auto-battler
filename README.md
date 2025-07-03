@@ -100,3 +100,23 @@ Follow these steps to host the app on your GoDaddy server:
    Copy `.env.example` to `.env` and set `WEB_APP_URL` to your production domain.
    The replay buttons in `/challenge` and `/adventure` will point to this URL.
 
+
+## PHP Backend Setup
+
+We host the replay API on our GoDaddy shared hosting account under `public_html/api/`.
+
+- **Replay Endpoint**
+  `GET http://game.strahde.com/api/replay.php?id={id}`
+  returns the stored JSON `battle_log` for that id or `{"error":"Not found"}`.
+
+- **Health Check**
+  `GET http://game.strahde.com/api/health.php` → `{"status":"OK"}`.
+
+Both scripts send the header `Access-Control-Allow-Origin: http://game.strahde.com`.
+
+Example commands:
+
+```bash
+curl http://game.strahde.com/api/health.php
+curl "http://game.strahde.com/api/replay.php?id=1"
+```
