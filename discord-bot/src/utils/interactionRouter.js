@@ -75,8 +75,8 @@ async function routeInteraction(interaction) {
 
     const tutorialCommand = interaction.client.commands.get('tutorial');
     if (tutorialCommand) {
-      const userState = await userService.getUserState(interaction.user.id);
-      await tutorialCommand.handleInteraction(interaction, userState);
+      // Call execute for new users to start the full tutorial flow
+      await tutorialCommand.execute(interaction);
     }
     return;
   }
