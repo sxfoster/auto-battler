@@ -14,16 +14,24 @@ export default function ReplayViewer() {
   const [current, setCurrent] = useState(0)
   const [isPlaying, setIsPlaying] = useState(false)
   const timerRef = useRef(null)
+  const [loadError, setLoadError] = useState(false)
 
   useEffect(() => {
     async function fetchReplay() {
       try {
         const res = await fetch(`/api/replay.php?id=${id}`)
         if (!res.ok) throw new Error('Failed')
-        const data = await res.json()
+        const text = await res.text()
+        let data
+        try {
+          data = JSON.parse(text)
+        } catch {
+          throw new Error('Invalid JSON')
+        }
         setBattleLog(data)
       } catch (err) {
         console.error('Failed to fetch replay', err)
+        setLoadError(true)
       }
     }
     if (id) fetchReplay()
@@ -59,6 +67,10 @@ export default function ReplayViewer() {
   const handlePlayPause = () => setIsPlaying(p => !p)
   const handleNext = () => setCurrent(c => Math.min(c + 1, snapshots.length - 1))
   const handlePrev = () => setCurrent(c => Math.max(c - 1, 0))
+
+  if (loadError) {
+    return <div className="scene">Could not load replay.</div>
+  }
 
   if (!battleLog) {
     return <div className="scene"><div className="text-xl">Loading...</div></div>

@@ -33,5 +33,12 @@ export default defineConfig({
       // For older browsers, though CSP is preferred
       'X-Frame-Options': 'ALLOW-FROM *.discord.com',
     },
+    proxy: {
+      '/api': {
+        target: 'http://game.strahde.com',
+        changeOrigin: true,
+        secure: false,
+      },
+    },
   },
 })

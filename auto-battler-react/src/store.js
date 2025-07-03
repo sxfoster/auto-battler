@@ -103,7 +103,13 @@ export const useGameStore = createWithEqualityFn(
       if (!res.ok) {
         throw new Error(`Failed to fetch replay ${id}`);
       }
-      const data = await res.json();
+      const text = await res.text();
+      let data;
+      try {
+        data = JSON.parse(text);
+      } catch {
+        throw new Error('Invalid JSON');
+      }
       set({ battleLog: data, isLoading: false });
     } catch (err) {
       console.error('[store] fetchReplay error', err);

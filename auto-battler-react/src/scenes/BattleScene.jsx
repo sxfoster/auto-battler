@@ -26,8 +26,6 @@ export default function BattleScene() {
     playbackSpeed: state.playbackSpeed,
     setPlaybackSpeed: state.setPlaybackSpeed,
   }));
-  const event = battleLog?.events?.[currentEventIndex];
-  // TODO: apply `event` effects to the scene state
 
   if (!battleLog || !Array.isArray(battleLog.events)) {
     return <div className="error-message">⚠️ Unable to play this replay.</div>;
