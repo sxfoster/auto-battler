@@ -4,7 +4,7 @@ This document summarizes notable features and infrastructure changes implemented
 
 ## July 3, 2025
 - Added a static battle-state renderer to the React client for easier replay visualization.
-- Introduced URL-based replay fetching and a new `/replay/:id` API endpoint.
+- Introduced URL-based replay fetching and a new `/api/replay.php?id=` endpoint.
 - The adventure flow now includes "link to replay" buttons so users can share past battles.
 - Discord bot updated to store replay logs, enabling post-battle review across platforms.
 
