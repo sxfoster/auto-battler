@@ -1,4 +1,5 @@
-import React from 'react'
+import React, { useEffect } from 'react'
+import { DiscordSDK } from '@discord/embedded-app-sdk'
 import { useGameStore } from './store.js'
 import AnimatedBackground from './components/AnimatedBackground.jsx'
 import DebugMenu from './components/DebugMenu.jsx'
@@ -13,8 +14,24 @@ import TournamentEndScene from './scenes/TournamentEndScene.jsx'
 
 import './style.css'
 
+// --- New SDK Setup ---
+const discordSdk = new DiscordSDK(import.meta.env.VITE_DISCORD_CLIENT_ID)
+
+async function setupDiscordSdk() {
+  await discordSdk.ready()
+  console.log("Discord SDK is ready and connected.")
+}
+// --- End SDK Setup ---
+
 export default function App() {
   const gamePhase = useGameStore(state => state.gamePhase)
+
+  // --- New useEffect for SDK ---
+  useEffect(() => {
+    // Run the setup function when the component mounts
+    setupDiscordSdk()
+  }, [])
+  // --- End useEffect ---
   let scene = null
   switch (gamePhase) {
     case 'PACK':

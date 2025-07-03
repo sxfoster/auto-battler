@@ -1,117 +1,50 @@
-const {
-  SlashCommandBuilder,
-  EmbedBuilder,
-  ActionRowBuilder,
-  ButtonBuilder,
-  ButtonStyle
-} = require('discord.js');
-const userService = require('../utils/userService');
-const abilityCardService = require('../utils/abilityCardService');
-const { runBattleLoop, sendBattleLogDM, formatLog } = require('../utils/battleRunner');
-
-const GameEngine = require('../../../backend/game/engine');
-const { createCombatant } = require('../../../backend/game/utils');
-const gameData = require('../../util/gameData');
-const classAbilityMap = require('../data/classAbilityMap');
+const { SlashCommandBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
 const feedback = require('../utils/feedback');
-
-function respond(interaction, options) {
-  if (interaction.deferred || interaction.replied) {
-    return interaction.followUp(options);
-  }
-  return interaction.reply(options);
-}
+const config = require('../../util/config');
 
 const data = new SlashCommandBuilder()
   .setName('practice')
-  .setDescription('Test your skills against a goblin with no risk.');
+  .setDescription('Launch a practice battle Activity in your current voice channel.');
 
 async function execute(interaction) {
-  const allPossibleHeroes = gameData.getHeroes();
-  const allPossibleAbilities = Array.from(gameData.gameData.abilities.values());
-  let user = await userService.getUser(interaction.user.id);
-  if (!user) {
-    await userService.createUser(interaction.user.id, interaction.user.username);
-    user = await userService.getUser(interaction.user.id);
+  const { member } = interaction;
+
+  // 1. Check if the user is in a voice channel
+  if (!member.voice.channel) {
+    return feedback.sendError(
+      interaction,
+      'Not in a Voice Channel',
+      'You must be in a voice channel to start an activity.'
+    );
   }
 
-  const playerClass = classAbilityMap[user.class] || user.class || 'Stalwart Defender';
-  const playerHero = allPossibleHeroes.find(h => h.class === playerClass && h.isBase);
-  if (!playerHero) {
-    await feedback.sendError(interaction, 'Data Missing', 'Required hero data missing.');
-    return;
-  }
+  // 2. Generate the invite for the Activity using the App ID from your config
+  try {
+    const invite = await member.voice.channel.createInvite({
+      target_application_id: config.APP_ID,
+      target_type: 2, // Required for Embedded Application invites
+    });
 
-  // Pick a random base hero for the goblin opponent
-  const baseHeroes = allPossibleHeroes.filter(h => h.isBase);
-  const goblinBase = baseHeroes[Math.floor(Math.random() * baseHeroes.length)];
-
-  if (!goblinBase) {
-    await feedback.sendError(interaction, 'Data Missing', 'Required goblin data missing.');
-    return;
-  }
-
-  const cards = await abilityCardService.getCards(user.id);
-  const equippedCard = cards.find(c => c.id === user.equipped_ability_id);
-  const deck = cards.filter(c => c.id !== user.equipped_ability_id);
-
-  if (!interaction.bypassChargeCheck && equippedCard && equippedCard.charges <= 0) {
-    const hasOtherChargedCopy = cards.some(
-      c => c.ability_id === equippedCard.ability_id && c.charges > 0
+    const row = new ActionRowBuilder().addComponents(
+      new ButtonBuilder()
+        .setLabel('Start Practice Game')
+        .setStyle(ButtonStyle.Link)
+        .setURL(`https://discord.com/invite/${invite.code}`)
     );
 
-    if (!hasOtherChargedCopy) {
-      const row = new ActionRowBuilder().addComponents(
-        new ButtonBuilder()
-          .setCustomId(`proceed-battle:${interaction.user.id}`)
-          .setLabel('Proceed to Battle')
-          .setStyle(ButtonStyle.Danger),
-        new ButtonBuilder()
-          .setCustomId(`open-inventory:${interaction.user.id}`)
-          .setLabel('Open Inventory')
-          .setStyle(ButtonStyle.Secondary)
-      );
-
-      const ability = allPossibleAbilities.find(a => a.id === equippedCard.ability_id);
-      await interaction.reply({
-        content: `⚠️ **Warning!** Your equipped ability, **${ability.name}**, has no charges. You will only be able to use basic attacks.`,
-        components: [row],
-        ephemeral: true
-      });
-      return;
-    }
+    await interaction.reply({
+      content: 'Ready for practice? Click the button to launch the game in your voice channel!',
+      components: [row],
+      ephemeral: true,
+    });
+  } catch (error) {
+    console.error('Failed to create Activity invite:', error);
+    return feedback.sendError(
+      interaction,
+      'Invite Failed',
+      'I was unable to create an activity invite for this voice channel. Please check my permissions.'
+    );
   }
-
-  const goblinAbilityPool = allPossibleAbilities
-    .filter(a => a.class === goblinBase.class && a.rarity === 'Common');
-  const goblinAbilities = goblinAbilityPool.map(a => a.id);
-
-  const player = createCombatant({
-    hero_id: playerHero.id,
-    ability_card: equippedCard,
-    deck: deck,
-    name: interaction.user.username
-  }, 'player', 0);
-  const goblin = createCombatant({ hero_id: goblinBase.id, deck: goblinAbilities }, 'enemy', 0);
-
-  if (player.abilityData) player.abilityData.isPractice = true;
-  goblin.heroData = { ...goblin.heroData, name: `Goblin ${goblinBase.name}` };
-  goblin.name = goblin.heroData.name;
-
-  await respond(interaction, {
-    content: `${interaction.user.username} begins a practice battle against a Goblin ${goblinBase.name}!`
-  });
-
-  const engine = new GameEngine([player, goblin]);
-  const { fullLog } = await runBattleLoop(interaction, engine);
-
-  const summaryEmbed = new EmbedBuilder()
-    .setColor(engine.winner === 'player' ? '#57F287' : '#ED4245')
-    .setDescription('Practice Complete');
-
-  await interaction.followUp({ embeds: [summaryEmbed] });
-
-  await sendBattleLogDM(interaction, user, fullLog);
 }
 
 module.exports = { data, execute };
