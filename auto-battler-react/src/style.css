@@ -528,6 +528,7 @@ button:disabled {
 }
 .combat-text-popup.damage { color: #ef4444; }
 .combat-text-popup.heal { color: #22c55e; }
+.combat-text-popup.status { color: #e0f2fe; }
 .combat-text-popup.energy {
     color: #60a5fa;
     text-shadow: 1px 1px 3px #1e3a8a;
