@@ -17,6 +17,9 @@ jest.mock('../src/utils/weaponService', () => ({
   getWeapon: jest.fn(),
   addWeapon: jest.fn()
 }));
+jest.mock('../src/utils/battleReplayService', () => ({
+  saveReplay: jest.fn()
+}));
 jest.mock('../src/utils/embedBuilder', () => {
   const actual = jest.requireActual('../src/utils/embedBuilder');
   return { ...actual, sendCardDM: jest.fn() };
@@ -33,6 +36,7 @@ const userService = require('../src/utils/userService');
 const abilityCardService = require('../src/utils/abilityCardService');
 const weaponService = require('../src/utils/weaponService');
 const embedBuilder = require('../src/utils/embedBuilder');
+const battleReplayService = require('../src/utils/battleReplayService');
 const GameEngine = require('../../backend/game/engine');
 
 describe('adventure command', () => {
@@ -46,6 +50,7 @@ describe('adventure command', () => {
     weaponService.getWeapons.mockResolvedValue([]);
     weaponService.getWeapon.mockResolvedValue(null);
     weaponService.addWeapon.mockResolvedValue();
+    battleReplayService.saveReplay.mockResolvedValue(42);
     createCombatantSpy = utils.createCombatant;
     GameEngine.mockImplementation(() => ({
       runGameSteps: function* () {
@@ -93,9 +98,11 @@ describe('adventure command', () => {
     expect(summaryCall).toBeDefined();
     expect(summaryCall[0]).toEqual(expect.objectContaining({ embeds: expect.any(Array), components: expect.any(Array) }));
     const components = summaryCall[0].components[0].components;
-    expect(components).toHaveLength(2);
+    expect(components).toHaveLength(3);
     expect(components[0].data.custom_id).toBe('back-to-town');
     expect(components[1].data.custom_id).toBe(`continue-adventure:${interaction.user.id}`);
+    expect(components[2].data.url).toContain('/replay/');
+    expect(battleReplayService.saveReplay).toHaveBeenCalled();
   });
 
   test('warns when equipped ability has no charges', async () => {

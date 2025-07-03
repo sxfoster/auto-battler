@@ -10,6 +10,8 @@ const abilityCardService = require('../utils/abilityCardService');
 const weaponService = require('../utils/weaponService');
 const { sendCardDM } = require('../utils/embedBuilder');
 const { runBattleLoop, sendBattleLogDM, formatLog } = require('../utils/battleRunner');
+const replayService = require('../utils/battleReplayService');
+const config = require('../../util/config');
 
 const GameEngine = require('../../../backend/game/engine');
 const { createCombatant } = require('../../../backend/game/utils');
@@ -181,6 +183,13 @@ async function execute(interaction) {
   const engine = new GameEngine([player, goblin]);
   const { fullLog } = await runBattleLoop(interaction, engine, { waitMs: 250 });
 
+  let replayId = null;
+  try {
+    replayId = await replayService.saveReplay(fullLog);
+  } catch (err) {
+    console.error('Failed to save replay:', err);
+  }
+
   console.log(
     `[BATTLE END] User: ${interaction.user.username} | Result: ${
       engine.winner === 'player' ? 'Victory' : 'Defeat'
@@ -250,7 +259,11 @@ async function execute(interaction) {
     new ButtonBuilder()
       .setCustomId(`continue-adventure:${interaction.user.id}`)
       .setLabel('Continue Adventuring')
-      .setStyle(ButtonStyle.Success)
+      .setStyle(ButtonStyle.Success),
+    new ButtonBuilder()
+      .setStyle(ButtonStyle.Link)
+      .setLabel('View Battle Replay')
+      .setURL(`${config.WEB_APP_URL}/replay/${replayId ?? ''}`)
   );
 
   await interaction.followUp({ embeds: [summaryEmbed], components: [row] });
