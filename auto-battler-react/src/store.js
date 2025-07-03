@@ -75,9 +75,21 @@ export const useGameStore = createWithEqualityFn(
   revealedCards: [],
   combatants: [],
   isSpeedLinesActive: false,
+  // Add these new properties to your initial store state
+  playerRole: 'guest', // Default to 'guest'
+  participants: [],
 
   advanceGamePhase: newPhase => set({ gamePhase: newPhase }),
   setSpeedLines: isActive => set({ isSpeedLinesActive: isActive }),
+
+  // Add this new action to your store
+  setMultiplayerState: (role, participants) => set({ playerRole: role, participants }),
+
+  // Add this new action to handle updates from the host
+  applyHostUpdate: (newLog, newCombatantState) => set(state => ({
+    battleLog: [...state.battleLog, ...newLog],
+    combatants: newCombatantState,
+  })),
 
   selectHero: heroId => set(state => {
     const team = { ...state.playerTeam }
