@@ -88,7 +88,7 @@ test('sends challenge DM with buttons and handles accept/decline', async () => {
     .mockResolvedValueOnce({ id: 2, class: 'Wizard', discord_id: '2' })
     .mockResolvedValueOnce({ id: 1, class: 'Wizard', discord_id: '1' })
     .mockResolvedValueOnce({ id: 2, class: 'Wizard', discord_id: '2' });
-  db.query.mockResolvedValueOnce([{ insertId: 5 }]);
+  db.query.mockResolvedValueOnce({ insertId: 5 });
   db.query.mockResolvedValueOnce();
   const interaction = {
     user: { id: '1', username: 'Challenger' },
@@ -103,10 +103,10 @@ test('sends challenge DM with buttons and handles accept/decline', async () => {
   expect(components[0].components[1].data.label).toBe('Decline');
 
   // accept path
-  db.query.mockResolvedValueOnce([[{ challenger_id: 1, challenged_id: 2, status: 'pending', created_at: new Date(), message_id: '555', channel_id: '100' }]]);
+  db.query.mockResolvedValueOnce({ rows: [{ challenger_id: 1, challenged_id: 2, status: 'pending', created_at: new Date(), message_id: '555', channel_id: '100' }] });
   db.query.mockResolvedValueOnce();
-  db.query.mockResolvedValueOnce([[{ discord_id: '1' }]]);
-  db.query.mockResolvedValueOnce([[{ discord_id: '2' }]]);
+  db.query.mockResolvedValueOnce({ rows: [{ discord_id: '1' }] });
+  db.query.mockResolvedValueOnce({ rows: [{ discord_id: '2' }] });
   db.query.mockResolvedValueOnce();
   const acceptInteraction = {
     customId: 'challenge-accept:5',
@@ -129,7 +129,7 @@ test('sends challenge DM with buttons and handles accept/decline', async () => {
 
   // decline path
   db.query.mockResolvedValueOnce();
-  db.query.mockResolvedValueOnce([[{ message_id: '555', channel_id: '100' }]]);
+  db.query.mockResolvedValueOnce({ rows: [{ message_id: '555', channel_id: '100' }] });
   const declineInteraction = {
     customId: 'challenge-decline:5',
     update: jest.fn().mockResolvedValue(),
@@ -150,7 +150,7 @@ test('logs error when DM fails but still replies', async () => {
   userService.getUser
     .mockResolvedValueOnce({ id: 1, class: 'Wizard' })
     .mockResolvedValueOnce({ id: 2, class: 'Wizard' });
-  db.query.mockResolvedValueOnce([{ insertId: 6 }]);
+  db.query.mockResolvedValueOnce({ insertId: 6 });
   db.query.mockResolvedValueOnce();
   const interaction = {
     user: { id: '1', username: 'Challenger' },

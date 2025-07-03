@@ -2,7 +2,7 @@ const db = require('../../util/database');
 
 // Add a new ability card to the user's inventory with configurable charges
 async function addCard(userId, abilityId, charges = 20) {
-  const [result] = await db.query(
+  const result = await db.query(
     'INSERT INTO user_ability_cards (user_id, ability_id, charges) VALUES (?, ?, ?)',
     [userId, abilityId, charges]
   );
@@ -11,7 +11,7 @@ async function addCard(userId, abilityId, charges = 20) {
 
 // Retrieve all ability cards owned by a user
 async function getCards(userId) {
-  const [rows] = await db.query(
+  const { rows } = await db.query(
     'SELECT * FROM user_ability_cards WHERE user_id = ? ORDER BY id',
     [userId]
   );
@@ -20,7 +20,7 @@ async function getCards(userId) {
 
 // Retrieve a single ability card by id
 async function getCard(cardId) {
-  const [rows] = await db.query(
+  const { rows } = await db.query(
     'SELECT * FROM user_ability_cards WHERE id = ?',
     [cardId]
   );

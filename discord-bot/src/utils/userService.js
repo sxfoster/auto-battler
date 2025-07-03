@@ -21,7 +21,7 @@ const XP_THRESHOLDS = {
 };
 
 async function getUser(discordId) {
-  const [rows] = await db.query('SELECT * FROM users WHERE discord_id = ?', [discordId]);
+  const { rows } = await db.query('SELECT * FROM users WHERE discord_id = ?', [discordId]);
   return rows[0] || null;
 }
 
@@ -31,7 +31,7 @@ async function createUser(discordId, name) {
 }
 
 async function getUserByName(name) {
-  const [rows] = await db.query('SELECT * FROM users WHERE LOWER(name) = LOWER(?)', [name]);
+  const { rows } = await db.query('SELECT * FROM users WHERE LOWER(name) = LOWER(?)', [name]);
   return rows[0] || null;
 }
 
@@ -70,7 +70,7 @@ async function addGold(userId, amount) {
 
 // Award XP and handle level ups
 async function addXp(userId, amount) {
-  const [rows] = await db.query('SELECT id, level, xp FROM users WHERE id = ?', [userId]);
+  const { rows } = await db.query('SELECT id, level, xp FROM users WHERE id = ?', [userId]);
   const user = rows[0];
   if (!user) return null;
   if (user.level >= 10) {
@@ -93,7 +93,7 @@ async function addXp(userId, amount) {
 }
 
 async function getLeaderboardData() {
-  const [rows] = await db.query(`
+  const { rows } = await db.query(`
         SELECT
             name,
             discord_id,
@@ -132,7 +132,7 @@ async function setActiveAbility(discordId, cardId) {
 // ------ State Management ------
 
 async function getUserState(discordId) {
-  const [rows] = await db.query(
+  const { rows } = await db.query(
     'SELECT state, location, tutorial_step FROM users WHERE discord_id = ?',
     [discordId]
   );

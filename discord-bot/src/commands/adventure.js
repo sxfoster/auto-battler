@@ -178,11 +178,21 @@ async function execute(interaction) {
   const engine = new GameEngine([player, goblin]);
   const { battleLog, finalPlayerState } = engine.runFullGame();
 
-  const [result] = await db.query(
-    'INSERT INTO battle_replays (battle_log) VALUES (?)',
-    [JSON.stringify(battleLog)]
-  );
-  const battleId = result.insertId;
+  let battleId;
+  try {
+    const result = await db.query(
+      'INSERT INTO battle_replays (battle_log) VALUES (?)',
+      [JSON.stringify(battleLog)]
+    );
+    battleId = result.insertId;
+  } catch (err) {
+    console.error('Failed to save replay:', err);
+    await interaction.reply({
+      content: '❌ Unable to save battle replay. Please try again later.',
+      ephemeral: true
+    });
+    return;
+  }
   console.log(
     `[BATTLE END] User: ${interaction.user.username} | Result: ${
       engine.winner === 'player' ? 'Victory' : 'Defeat'
@@ -303,6 +313,11 @@ async function execute(interaction) {
       );
     }
   }
+
+  await interaction.followUp({
+    content: `⚔️ Battle complete! Replay #${battleId} saved.`,
+    ephemeral: true
+  });
 }
 
 module.exports = { data, execute };
