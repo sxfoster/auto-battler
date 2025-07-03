@@ -64,3 +64,36 @@ test('errors from router are handled', async () => {
     expect.objectContaining({ embeds: expect.any(Array), ephemeral: true })
   );
 });
+
+test('tutorial button interaction routed to router', async () => {
+  const client = discord.__clients[0];
+  const handler = client.listeners('interactionCreate')[0];
+  const interaction = {
+    isButton: () => true,
+    isStringSelectMenu: () => false,
+    customId: 'tutorial_loot_weapon',
+    replied: false,
+    deferred: false,
+    reply: jest.fn(),
+    followUp: jest.fn()
+  };
+  await handler(interaction);
+  expect(routeInteraction).toHaveBeenCalledWith(interaction);
+});
+
+test('tutorial select menu interaction routed to router', async () => {
+  const client = discord.__clients[0];
+  const handler = client.listeners('interactionCreate')[0];
+  const interaction = {
+    isButton: () => false,
+    isStringSelectMenu: () => true,
+    values: ['Stalwart Defender'],
+    customId: 'tutorial_archetype_select',
+    replied: false,
+    deferred: false,
+    reply: jest.fn(),
+    followUp: jest.fn()
+  };
+  await handler(interaction);
+  expect(routeInteraction).toHaveBeenCalledWith(interaction);
+});
