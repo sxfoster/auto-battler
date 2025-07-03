@@ -298,7 +298,11 @@ async function execute(interaction, isReprompt = false) {
     await interaction.update(messagePayload);
   } else {
     // For the initial /tutorial command by a new user.
-    await interaction.reply(messagePayload);
+    if (interaction.replied || interaction.deferred) {
+      await interaction.followUp(messagePayload);
+    } else {
+      await interaction.reply(messagePayload);
+    }
   }
 }
 
