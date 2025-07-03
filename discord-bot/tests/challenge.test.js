@@ -9,12 +9,20 @@ jest.mock('../util/database', () => ({
   query: jest.fn()
 }));
 jest.mock('../../backend/game/engine');
+jest.mock('../src/utils/battleReplayService', () => ({
+  saveReplay: jest.fn()
+}));
+jest.mock('../src/utils/abilityCardService', () => ({
+  getCards: jest.fn()
+}));
 
 const userService = require('../src/utils/userService');
 const db = require('../util/database');
 const GameEngine = require('../../backend/game/engine');
 const gameData = require('../util/gameData');
 const { allPossibleHeroes } = require('../../backend/game/data');
+const battleReplayService = require('../src/utils/battleReplayService');
+const abilityCardService = require('../src/utils/abilityCardService');
 
 beforeEach(() => {
   jest.clearAllMocks();
@@ -24,6 +32,8 @@ beforeEach(() => {
     battleLog: [],
     winner: 'player'
   }));
+  battleReplayService.saveReplay.mockResolvedValue(123);
+  abilityCardService.getCards.mockResolvedValue([]);
   process.env.PVP_CHANNEL_ID = '100';
   jest.useFakeTimers();
 });
@@ -74,8 +84,10 @@ test('sends challenge DM with buttons and handles accept/decline', async () => {
   const channelMessage = { id: '555', edit: jest.fn().mockResolvedValue() };
   const announcementChannel = { id: '100', send: jest.fn().mockResolvedValue(channelMessage), messages: { fetch: jest.fn().mockResolvedValue(channelMessage) } };
   userService.getUser
-    .mockResolvedValueOnce({ id: 1, class: 'Mage' })
-    .mockResolvedValueOnce({ id: 2, class: 'Mage' });
+    .mockResolvedValueOnce({ id: 1, class: 'Mage', discord_id: '1' })
+    .mockResolvedValueOnce({ id: 2, class: 'Mage', discord_id: '2' })
+    .mockResolvedValueOnce({ id: 1, class: 'Mage', discord_id: '1' })
+    .mockResolvedValueOnce({ id: 2, class: 'Mage', discord_id: '2' });
   db.query.mockResolvedValueOnce([{ insertId: 5 }]);
   db.query.mockResolvedValueOnce();
   const interaction = {
@@ -93,8 +105,8 @@ test('sends challenge DM with buttons and handles accept/decline', async () => {
   // accept path
   db.query.mockResolvedValueOnce([{ challenger_id: 1, challenged_id: 2, status: 'pending', created_at: new Date(), message_id: '555', channel_id: '100' }]);
   db.query.mockResolvedValueOnce();
-  db.query.mockResolvedValueOnce([[{ id: 1, name: 'Challenger' }]]);
-  db.query.mockResolvedValueOnce([[{ id: 2, name: 'Target' }]]);
+  db.query.mockResolvedValueOnce([{ discord_id: '1' }]);
+  db.query.mockResolvedValueOnce([{ discord_id: '2' }]);
   db.query.mockResolvedValue([]);
   db.query.mockResolvedValue([]);
   db.query.mockResolvedValueOnce();
@@ -109,6 +121,13 @@ test('sends challenge DM with buttons and handles accept/decline', async () => {
   };
   await challenge.handleAccept(acceptInteraction);
   expect(acceptInteraction.update).toHaveBeenCalled();
+  expect(battleReplayService.saveReplay).toHaveBeenCalled();
+  expect(announcementChannel.send).toHaveBeenCalledWith(
+    expect.objectContaining({
+      content: expect.stringContaining('Victory!'),
+      components: expect.any(Array)
+    })
+  );
 
   // decline path
   db.query.mockResolvedValueOnce();

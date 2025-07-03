@@ -76,3 +76,27 @@ When configured correctly the bot logs a `Database connection successful` messag
 
 The bot includes a simple `/inventory` command for viewing your backpack. Once the ability card system is implemented it will also support `/inventory set` to choose which ability card is active.  The design for this charge-based system is documented in [docs/ability_card_charge_gdd.md](docs/ability_card_charge_gdd.md).
 
+## Deployment
+
+Follow these steps to host the app on your GoDaddy server:
+
+1. **Build the frontend**
+   ```bash
+   cd auto-battler-react
+   npm install
+   npm run build
+   ```
+   Upload the resulting `dist/` folder to your hosting space.
+
+2. **Start the backend**
+   ```bash
+   cd backend
+   npm install
+   npm start
+   ```
+   Use a tool such as `pm2` if you want the server to run continuously.
+
+3. **Environment variables**
+   Copy `.env.example` to `.env` and set `WEB_APP_URL` to your production domain.
+   The replay buttons in `/challenge` and `/adventure` will point to this URL.
+

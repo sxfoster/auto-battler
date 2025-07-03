@@ -7,6 +7,8 @@ const gameData = require('../../util/gameData');
 const { createCombatant } = require('../../../backend/game/utils');
 const GameEngine = require('../../../backend/game/engine');
 const feedback = require('../utils/feedback');
+const replayService = require('../utils/battleReplayService');
+const classAbilityMap = require('../data/classAbilityMap');
 
 const data = new SlashCommandBuilder()
   .setName('challenge')
@@ -133,6 +135,7 @@ async function handleAccept(interaction) {
   const challenger = await userService.getUser(challengerRows[0].discord_id);
   const challenged = await userService.getUser(challengedRows[0].discord_id);
 
+  const allPossibleHeroes = gameData.getHeroes();
   const challengerCards = await abilityCardService.getCards(challenger.id);
   const chalEquipped = challengerCards.find(c => c.id === challenger.equipped_ability_id);
   const chalDeck = challengerCards.filter(c => c.id !== challenger.equipped_ability_id);
@@ -156,6 +159,13 @@ async function handleAccept(interaction) {
 
   const engine = new GameEngine([player1, player2]);
   engine.runFullGame();
+
+  let replayId = null;
+  try {
+    replayId = await replayService.saveReplay(engine.battleLog);
+  } catch (err) {
+    console.error('Failed to save replay:', err);
+  }
 
   const finalLogString = engine.battleLog
     .map(entry => {
@@ -225,7 +235,13 @@ async function handleAccept(interaction) {
 
   try {
     const channel = await interaction.client.channels.fetch(battle.channel_id);
-    await channel.send(victoryMessage);
+    const row = new ActionRowBuilder().addComponents(
+      new ButtonBuilder()
+        .setStyle(ButtonStyle.Link)
+        .setLabel('View Battle Replay')
+        .setURL(`${config.WEB_APP_URL}/replay/${replayId ?? ''}`)
+    );
+    await channel.send({ content: victoryMessage, components: [row] });
   } catch (e) {
     /* ignore */
   }
