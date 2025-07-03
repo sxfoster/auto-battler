@@ -63,6 +63,28 @@ async function handleActiveInteraction(interaction, user) {
 async function routeInteraction(interaction) {
   let user = await userService.getUser(interaction.user.id);
   if (!user) {
+    // --- MODIFICATION START ---
+    // New users should skip the tutorial and start in town. The old
+    // tutorial logic is kept below in comments for easy reversion.
+    user = await userService.createUser(interaction.user.id, interaction.user.username);
+    await userService.setUserState(interaction.user.id, 'active');
+    await userService.setUserLocation(interaction.user.id, 'town');
+
+    // Greet the user and show them the town command
+    const townCommand = interaction.client.commands.get('town');
+    if (townCommand) {
+      await feedback.sendInfo(
+        interaction,
+        'Welcome, Adventurer!',
+        "You have arrived at Portal's Rest. Use the buttons below to explore."
+      );
+      return townCommand.execute(interaction);
+    }
+    // Fallback if town command isn't available
+    return feedback.sendInfo(interaction, 'Welcome!', 'Your adventure begins!');
+
+    /*
+    // --- OLD TUTORIAL LOGIC (DISABLED) ---
     user = await userService.createUser(interaction.user.id, interaction.user.username);
     await userService.setUserState(interaction.user.id, 'in_tutorial');
     await userService.setTutorialStep(interaction.user.id, 'welcome');
@@ -79,6 +101,8 @@ async function routeInteraction(interaction) {
       await tutorialCommand.execute(interaction);
     }
     return;
+    */
+    // --- MODIFICATION END ---
   }
 
   const state = await userService.getUserState(interaction.user.id);
