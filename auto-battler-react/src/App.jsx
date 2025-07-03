@@ -89,13 +89,29 @@ async function setupDiscordSdk() {
 // --- End SDK Setup ---
 
 export default function App() {
-  const gamePhase = useGameStore(state => state.gamePhase)
+  const { gamePhase, isLoading, error, fetchReplay } = useGameStore(state => ({
+    gamePhase: state.gamePhase,
+    isLoading: state.isLoading,
+    error: state.error,
+    fetchReplay: state.fetchReplay
+  }))
 
   // Setup Discord SDK and multiplayer logic
   useEffect(() => {
     console.log('[React App] App component mounted, attempting to set up SDK.');
     setupDiscordSdk();
   }, []);
+
+  // Load a replay if the URL includes a battle ID
+  useEffect(() => {
+    const path = window.location.pathname;
+    const match = path.match(/^\/replay\/(\d+)/);
+    if (match) {
+      const battleId = match[1];
+      console.log(`[App] Found replay ID in URL: ${battleId}`);
+      fetchReplay(battleId);
+    }
+  }, [fetchReplay]);
 
   // Subscribe to SDK commands for guest updates
   useEffect(() => {
@@ -113,6 +129,23 @@ export default function App() {
         discordSdk.unsubscribe('COMMAND', handleCommand);
     };
   }, []); // Empty dependency array ensures this runs once
+
+  if (isLoading) {
+    return (
+      <div className="scene">
+        <h1 className="text-4xl font-cinzel">Loading Battle Replay...</h1>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="scene">
+        <h1 className="text-4xl font-cinzel text-red-500">Error</h1>
+        <p className="text-lg text-gray-400 mt-4">{error}</p>
+      </div>
+    );
+  }
 
   let scene = null
   switch (gamePhase) {

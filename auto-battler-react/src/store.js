@@ -75,6 +75,8 @@ export const useGameStore = createWithEqualityFn(
   revealedCards: [],
   combatants: [],
   replayLog: [],
+  isLoading: false,
+  error: null,
   isSpeedLinesActive: false,
   // Add these new properties to your initial store state
   playerRole: 'guest', // Default to 'guest'
@@ -84,6 +86,22 @@ export const useGameStore = createWithEqualityFn(
   setSpeedLines: isActive => set({ isSpeedLinesActive: isActive }),
 
   setReplayLog: log => set({ replayLog: log }),
+
+  // Fetch a battle replay by ID and store it in replayLog
+  fetchReplay: async id => {
+    set({ isLoading: true, error: null });
+    try {
+      const res = await fetch(`/api/replays/${id}`);
+      if (!res.ok) {
+        throw new Error(`Failed to fetch replay ${id}`);
+      }
+      const data = await res.json();
+      set({ replayLog: data, isLoading: false });
+    } catch (err) {
+      console.error('[store] fetchReplay error', err);
+      set({ error: err.message || 'Failed to load replay', isLoading: false });
+    }
+  },
 
   // Add this new action to your store
   setMultiplayerState: (role, participants) => set({ playerRole: role, participants }),
