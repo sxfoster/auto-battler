@@ -27,56 +27,52 @@ async function handleInteraction(interaction, userState) {
     return;
   }
 
-  if (interaction.isButton()) {
-    const id = interaction.customId;
+  const errorReply = async () =>
+    interaction.reply({ content: 'Please follow the tutorial steps using the buttons or menus provided.', ephemeral: true });
 
-    if (id.startsWith('tutorial_confirm_archetype')) {
-      if (userState.tutorial_step !== 'archetype_selection_prompt') {
-        await interaction.reply({ content: 'Please follow the tutorial steps using the buttons or menus provided.', ephemeral: true });
-        return;
+  switch (userState.tutorial_step) {
+    case 'archetype_selection_prompt':
+      if (interaction.isStringSelectMenu() && interaction.customId === 'tutorial_archetype_select') {
+        const selectedArchetype = interaction.values[0];
+        await module.exports.showArchetypePreview(interaction, selectedArchetype);
+      } else if (interaction.isButton() && interaction.customId.startsWith('tutorial_confirm_archetype')) {
+        const archetype = interaction.customId.split(':')[1];
+        await interaction.update({ content: `You have chosen the path of the ${archetype}! Prepare for battle...`, embeds: [], components: [] });
+        await module.exports.runTutorial(interaction, archetype);
+      } else if (interaction.isButton() && interaction.customId === 'tutorial_choose_again') {
+        const { execute } = require('./tutorial');
+        await execute(interaction, true);
+      } else {
+        await errorReply();
       }
-      const parts = id.split(':');
-      if (parts.length > 1) {
-        const chosenClass = parts[1];
-        await module.exports.runTutorial(interaction, chosenClass);
+      break;
+    case 'loot_choice':
+      if (interaction.isButton() && (interaction.customId === 'tutorial_loot_weapon' || interaction.customId === 'tutorial_loot_ability')) {
+        const choice = interaction.customId === 'tutorial_loot_weapon' ? 'weapon' : 'ability';
+        await module.exports.handleLootChoice(interaction, choice);
+      } else {
+        await errorReply();
       }
-    } else if (id === 'tutorial_choose_again') {
-      if (userState.tutorial_step !== 'archetype_selection_prompt') {
-        await interaction.reply({ content: 'Please follow the tutorial steps using the buttons or menus provided.', ephemeral: true });
-        return;
+      break;
+    case 'town_arrival':
+      if (interaction.isButton() && interaction.customId === 'tutorial_go_to_town') {
+        await userService.completeTutorial(interaction.user.id);
+        await userService.setUserState(interaction.user.id, 'active');
+        await userService.setUserLocation(interaction.user.id, 'town');
+        await interaction.update({ content: "Tutorial complete! You have arrived at Portal's Rest.", components: [] });
+        const townCommand = interaction.client.commands.get('town');
+        if (townCommand) {
+          await townCommand.execute(interaction, true);
+        }
+      } else {
+        await errorReply();
       }
-      const { execute } = require('./tutorial');
-      await execute(interaction, true);
-    } else if (id === 'tutorial_loot_weapon' || id === 'tutorial_loot_ability') {
-      if (userState.tutorial_step !== 'loot_choice') {
-        await interaction.reply({ content: 'Please follow the tutorial steps using the buttons or menus provided.', ephemeral: true });
-        return;
+      break;
+    default:
+      // Catch-all for unexpected interactions during the tutorial
+      if (interaction.isButton() || interaction.isStringSelectMenu()) {
+        await errorReply();
       }
-      const choice = id === 'tutorial_loot_weapon' ? 'weapon' : 'ability';
-      await module.exports.handleLootChoice(interaction, choice);
-    } else if (id === 'tutorial_go_to_town') {
-      if (userState.tutorial_step !== 'town_arrival') {
-        await interaction.reply({ content: 'Please follow the tutorial steps using the buttons or menus provided.', ephemeral: true });
-        return;
-      }
-      await userService.completeTutorial(interaction.user.id);
-      await userService.setUserState(interaction.user.id, 'active');
-      await userService.setUserLocation(interaction.user.id, 'town');
-      await interaction.update({ content: "Tutorial complete! You have arrived at Portal's Rest.", components: [] });
-      const townCommand = interaction.client.commands.get('town');
-      if (townCommand) {
-        await townCommand.execute(interaction, true);
-      }
-    } else {
-      await interaction.reply({ content: 'Please follow the tutorial steps using the buttons or menus provided.', ephemeral: true });
-    }
-  } else if (interaction.isStringSelectMenu() && interaction.customId === 'tutorial_archetype_select') {
-    if (userState.tutorial_step !== 'archetype_selection_prompt') {
-      await interaction.reply({ content: 'Please follow the tutorial steps using the buttons or menus provided.', ephemeral: true });
-      return;
-    }
-    const selectedArchetype = interaction.values[0];
-    await module.exports.showArchetypePreview(interaction, selectedArchetype);
   }
 }
 
