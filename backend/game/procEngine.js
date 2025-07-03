@@ -31,11 +31,13 @@ class ProcEngine {
                     if (proc.once_per_combat && this.onceMap.has(key)) continue;
                     if (proc.once_per_combat) this.onceMap.add(key);
 
-                    this.executeEffect(proc, { ...context, owner: combatant, item });
                     const prevOwner = context.owner;
+                    const prevItem = context.item;
                     context.owner = combatant;
+                    context.item = item;
                     this.executeEffect(proc, context);
                     context.owner = prevOwner;
+                    context.item = prevItem;
                 }
             }
         }
