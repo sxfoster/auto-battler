@@ -17,8 +17,8 @@ jest.mock('../src/utils/weaponService', () => ({
   getWeapon: jest.fn(),
   addWeapon: jest.fn()
 }));
-jest.mock('../src/utils/battleReplayService', () => ({
-  saveReplay: jest.fn()
+jest.mock('../util/database', () => ({
+  query: jest.fn()
 }));
 jest.mock('../src/utils/embedBuilder', () => {
   const actual = jest.requireActual('../src/utils/embedBuilder');
@@ -36,7 +36,7 @@ const userService = require('../src/utils/userService');
 const abilityCardService = require('../src/utils/abilityCardService');
 const weaponService = require('../src/utils/weaponService');
 const embedBuilder = require('../src/utils/embedBuilder');
-const battleReplayService = require('../src/utils/battleReplayService');
+const db = require('../util/database');
 const GameEngine = require('../../backend/game/engine');
 
 describe('adventure command', () => {
@@ -50,15 +50,11 @@ describe('adventure command', () => {
     weaponService.getWeapons.mockResolvedValue([]);
     weaponService.getWeapon.mockResolvedValue(null);
     weaponService.addWeapon.mockResolvedValue();
-    battleReplayService.saveReplay.mockResolvedValue(42);
+    db.query.mockResolvedValue([[{ insertId: 42 }]]);
     createCombatantSpy = utils.createCombatant;
     GameEngine.mockImplementation(() => ({
-      runGameSteps: function* () {
-        yield { combatants: [], log: [{ round: 1, type: 'info', message: 'log' }] };
-      },
-      runFullGame: jest.fn(),
-      winner: 'player',
-      finalPlayerState: {}
+      runFullGame: jest.fn().mockReturnValue({ battleLog: [], finalPlayerState: {} }),
+      winner: 'player'
     }));
   });
 
@@ -96,13 +92,17 @@ describe('adventure command', () => {
     expect(interaction.reply).toHaveBeenCalledWith(expect.objectContaining({ content: expect.stringContaining('Goblin') }));
     const summaryCall = interaction.followUp.mock.calls.find(c => Array.isArray(c[0].components));
     expect(summaryCall).toBeDefined();
-    expect(summaryCall[0]).toEqual(expect.objectContaining({ embeds: expect.any(Array), components: expect.any(Array) }));
+    expect(summaryCall[0]).toEqual(
+      expect.objectContaining({ embeds: expect.any(Array), components: expect.any(Array) })
+    );
     const components = summaryCall[0].components[0].components;
-    expect(components).toHaveLength(3);
+    expect(components).toHaveLength(2);
     expect(components[0].data.custom_id).toBe('back-to-town');
     expect(components[1].data.custom_id).toBe(`continue-adventure:${interaction.user.id}`);
-    expect(components[2].data.url).toContain('/replay/');
-    expect(battleReplayService.saveReplay).toHaveBeenCalled();
+    expect(db.query).toHaveBeenCalledWith(
+      'INSERT INTO battle_replays (battle_log) VALUES (?)',
+      [expect.any(String)]
+    );
   });
 
   test('warns when equipped ability has no charges', async () => {
@@ -147,10 +147,8 @@ describe('adventure command', () => {
 
   test('no ability drop when defeated', async () => {
     GameEngine.mockImplementationOnce(() => ({
-      runGameSteps: function* () { yield { combatants: [], log: ['log'] }; },
-      runFullGame: jest.fn(),
-      winner: 'enemy',
-      finalPlayerState: {}
+      runFullGame: jest.fn().mockReturnValue({ battleLog: [], finalPlayerState: {} }),
+      winner: 'enemy'
     }));
     userService.getUser.mockResolvedValue({ id: 1, discord_id: '123', class: 'Warrior', equipped_ability_id: 50 });
     abilityCardService.getCards.mockResolvedValue([{ id: 50, ability_id: 3111, charges: 5 }]);
@@ -160,28 +158,6 @@ describe('adventure command', () => {
     expect(userService.addAbility).not.toHaveBeenCalled();
     const calls = interaction.followUp.mock.calls.filter(c => c[0].ephemeral);
     expect(calls.length).toBe(0);
-  });
-
-  test('battle log is included in embed', async () => {
-    GameEngine.mockImplementationOnce(() => ({
-      runGameSteps: function* () {
-        yield { combatants: [], log: [
-          { round: 1, type: 'info', level: 'summary', message: 'first' },
-          { round: 1, type: 'info', level: 'summary', message: 'second' }
-        ] };
-      },
-      runFullGame: jest.fn(),
-      winner: 'player',
-      finalPlayerState: {}
-    }));
-    userService.getUser.mockResolvedValue({ id: 1, discord_id: '123', class: 'Barbarian', equipped_ability_id: 50 });
-    abilityCardService.getCards.mockResolvedValue([{ id: 50, ability_id: 3111, charges: 5 }]);
-    const interaction = { user: { id: '123', username: 'tester' }, reply: jest.fn().mockResolvedValue(), followUp: jest.fn().mockResolvedValue() };
-    await adventure.execute(interaction);
-    expect(abilityCardService.getCards).toHaveBeenCalledWith(1);
-    const description = interaction.followUp.mock.calls[0][0].embeds[0].data.description;
-    expect(description.includes('first')).toBe(true);
-    expect(description.includes('second')).toBe(true);
   });
 
   test('drops correct ability based on goblin class', async () => {
@@ -202,34 +178,10 @@ describe('adventure command', () => {
     Math.random.mockRestore();
   });
 
-  test('battle log is truncated to last 20 lines', async () => {
-    const logs = Array.from({ length: 30 }, (_, i) => ({ round: 1, type: 'info', level: 'summary', message: String(i + 1) }));
-    GameEngine.mockImplementationOnce(() => ({
-      runGameSteps: function* () {
-        yield { combatants: [], log: logs };
-      },
-      runFullGame: jest.fn(),
-      winner: 'player',
-      finalPlayerState: {}
-    }));
-    userService.getUser.mockResolvedValue({ id: 1, discord_id: '123', class: 'Barbarian', equipped_ability_id: 50 });
-    abilityCardService.getCards.mockResolvedValue([{ id: 50, ability_id: 3111, charges: 5 }]);
-    const interaction = { user: { id: '123', username: 'tester' }, reply: jest.fn().mockResolvedValue(), followUp: jest.fn().mockResolvedValue() };
-    await adventure.execute(interaction);
-    expect(abilityCardService.getCards).toHaveBeenCalledWith(1);
-    const description = interaction.followUp.mock.calls[0][0].embeds[0].data.description;
-    const lines = description.split('\n');
-    expect(lines.length).toBe(20);
-    expect(lines[0].includes('11')).toBe(true);
-    expect(lines[19].includes('30')).toBe(true);
-  });
-
   test('updates equipped ability when auto-equipped during battle', async () => {
     GameEngine.mockImplementationOnce(() => ({
-      runGameSteps: function* () { yield { combatants: [], log: [] }; },
-      runFullGame: jest.fn(),
-      winner: 'player',
-      finalPlayerState: { equipped_ability_id: 99 }
+      runFullGame: jest.fn().mockReturnValue({ battleLog: [], finalPlayerState: { equipped_ability_id: 99 } }),
+      winner: 'player'
     }));
     userService.getUser.mockResolvedValue({ id: 1, discord_id: '123', class: 'Warrior', equipped_ability_id: 50 });
     abilityCardService.getCards.mockResolvedValue([{ id: 50, ability_id: 3111, charges: 5 }]);
@@ -282,26 +234,6 @@ describe('adventure command', () => {
     await adventure.execute(interaction);
     expect(embedBuilder.sendCardDM).not.toHaveBeenCalled();
     Math.random.mockRestore();
-  });
-
-  test('notifies when battle log DM fails', async () => {
-    userService.getUser.mockResolvedValue({
-      id: 1,
-      discord_id: '123',
-      class: 'Warrior',
-      equipped_ability_id: 50,
-      dm_battle_logs_enabled: true,
-      dm_item_drops_enabled: true
-    });
-    abilityCardService.getCards.mockResolvedValue([{ id: 50, ability_id: 3111, charges: 5 }]);
-    const interaction = {
-      user: { id: '123', username: 'tester', send: jest.fn().mockRejectedValue(new Error('fail')) },
-      reply: jest.fn().mockResolvedValue(),
-      followUp: jest.fn().mockResolvedValue()
-    };
-    await adventure.execute(interaction);
-    const ephemerals = interaction.followUp.mock.calls.filter(c => c[0].ephemeral);
-    expect(ephemerals.length).toBeGreaterThan(0);
   });
 
   test('notifies when item drop DM fails', async () => {
