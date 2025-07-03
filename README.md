@@ -103,32 +103,14 @@ Follow these steps to host the app on your GoDaddy server:
 
 ## PHP Backend Setup
 
-We host the replay API on our GoDaddy shared hosting account under `public_html/api/`.
+We host our replay API on GoDaddy shared hosting under `public_html/api/`.
 
-Create a `config.php` file in that directory containing your MySQL credentials:
+- **Replay Endpoint**  
+  `GET http://game.strahde.com/api/replay.php?id={id}`  
+  Returns stored JSON battle_log or `{"error":"Not found"}`.
 
-```php
-<?php
-define('DB_HOST', 'your_host');
-define('DB_NAME', 'your_db');
-define('DB_USER', 'your_user');
-define('DB_PASS', 'your_pass');
-```
-
-`replay.php` includes this file so you only update one place when the database settings change.
-
-- **Replay Endpoint**
-  `GET http://game.strahde.com/api/replay.php?id={id}`
-  returns the stored JSON `battle_log` for that id or `{"error":"Not found"}`.
-
-- **Health Check**
+- **Health Check**  
   `GET http://game.strahde.com/api/health.php` → `{"status":"OK"}`.
 
-Both scripts send the header `Access-Control-Allow-Origin: http://game.strahde.com`.
-
-Example commands:
-
-```bash
-curl http://game.strahde.com/api/health.php
-curl "http://game.strahde.com/api/replay.php?id=1"
-```
+- **CORS**  
+  Both endpoints allow origin `http://game.strahde.com`.
