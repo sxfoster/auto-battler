@@ -9,9 +9,7 @@ const userService = require('../utils/userService');
 const abilityCardService = require('../utils/abilityCardService');
 const weaponService = require('../utils/weaponService');
 const { sendCardDM } = require('../utils/embedBuilder');
-const { runBattleLoop, sendBattleLogDM, formatLog } = require('../utils/battleRunner');
-const replayService = require('../utils/battleReplayService');
-const config = require('../../util/config');
+const db = require('../../util/database');
 
 const GameEngine = require('../../../backend/game/engine');
 const { createCombatant } = require('../../../backend/game/utils');
@@ -172,23 +170,23 @@ async function execute(interaction) {
 
   console.log(`[BATTLE START] Player ${playerClass} vs ${goblin.name}`);
 
-  const startMessage = `${interaction.user.username} delves into the goblin cave and encounters a ferocious ${goblin.name}! The battle begins!`;
-
-  if (typeof interaction.isButton === 'function' && interaction.isButton()) {
-    await interaction.channel.send(startMessage);
-  } else {
-    await respond(interaction, { content: startMessage });
-  }
+  await respond(interaction, {
+    content: `${interaction.user.username} delves into the goblin cave and encounters a ferocious ${goblin.name}! The battle begins!`
+  });
 
   const engine = new GameEngine([player, goblin]);
-  const { fullLog } = await runBattleLoop(interaction, engine, { waitMs: 250 });
+  const { battleLog, finalPlayerState } = engine.runFullGame();
 
-  let replayId = null;
-  try {
-    replayId = await replayService.saveReplay(fullLog);
-  } catch (err) {
-    console.error('Failed to save replay:', err);
-  }
+  const [result] = await db.query(
+    'INSERT INTO battle_replays (battle_log) VALUES (?)',
+    [JSON.stringify(battleLog)]
+  );
+  const battleId = result.insertId;
+  console.log(
+    `[BATTLE END] User: ${interaction.user.username} | Result: ${
+      engine.winner === 'player' ? 'Victory' : 'Defeat'
+    } | Replay ID: ${battleId}`
+  );
 
   console.log(
     `[BATTLE END] User: ${interaction.user.username} | Result: ${
@@ -259,26 +257,24 @@ async function execute(interaction) {
     new ButtonBuilder()
       .setCustomId(`continue-adventure:${interaction.user.id}`)
       .setLabel('Continue Adventuring')
-      .setStyle(ButtonStyle.Success),
-    new ButtonBuilder()
-      .setStyle(ButtonStyle.Link)
-      .setLabel('View Battle Replay')
-      .setURL(`${config.WEB_APP_URL}/replay/${replayId ?? ''}`)
+      .setStyle(ButtonStyle.Success)
   );
 
   await interaction.followUp({ embeds: [summaryEmbed], components: [row] });
 
-  if (engine.finalPlayerState.equipped_ability_id) {
+  if (finalPlayerState.equipped_ability_id) {
     await userService.setActiveAbility(
       interaction.user.id,
-      engine.finalPlayerState.equipped_ability_id
+      finalPlayerState.equipped_ability_id
     );
     console.log(
-      `[INVENTORY] User ${interaction.user.username} auto-equipped card ID: ${engine.finalPlayerState.equipped_ability_id}`
+      `[INVENTORY] User ${interaction.user.username} auto-equipped card ID: ${finalPlayerState.equipped_ability_id}`
     );
   }
 
-  await sendBattleLogDM(interaction, user, fullLog);
+  if (user.dm_battle_logs_enabled) {
+    // This will be updated later to send a link instead of the full log.
+  }
 
   if (lootDrop) {
     if (user.dm_item_drops_enabled) {
