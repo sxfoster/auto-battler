@@ -15,6 +15,7 @@ export default function ReplayViewer() {
   const [isPlaying, setIsPlaying] = useState(false)
   const timerRef = useRef(null)
   const [loadError, setLoadError] = useState(false)
+  const [rawJson, setRawJson] = useState('')
 
   useEffect(() => {
     async function fetchReplay() {
@@ -22,6 +23,7 @@ export default function ReplayViewer() {
         const res = await fetch(`/api/replay.php?id=${id}`)
         if (!res.ok) throw new Error('Failed')
         const text = await res.text()
+        setRawJson(text)
         let data
         try {
           data = JSON.parse(text)
@@ -73,7 +75,11 @@ export default function ReplayViewer() {
   }
 
   if (!battleLog) {
-    return <div className="scene"><div className="text-xl">Loading...</div></div>
+    return (
+      <div className="scene flex items-center justify-center h-full">
+        <div className="animate-spin h-8 w-8 border-4 border-gray-500 border-t-transparent rounded-full" />
+      </div>
+    )
   }
 
   if (!snapshots.length) {
@@ -116,6 +122,11 @@ export default function ReplayViewer() {
         currentTurn={current}
         totalTurns={snapshots.length - 1}
       />
+      {rawJson && (
+        <pre className="mt-4 whitespace-pre-wrap text-xs text-left bg-gray-900 p-2 rounded">
+          {rawJson}
+        </pre>
+      )}
     </div>
   )
 }
