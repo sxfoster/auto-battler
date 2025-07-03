@@ -32,14 +32,21 @@ async function handleInteraction(interaction, userState) {
 
   switch (userState.tutorial_step) {
     case 'archetype_selection_prompt':
-      if (interaction.isStringSelectMenu() && interaction.customId === 'tutorial_archetype_select') {
+      if (typeof interaction.isStringSelectMenu === 'function' &&
+          interaction.isStringSelectMenu() &&
+          interaction.customId === 'tutorial_archetype_select') {
         const selectedArchetype = interaction.values[0];
         await module.exports.showArchetypePreview(interaction, selectedArchetype);
-      } else if (interaction.isButton() && interaction.customId.startsWith('tutorial_confirm_archetype')) {
+      } else if (interaction.isButton && interaction.isButton() && interaction.customId.startsWith('tutorial_confirm_archetype')) {
         const archetype = interaction.customId.split(':')[1];
-        await interaction.update({ content: `You have chosen the path of the ${archetype}! Prepare for battle...`, embeds: [], components: [] });
+        const updatePayload = { content: `You have chosen the path of the ${archetype}! Prepare for battle...`, embeds: [], components: [] };
+        if (typeof interaction.update === 'function') {
+          await interaction.update(updatePayload);
+        } else if (typeof interaction.reply === 'function') {
+          await interaction.reply(updatePayload);
+        }
         await module.exports.runTutorial(interaction, archetype);
-      } else if (interaction.isButton() && interaction.customId === 'tutorial_choose_again') {
+      } else if (interaction.isButton && interaction.isButton() && interaction.customId === 'tutorial_choose_again') {
         const { execute } = require('./tutorial');
         await execute(interaction, true);
       } else {
@@ -70,7 +77,8 @@ async function handleInteraction(interaction, userState) {
       break;
     default:
       // Catch-all for unexpected interactions during the tutorial
-      if (interaction.isButton() || interaction.isStringSelectMenu()) {
+      if ((interaction.isButton && interaction.isButton()) ||
+          (typeof interaction.isStringSelectMenu === 'function' && interaction.isStringSelectMenu())) {
         await errorReply();
       }
   }
@@ -93,6 +101,9 @@ async function runTutorial(interaction, className) {
   await userService.setUserState(interaction.user.id, 'in_tutorial');
   await userService.setTutorialStep(interaction.user.id, 'practice_battle');
 
+  const hero = Array.from(gameData.gameData.heroes.values()).find(
+    h => h.class === className && h.isBase === true
+  );
   const ability = Array.from(gameData.gameData.abilities.values()).find(
     a => a.class === className && a.rarity === 'Common'
   );
@@ -100,6 +111,10 @@ async function runTutorial(interaction, className) {
 
   if (!goblin) {
     await interaction.followUp({ content: "Error: Goblin data not found for tutorial battle. Please contact an admin.", ephemeral: true });
+    return;
+  }
+  if (!hero) {
+    await interaction.followUp({ content: "Error: Starting hero not found for tutorial battle.", ephemeral: true });
     return;
   }
   if (!ability) {
@@ -113,8 +128,8 @@ async function runTutorial(interaction, className) {
 
   const player = createCombatant(
     {
-      // Use a known default/placeholder if specific ability/hero for class is missing
-      hero_id: ability ? ability.id : 1, // Ensure '1' is a valid fallback hero_id
+      // Use the base hero for this class as the starting character
+      hero_id: hero ? hero.id : 1,
       ability_id: ability ? ability.id : null,
       weapon_id: null,
       name: interaction.user.username
