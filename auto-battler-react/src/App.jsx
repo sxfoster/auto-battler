@@ -1,11 +1,13 @@
 import React, { useEffect } from 'react'
 import { DiscordSDK } from '@discord/embedded-app-sdk'
+import { Routes, Route } from 'react-router-dom'
 
 // Log when the script is loaded to verify iframe execution
 console.log('[React App] App.jsx script loaded.');
 import { useGameStore } from './store.js'
 import AnimatedBackground from './components/AnimatedBackground.jsx'
 import DebugMenu from './components/DebugMenu.jsx'
+import ReplayViewer from './components/ReplayViewer.jsx'
 
 import PackScene from './scenes/PackScene.jsx'
 import RevealScene from './scenes/RevealScene.jsx'
@@ -143,10 +145,18 @@ export default function App() {
   }
 
   return (
-    <>
-      <AnimatedBackground isSpeedActive={false} />
-      {scene}
-      {import.meta.env.DEV && <DebugMenu />}
-    </>
+    <Routes>
+      <Route path="/replay/:id" element={<ReplayViewer />} />
+      <Route
+        path="*"
+        element={(
+          <>
+            <AnimatedBackground isSpeedActive={false} />
+            {scene}
+            {import.meta.env.DEV && <DebugMenu />}
+          </>
+        )}
+      />
+    </Routes>
   )
 }

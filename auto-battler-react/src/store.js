@@ -74,6 +74,7 @@ export const useGameStore = createWithEqualityFn(
   packChoices: [],
   revealedCards: [],
   combatants: [],
+  replayLog: [],
   isSpeedLinesActive: false,
   // Add these new properties to your initial store state
   playerRole: 'guest', // Default to 'guest'
@@ -81,6 +82,8 @@ export const useGameStore = createWithEqualityFn(
 
   advanceGamePhase: newPhase => set({ gamePhase: newPhase }),
   setSpeedLines: isActive => set({ isSpeedLinesActive: isActive }),
+
+  setReplayLog: log => set({ replayLog: log }),
 
   // Add this new action to your store
   setMultiplayerState: (role, participants) => set({ playerRole: role, participants }),
