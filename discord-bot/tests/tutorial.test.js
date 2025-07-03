@@ -72,6 +72,22 @@ describe('tutorial command', () => {
     expect(userService.setTutorialStep).toHaveBeenCalledWith('1', 'archetype_selection_prompt');
   });
 
+  test('pressing confirm archetype starts tutorial battle', async () => {
+    const runSpy = jest.spyOn(tutorial, 'runTutorial').mockResolvedValue();
+    const interaction = {
+      isChatInputCommand: () => false,
+      isButton: () => true,
+      isStringSelectMenu: () => false,
+      customId: 'tutorial_confirm_archetype:Stalwart Defender',
+      user: { id: '1' }
+    };
+
+    await tutorial.handleInteraction(interaction, {});
+
+    expect(runSpy).toHaveBeenCalledWith(interaction, 'Stalwart Defender');
+    runSpy.mockRestore();
+  });
+
   test('runTutorial presents loot choice', async () => {
     userService.getUser.mockResolvedValue({ id: 1 });
     const interaction = { user: { id: '1', username: 'Tester' }, followUp: jest.fn() };

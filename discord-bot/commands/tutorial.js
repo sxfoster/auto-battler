@@ -28,7 +28,9 @@ async function handleInteraction(interaction, userState) {
   }
 
   if (interaction.isButton()) {
-    if (interaction.customId.startsWith('tutorial_select_') && typeof module.exports.runTutorial === 'function') {
+    if ((interaction.customId.startsWith('tutorial_select_') ||
+         interaction.customId.startsWith('tutorial_confirm_archetype')) &&
+        typeof module.exports.runTutorial === 'function') {
       // This interaction customId might need to be updated if it's from the StringSelectMenu
       // For now, assuming it's a button press that directly gives a class name or similar.
       // The execute() function now handles archetype selection via a StringSelectMenu,
