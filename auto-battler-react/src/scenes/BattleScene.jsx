@@ -1,16 +1,33 @@
 import React from 'react';
 import Card from '../components/Card.jsx';
 import BattleLog from '../components/BattleLog.jsx';
+import { useReplay } from '../hooks/useReplay.js';
 import { useGameStore } from '../store.js';
 
 export default function BattleScene() {
-  // Get the combatants and the full replay log from the store.
-  // In this new model, 'combatants' will hold the state for a single moment in time,
-  // and 'replayLog' holds the entire script of the battle.
-  const { combatants, replayLog } = useGameStore(state => ({
+  useReplay();
+
+  const {
+    combatants,
+    battleLog,
+    currentEventIndex,
+    isReplaying,
+    startReplay,
+    pauseReplay,
+    playbackSpeed,
+    setPlaybackSpeed,
+  } = useGameStore(state => ({
     combatants: state.combatants,
-    replayLog: state.replayLog,
+    battleLog: state.battleLog,
+    currentEventIndex: state.currentEventIndex,
+    isReplaying: state.isReplaying,
+    startReplay: state.startReplay,
+    pauseReplay: state.pauseReplay,
+    playbackSpeed: state.playbackSpeed,
+    setPlaybackSpeed: state.setPlaybackSpeed,
   }));
+
+  const _event = battleLog?.events?.[currentEventIndex]; // apply this event to scene state
 
   // If there's no data yet, show a loading or empty state.
   if (!combatants || combatants.length === 0) {
@@ -18,6 +35,12 @@ export default function BattleScene() {
       <div className="scene">
         <h1 className="text-4xl font-cinzel">Preparing for battle...</h1>
       </div>
+    );
+  }
+
+  if (!battleLog || !Array.isArray(battleLog.events)) {
+    return (
+      <div className="error-message">\n        ⚠️ Unable to play this replay.\n      </div>
     );
   }
 
@@ -56,8 +79,25 @@ export default function BattleScene() {
         </div>
       </div>
       
-      {/* The BattleLog component will now display the full log from the replay */}
-      <BattleLog battleLog={replayLog || []} />
+      {/* The BattleLog component shows events up to the current index */}
+      <BattleLog battleLog={battleLog.events.slice(0, currentEventIndex + 1)} />
+
+      <div className="replay-controls">
+        <button onClick={() => (isReplaying ? pauseReplay() : startReplay())}>
+          {isReplaying ? 'Pause' : 'Play'}
+        </button>
+        <select
+          value={playbackSpeed}
+          onChange={e => setPlaybackSpeed(Number(e.target.value))}
+        >
+          <option value={2000}>×0.5</option>
+          <option value={1000}>×1</option>
+          <option value={500}>×2</option>
+        </select>
+        <span>
+          Event {currentEventIndex + 1} / {battleLog.events.length}
+        </span>
+      </div>
     </div>
   );
 }

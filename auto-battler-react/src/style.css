@@ -2247,3 +2247,17 @@ button:disabled {
 .debug-btn:hover {
     background-color: #6b7280;
 }
+
+.replay-controls {
+    margin-top: 1rem;
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+}
+
+.error-message {
+    color: #f87171;
+    font-weight: bold;
+    text-align: center;
+    padding: 2rem;
+}
