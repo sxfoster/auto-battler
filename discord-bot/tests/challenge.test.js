@@ -67,7 +67,7 @@ test('cannot challenge bots', async () => {
 test('cannot challenge unregistered users', async () => {
   const target = { id: '2', bot: false };
   userService.getUser
-    .mockResolvedValueOnce({ id: 1, class: 'Mage' })
+    .mockResolvedValueOnce({ id: 1, class: 'Wizard' })
     .mockResolvedValueOnce(null);
   const interaction = {
     user: { id: '1', username: 'Tester' },
@@ -84,10 +84,10 @@ test('sends challenge DM with buttons and handles accept/decline', async () => {
   const channelMessage = { id: '555', edit: jest.fn().mockResolvedValue() };
   const announcementChannel = { id: '100', send: jest.fn().mockResolvedValue(channelMessage), messages: { fetch: jest.fn().mockResolvedValue(channelMessage) } };
   userService.getUser
-    .mockResolvedValueOnce({ id: 1, class: 'Mage', discord_id: '1' })
-    .mockResolvedValueOnce({ id: 2, class: 'Mage', discord_id: '2' })
-    .mockResolvedValueOnce({ id: 1, class: 'Mage', discord_id: '1' })
-    .mockResolvedValueOnce({ id: 2, class: 'Mage', discord_id: '2' });
+    .mockResolvedValueOnce({ id: 1, class: 'Wizard', discord_id: '1' })
+    .mockResolvedValueOnce({ id: 2, class: 'Wizard', discord_id: '2' })
+    .mockResolvedValueOnce({ id: 1, class: 'Wizard', discord_id: '1' })
+    .mockResolvedValueOnce({ id: 2, class: 'Wizard', discord_id: '2' });
   db.query.mockResolvedValueOnce([{ insertId: 5 }]);
   db.query.mockResolvedValueOnce();
   const interaction = {
@@ -103,12 +103,10 @@ test('sends challenge DM with buttons and handles accept/decline', async () => {
   expect(components[0].components[1].data.label).toBe('Decline');
 
   // accept path
-  db.query.mockResolvedValueOnce([{ challenger_id: 1, challenged_id: 2, status: 'pending', created_at: new Date(), message_id: '555', channel_id: '100' }]);
+  db.query.mockResolvedValueOnce([[{ challenger_id: 1, challenged_id: 2, status: 'pending', created_at: new Date(), message_id: '555', channel_id: '100' }]]);
   db.query.mockResolvedValueOnce();
-  db.query.mockResolvedValueOnce([{ discord_id: '1' }]);
-  db.query.mockResolvedValueOnce([{ discord_id: '2' }]);
-  db.query.mockResolvedValue([]);
-  db.query.mockResolvedValue([]);
+  db.query.mockResolvedValueOnce([[{ discord_id: '1' }]]);
+  db.query.mockResolvedValueOnce([[{ discord_id: '2' }]]);
   db.query.mockResolvedValueOnce();
   const acceptInteraction = {
     customId: 'challenge-accept:5',
@@ -150,8 +148,8 @@ test('logs error when DM fails but still replies', async () => {
   };
   const announcementChannel = { id: '100', send: jest.fn().mockResolvedValue({}) };
   userService.getUser
-    .mockResolvedValueOnce({ id: 1, class: 'Mage' })
-    .mockResolvedValueOnce({ id: 2, class: 'Mage' });
+    .mockResolvedValueOnce({ id: 1, class: 'Wizard' })
+    .mockResolvedValueOnce({ id: 2, class: 'Wizard' });
   db.query.mockResolvedValueOnce([{ insertId: 6 }]);
   db.query.mockResolvedValueOnce();
   const interaction = {
