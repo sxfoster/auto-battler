@@ -120,3 +120,10 @@ CREATE TABLE IF NOT EXISTS auction_house_listings (
     listed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (seller_id) REFERENCES users(id) ON DELETE CASCADE
 );
+
+-- Battle replay logs
+CREATE TABLE IF NOT EXISTS battle_replays (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    battle_log JSON NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);

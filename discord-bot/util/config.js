@@ -9,5 +9,6 @@ module.exports = {
   get DB_DATABASE() { return process.env.DB_DATABASE; },
   get APP_ID() { return process.env.APP_ID; },
   get GUILD_ID() { return process.env.GUILD_ID; },
-  get PVP_CHANNEL_ID() { return process.env.PVP_CHANNEL_ID; }
+  get PVP_CHANNEL_ID() { return process.env.PVP_CHANNEL_ID; },
+  get WEB_APP_URL() { return process.env.WEB_APP_URL || 'https://example.com'; }
 };
