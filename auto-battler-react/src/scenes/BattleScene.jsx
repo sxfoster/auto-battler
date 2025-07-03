@@ -1,19 +1,28 @@
-import React, { useEffect, useRef } from 'react'
+import React, { useEffect, useRef, useMemo } from 'react'
+import PropTypes from 'prop-types'
 import Card from '../components/Card.jsx'
 import BattleLog from '../components/BattleLog.jsx'
 import useBattleLogic from '../hooks/useBattleLogic.js'
 import { useGameStore } from '../store.js'
 
-export default function BattleScene() {
+export default function BattleScene({ storedLog = [] }) {
   const { combatants, startBattle, handleBattleComplete } = useGameStore(state => ({
     combatants: state.combatants,
     startBattle: state.startBattle,
     handleBattleComplete: state.handleBattleComplete,
   }))
 
+  const finalCombatants = useMemo(() => {
+    if (storedLog.length) {
+      const entry = [...storedLog].reverse().find(e => e.combatants)
+      if (entry) return entry.combatants
+    }
+    return combatants
+  }, [storedLog, combatants])
+
   useEffect(() => {
-    if (!combatants.length) startBattle()
-  }, [combatants, startBattle])
+    if (!hasStoredLog && !combatants.length) startBattle()
+  }, [combatants, startBattle, hasStoredLog])
 
   const sceneRef = useRef(null)
   const cardRefs = useRef({})
@@ -76,21 +85,40 @@ export default function BattleScene() {
   const { battleState, battleLog, isBattleOver, winner, processTurn } =
     useBattleLogic(combatants, { onAttack: handleAttack })
 
+  const hasStoredLog = storedLog.length > 0
+  const displayState = hasStoredLog ? finalCombatants : battleState
+  const displayLog = useMemo(
+    () => hasStoredLog
+      ? storedLog.flatMap(e => e.log || [])
+      : battleLog,
+    [hasStoredLog, storedLog, battleLog]
+  )
+  const battleWinner = useMemo(() => {
+    if (hasStoredLog) {
+      const playersAlive = finalCombatants.some(c => c.team === 'player' && c.currentHp > 0)
+      const enemiesAlive = finalCombatants.some(c => c.team === 'enemy' && c.currentHp > 0)
+      if (playersAlive && !enemiesAlive) return 'player'
+      if (enemiesAlive && !playersAlive) return 'enemy'
+      return null
+    }
+    return winner
+  }, [hasStoredLog, finalCombatants, winner])
+
   useEffect(() => {
-    if (!isBattleOver) {
+    if (!hasStoredLog && !isBattleOver) {
       const timer = setTimeout(processTurn, 1000)
       return () => clearTimeout(timer)
     }
-  }, [battleLog, isBattleOver, processTurn])
+  }, [battleLog, isBattleOver, processTurn, hasStoredLog])
 
   useEffect(() => {
-    if (isBattleOver) {
+    if (!hasStoredLog && isBattleOver) {
       handleBattleComplete(winner === 'player')
     }
-  }, [isBattleOver, winner, handleBattleComplete])
+  }, [isBattleOver, winner, handleBattleComplete, hasStoredLog])
 
-  const playerCards = battleState.filter(c => c.team === 'player')
-  const enemyCards = battleState.filter(c => c.team === 'enemy')
+  const playerCards = displayState.filter(c => c.team === 'player')
+  const enemyCards = displayState.filter(c => c.team === 'enemy')
 
   return (
     <div className="battle-scene" ref={sceneRef}>
@@ -116,12 +144,16 @@ export default function BattleScene() {
           ))}
         </div>
       </div>
-      <BattleLog battleLog={battleLog} />
-      {isBattleOver && (
+      <BattleLog battleLog={displayLog} />
+      {(hasStoredLog || isBattleOver) && (
         <div className="battle-result text-xl text-center mt-4">
-          {winner === 'player' ? 'Victory!' : 'Defeat!'}
+          {battleWinner === 'player' ? 'Victory!' : 'Defeat!'}
         </div>
       )}
     </div>
   )
+}
+
+BattleScene.propTypes = {
+  storedLog: PropTypes.array,
 }

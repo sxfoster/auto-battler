@@ -88,6 +88,7 @@ async function setupDiscordSdk() {
 
 export default function App() {
   const gamePhase = useGameStore(state => state.gamePhase)
+  const storedLog = useGameStore(state => state.battleLog)
 
   // Setup Discord SDK and multiplayer logic
   useEffect(() => {
@@ -124,7 +125,7 @@ export default function App() {
       scene = <DraftScene />
       break
     case 'BATTLE':
-      scene = <BattleScene />
+      scene = <BattleScene storedLog={storedLog} />
       break
     case 'RECAP_1':
       scene = <RecapScene />

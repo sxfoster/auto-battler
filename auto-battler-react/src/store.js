@@ -74,6 +74,7 @@ export const useGameStore = createWithEqualityFn(
   packChoices: [],
   revealedCards: [],
   combatants: [],
+  battleLog: [],
   isSpeedLinesActive: false,
   // Add these new properties to your initial store state
   playerRole: 'guest', // Default to 'guest'
@@ -289,7 +290,7 @@ export const useGameStore = createWithEqualityFn(
       const enemy1 = createCombatant(enemyHero1, enemyWeapon1, enemyArmor1, enemyAbility1, 'enemy', 0)
       const enemy2 = createCombatant(enemyHero2, enemyWeapon2, enemyArmor2, enemyAbility2, 'enemy', 1)
 
-      return { combatants: [player1, player2, enemy1, enemy2], gamePhase: 'BATTLE' }
+      return { combatants: [player1, player2, enemy1, enemy2], gamePhase: 'BATTLE', battleLog: [] }
     }),
 
   openPack: () =>
