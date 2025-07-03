@@ -14,7 +14,7 @@ describe('Data-Driven Proc System', () => {
 
     const updatedTarget2 = engine.combatants.find(c => c.id === target2.id);
     expect(updatedTarget2.currentHp).toBe(initialHp - 1); // Cleave value is 1
-    expect(engine.battleLog.some(l => l.message.includes('cleave procs!'))).toBe(true);
+    expect(engine.battleLog.some(l => l.message.includes('procs cleave'))).toBe(true);
   });
 
   test('Thorns proc reflects damage on hit', () => {
