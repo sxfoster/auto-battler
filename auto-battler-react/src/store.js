@@ -74,20 +74,28 @@ export const useGameStore = createWithEqualityFn(
   packChoices: [],
   revealedCards: [],
   combatants: [],
-  replayLog: [],
+  battleLog: [],
   isLoading: false,
   error: null,
   isSpeedLinesActive: false,
   // Add these new properties to your initial store state
   playerRole: 'guest', // Default to 'guest'
   participants: [],
+  currentEventIndex: 0,
+  isReplaying: false,
+  playbackSpeed: 1000,
 
   advanceGamePhase: newPhase => set({ gamePhase: newPhase }),
   setSpeedLines: isActive => set({ isSpeedLinesActive: isActive }),
 
-  setReplayLog: log => set({ replayLog: log }),
+  startReplay: () => set({ isReplaying: true, currentEventIndex: 0 }),
+  pauseReplay: () => set({ isReplaying: false }),
+  nextEvent: () => set(state => ({ currentEventIndex: state.currentEventIndex + 1 })),
+  setPlaybackSpeed: ms => set({ playbackSpeed: ms }),
 
-  // Fetch a battle replay by ID and store it in replayLog
+  setBattleLog: log => set({ battleLog: log }),
+
+  // Fetch a battle replay by ID and store it in battleLog
   fetchReplay: async id => {
     set({ isLoading: true, error: null });
     try {
@@ -96,7 +104,7 @@ export const useGameStore = createWithEqualityFn(
         throw new Error(`Failed to fetch replay ${id}`);
       }
       const data = await res.json();
-      set({ replayLog: data, isLoading: false });
+      set({ battleLog: data, isLoading: false });
     } catch (err) {
       console.error('[store] fetchReplay error', err);
       set({ error: err.message || 'Failed to load replay', isLoading: false });

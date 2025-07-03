@@ -1,16 +1,37 @@
 import React from 'react';
 import Card from '../components/Card.jsx';
 import BattleLog from '../components/BattleLog.jsx';
+import { useReplay } from '../hooks/useReplay';
 import { useGameStore } from '../store.js';
 
 export default function BattleScene() {
-  // Get the combatants and the full replay log from the store.
-  // In this new model, 'combatants' will hold the state for a single moment in time,
-  // and 'replayLog' holds the entire script of the battle.
-  const { combatants, replayLog } = useGameStore(state => ({
+  // Drive playback of the battle log
+  useReplay();
+  const {
+    combatants,
+    battleLog,
+    currentEventIndex,
+    startReplay,
+    pauseReplay,
+    isReplaying,
+    playbackSpeed,
+    setPlaybackSpeed,
+  } = useGameStore(state => ({
     combatants: state.combatants,
-    replayLog: state.replayLog,
+    battleLog: state.battleLog,
+    currentEventIndex: state.currentEventIndex,
+    startReplay: state.startReplay,
+    pauseReplay: state.pauseReplay,
+    isReplaying: state.isReplaying,
+    playbackSpeed: state.playbackSpeed,
+    setPlaybackSpeed: state.setPlaybackSpeed,
   }));
+  const event = battleLog?.events?.[currentEventIndex];
+  // TODO: apply `event` effects to the scene state
+
+  if (!battleLog || !Array.isArray(battleLog.events)) {
+    return <div className="error-message">⚠️ Unable to play this replay.</div>;
+  }
 
   // If there's no data yet, show a loading or empty state.
   if (!combatants || combatants.length === 0) {
@@ -57,7 +78,26 @@ export default function BattleScene() {
       </div>
       
       {/* The BattleLog component will now display the full log from the replay */}
-      <BattleLog battleLog={replayLog || []} />
+      <BattleLog battleLog={battleLog || []} />
+
+      <div className="replay-controls">
+        <button onClick={() => (isReplaying ? pauseReplay() : startReplay())}>
+          {isReplaying ? 'Pause' : 'Play'}
+        </button>
+        <select
+          value={playbackSpeed}
+          onChange={e => setPlaybackSpeed(Number(e.target.value))}
+        >
+          <option value={2000}>×0.5</option>
+          <option value={1000}>×1</option>
+          <option value={500}>×2</option>
+        </select>
+        {battleLog?.events && (
+          <span>
+            Event {currentEventIndex + 1} / {battleLog.events.length}
+          </span>
+        )}
+      </div>
     </div>
   );
 }
