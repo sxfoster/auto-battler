@@ -73,15 +73,25 @@ export default function BattleScene() {
     setTimeout(() => popup.remove(), 1200)
   }
 
-  const { battleState, battleLog, isBattleOver, winner, processTurn } =
-    useBattleLogic(combatants, { onAttack: handleAttack })
+  const {
+    battleState,
+    battleLog,
+    isBattleOver,
+    winner,
+    processTurn,
+    play,
+    pause,
+    isPlaying,
+    stepIndex,
+    totalSteps
+  } = useBattleLogic(combatants, { onAttack: handleAttack })
 
   useEffect(() => {
-    if (!isBattleOver) {
+    if (!isBattleOver && isPlaying) {
       const timer = setTimeout(processTurn, 1000)
       return () => clearTimeout(timer)
     }
-  }, [battleLog, isBattleOver, processTurn])
+  }, [battleLog, isBattleOver, processTurn, isPlaying])
 
   useEffect(() => {
     if (isBattleOver) {
@@ -117,6 +127,14 @@ export default function BattleScene() {
         </div>
       </div>
       <BattleLog battleLog={battleLog} />
+      <div className="battle-controls text-center mt-2">
+        <button className="px-2 py-1 bg-gray-700 rounded" onClick={isPlaying ? pause : play}>
+          {isPlaying ? 'Pause' : 'Play'}
+        </button>
+        <span className="ml-2">
+          Step {stepIndex + 1}{totalSteps ? ` / ${totalSteps}` : ''}
+        </span>
+      </div>
       {isBattleOver && (
         <div className="battle-result text-xl text-center mt-4">
           {winner === 'player' ? 'Victory!' : 'Defeat!'}
