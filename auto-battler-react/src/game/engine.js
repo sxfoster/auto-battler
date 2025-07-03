@@ -4,17 +4,6 @@ import { allPossibleMinions } from '../data/data.js';
 import { STATUS_EFFECTS } from './statusEffects.js';
 import ProcEngine from './procEngine.js';
 
-// let abilityCardService;
-// try {
-//     abilityCardService = require('../../discord-bot/src/utils/abilityCardService');
-// } catch (e) {
-//     abilityCardService = { decrementCharge: () => {}, deleteCard: () => {} };
-// }
-// Stubbing out abilityCardService as per instructions
-const abilityCardService = {
-    decrementCharge: () => { console.warn("abilityCardService.decrementCharge called but is stubbed"); },
-    deleteCard: () => { console.warn("abilityCardService.deleteCard called but is stubbed"); }
-};
 
 class GameEngine {
     constructor(combatants, options = {}) {
@@ -498,13 +487,6 @@ class GameEngine {
                    });
                    attacker.currentEnergy -= cost;
                    attacker.abilityCharges -= 1;
-                   if (ability.cardId && !ability.isPractice) {
-                       try { abilityCardService.decrementCharge(ability.cardId); } catch(e) { /* ignore */ }
-                   }
-                   if (attacker.abilityCharges <= 0 && ability.cardId && !ability.isPractice) {
-                       this.log({ type: 'info', message: `${attacker.name}'s ${ability.name} card has run out of charges and crumbled to dust.` });
-                       try { abilityCardService.deleteCard(ability.cardId); } catch(e) { /* ignore in engine */ }
-                   }
                    if (attacker.abilityCharges <= 0) {
                        const idx = attacker.deck.findIndex(a => a.charges > 0);
                        if (idx !== -1) {
