@@ -25,11 +25,16 @@ async function execute(interaction) {
       target_type: 2, // Required for Embedded Application invites
     });
 
+    // Log the generated invite code and full URL for debugging
+    console.log(`[Launcher] Generated Activity Invite Code: ${invite.code}`);
+    const activityUrl = `https://discord.com/invite/${invite.code}`;
+    console.log(`[Launcher] Full URL: ${activityUrl}`);
+
     const row = new ActionRowBuilder().addComponents(
       new ButtonBuilder()
         .setLabel('Start Practice Game')
         .setStyle(ButtonStyle.Link)
-        .setURL(`https://discord.com/invite/${invite.code}`)
+        .setURL(activityUrl)
     );
 
     await interaction.reply({
