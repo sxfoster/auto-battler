@@ -25,6 +25,10 @@ app.get('/api/replays/:id', async (req, res) => {
   }
 });
 
-app.listen(port, () => {
-  console.log('Server is running!');
-});
+if (require.main === module) {
+  app.listen(port, () => {
+    console.log('Server is running!');
+  });
+}
+
+module.exports = app;
