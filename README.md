@@ -23,6 +23,10 @@ npm run dev
 
 This starts the Vite development server (usually on `http://localhost:5173`).
 
+Once running you can view saved battle replays by navigating to
+`http://localhost:5173/replay?id=<battleId>`. The React `ReplayViewer`
+will fetch the battle log from `/api/replay.php` and animate each turn.
+
 ## Running the Backend
 
 The `backend` directory contains a simple Express server. Start it with:
