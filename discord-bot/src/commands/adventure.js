@@ -263,7 +263,7 @@ async function execute(interaction) {
   // --- MODIFICATION START: Add a button linking to the replay ---
   // Note: You will need to add a WEB_APP_URL to your .env file.
   const webAppUrl = config.WEB_APP_URL || 'http://localhost:5173'; // Fallback for local testing
-  const replayUrl = `${webAppUrl}/replay/${battleId}`;
+  const replayUrl = `${webAppUrl}/api/replay.php?id=${battleId}`;
 
   const row = new ActionRowBuilder().addComponents(
     new ButtonBuilder()

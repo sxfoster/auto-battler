@@ -239,7 +239,7 @@ async function handleAccept(interaction) {
       new ButtonBuilder()
         .setStyle(ButtonStyle.Link)
         .setLabel('View Battle Replay')
-        .setURL(`${config.WEB_APP_URL}/replay/${replayId ?? ''}`)
+        .setURL(`${config.WEB_APP_URL}/api/replay.php?id=${replayId ?? ''}`)
     );
     await channel.send({ content: victoryMessage, components: [row] });
   } catch (e) {

@@ -104,10 +104,9 @@ export default function App() {
 
   // Load a replay if the URL includes a battle ID
   useEffect(() => {
-    const path = window.location.pathname;
-    const match = path.match(/^\/replay\/(\d+)/);
-    if (match) {
-      const battleId = match[1];
+    const params = new URLSearchParams(window.location.search);
+    const battleId = params.get('id');
+    if (battleId) {
       console.log(`[App] Found replay ID in URL: ${battleId}`);
       fetchReplay(battleId);
     }
@@ -179,7 +178,7 @@ export default function App() {
 
   return (
     <Routes>
-      <Route path="/replay/:id" element={<ReplayViewer />} />
+      <Route path="/replay" element={<ReplayViewer />} />
       <Route
         path="*"
         element={(

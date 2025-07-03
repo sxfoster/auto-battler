@@ -99,7 +99,7 @@ export const useGameStore = createWithEqualityFn(
   fetchReplay: async id => {
     set({ isLoading: true, error: null });
     try {
-      const res = await fetch(`/api/replays/${id}`);
+      const res = await fetch(`/api/replay.php?id=${id}`);
       if (!res.ok) {
         throw new Error(`Failed to fetch replay ${id}`);
       }
