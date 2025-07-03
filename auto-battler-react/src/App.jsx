@@ -1,4 +1,4 @@
-import React, { useEffect, useCallback } from 'react' // Import useCallback
+import React, { useEffect } from 'react' 
 import { DiscordSDK } from '@discord/embedded-app-sdk'
 import { useGameStore } from './store.js'
 import AnimatedBackground from './components/AnimatedBackground.jsx'
