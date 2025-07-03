@@ -308,7 +308,7 @@ export const useGameStore = createWithEqualityFn(
       const num = type === 'HERO' ? 4 : 3
       const choices = shuffled.slice(0, num)
 
-      return { packChoices: choices, gamePhase: 'REVEAL' }
+      return { packChoices: choices, gamePhase: 'PACK_OPENING' }
     }),
 
   finishReveal: () =>
