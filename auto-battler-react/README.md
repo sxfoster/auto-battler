@@ -26,3 +26,9 @@ This installs `@eslint/js` and the other development dependencies required for l
 npm run dev   # start the Vite dev server
 npm run lint  # run ESLint
 ```
+
+## Viewing Battle Replays
+
+Run the Vite dev server and open `/replay?id=<battleId>` in the browser to see an animated replay.
+The viewer fetches data from `/api/replay.php` and steps through each turn using the
+components under `src/components/replay/`.

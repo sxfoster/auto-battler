@@ -2260,3 +2260,9 @@ button:disabled {
     margin-top: 1rem;
     font-weight: bold;
 }
+
+/* Replay Viewer */
+.replay-header h2 { margin-bottom: 0.25rem; }
+.battlefield { min-height: 200px; }
+.timeline-controls button { background-color: #374151; }
+.timeline-controls button:hover { background-color: #4b5563; }
