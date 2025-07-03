@@ -105,6 +105,18 @@ Follow these steps to host the app on your GoDaddy server:
 
 We host the replay API on our GoDaddy shared hosting account under `public_html/api/`.
 
+Create a `config.php` file in that directory containing your MySQL credentials:
+
+```php
+<?php
+define('DB_HOST', 'your_host');
+define('DB_NAME', 'your_db');
+define('DB_USER', 'your_user');
+define('DB_PASS', 'your_pass');
+```
+
+`replay.php` includes this file so you only update one place when the database settings change.
+
 - **Replay Endpoint**
   `GET http://game.strahde.com/api/replay.php?id={id}`
   returns the stored JSON `battle_log` for that id or `{"error":"Not found"}`.

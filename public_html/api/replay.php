@@ -1,4 +1,5 @@
 <?php
+require __DIR__ . '/config.php';
 header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: http://game.strahde.com');
 
@@ -10,9 +11,9 @@ if ($id < 1) {
 
 try {
   $pdo = new PDO(
-    'mysql:host=' . getenv('DB_HOST') . ';dbname=' . getenv('DB_DATABASE') . ';charset=utf8mb4',
-    getenv('DB_USER'),
-    getenv('DB_PASSWORD'),
+    'mysql:host=' . DB_HOST . ';dbname=' . DB_NAME . ';charset=utf8mb4',
+    DB_USER,
+    DB_PASS,
     [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]
   );
 } catch (PDOException $e) {
