@@ -1,5 +1,6 @@
 const userService = require('./userService');
 const settingsCommand = require('../../commands/settings');
+const { buildTownHubResponse } = require('../../commands/town');
 const feedback = require('./feedback');
 
 // Handles interactions for active users
@@ -64,24 +65,15 @@ async function routeInteraction(interaction) {
   let user = await userService.getUser(interaction.user.id);
   if (!user) {
     // --- MODIFICATION START ---
-    // New users should skip the tutorial and start in town. The old
-    // tutorial logic is kept below in comments for easy reversion.
+    // New users should skip the tutorial and start in town.
     user = await userService.createUser(interaction.user.id, interaction.user.username);
     await userService.setUserState(interaction.user.id, 'active');
     await userService.setUserLocation(interaction.user.id, 'town');
 
-    // Greet the user and show them the town command
-    const townCommand = interaction.client.commands.get('town');
-    if (townCommand) {
-      await feedback.sendInfo(
-        interaction,
-        'Welcome, Adventurer!',
-        "You have arrived at Portal's Rest. Use the buttons below to explore."
-      );
-      return townCommand.execute(interaction);
-    }
-    // Fallback if town command isn't available
-    return feedback.sendInfo(interaction, 'Welcome!', 'Your adventure begins!');
+    const townPayload = buildTownHubResponse();
+    townPayload.content = "Welcome, Adventurer! You have arrived at Portal's Rest.";
+
+    return interaction.reply(townPayload);
 
     /*
     // --- OLD TUTORIAL LOGIC (DISABLED) ---
