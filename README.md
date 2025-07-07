@@ -50,6 +50,10 @@ npm test
 
 `npm test` invokes Jest. The tests will fail to run if the dependencies have not been installed.
 
+## Environment Setup
+
+Before running the Discord bot or backend, copy `.env.example` in the repository root to `.env` and fill in the required variables. The `.env` file is excluded from version control by `.gitignore` so your credentials remain private.
+
 
 ## Documentation
 
