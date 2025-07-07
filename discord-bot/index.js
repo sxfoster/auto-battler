@@ -2,6 +2,8 @@ const { Client, Collection, GatewayIntentBits, Events } = require('discord.js');
 const fs = require('node:fs');
 const path = require('node:path');
 const config = require('./util/config');
+const { simple } = require('./src/utils/embedBuilder');
+const { setInitialStats } = require('./src/services/playerService');
 
 const client = new Client({ intents: [GatewayIntentBits.Guilds] });
 client.commands = new Collection();
@@ -20,16 +22,29 @@ client.once(Events.ClientReady, () => {
 });
 
 client.on(Events.InteractionCreate, async interaction => {
-  if (!interaction.isChatInputCommand()) return;
+  if (interaction.isChatInputCommand()) {
+    const command = interaction.client.commands.get(interaction.commandName);
+    if (!command) return;
 
-  const command = interaction.client.commands.get(interaction.commandName);
-  if (!command) return;
-
-  try {
-    await command.execute(interaction);
-  } catch (error) {
-    console.error('Error executing command:', error);
-    await interaction.reply({ content: 'There was an error executing that command.', ephemeral: true });
+    try {
+      await command.execute(interaction);
+    } catch (error) {
+      console.error('Error executing command:', error);
+      await interaction.reply({ content: 'There was an error executing that command.', ephemeral: true });
+    }
+  } else if (interaction.isStringSelectMenu()) {
+    if (interaction.customId === 'character_stat_select') {
+      try {
+        await setInitialStats(interaction.user.id, interaction.values);
+        const embed = simple('Starting stats saved!', [
+          { name: 'Selected', value: interaction.values.join(', ') }
+        ]);
+        await interaction.reply({ embeds: [embed], ephemeral: true });
+      } catch (error) {
+        console.error('Error setting initial stats:', error);
+        await interaction.reply({ content: 'There was an error saving your stats.', ephemeral: true });
+      }
+    }
   }
 });
 
