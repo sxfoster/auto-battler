@@ -53,7 +53,10 @@ npm test
 
 ## Documentation
 
-The `docs` directory hosts the game design document, technical overview and other reference material.  See [docs/README.md](docs/README.md) for a full listing.  Developers should read [docs/technical_overview.md](docs/technical_overview.md) for a code walkthrough and [docs/event_schema.md](docs/event_schema.md) for the battle log message format.
+Documentation for the previous prototypes has been moved to
+[docs/archive](docs/archive/). New design notes will live in
+[docs/README.md](docs/README.md) and the work-in-progress
+[docs/gdd.md](docs/gdd.md).
 
 
 ## Discord Bot
@@ -78,7 +81,7 @@ When configured correctly the bot logs a `Database connection successful` messag
 
 ### Inventory Commands & Charge System
 
-The bot includes a simple `/inventory` command for viewing your backpack. Once the ability card system is implemented it will also support `/inventory set` to choose which ability card is active.  The design for this charge-based system is documented in [docs/ability_card_charge_gdd.md](docs/ability_card_charge_gdd.md).
+The bot includes a simple `/inventory` command for viewing your backpack. Once the ability card system is implemented it will also support `/inventory set` to choose which ability card is active.  The design for this charge-based system is documented in [docs/archive/ability_card_charge_gdd.md](docs/archive/ability_card_charge_gdd.md).
 
 ## Deployment
 
