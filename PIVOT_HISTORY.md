@@ -22,6 +22,15 @@ This living document summarizes the major design decisions and direction changes
 - **Marketplace and Packs.** Booster pack logic, a marketplace, inventory management and gacha card rewards were built into the Discord bot.
 - **PvE & PvP Modes.** Dungeon encounters and PvP battles were introduced, with leaderboard tracking and summoning mechanics.
 
+## The Iron Accord Pivot (July 2025)
+- **Genre Shift.** The project has fundamentally pivoted from a "Pack Draft Auto-Battler" to a text-based, narrative-driven **Survival TTRPG**.
+- **New World:** The generic fantasy setting was replaced by the post-apocalyptic world of **Iron Accord**, pitting a steampunk faction against a cyberpunk one. The core design is detailed in the new `gdd.md` and lore documents.
+- **Mechanics Overhaul:**
+    - A **classless system** based on stats, skills, and gear was introduced.
+    - Core gameplay now revolves around **survival mechanics** (hunger, thirst, gear durability).
+    - The "Unseen Fate System" was implemented, abstracting dice rolls into **narrative outcome tiers** to enhance immersion.
+- **New Onboarding:** The tutorial and starter pack concepts have been replaced by an immediate first-mission experience to teach mechanics organically.
+
 ## Recent Changes (Fall 2025)
 - **UI Simplifications.** Several marketplace and town menu features were trimmed or refactored for clarity.
 - **Logging & Diagnostics.** Extensive logging was added to the bot for DM attempts, card generation and user actions.
