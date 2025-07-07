@@ -5,7 +5,7 @@ This folder contains the Node.js bot that powers the game's Discord integration.
 ## Prerequisites
 
 1. Copy `.env.example` from the repository root to `.env` and fill in your settings.
-   The bot requires a Discord token and MySQL credentials:
+   The file is ignored by Git so your credentials remain private. The bot requires a Discord token and MySQL credentials:
    - `DISCORD_TOKEN` – your bot token.
    - `DB_HOST`, `DB_USER`, `DB_PASSWORD`, `DB_DATABASE` – location and credentials for the database.
    - `APP_ID` and `GUILD_ID` are needed when running `deploy-commands.js`.
