@@ -1,5 +1,5 @@
-const db = require('../util/database');
 jest.mock('../util/database', () => ({ query: jest.fn() }));
+const db = require('../util/database');
 
 const { setInitialStats } = require('../src/services/playerService');
 

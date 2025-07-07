@@ -8,6 +8,14 @@ const { setInitialStats } = require('./src/services/playerService');
 const client = new Client({ intents: [GatewayIntentBits.Guilds] });
 client.commands = new Collection();
 
+async function handleStatSelectMenu(interaction) {
+  await setInitialStats(interaction.user.id, interaction.values);
+  const embed = simple('Starting stats saved!', [
+    { name: 'Selected', value: interaction.values.join(', ') }
+  ]);
+  await interaction.reply({ embeds: [embed], ephemeral: true });
+}
+
 const commandsPath = path.join(__dirname, 'commands');
 for (const file of fs.readdirSync(commandsPath)) {
   if (!file.endsWith('.js')) continue;
@@ -35,11 +43,7 @@ client.on(Events.InteractionCreate, async interaction => {
   } else if (interaction.isStringSelectMenu()) {
     if (interaction.customId === 'character_stat_select') {
       try {
-        await setInitialStats(interaction.user.id, interaction.values);
-        const embed = simple('Starting stats saved!', [
-          { name: 'Selected', value: interaction.values.join(', ') }
-        ]);
-        await interaction.reply({ embeds: [embed], ephemeral: true });
+        await handleStatSelectMenu(interaction);
       } catch (error) {
         console.error('Error setting initial stats:', error);
         await interaction.reply({ content: 'There was an error saving your stats.', ephemeral: true });
@@ -48,4 +52,8 @@ client.on(Events.InteractionCreate, async interaction => {
   }
 });
 
-client.login(config.DISCORD_TOKEN);
+if (process.env.NODE_ENV !== 'test') {
+  client.login(config.DISCORD_TOKEN);
+}
+
+module.exports = { handleStatSelectMenu };
