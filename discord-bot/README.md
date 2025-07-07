@@ -21,10 +21,16 @@ The bot will log into Discord and connect to the database on start.
 
 ## Commands
 
-Only two slash commands are currently available:
+Three slash commands are available:
 
 - `/ping` – check that the bot is responsive
 - `/help` – display an ephemeral list of commands
+- `/character create` – start a new character profile
+
+Running the command launches a short setup sequence:
+1. **Choose your faction** – pick either **Iron Accord** or **Neon Dharma**.
+2. **Select a bonus stat** – all six stats start at `1`; choose one to raise to `2`.
+After confirming your choices the bot stores the character in the database and you can begin playing.
 
 ## Database Schema
 
@@ -36,7 +42,7 @@ The schema defined in `db-schema.sql` creates the following tables:
 - `codex_entries` – tracks which lore entries a player has unlocked
 - `user_stats` – six core stats for each player with default values
 
-Run the SQL file on your MySQL instance to create or update the tables. Existing installations should drop the old tables listed at the top of the file.
+`codex_entries` is new in this version. Re-run `db-schema.sql` on your MySQL server to create the table or apply the included `ALTER` statements if you are migrating from an older install. Existing installations should drop the old tables listed at the top of the file.
 
 ### Migrating Existing Databases
 
