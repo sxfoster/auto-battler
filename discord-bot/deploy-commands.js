@@ -1,22 +1,15 @@
 const { REST, Routes } = require('discord.js');
 const path = require('node:path');
+const fs = require('node:fs');
 const config = require('./util/config');
 
 const commands = [];
-const commandDirs = [
-  path.join(__dirname, 'commands/ping.js'),
-  path.join(__dirname, 'commands/who.js'),
-  path.join(__dirname, 'commands/admin.js'),
-  path.join(__dirname, 'commands/inventory.js'),
-  path.join(__dirname, 'commands/settings.js'),
-  path.join(__dirname, 'commands/tutorial.js'),
-  path.join(__dirname, 'commands/leaderboard.js'),
-  path.join(__dirname, 'commands/auctionhouse.js'),
-  path.join(__dirname, 'commands/town.js'),
-  path.join(__dirname, 'src/commands/adventure.js'),
-  path.join(__dirname, 'src/commands/challenge.js'),
-  path.join(__dirname, 'src/commands/practice.js')
-];
+const commandsPath = path.join(__dirname, 'commands');
+const commandDirs = fs
+  .readdirSync(commandsPath)
+  .filter(file => file.endsWith('.js'))
+  .map(file => path.join(commandsPath, file))
+  .filter(filePath => fs.existsSync(filePath));
 
 console.log('Registering slash commands:', commandDirs.map(f => path.basename(f)).join(', '));
 
