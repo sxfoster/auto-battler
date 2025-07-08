@@ -3,6 +3,7 @@ const fs = require('fs');
 const path = require('path');
 const { simple } = require('../src/utils/embedBuilder');
 const missionService = require('../src/services/missionService');
+const { resolveChoice } = require('../src/utils/missionEngine');
 
 const missionsPath = path.join(__dirname, '../src/data/missions');
 
@@ -54,9 +55,14 @@ module.exports = {
       const opts = round.options.map((o, idx) => `${idx + 1}. ${o.text}`).join('\n');
       await thread.send(`${round.text}\n${opts}`);
       const choice = 0; // auto-select first option
-      const delta = round.options[choice].durability || 0;
+      const option = round.options[choice];
+      const result = await resolveChoice(playerId, option);
+      const delta = option.durability || 0;
       missionService.recordChoice(logId, i, choice, delta);
       durability += delta;
+      if (result.tier) {
+        await thread.send(`Outcome: ${result.tier}`);
+      }
     }
     const outcome = durability > 0 ? 'success' : 'fail';
     await missionService.completeMission(logId, outcome, mission.rewards, mission.codexFragment, playerId);
