@@ -1,13 +1,12 @@
 import json
-import os
 from pathlib import Path
 import discord
 from discord import app_commands
 from discord.ext import commands
 
-from ..utils.embed import simple
-from ..utils.mission_engine import resolve_choice
-from ..models import mission_service
+from utils.embed import simple
+from utils.mission_engine import resolve_choice
+from models import mission_service
 
 MISSIONS_PATH = Path(__file__).parent.parent / 'data' / 'missions'
 
