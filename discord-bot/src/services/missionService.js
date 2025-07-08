@@ -8,6 +8,14 @@ async function getPlayerId(discordId) {
 }
 
 async function startMission(playerId, missionId) {
+  const { rows } = await db.query(
+    'SELECT id FROM mission_log WHERE player_id = ? AND status = ? LIMIT 1',
+    [playerId, 'started']
+  );
+  if (rows.length > 0) {
+    throw new Error(`Mission already started: ${rows[0].id}`);
+  }
+
   const { insertId } = await db.query(
     'INSERT INTO mission_log (mission_id, player_id) VALUES (?, ?)',
     [missionId, playerId]

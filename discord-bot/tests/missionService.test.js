@@ -7,17 +7,35 @@ describe('missionService', () => {
   beforeEach(() => { db.query.mockReset(); });
 
   test('startMission inserts log', async () => {
-    db.query.mockResolvedValueOnce({ insertId: 5 });
+    db.query
+      .mockResolvedValueOnce({ rows: [] })
+      .mockResolvedValueOnce({ insertId: 5 });
     const id = await service.startMission(1, 2);
-    expect(db.query).toHaveBeenCalledWith(
+    expect(db.query).toHaveBeenNthCalledWith(
+      1,
+      'SELECT id FROM mission_log WHERE player_id = ? AND status = ? LIMIT 1',
+      [1, 'started']
+    );
+    expect(db.query).toHaveBeenNthCalledWith(
+      2,
       'INSERT INTO mission_log (mission_id, player_id) VALUES (?, ?)',
       [2, 1]
     );
     expect(id).toBe(5);
   });
 
+  test('startMission errors if one already started', async () => {
+    db.query.mockResolvedValueOnce({ rows: [{ id: 7 }] });
+    await expect(service.startMission(2, 3)).rejects.toThrow('Mission already started');
+    expect(db.query).toHaveBeenCalledWith(
+      'SELECT id FROM mission_log WHERE player_id = ? AND status = ? LIMIT 1',
+      [2, 'started']
+    );
+  });
+
   test('completeMission updates log and rewards', async () => {
     db.query
+      .mockResolvedValueOnce({ rows: [] })
       .mockResolvedValueOnce({ insertId: 1 })
       .mockResolvedValue({});
 
@@ -27,17 +45,17 @@ describe('missionService', () => {
     await service.completeMission(logId, 'success', { gold: 2 }, 'frag', 1);
 
     expect(db.query).toHaveBeenNthCalledWith(
-      2,
+      3,
       'UPDATE players SET gold = gold + ? WHERE id = ?',
       [2, 1]
     );
-    const updateCall = db.query.mock.calls[2];
+    const updateCall = db.query.mock.calls[3];
     expect(updateCall[0]).toMatch(/UPDATE mission_log/);
     const log = JSON.parse(updateCall[1][1]);
     expect(log.choices).toEqual([1]);
     expect(log.outcome_tier).toBe('success');
     expect(db.query).toHaveBeenNthCalledWith(
-      4,
+      5,
       'INSERT IGNORE INTO codex_entries (player_id, entry_key) VALUES (?, ?)',
       [1, 'frag']
     );
