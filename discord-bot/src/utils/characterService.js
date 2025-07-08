@@ -52,4 +52,76 @@ async function setInitialStats(userId, bonusStat) {
   }
 }
 
-module.exports = { getUser, createUser, setInitialStats };
+const flagData = require('../data/flags');
+const codexData = require('../data/codex');
+
+/**
+ * Aggregate all character information for display.
+ *
+ * @param {string} discordId Discord user id
+ * @returns {Promise<object|undefined>} Character sheet or undefined if not found
+ */
+async function getCharacterSheet(discordId) {
+  const { rows: playerRows } = await db.query(
+    'SELECT id, level, equipped_weapon_id, equipped_armor_id, equipped_ability_id FROM players WHERE discord_id = ?',
+    [discordId]
+  );
+  if (playerRows.length === 0) return undefined;
+
+  const player = playerRows[0];
+  const playerId = player.id;
+
+  const [statRes, flagRes, codexRes] = await Promise.all([
+    db.query('SELECT stat, value FROM user_stats WHERE player_id = ?', [playerId]),
+    db.query('SELECT flag FROM user_flags WHERE player_id = ?', [playerId]),
+    db.query('SELECT entry_key FROM codex_entries WHERE player_id = ?', [playerId])
+  ]);
+
+  const stats = { MGT: 0, AGI: 0, FOR: 0, INTU: 0, RES: 0, ING: 0 };
+  for (const row of statRes.rows) {
+    stats[row.stat] = row.value;
+  }
+
+  const flags = flagRes.rows.map(r => r.flag);
+  const codex = codexRes.rows.map(r => r.entry_key);
+
+  const [weaponRes, armorRes, abilityRes] = await Promise.all([
+    player.equipped_weapon_id
+      ? db.query('SELECT name FROM user_weapons WHERE id = ?', [player.equipped_weapon_id])
+      : Promise.resolve({ rows: [] }),
+    player.equipped_armor_id
+      ? db.query('SELECT name FROM user_armors WHERE id = ?', [player.equipped_armor_id])
+      : Promise.resolve({ rows: [] }),
+    player.equipped_ability_id
+      ? db.query('SELECT name FROM user_ability_cards WHERE id = ?', [player.equipped_ability_id])
+      : Promise.resolve({ rows: [] })
+  ]);
+
+  for (const flag of flags) {
+    const data = flagData[flag];
+    if (data && data.statBonuses) {
+      for (const [stat, bonus] of Object.entries(data.statBonuses)) {
+        stats[stat] = (stats[stat] || 0) + bonus;
+      }
+    }
+  }
+
+  for (const entry of codex) {
+    const data = codexData[entry];
+    if (data && data.statBonuses) {
+      for (const [stat, bonus] of Object.entries(data.statBonuses)) {
+        stats[stat] = (stats[stat] || 0) + bonus;
+      }
+    }
+  }
+
+  const gear = {
+    weapon: weaponRes.rows[0] ? weaponRes.rows[0].name : null,
+    armor: armorRes.rows[0] ? armorRes.rows[0].name : null,
+    ability: abilityRes.rows[0] ? abilityRes.rows[0].name : null
+  };
+
+  return { level: player.level, stats, gear, flags, codex };
+}
+
+module.exports = { getUser, createUser, setInitialStats, getCharacterSheet };
