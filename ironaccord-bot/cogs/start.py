@@ -9,7 +9,7 @@ from utils.embed import simple
 import requests
 from models import database as db
 from models import player_service
-from views.tutorial_view import TutorialView
+from views.simple_tutorial_view import SimpleTutorialView
 
 
 class StartCog(commands.Cog):
@@ -41,7 +41,7 @@ class StartCog(commands.Cog):
             return "An unexpected error occurred during intro generation."
 
         embed = simple("The World You've Entered...", description=intro)
-        view = TutorialView(interaction.user)
+        view = SimpleTutorialView(interaction.user)
         return (embed, view)
 
 
