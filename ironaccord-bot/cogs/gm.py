@@ -81,9 +81,11 @@ class GmCog(commands.Cog):
 
         agent = MixtralAgent()
 
-        # Append a hard limit instruction so the LLM keeps responses short.
+        # Append a strict instruction so the LLM replies with only one concise paragraph.
         constrained_prompt = (
-            f"{prompt}\n\n(IMPORTANT: Your response must be two paragraphs maximum.)"
+            f"{prompt}\n\n"
+            f"(IMPORTANT: Your entire response MUST be a single, concise paragraph. "
+            f"Do not write a second paragraph.)"
         )
 
         try:
