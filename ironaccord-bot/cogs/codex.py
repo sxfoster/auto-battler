@@ -4,7 +4,7 @@ from discord.ext import commands
 
 from models import database as db
 from utils.embed import simple
-from utils.decorators import long_running_command
+from utils.decorators import defer_command
 from ai.mixtral_agent import MixtralAgent
 
 class CodexCog(commands.Cog):
@@ -26,7 +26,7 @@ class CodexCog(commands.Cog):
         value = ', '.join(entries) if entries else 'None'
         await interaction.response.send_message(embed=simple('Codex', [{"name": 'Entries', "value": value}]), ephemeral=True)
 
-    @long_running_command
+    @defer_command
     async def view(self, interaction: discord.Interaction, entry: str):
         player_res = await db.query('SELECT id FROM players WHERE discord_id = %s', [str(interaction.user.id)])
         if not player_res['rows']:
