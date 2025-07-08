@@ -88,8 +88,15 @@ CREATE TABLE user_flags (
 
 ## Running Tests
 
-A small Jest test suite lives in `tests/`. Node 20 or newer is required. Run it with:
+A small Jest test suite lives in `tests/`. Node 20 or newer is required. Install the project dependencies first and then execute the tests:
 
 ```bash
+npm install
 npm test
+```
+
+You can also run both steps in one command:
+
+```bash
+npm run install-and-test
 ```
