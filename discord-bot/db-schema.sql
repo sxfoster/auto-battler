@@ -9,6 +9,7 @@ DROP TABLE IF EXISTS champion_decks;
 DROP TABLE IF EXISTS user_champions;
 DROP TABLE IF EXISTS user_weapons;
 DROP TABLE IF EXISTS user_ability_cards;
+DROP TABLE IF EXISTS user_flags;
 DROP TABLE IF EXISTS users;
 
 -- Players table
@@ -72,6 +73,7 @@ CREATE TABLE IF NOT EXISTS user_weapons (
     id INT AUTO_INCREMENT PRIMARY KEY,
     player_id INT NOT NULL,
     name VARCHAR(255) NOT NULL,
+    durability INT DEFAULT 100,
     FOREIGN KEY (player_id) REFERENCES players(id)
 );
 
@@ -79,6 +81,7 @@ CREATE TABLE IF NOT EXISTS user_armors (
     id INT AUTO_INCREMENT PRIMARY KEY,
     player_id INT NOT NULL,
     name VARCHAR(255) NOT NULL,
+    durability INT DEFAULT 100,
     FOREIGN KEY (player_id) REFERENCES players(id)
 );
 
@@ -86,5 +89,15 @@ CREATE TABLE IF NOT EXISTS user_ability_cards (
     id INT AUTO_INCREMENT PRIMARY KEY,
     player_id INT NOT NULL,
     name VARCHAR(255) NOT NULL,
+    durability INT DEFAULT 100,
+    FOREIGN KEY (player_id) REFERENCES players(id)
+);
+
+-- Player flags table
+CREATE TABLE IF NOT EXISTS user_flags (
+    player_id INT NOT NULL,
+    flag VARCHAR(255) NOT NULL,
+    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (player_id, flag),
     FOREIGN KEY (player_id) REFERENCES players(id)
 );

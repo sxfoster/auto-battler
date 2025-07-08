@@ -42,8 +42,9 @@ The schema defined in `db-schema.sql` creates the following tables:
 - `mission_log` – records mission attempts for each player
 - `codex_entries` – tracks which lore entries a player has unlocked
 - `user_stats` – each player's six core stats stored as (`player_id`, `stat`, `value`)
+- `user_flags` – arbitrary flags keyed by player
 
-`codex_entries` is new in this version. Re-run `db-schema.sql` on your MySQL server to create the table or apply the included `ALTER` statements if you are migrating from an older install. Existing installations should drop the old tables listed at the top of the file.
+`codex_entries` and `user_flags` are new in this version. The inventory tables now include a `durability` column. Re-run `db-schema.sql` on your MySQL server to create the table and columns or apply the included `ALTER` statements if you are migrating from an older install. Existing installations should drop the old tables listed at the top of the file.
 
 ### Migrating Existing Databases
 
@@ -67,6 +68,22 @@ UNION ALL SELECT id, 'FOR', 1 FROM players
 UNION ALL SELECT id, 'INTU', 1 FROM players
 UNION ALL SELECT id, 'RES', 1 FROM players
 UNION ALL SELECT id, 'ING', 1 FROM players;
+```
+
+Then add the durability columns and create the `user_flags` table:
+
+```sql
+ALTER TABLE user_weapons ADD COLUMN durability INT DEFAULT 100;
+ALTER TABLE user_armors ADD COLUMN durability INT DEFAULT 100;
+ALTER TABLE user_ability_cards ADD COLUMN durability INT DEFAULT 100;
+
+CREATE TABLE user_flags (
+  player_id INT NOT NULL,
+  flag VARCHAR(255) NOT NULL,
+  timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (player_id, flag),
+  FOREIGN KEY (player_id) REFERENCES players(id)
+);
 ```
 
 ## Running Tests
