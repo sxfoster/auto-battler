@@ -3,6 +3,7 @@ from discord import app_commands
 from discord.ext import commands
 
 from models import database as db
+from models.audit_service import log_auth_fail
 from utils.embed import simple
 from ai.mixtral_agent import MixtralAgent
 
@@ -27,6 +28,7 @@ class GmCog(commands.Cog):
 
     async def reset(self, interaction: discord.Interaction, player: discord.User):
         if not self.is_gm(interaction):
+            await log_auth_fail(interaction.user, 'gm reset')
             await interaction.response.send_message('Unauthorized.', ephemeral=True)
             return
         rows = await db.query('SELECT id FROM players WHERE discord_id = %s', [str(player.id)])
@@ -42,6 +44,7 @@ class GmCog(commands.Cog):
 
     async def codex_unlock(self, interaction: discord.Interaction, player: discord.User, entry: str):
         if not self.is_gm(interaction):
+            await log_auth_fail(interaction.user, 'gm codex unlock')
             await interaction.response.send_message('Unauthorized.', ephemeral=True)
             return
         rows = await db.query('SELECT id FROM players WHERE discord_id = %s', [str(player.id)])
@@ -54,6 +57,7 @@ class GmCog(commands.Cog):
 
     async def flag_set(self, interaction: discord.Interaction, player: discord.User, flag_id: str):
         if not self.is_gm(interaction):
+            await log_auth_fail(interaction.user, 'gm flag set')
             await interaction.response.send_message('Unauthorized.', ephemeral=True)
             return
         rows = await db.query('SELECT id FROM players WHERE discord_id = %s', [str(player.id)])
@@ -66,6 +70,7 @@ class GmCog(commands.Cog):
 
     async def narrate(self, interaction: discord.Interaction, prompt: str):
         if not self.is_gm(interaction):
+            await log_auth_fail(interaction.user, 'gm narrate')
             await interaction.response.send_message('Unauthorized.', ephemeral=True)
             return
         agent = MixtralAgent()
