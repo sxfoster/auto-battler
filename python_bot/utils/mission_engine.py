@@ -1,7 +1,15 @@
 import random
 
 from .. import database
-from ..data.items import BY_NAME
+import os
+import sys
+
+# Allow importing item data from the Iron Accord bot directory
+IRONACCORD_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "ironaccord-bot"))
+if IRONACCORD_PATH not in sys.path:
+    sys.path.insert(0, IRONACCORD_PATH)
+
+from data.items import BY_NAME
 
 
 def roll_d20():
