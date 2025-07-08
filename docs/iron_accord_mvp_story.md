@@ -7,7 +7,7 @@
 - **Starting Location:** Brasshaven — Tier 3 Safeforge
 - **Initial Stats:** 1 point in each stat, plus 1 bonus stat
 - **Neutral Gear:** patched coat, standard breather, ration x1, wrench
-- **Commands:** `/character`, `/mission`, `/scavenge`, `/rest`, `/codex`, `/repair`
+- **Commands:** `/start`, `/mission`, `/scavenge`, `/rest`, `/codex`, `/repair`
 
 ## Mainline Quest Flow
 
