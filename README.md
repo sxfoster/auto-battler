@@ -28,13 +28,10 @@ See [discord-bot/README.md](discord-bot/README.md) for additional details on run
 A small Python prototype is also provided. Environment variables match the Node.js version and should be defined in `.env`:
 
 1. Copy `.env.example` to `.env` and supply values for `DISCORD_TOKEN`, `APP_ID`, and `GUILD_ID`.
-2. Install dependencies from `requirements.txt`:
+2. Install dependencies and start the bot:
    ```bash
+   cd ironaccord-bot
    pip install -r requirements.txt
-   ```
-3. Deploy commands and start the bot:
-   ```bash
-   python deploy_commands.py
    python bot.py
    ```
 
