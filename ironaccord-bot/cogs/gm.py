@@ -1,6 +1,8 @@
 import discord
 from discord import app_commands
 from discord.ext import commands
+import asyncio
+import requests
 
 from models import database as db
 from models.audit_service import log_auth_fail
@@ -73,12 +75,25 @@ class GmCog(commands.Cog):
             await log_auth_fail(interaction.user, 'gm narrate')
             await interaction.response.send_message('Unauthorized.', ephemeral=True)
             return
+
+        # Immediately defer to avoid the 3-second interaction timeout.
+        await interaction.response.defer(ephemeral=True, thinking=True)
+
         agent = MixtralAgent()
         try:
-            text = agent.query(prompt)
+            # Run the blocking request in a thread so the bot stays responsive.
+            loop = asyncio.get_running_loop()
+            text = await loop.run_in_executor(None, agent.query, prompt)
+        except requests.exceptions.ConnectionError:
+            print("LOG: Failed to connect to the Mixtral/LLM server.")
+            text = (
+                "Error: Could not connect to the narration service. Is the LLM server running?"
+            )
         except Exception as exc:
-            text = f'Error: {exc}'
-        await interaction.response.send_message(text, ephemeral=True)
+            print(f"Error in /gm narrate command: {exc}")
+            text = "An unexpected error occurred during narration."
+
+        await interaction.followup.send(text)
 
 async def setup(bot: commands.Bot):
     await bot.add_cog(GmCog(bot))
