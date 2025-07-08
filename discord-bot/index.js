@@ -3,13 +3,18 @@ const fs = require('node:fs');
 const path = require('node:path');
 const config = require('./util/config');
 const { simple } = require('./src/utils/embedBuilder');
-const { setInitialStats } = require('./src/services/playerService');
+const { storeStatSelection } = require('./src/services/playerService');
 
 const client = new Client({ intents: [GatewayIntentBits.Guilds] });
 client.commands = new Collection();
 
+/**
+ * Handle a selection menu where players choose bonus stats.
+ *
+ * @param {import('discord.js').StringSelectMenuInteraction} interaction
+ */
 async function handleStatSelectMenu(interaction) {
-  await setInitialStats(interaction.user.id, interaction.values);
+  await storeStatSelection(interaction.user.id, interaction.values);
   const embed = simple('Starting stats saved!', [
     { name: 'Selected', value: interaction.values.join(', ') }
   ]);
