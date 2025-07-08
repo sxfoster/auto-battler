@@ -4,12 +4,17 @@ from dotenv import load_dotenv
 import discord
 from discord.ext import commands
 
-load_dotenv()
+# Load environment from the project root
+ROOT_DIR = Path(__file__).resolve().parent.parent
+load_dotenv(ROOT_DIR / ".env")
 
 TOKEN = os.getenv("DISCORD_TOKEN")
+GUILD_ID = os.getenv("GUILD_ID")
 
 if not TOKEN:
-    raise RuntimeError("DISCORD_TOKEN not set in environment")
+    raise RuntimeError(
+        "DISCORD_TOKEN environment variable is missing. Did you copy .env.example to .env?"
+    )
 
 intents = discord.Intents.default()
 intents.message_content = True
