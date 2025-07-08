@@ -5,6 +5,7 @@ from discord.ext import commands
 from models import database as db
 from utils.embed import simple
 from utils.decorators import long_running_command
+from utils.async_utils import run_blocking
 from ai.mixtral_agent import MixtralAgent
 
 class CodexCog(commands.Cog):
@@ -51,7 +52,7 @@ class CodexCog(commands.Cog):
             f"The entry says: '{narrative}'. Generate a single, short paragraph of my character's personal, gritty thoughts or memories about this."
         )
         try:
-            reflection = agent.query(prompt)
+            reflection = await run_blocking(agent.query, prompt)
             embed.add_field(name="Personal Reflection", value=f"_{reflection}_", inline=False)
         except Exception:
             pass

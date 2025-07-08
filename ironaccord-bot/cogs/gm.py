@@ -1,8 +1,9 @@
 import discord
 from discord import app_commands
 from discord.ext import commands
-import asyncio
 import requests
+
+from utils.async_utils import run_blocking
 
 from models import database as db
 from models.audit_service import log_auth_fail
@@ -90,8 +91,7 @@ class GmCog(commands.Cog):
 
         try:
             # Run the blocking request in a thread so the bot stays responsive.
-            loop = asyncio.get_running_loop()
-            text = await loop.run_in_executor(None, agent.query, constrained_prompt)
+            text = await run_blocking(agent.query, constrained_prompt)
         except requests.exceptions.ConnectionError:
             print("LOG: Failed to connect to the Mixtral/LLM server.")
             text = (
