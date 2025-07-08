@@ -4,6 +4,7 @@ from discord.ext import commands
 
 from ai.mixtral_agent import MixtralAgent
 from utils.async_utils import run_blocking
+from utils.decorators import defer_command
 from utils.embed import simple
 from models import database as db
 from models import player_service
@@ -12,11 +13,12 @@ from models import player_service
 class StartCog(commands.Cog):
     def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
+        self.agent = MixtralAgent()
 
     @app_commands.command(name="start", description="Begin your adventure")
+    @defer_command
     async def start(self, interaction: discord.Interaction):
         # Generate a rich intro using the Mixtral agent
-        agent = MixtralAgent()
         prompt = (
             "You are the Game Master for a gritty, steampunk survival game called "
             "Iron Accord. A new player has just joined. Write a single, compelling "
@@ -25,10 +27,10 @@ class StartCog(commands.Cog):
             "weight of this world and the constant struggle for survival. End with "
             "a question that prompts them to begin their journey."
         )
-        intro = await run_blocking(agent.query, prompt)
+        intro = await run_blocking(self.agent.query, prompt)
         embed = simple("The World You've Entered...", description=intro)
         view = IntroView(interaction.user)
-        await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
+        return (embed, view)
 
 
 class IntroView(discord.ui.View):
