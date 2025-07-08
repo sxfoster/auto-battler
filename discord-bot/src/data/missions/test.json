@@ -1,0 +1,12 @@
+{
+  "id": 1,
+  "name": "test",
+  "intro": "Test mission start",
+  "rounds": [
+    { "text": "Round 1", "options": [ { "text": "A", "durability": -1 }, { "text": "B", "durability": -2 } ] },
+    { "text": "Round 2", "options": [ { "text": "A", "durability": -1 }, { "text": "B", "durability": 0 } ] },
+    { "text": "Round 3", "options": [ { "text": "A", "durability": 0 }, { "text": "B", "durability": 0 } ] }
+  ],
+  "rewards": { "gold": 5 },
+  "codexFragment": "test_fragment"
+}
