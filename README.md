@@ -32,7 +32,11 @@ A small Python prototype is also provided. Environment variables match the Node.
    ```bash
    pip install -r requirements.txt
    ```
-3. Deploy commands and start the bot:
+3. Install dependencies for the Iron Accord bot:
+   ```bash
+   pip install -r ironaccord-bot/requirements.txt
+   ```
+4. Deploy commands and start the bot:
    ```bash
    python deploy_commands.py
    python bot.py

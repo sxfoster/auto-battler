@@ -1,4 +1,5 @@
 discord.py
 python-dotenv
 mysql-connector-python
+aiomysql
 requests
