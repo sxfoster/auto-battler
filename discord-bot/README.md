@@ -21,11 +21,13 @@ The bot will log into Discord and connect to the database on start.
 
 ## Commands
 
-Three slash commands are available:
+Five slash commands are available:
 
 - `/ping` – check that the bot is responsive
 - `/help` – display an ephemeral list of commands
 - `/character create` – start a new character profile
+- `/inventory` – view your equipped items and backpack
+- `/equip` – equip a weapon, armor piece or ability card you own
 
 Running the command launches a short setup sequence:
 1. **Choose your faction** – pick either **Iron Accord** or **Neon Dharma**.
@@ -41,6 +43,9 @@ The schema defined in `db-schema.sql` creates the following tables:
 - `mission_log` – records mission attempts for each player
 - `codex_entries` – tracks which lore entries a player has unlocked
 - `user_stats` – six core stats for each player with default values
+- `user_weapons` – weapons owned by each player
+- `user_armors` – armor pieces owned by each player
+- `user_ability_cards` – ability cards owned by each player
 
 `codex_entries` is new in this version. Re-run `db-schema.sql` on your MySQL server to create the table or apply the included `ALTER` statements if you are migrating from an older install. Existing installations should drop the old tables listed at the top of the file.
 
