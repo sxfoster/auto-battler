@@ -80,10 +80,16 @@ class GmCog(commands.Cog):
         await interaction.response.defer(ephemeral=True, thinking=True)
 
         agent = MixtralAgent()
+
+        # Append a hard limit instruction so the LLM keeps responses short.
+        constrained_prompt = (
+            f"{prompt}\n\n(IMPORTANT: Your response must be two paragraphs maximum.)"
+        )
+
         try:
             # Run the blocking request in a thread so the bot stays responsive.
             loop = asyncio.get_running_loop()
-            text = await loop.run_in_executor(None, agent.query, prompt)
+            text = await loop.run_in_executor(None, agent.query, constrained_prompt)
         except requests.exceptions.ConnectionError:
             print("LOG: Failed to connect to the Mixtral/LLM server.")
             text = (
