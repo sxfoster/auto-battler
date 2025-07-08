@@ -12,3 +12,6 @@ dist/
 # Misc
 .DS_Store
 coverage/
+# Python
+__pycache__/
+*.pyc
