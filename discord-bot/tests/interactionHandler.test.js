@@ -49,6 +49,7 @@ test('interactionCreate calls handleStatSelectMenu for stat_select menu', async 
       setDescription() { return this; }
       addSubcommand() { return this; }
       addStringOption() { return this; }
+      addIntegerOption() { return this; }
     },
     ActionRowBuilder: class { addComponents() { return this; } },
     StringSelectMenuBuilder: class {
@@ -71,5 +72,5 @@ test('interactionCreate calls handleStatSelectMenu for stat_select menu', async 
 
   await interactionHandler(interaction);
 
-  expect(playerService.setInitialStats).toHaveBeenCalledWith('1', []);
+  expect(playerService.storeStatSelection).toHaveBeenCalledWith('1', []);
 });
