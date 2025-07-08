@@ -23,6 +23,21 @@ This repository houses the Discord bot used for the auto battler experiments alo
 
 See [discord-bot/README.md](discord-bot/README.md) for additional details on running tests and migrating the database schema.
 
+## Python Bot
+
+A small Python prototype is also provided. Environment variables match the Node.js version and should be defined in `.env`:
+
+1. Copy `.env.example` to `.env` and supply values for `DISCORD_TOKEN`, `APP_ID`, and `GUILD_ID`.
+2. Install dependencies from `requirements.txt`:
+   ```bash
+   pip install -r requirements.txt
+   ```
+3. Deploy commands and start the bot:
+   ```bash
+   python deploy_commands.py
+   python bot.py
+   ```
+
 ## Item Data
 
 Base item properties live in `discord-bot/src/data/items.js`. The mission engine and other services import this file to look up item bonuses when applying rewards or combat modifiers.
