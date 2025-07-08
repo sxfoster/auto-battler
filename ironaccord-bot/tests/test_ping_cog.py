@@ -1,5 +1,5 @@
 import pytest
-import discord
+discord = pytest.importorskip("discord")
 from discord.ext import commands
 
 from ironaccord_bot.cogs import ping

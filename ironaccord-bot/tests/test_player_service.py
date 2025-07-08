@@ -1,4 +1,5 @@
 import pytest
+pytest.importorskip("aiomysql")
 
 from ironaccord_bot.models import player_service
 
