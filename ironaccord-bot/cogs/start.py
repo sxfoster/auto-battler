@@ -1,9 +1,9 @@
-import asyncio
 import discord
 from discord import app_commands
 from discord.ext import commands
 
 from ai.mixtral_agent import MixtralAgent
+from utils.async_utils import run_blocking
 from utils.embed import simple
 from models import database as db
 from models import player_service
@@ -17,7 +17,6 @@ class StartCog(commands.Cog):
     async def start(self, interaction: discord.Interaction):
         # Generate a rich intro using the Mixtral agent
         agent = MixtralAgent()
-        loop = asyncio.get_running_loop()
         prompt = (
             "You are the Game Master for a gritty, steampunk survival game called "
             "Iron Accord. A new player has just joined. Write a single, compelling "
@@ -26,7 +25,7 @@ class StartCog(commands.Cog):
             "weight of this world and the constant struggle for survival. End with "
             "a question that prompts them to begin their journey."
         )
-        intro = await loop.run_in_executor(None, agent.query, prompt)
+        intro = await run_blocking(agent.query, prompt)
         embed = simple("The World You've Entered...", description=intro)
         view = IntroView(interaction.user)
         await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
