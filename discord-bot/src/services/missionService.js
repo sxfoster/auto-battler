@@ -1,4 +1,5 @@
 const db = require('../../util/database');
+const playerService = require('./playerService');
 
 const activeMissions = new Map();
 
@@ -13,6 +14,7 @@ async function startMission(playerId, missionId) {
     [missionId, playerId]
   );
   activeMissions.set(insertId, { choices: [], durability: 3 });
+  await playerService.setPlayerState(playerId, 'mission');
   return insertId;
 }
 
@@ -44,6 +46,7 @@ async function completeMission(logId, outcomeTier, rewards = {}, codexKey, playe
   }
 
   activeMissions.delete(logId);
+  await playerService.setPlayerState(playerId, 'idle');
 }
 
 module.exports = { getPlayerId, startMission, recordChoice, completeMission };

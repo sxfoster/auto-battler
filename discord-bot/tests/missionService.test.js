@@ -1,10 +1,15 @@
 jest.mock('../util/database', () => ({ query: jest.fn() }));
+jest.mock('../src/services/playerService', () => ({ setPlayerState: jest.fn() }));
 const db = require('../util/database');
+const playerService = require('../src/services/playerService');
 
 const service = require('../src/services/missionService');
 
 describe('missionService', () => {
-  beforeEach(() => { db.query.mockReset(); });
+  beforeEach(() => {
+    db.query.mockReset();
+    playerService.setPlayerState.mockReset();
+  });
 
   test('startMission inserts log', async () => {
     db.query.mockResolvedValueOnce({ insertId: 5 });
@@ -13,6 +18,7 @@ describe('missionService', () => {
       'INSERT INTO mission_log (mission_id, player_id) VALUES (?, ?)',
       [2, 1]
     );
+    expect(playerService.setPlayerState).toHaveBeenCalledWith(1, 'mission');
     expect(id).toBe(5);
   });
 
@@ -41,5 +47,6 @@ describe('missionService', () => {
       'INSERT IGNORE INTO codex_entries (player_id, entry_key) VALUES (?, ?)',
       [1, 'frag']
     );
+    expect(playerService.setPlayerState).toHaveBeenCalledWith(1, 'idle');
   });
 });
