@@ -4,6 +4,7 @@ const path = require('path');
 const { simple } = require('../src/utils/embedBuilder');
 const missionService = require('../src/services/missionService');
 const { resolveChoice } = require('../src/utils/missionEngine');
+const { applyChoiceResults } = require('../src/utils/interactionRouter');
 
 const missionsPath = path.join(__dirname, '../src/data/missions');
 
@@ -57,6 +58,7 @@ module.exports = {
       const choice = 0; // auto-select first option
       const option = round.options[choice];
       const result = await resolveChoice(playerId, option);
+      await applyChoiceResults(playerId, result);
       const delta = option.durability || 0;
       missionService.recordChoice(logId, i, choice, delta);
       durability += delta;
