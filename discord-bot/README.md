@@ -9,6 +9,7 @@ This folder contains the Node.js bot that powers the Discord integration.
    - `DISCORD_TOKEN` – your bot token
    - `APP_ID` and `GUILD_ID` – required when running `deploy-commands.js`
    - `DB_HOST`, `DB_USER`, `DB_PASSWORD`, `DB_DATABASE` – MySQL connection details
+   - `PVP_CHANNEL_ID` and `WEB_APP_URL` – optional settings used only by the Node.js bot
 3. Install dependencies and register the slash commands:
 
 ```bash
