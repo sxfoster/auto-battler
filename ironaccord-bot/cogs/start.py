@@ -6,6 +6,7 @@ from ai.mixtral_agent import MixtralAgent
 from utils.async_utils import run_blocking
 from utils.decorators import defer_command
 from utils.embed import simple
+import requests
 from models import database as db
 from models import player_service
 
@@ -27,7 +28,17 @@ class StartCog(commands.Cog):
             "weight of this world and the constant struggle for survival. End with "
             "a question that prompts them to begin their journey."
         )
-        intro = await run_blocking(self.agent.query, prompt)
+        try:
+            intro = await run_blocking(self.agent.query, prompt)
+        except requests.exceptions.ConnectionError:
+            print("LOG: Failed to connect to the Mixtral/LLM server.")
+            return (
+                "Error: Could not connect to the narration service. Is the LLM server running?"
+            )
+        except Exception as exc:
+            print(f"Error generating intro: {exc}")
+            return "An unexpected error occurred during intro generation."
+
         embed = simple("The World You've Entered...", description=intro)
         view = IntroView(interaction.user)
         return (embed, view)
