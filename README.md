@@ -47,3 +47,15 @@ A small Python prototype is also provided. Environment variables match the Node.
 ## Item Data
 
 Base item properties live in `discord-bot/src/data/items.js`. The mission engine and other services import this file to look up item bonuses when applying rewards or combat modifiers.
+
+## Running Python Tests
+
+The repository includes pytest suites for both the legacy prototype and the new
+Iron Accord bot. After installing the requirements from `requirements.txt` and
+`ironaccord-bot/requirements.txt`, execute the tests from the project root:
+
+```bash
+pip install -r requirements.txt
+pip install -r ironaccord-bot/requirements.txt
+pytest
+```
