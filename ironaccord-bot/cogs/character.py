@@ -2,9 +2,9 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 
-from ..models import database as db
-from ..models import character_service
-from ..utils.embed import simple
+from models import database as db
+from models import character_service
+from utils.embed import simple
 
 class CharacterCog(commands.Cog):
     def __init__(self, bot: commands.Bot):

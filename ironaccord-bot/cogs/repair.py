@@ -2,8 +2,8 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 
-from ..utils.embed import simple
-from ..models import mission_service, player_service, database as db
+from utils.embed import simple
+from models import mission_service, player_service, database as db
 
 class RepairCog(commands.Cog):
     def __init__(self, bot: commands.Bot):
