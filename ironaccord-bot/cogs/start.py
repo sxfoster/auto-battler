@@ -8,6 +8,7 @@ from utils.decorators import defer_command
 from utils.embed import simple
 from models import database as db
 from models import player_service
+from views.tutorial_view import TutorialView
 
 
 class StartCog(commands.Cog):
@@ -29,7 +30,7 @@ class StartCog(commands.Cog):
         )
         intro = await run_blocking(self.agent.query, prompt)
         embed = simple("The World You've Entered...", description=intro)
-        view = IntroView(interaction.user)
+        view = TutorialView(interaction.user)
         return (embed, view)
 
 
