@@ -2,9 +2,9 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 
-from ..models import database as db
-from ..utils.embed import simple
-from ..ai.mixtral_agent import MixtralAgent
+from ironaccord_bot.models import database as db
+from ironaccord_bot.utils.embed import simple
+from ironaccord_bot.ai.mixtral_agent import MixtralAgent
 
 class CodexCog(commands.Cog):
     def __init__(self, bot: commands.Bot):
@@ -35,7 +35,7 @@ class CodexCog(commands.Cog):
         if not check['rows']:
             await interaction.response.send_message(embed=simple('Entry not unlocked.'), ephemeral=True)
             return
-        from ..data.codex import CODEX
+        from ironaccord_bot.data.codex import CODEX
         codex_data = CODEX.get(entry)
         if not codex_data:
             await interaction.response.send_message(embed=simple('Entry not found.'), ephemeral=True)

@@ -2,8 +2,8 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 
-from ..models import database as db
-from ..utils.embed import simple
+from ironaccord_bot.models import database as db
+from ironaccord_bot.utils.embed import simple
 
 class EquipCog(commands.Cog):
     def __init__(self, bot: commands.Bot):

@@ -1,8 +1,8 @@
 import random
 from typing import Dict, Any
 
-from ..models import database as db
-from .items import BY_NAME
+from ironaccord_bot.models import database as db
+from ironaccord_bot.utils.items import BY_NAME
 
 async def resolve_choice(player_id: int, choice: Dict[str, Any]) -> Dict[str, Any]:
     stats_res = await db.query('SELECT stat, value FROM user_stats WHERE player_id = %s', [player_id])

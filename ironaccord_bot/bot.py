@@ -23,10 +23,10 @@ async def on_ready():
     print("------")
 
 # Load all cogs from the cogs directory
-for path in Path("cogs").glob("*.py"):
+for path in (Path(__file__).parent / "cogs").glob("*.py"):
     if path.stem.startswith("_"):
         continue
-    module_name = f"cogs.{path.stem}"
+    module_name = f"ironaccord_bot.cogs.{path.stem}"
     bot.load_extension(module_name)
 
 bot.run(TOKEN)

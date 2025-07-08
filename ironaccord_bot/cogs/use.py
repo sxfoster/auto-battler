@@ -2,8 +2,8 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 
-from ..models import mission_service, item_service
-from ..utils.embed import simple
+from ironaccord_bot.models import mission_service, item_service
+from ironaccord_bot.utils.embed import simple
 
 class UseCog(commands.Cog):
     def __init__(self, bot: commands.Bot):
