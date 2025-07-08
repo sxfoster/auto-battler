@@ -5,14 +5,17 @@ jest.mock('../src/services/missionService', () => ({
   recordChoice: jest.fn(),
   completeMission: jest.fn()
 }));
+jest.mock('../src/utils/missionEngine', () => ({ resolveChoice: jest.fn() }));
 
 const fs = require('fs');
 const missionService = require('../src/services/missionService');
+const missionEngine = require('../src/utils/missionEngine');
 const mission = require('../commands/mission');
 
 describe('mission command', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    missionEngine.resolveChoice.mockResolvedValue({ tier: 'success' });
   });
 
   test('creates thread and progresses rounds', async () => {
@@ -51,7 +54,7 @@ describe('mission command', () => {
     await mission.execute(interaction);
 
     expect(create).toHaveBeenCalled();
-    expect(send).toHaveBeenCalledTimes(data.rounds.length + 2);
+    expect(send).toHaveBeenCalledTimes(data.rounds.length * 2 + 2);
     expect(missionService.recordChoice).toHaveBeenCalledTimes(data.rounds.length);
     expect(missionService.completeMission).toHaveBeenCalledWith(
       20,
