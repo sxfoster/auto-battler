@@ -73,3 +73,12 @@ async def get_character_sheet(discord_id: str) -> Dict[str, Any] | None:
 
     return { 'level': player['level'], 'stats': stats, 'gear': gear, 'flags': flags, 'codex': codex }
 
+
+async def insert_character(name: str, origin: str, skill: str) -> int:
+    """Insert a new character into the database and return its id."""
+    res = await db.query(
+        'INSERT INTO characters (name, origin, skill) VALUES (%s, %s, %s)',
+        [name, origin, skill]
+    )
+    return res['insertId']
+
