@@ -5,6 +5,7 @@ This repository houses the Discord bot used for the auto battler experiments alo
 ## Repository Layout
 
 - `discord-bot/` – Node.js bot and MySQL schema (legacy implementation).
+- `ironaccord_bot/` – Python rewrite of the Discord bot.
 - `docs/` – design notes and lore.
 - `index.html`, `poc2/` – early browser prototypes kept for reference.
 - `discord-bot/src/data/items.js` – base item definitions consumed by missions and rewards.
@@ -34,6 +35,7 @@ A small Python prototype is also provided. Environment variables match the Node.
    ```
 3. Deploy commands and start the bot:
    ```bash
+   cd ironaccord_bot
    python deploy_commands.py
    python bot.py
    ```
