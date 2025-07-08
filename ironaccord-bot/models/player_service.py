@@ -12,3 +12,7 @@ async def store_stat_selection(discord_id: str, values: list[str]) -> None:
     stats_json = json.dumps(values)
     await db.query('UPDATE players SET starting_stats = %s WHERE discord_id = %s', [stats_json, discord_id])
 
+async def store_faction(discord_id: str, faction: str) -> None:
+    """Persist the player's chosen faction."""
+    await db.query('UPDATE players SET faction = %s WHERE discord_id = %s', [faction, discord_id])
+

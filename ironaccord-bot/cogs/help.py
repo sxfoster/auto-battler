@@ -11,6 +11,7 @@ class HelpCog(commands.Cog):
     @app_commands.command(name="help", description="List available commands")
     async def help(self, interaction: discord.Interaction):
         embed = simple("Available Commands", [
+            {"name": "/start", "value": "Create your character"},
             {"name": "/ping", "value": "Check bot responsiveness"},
             {"name": "/help", "value": "Show this help message"}
         ])
