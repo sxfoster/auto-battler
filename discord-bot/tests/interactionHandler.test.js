@@ -48,6 +48,7 @@ test('interactionCreate calls handleStatSelectMenu for stat_select menu', async 
       setName() { return this; }
       setDescription() { return this; }
       addSubcommand() { return this; }
+      addSubcommandGroup() { return this; }
       addStringOption() { return this; }
       addIntegerOption() { return this; }
     },
