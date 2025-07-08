@@ -10,4 +10,14 @@ This repository houses the Discord bot used for the auto battler experiments alo
 
 ## Setup
 
-Copy `.env.example` to `.env` and provide your Discord token and database credentials. See [discord-bot/README.md](discord-bot/README.md) for details on running the bot and migrating the database schema.
+1. Install [Node.js](https://nodejs.org/) version 20 or newer. Tests require Node 20+.
+2. Copy `.env.example` to `.env` and provide your Discord token and database credentials.
+3. Install dependencies and start the bot:
+   ```bash
+   cd discord-bot
+   npm install
+   node deploy-commands.js
+   node index.js
+   ```
+
+See [discord-bot/README.md](discord-bot/README.md) for additional details on running tests and migrating the database schema.

@@ -4,11 +4,12 @@ This folder contains the Node.js bot that powers the Discord integration.
 
 ## Prerequisites
 
-1. Copy `.env.example` from the repository root to `.env` and fill in the following values:
+1. Install [Node.js](https://nodejs.org/) version 20 or newer. A version manager like `nvm` works well.
+2. Copy `.env.example` from the repository root to `.env` and fill in the following values:
    - `DISCORD_TOKEN` – your bot token
    - `APP_ID` and `GUILD_ID` – required when running `deploy-commands.js`
    - `DB_HOST`, `DB_USER`, `DB_PASSWORD`, `DB_DATABASE` – MySQL connection details
-2. Install dependencies and register the slash commands:
+3. Install dependencies and register the slash commands:
 
 ```bash
 cd discord-bot
@@ -70,7 +71,7 @@ UNION ALL SELECT id, 'ING', 1 FROM players;
 
 ## Running Tests
 
-A small Jest test suite lives in `tests/`. Run it with:
+A small Jest test suite lives in `tests/`. Node 20 or newer is required. Run it with:
 
 ```bash
 npm test
