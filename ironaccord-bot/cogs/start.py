@@ -15,12 +15,19 @@ class StartCog(commands.Cog):
 
     @app_commands.command(name="start", description="Begin your adventure")
     async def start(self, interaction: discord.Interaction):
-        # Generate a short intro using the Mixtral agent
+        # Generate a rich intro using the Mixtral agent
         agent = MixtralAgent()
         loop = asyncio.get_running_loop()
-        intro = await loop.run_in_executor(None, agent.query,
-                                            "Provide a one sentence intro to welcome a new player.")
-        embed = simple(intro)
+        prompt = (
+            "You are the Game Master for a gritty, steampunk survival game called "
+            "Iron Accord. A new player has just joined. Write a single, compelling "
+            "paragraph that sets the scene. The player is in the city of Brasshaven, "
+            "a place of soot-stained pipes and roaring forges. They should feel the "
+            "weight of this world and the constant struggle for survival. End with "
+            "a question that prompts them to begin their journey."
+        )
+        intro = await loop.run_in_executor(None, agent.query, prompt)
+        embed = simple("The World You've Entered...", description=intro)
         view = IntroView(interaction.user)
         await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
 
