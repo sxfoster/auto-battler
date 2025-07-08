@@ -41,7 +41,7 @@ client.on(Events.InteractionCreate, async interaction => {
       await interaction.reply({ content: 'There was an error executing that command.', ephemeral: true });
     }
   } else if (interaction.isStringSelectMenu()) {
-    if (interaction.customId === 'character_stat_select') {
+    if (interaction.customId === 'stat_select') {
       try {
         await handleStatSelectMenu(interaction);
       } catch (error) {

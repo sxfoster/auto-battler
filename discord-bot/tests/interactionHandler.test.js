@@ -1,11 +1,15 @@
 jest.mock('../src/services/playerService', () => ({ setInitialStats: jest.fn() }));
 jest.mock('../src/utils/embedBuilder', () => ({ simple: jest.fn(() => 'embed') }));
 
-const { handleStatSelectMenu } = require('../index');
-const playerService = require('../src/services/playerService');
-const embeds = require('../src/utils/embedBuilder');
+let playerService;
+let embeds;
 
 test('handleStatSelectMenu sets stats and replies', async () => {
+  jest.resetModules();
+  jest.clearAllMocks();
+  playerService = require('../src/services/playerService');
+  embeds = require('../src/utils/embedBuilder');
+  const { handleStatSelectMenu } = require('../index');
   const interaction = {
     user: { id: '123' },
     values: ['MGT'],
@@ -17,4 +21,55 @@ test('handleStatSelectMenu sets stats and replies', async () => {
   expect(playerService.setInitialStats).toHaveBeenCalledWith('123', ['MGT']);
   expect(embeds.simple).toHaveBeenCalledWith('Starting stats saved!', [{ name: 'Selected', value: 'MGT' }]);
   expect(interaction.reply).toHaveBeenCalledWith({ embeds: ['embed'], ephemeral: true });
+});
+
+test('interactionCreate calls handleStatSelectMenu for stat_select menu', async () => {
+  let interactionHandler;
+  const mockClient = {
+    commands: new Map(),
+    on: jest.fn((event, cb) => {
+      if (event === 'interactionCreate') interactionHandler = cb;
+    }),
+    once: jest.fn(),
+    login: jest.fn(),
+    user: { tag: 'bot' }
+  };
+
+  jest.resetModules();
+  jest.clearAllMocks();
+  playerService = require('../src/services/playerService');
+  embeds = require('../src/utils/embedBuilder');
+  jest.doMock('discord.js', () => ({
+    Client: jest.fn(() => mockClient),
+    Collection: jest.fn(() => new Map()),
+    GatewayIntentBits: { Guilds: 0 },
+    Events: { ClientReady: 'ready', InteractionCreate: 'interactionCreate' },
+    SlashCommandBuilder: class {
+      setName() { return this; }
+      setDescription() { return this; }
+      addSubcommand() { return this; }
+      addStringOption() { return this; }
+    },
+    ActionRowBuilder: class { addComponents() { return this; } },
+    StringSelectMenuBuilder: class {
+      setCustomId() { return this; }
+      setPlaceholder() { return this; }
+      addOptions() { return this; }
+    }
+  }));
+
+  const index = require('../index');
+
+  const interaction = {
+    isChatInputCommand: () => false,
+    isStringSelectMenu: () => true,
+    customId: 'stat_select',
+    user: { id: '1' },
+    values: [],
+    reply: jest.fn().mockResolvedValue()
+  };
+
+  await interactionHandler(interaction);
+
+  expect(playerService.setInitialStats).toHaveBeenCalledWith('1', []);
 });
