@@ -14,6 +14,8 @@ The MVP story walkthrough, including mission flow and Codex integration, is
 documented in [iron_accord_mvp_story.md](iron_accord_mvp_story.md).
 The phased rollout strategy is outlined in [iron_accord_mvp_rollout.md](iron_accord_mvp_rollout.md).
 
+The dual LLM architecture powering narration and rules logic is documented in [dual_llm_engine.md](dual_llm_engine.md).
+
 
 ## Mission Data Fields
 
