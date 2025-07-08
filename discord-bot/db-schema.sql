@@ -21,6 +21,7 @@ CREATE TABLE IF NOT EXISTS players (
     gold INT DEFAULT 0,
     xp INT DEFAULT 0,
     level INT DEFAULT 1,
+    state VARCHAR(20) DEFAULT 'idle',
     equipped_weapon_id INT DEFAULT NULL,
     equipped_armor_id INT DEFAULT NULL,
     equipped_ability_id INT DEFAULT NULL,

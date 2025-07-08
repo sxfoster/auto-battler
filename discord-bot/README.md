@@ -22,11 +22,12 @@ The bot will log into Discord and connect to the database on start.
 
 ## Commands
 
-Three slash commands are available:
+Four slash commands are available:
 
 - `/ping` – check that the bot is responsive
 - `/help` – display an ephemeral list of commands
 - `/character create` – start a new character profile
+- `/repair` – restore your equipped gear to full durability
 
 Running the command launches a short setup sequence:
 1. **Choose your faction** – pick either **Iron Accord** or **Neon Dharma**.
@@ -37,7 +38,7 @@ After confirming your choices the bot stores the character in the database and y
 
 The schema defined in `db-schema.sql` creates the following tables:
 
-- `players` – stores Discord IDs, names, class and progression stats
+- `players` – stores Discord IDs, names, class, current state and progression stats
 - `missions` – mission definitions and rewards
 - `mission_log` – records mission attempts for each player
 - `codex_entries` – tracks which lore entries a player has unlocked
@@ -84,6 +85,12 @@ CREATE TABLE user_flags (
   PRIMARY KEY (player_id, flag),
   FOREIGN KEY (player_id) REFERENCES players(id)
 );
+```
+
+Add the new `state` column to track a player's current location:
+
+```sql
+ALTER TABLE players ADD COLUMN state VARCHAR(20) DEFAULT 'idle';
 ```
 
 ## Running Tests

@@ -15,4 +15,13 @@ async function storeStatSelection(discordId, values) {
   ]);
 }
 
-module.exports = { storeStatSelection };
+async function getPlayerState(playerId) {
+  const { rows } = await db.query('SELECT state FROM players WHERE id = ?', [playerId]);
+  return rows[0] ? rows[0].state : null;
+}
+
+async function setPlayerState(playerId, state) {
+  await db.query('UPDATE players SET state = ? WHERE id = ?', [state, playerId]);
+}
+
+module.exports = { storeStatSelection, getPlayerState, setPlayerState };
