@@ -16,7 +16,10 @@ jobs:
           node-version: '20'
       - name: Install dependencies
         run: npm install
-        working-directory: auto-battler-react
+        working-directory: discord-bot
       - name: Run ESLint
-        run: npm run lint
-        working-directory: auto-battler-react
+        run: npx --yes eslint .
+        working-directory: discord-bot
+      - name: Run Tests
+        run: npm test
+        working-directory: discord-bot
