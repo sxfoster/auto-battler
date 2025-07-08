@@ -59,3 +59,7 @@ pip install -r requirements.txt
 pip install -r ironaccord-bot/requirements.txt
 pytest
 ```
+
+The optional dependencies `discord.py` and `aiomysql` are needed for some tests
+under `ironaccord-bot`. Tests that rely on these packages will be skipped if
+they are not installed.
