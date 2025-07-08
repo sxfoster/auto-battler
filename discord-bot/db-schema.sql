@@ -20,6 +20,9 @@ CREATE TABLE IF NOT EXISTS players (
     gold INT DEFAULT 0,
     xp INT DEFAULT 0,
     level INT DEFAULT 1,
+    equipped_weapon_id INT DEFAULT NULL,
+    equipped_armor_id INT DEFAULT NULL,
+    equipped_ability_id INT DEFAULT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -61,5 +64,27 @@ CREATE TABLE IF NOT EXISTS user_stats (
     stat VARCHAR(10) NOT NULL,
     value INT DEFAULT 1,
     PRIMARY KEY (player_id, stat),
+    FOREIGN KEY (player_id) REFERENCES players(id)
+);
+
+-- Player inventory tables
+CREATE TABLE IF NOT EXISTS user_weapons (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    player_id INT NOT NULL,
+    name VARCHAR(255) NOT NULL,
+    FOREIGN KEY (player_id) REFERENCES players(id)
+);
+
+CREATE TABLE IF NOT EXISTS user_armors (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    player_id INT NOT NULL,
+    name VARCHAR(255) NOT NULL,
+    FOREIGN KEY (player_id) REFERENCES players(id)
+);
+
+CREATE TABLE IF NOT EXISTS user_ability_cards (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    player_id INT NOT NULL,
+    name VARCHAR(255) NOT NULL,
     FOREIGN KEY (player_id) REFERENCES players(id)
 );
