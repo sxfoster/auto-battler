@@ -39,7 +39,7 @@ async function setInitialStats(userId, bonusStat) {
     for (const stat of stats) {
       const value = 1 + (stat === bonusStat ? 1 : 0);
       await conn.query(
-        'INSERT INTO player_stats (player_id, stat, value) VALUES (?, ?, ?)',
+        'INSERT INTO user_stats (player_id, stat, value) VALUES (?, ?, ?)',
         [userId, stat, value]
       );
     }

@@ -57,12 +57,9 @@ CREATE TABLE IF NOT EXISTS codex_entries (
 
 -- Player stats table
 CREATE TABLE IF NOT EXISTS user_stats (
-    player_id INT PRIMARY KEY,
-    might INT DEFAULT 1,
-    agility INT DEFAULT 1,
-    fortitude INT DEFAULT 1,
-    intuition INT DEFAULT 1,
-    resolve INT DEFAULT 1,
-    ingenuity INT DEFAULT 1,
+    player_id INT NOT NULL,
+    stat VARCHAR(10) NOT NULL,
+    value INT DEFAULT 1,
+    PRIMARY KEY (player_id, stat),
     FOREIGN KEY (player_id) REFERENCES players(id)
 );
