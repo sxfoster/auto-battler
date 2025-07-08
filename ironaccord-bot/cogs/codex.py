@@ -7,6 +7,7 @@ from utils.embed import simple
 from utils.decorators import long_running_command
 from utils.async_utils import run_blocking
 from ai.mixtral_agent import MixtralAgent
+import requests
 
 class CodexCog(commands.Cog):
     def __init__(self, bot: commands.Bot):
@@ -54,8 +55,19 @@ class CodexCog(commands.Cog):
         try:
             reflection = await run_blocking(agent.query, prompt)
             embed.add_field(name="Personal Reflection", value=f"_{reflection}_", inline=False)
-        except Exception:
-            pass
+        except requests.exceptions.ConnectionError:
+            embed.add_field(
+                name="Personal Reflection",
+                value="_Error: Could not connect to the reflection service._",
+                inline=False,
+            )
+        except Exception as exc:
+            print(f"Error generating Codex reflection: {exc}")
+            embed.add_field(
+                name="Personal Reflection",
+                value="_An unexpected error occurred while generating reflection._",
+                inline=False,
+            )
 
         return embed
 
