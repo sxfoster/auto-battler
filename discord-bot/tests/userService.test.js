@@ -11,7 +11,7 @@ describe('userService.addFlag', () => {
   test('inserts flag for player', async () => {
     await addFlag(2, 'weary');
     expect(db.query).toHaveBeenCalledWith(
-      'INSERT IGNORE INTO player_flags (player_id, flag) VALUES (?, ?)',
+      'INSERT IGNORE INTO user_flags (player_id, flag) VALUES (?, ?)',
       [2, 'weary']
     );
   });

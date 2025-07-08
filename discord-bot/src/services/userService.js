@@ -8,7 +8,7 @@ const db = require('../../util/database');
  */
 async function addFlag(playerId, flag) {
   await db.query(
-    'INSERT IGNORE INTO player_flags (player_id, flag) VALUES (?, ?)',
+    'INSERT IGNORE INTO user_flags (player_id, flag) VALUES (?, ?)',
     [playerId, flag]
   );
 }
