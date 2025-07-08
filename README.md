@@ -7,6 +7,7 @@ This repository houses the Discord bot used for the auto battler experiments alo
 - `discord-bot/` – Node.js bot and MySQL schema.
 - `docs/` – design notes and lore.
 - `index.html`, `poc2/` – early browser prototypes kept for reference.
+- `discord-bot/src/data/items.js` – base item definitions consumed by missions and rewards.
 
 ## Setup
 
@@ -21,3 +22,7 @@ This repository houses the Discord bot used for the auto battler experiments alo
    ```
 
 See [discord-bot/README.md](discord-bot/README.md) for additional details on running tests and migrating the database schema.
+
+## Item Data
+
+Base item properties live in `discord-bot/src/data/items.js`. The mission engine and other services import this file to look up item bonuses when applying rewards or combat modifiers.

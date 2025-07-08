@@ -1,4 +1,5 @@
 const db = require('../../util/database');
+const { BY_NAME } = require('../data/items');
 
 function rollD20() {
   return Math.floor(Math.random() * 20) + 1;
@@ -26,8 +27,10 @@ async function loadEquipped(playerId) {
 
 async function loadBonus(table, id) {
   if (!id) return 0;
-  const { rows } = await db.query(`SELECT bonus FROM ${table} WHERE id = ?`, [id]);
-  return rows[0] && typeof rows[0].bonus === 'number' ? rows[0].bonus : 0;
+  const { rows } = await db.query(`SELECT name FROM ${table} WHERE id = ?`, [id]);
+  if (rows.length === 0) return 0;
+  const item = BY_NAME[rows[0].name];
+  return item && typeof item.bonus === 'number' ? item.bonus : 0;
 }
 
 /**
