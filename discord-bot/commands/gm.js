@@ -2,7 +2,7 @@ const { SlashCommandBuilder } = require('discord.js');
 const db = require('../util/database');
 const { simple } = require('../src/utils/embedBuilder');
 const { isGM } = require('../util/auth');
-const { logGMAcion } = require('../src/utils/auditService');
+const { logGMAction } = require('../src/utils/auditService');
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -81,7 +81,7 @@ async function handleReset(interaction) {
   }
   await db.query('DELETE FROM players WHERE id = ?', [playerId]);
   await interaction.reply({ embeds: [simple('Player reset.')], ephemeral: true });
-  await logGMAcion(interaction.user.username, target.username, 'reset', target.id);
+  await logGMAction(interaction.user.username, target.username, 'reset', target.id);
 }
 
 async function handleCodexUnlock(interaction) {
@@ -102,7 +102,7 @@ async function handleCodexUnlock(interaction) {
     [playerId, entry]
   );
   await interaction.reply({ embeds: [simple('Codex updated.')], ephemeral: true });
-  await logGMAcion(interaction.user.username, target.username, 'codex unlock', entry);
+  await logGMAction(interaction.user.username, target.username, 'codex unlock', entry);
 }
 
 async function handleFlagSet(interaction) {
@@ -123,5 +123,5 @@ async function handleFlagSet(interaction) {
     [playerId, flagId]
   );
   await interaction.reply({ embeds: [simple('Flag applied.')], ephemeral: true });
-  await logGMAcion(interaction.user.username, target.username, 'flag set', flagId);
+  await logGMAction(interaction.user.username, target.username, 'flag set', flagId);
 }

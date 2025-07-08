@@ -1,12 +1,12 @@
 jest.mock('../util/database', () => ({ query: jest.fn() }));
-jest.mock('../src/utils/auditService', () => ({ logGMAcion: jest.fn() }));
+jest.mock('../src/utils/auditService', () => ({ logGMAction: jest.fn() }));
 const db = require('../util/database');
 const audit = require('../src/utils/auditService');
 const gm = require('../commands/gm');
 
 beforeEach(() => {
   db.query.mockReset();
-  audit.logGMAcion.mockReset();
+  audit.logGMAction.mockReset();
 });
 
 test('reset deletes player data', async () => {
@@ -29,6 +29,6 @@ test('reset deletes player data', async () => {
 
   expect(db.query).toHaveBeenCalledWith('SELECT id FROM players WHERE discord_id = ?', ['5']);
   expect(db.query).toHaveBeenCalledWith('DELETE FROM players WHERE id = ?', [2]);
-  expect(audit.logGMAcion).toHaveBeenCalled();
+  expect(audit.logGMAction).toHaveBeenCalled();
   expect(interaction.reply).toHaveBeenCalledWith(expect.objectContaining({ ephemeral: true }));
 });
