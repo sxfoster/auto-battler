@@ -39,9 +39,10 @@ A small Python prototype is also provided. Environment variables match the Node.
    ```
 4. Deploy commands and start the bot:
    ```bash
-   python deploy_commands.py
-   python bot.py
-   ```
+  python deploy_commands.py
+  python bot.py
+  ```
+5. Once the bot is online, use `/start` in your Discord server to begin character creation.
 
 ## Item Data
 
