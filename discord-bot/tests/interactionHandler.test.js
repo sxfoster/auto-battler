@@ -1,4 +1,4 @@
-jest.mock('../src/services/playerService', () => ({ setInitialStats: jest.fn() }));
+jest.mock('../src/services/playerService', () => ({ storeStatSelection: jest.fn() }));
 jest.mock('../src/utils/embedBuilder', () => ({ simple: jest.fn(() => 'embed') }));
 
 const { handleStatSelectMenu } = require('../index');
@@ -14,7 +14,7 @@ test('handleStatSelectMenu sets stats and replies', async () => {
 
   await handleStatSelectMenu(interaction);
 
-  expect(playerService.setInitialStats).toHaveBeenCalledWith('123', ['MGT']);
+  expect(playerService.storeStatSelection).toHaveBeenCalledWith('123', ['MGT']);
   expect(embeds.simple).toHaveBeenCalledWith('Starting stats saved!', [{ name: 'Selected', value: 'MGT' }]);
   expect(interaction.reply).toHaveBeenCalledWith({ embeds: ['embed'], ephemeral: true });
 });
