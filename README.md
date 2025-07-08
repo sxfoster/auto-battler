@@ -7,6 +7,7 @@ This repository houses the Discord bot used for the auto battler experiments alo
 - `discord-bot/` – Node.js bot and MySQL schema.
 - `docs/` – design notes and lore.
 - `index.html`, `poc2/` – early browser prototypes kept for reference.
+- `discord-bot/src/data/items.js` – base item definitions used by the bot.
 
 ## Setup
 

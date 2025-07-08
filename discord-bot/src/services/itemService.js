@@ -1,4 +1,11 @@
 const db = require('../../util/database');
+const baseItems = require('../data/items');
+
+const CATEGORY_MAP = {
+  weapon: 'weapons',
+  armor: 'armors',
+  ability: 'abilities'
+};
 
 /**
  * Reduce durability on all equipped items for a player.
@@ -47,4 +54,10 @@ async function reduceDurability(playerId, amount) {
   await Promise.all(queries);
 }
 
-module.exports = { reduceDurability };
+function getBaseItem(type, key) {
+  const cat = CATEGORY_MAP[type];
+  if (!cat) return null;
+  return baseItems[cat][key] || null;
+}
+
+module.exports = { reduceDurability, getBaseItem };

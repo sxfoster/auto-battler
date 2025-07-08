@@ -86,6 +86,12 @@ CREATE TABLE user_flags (
 );
 ```
 
+## Item Data
+
+Base item definitions live in `src/data/items.js`. Services that need item
+properties should import this module and call `getBaseItem` from
+`src/services/itemService` to retrieve details by key.
+
 ## Running Tests
 
 A small Jest test suite lives in `tests/`. Node 20 or newer is required. Run it with:

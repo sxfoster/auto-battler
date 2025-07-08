@@ -28,14 +28,22 @@ async function applyChoiceResults(playerId, result) {
     const { items, codex } = result.rewards;
     if (Array.isArray(items)) {
       for (const item of items) {
-        if (!item || !item.type || !item.name) continue;
+        if (!item || !item.type) continue;
         let table;
         if (item.type === 'weapon') table = 'user_weapons';
         else if (item.type === 'armor') table = 'user_armors';
         else if (item.type === 'ability') table = 'user_ability_cards';
         else continue;
+
+        let name = item.name;
+        if (!name && item.key) {
+          const base = itemService.getBaseItem(item.type, item.key);
+          name = base && base.name;
+        }
+        if (!name) continue;
+
         tasks.push(
-          db.query(`INSERT INTO ${table} (player_id, name) VALUES (?, ?)`, [playerId, item.name])
+          db.query(`INSERT INTO ${table} (player_id, name) VALUES (?, ?)`, [playerId, name])
         );
       }
     }

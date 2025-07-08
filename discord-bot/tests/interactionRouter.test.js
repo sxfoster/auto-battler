@@ -1,5 +1,8 @@
 jest.mock('../util/database', () => ({ query: jest.fn() }));
-jest.mock('../src/services/itemService', () => ({ reduceDurability: jest.fn() }));
+jest.mock('../src/services/itemService', () => ({
+  reduceDurability: jest.fn(),
+  getBaseItem: jest.fn()
+}));
 jest.mock('../src/services/userService', () => ({ addFlag: jest.fn() }));
 
 const db = require('../util/database');
@@ -21,11 +24,17 @@ describe('interactionRouter.applyChoiceResults', () => {
   });
 
   test('adds loot items and codex fragments', async () => {
+    itemService.getBaseItem.mockImplementation((type, key) => {
+      if (key === 'sword') return { name: 'Sword' };
+      if (key === 'fireball') return { name: 'Fireball' };
+      return null;
+    });
+
     await applyChoiceResults(2, {
       rewards: {
         items: [
-          { type: 'weapon', name: 'Sword' },
-          { type: 'ability', name: 'Fireball' }
+          { type: 'weapon', key: 'sword' },
+          { type: 'ability', key: 'fireball' }
         ],
         codex: 'frag1'
       }
