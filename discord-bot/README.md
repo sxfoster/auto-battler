@@ -40,7 +40,7 @@ The schema defined in `db-schema.sql` creates the following tables:
 - `missions` – mission definitions and rewards
 - `mission_log` – records mission attempts for each player
 - `codex_entries` – tracks which lore entries a player has unlocked
-- `user_stats` – six core stats for each player with default values
+- `user_stats` – each player's six core stats stored as (`player_id`, `stat`, `value`)
 
 `codex_entries` is new in this version. Re-run `db-schema.sql` on your MySQL server to create the table or apply the included `ALTER` statements if you are migrating from an older install. Existing installations should drop the old tables listed at the top of the file.
 
@@ -51,19 +51,21 @@ If you already have the previous schema deployed, run the following SQL after up
 ```sql
 -- create the new table
 CREATE TABLE user_stats (
-  player_id INT PRIMARY KEY,
-  might INT DEFAULT 1,
-  agility INT DEFAULT 1,
-  fortitude INT DEFAULT 1,
-  intuition INT DEFAULT 1,
-  resolve INT DEFAULT 1,
-  ingenuity INT DEFAULT 1,
+  player_id INT NOT NULL,
+  stat VARCHAR(10) NOT NULL,
+  value INT DEFAULT 1,
+  PRIMARY KEY (player_id, stat),
   FOREIGN KEY (player_id) REFERENCES players(id)
 );
 
 -- seed existing players with default stats
-INSERT INTO user_stats (player_id)
-SELECT id FROM players;
+INSERT INTO user_stats (player_id, stat, value)
+SELECT id, 'MGT', 1 FROM players
+UNION ALL SELECT id, 'AGI', 1 FROM players
+UNION ALL SELECT id, 'FOR', 1 FROM players
+UNION ALL SELECT id, 'INTU', 1 FROM players
+UNION ALL SELECT id, 'RES', 1 FROM players
+UNION ALL SELECT id, 'ING', 1 FROM players;
 ```
 
 ## Running Tests
