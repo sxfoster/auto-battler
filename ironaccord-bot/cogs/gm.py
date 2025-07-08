@@ -4,6 +4,7 @@ from discord.ext import commands
 
 from ..models import database as db
 from ..utils.embed import simple
+from ..ai.mixtral_agent import MixtralAgent
 
 class GmCog(commands.Cog):
     def __init__(self, bot: commands.Bot):
@@ -16,6 +17,7 @@ class GmCog(commands.Cog):
         flag = app_commands.Group(name='flag', description='Flag commands')
         flag.command(name='set')(self.flag_set)
         self.group.add_command(flag)
+        self.group.command(name='narrate')(self.narrate)
         bot.tree.add_command(self.group)
 
     def is_gm(self, interaction: discord.Interaction) -> bool:
@@ -61,6 +63,17 @@ class GmCog(commands.Cog):
         player_id = rows['rows'][0]['id']
         await db.query('INSERT INTO user_flags (player_id, flag) VALUES (%s, %s) ON DUPLICATE KEY UPDATE timestamp = CURRENT_TIMESTAMP', [player_id, flag_id])
         await interaction.response.send_message(embed=simple('Flag applied.'), ephemeral=True)
+
+    async def narrate(self, interaction: discord.Interaction, prompt: str):
+        if not self.is_gm(interaction):
+            await interaction.response.send_message('Unauthorized.', ephemeral=True)
+            return
+        agent = MixtralAgent()
+        try:
+            text = agent.query(prompt)
+        except Exception as exc:
+            text = f'Error: {exc}'
+        await interaction.response.send_message(text, ephemeral=True)
 
 async def setup(bot: commands.Bot):
     await bot.add_cog(GmCog(bot))
