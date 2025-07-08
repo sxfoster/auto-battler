@@ -14,3 +14,25 @@ The MVP story walkthrough, including mission flow and Codex integration, is
 documented in [iron_accord_mvp_story.md](iron_accord_mvp_story.md).
 The phased rollout strategy is outlined in [iron_accord_mvp_rollout.md](iron_accord_mvp_rollout.md).
 
+
+## Mission Data Fields
+
+Mission JSON files are stored in `discord-bot/src/data/missions`. Each mission defines several rounds of player choices. Choice objects support additional fields used during combat:
+
+- `combat` – boolean indicating that selecting the choice triggers a combat roll.
+- `dc` – numeric difficulty class for that roll.
+- `outcomes` – maps result tiers (e.g. `Operational Success`, `System Degraded`) to either `loot` or `penalty` data.
+
+An example snippet:
+
+```json
+{
+  "text": "A",
+  "combat": true,
+  "dc": 12,
+  "outcomes": {
+    "Operational Success": { "loot": { "gold": 1 } },
+    "System Degraded": { "penalty": { "durability_loss": 5, "add_flag": "Injured" } }
+  }
+}
+```
