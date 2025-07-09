@@ -43,11 +43,11 @@ async def test_start_cog_returns_view(monkeypatch):
 
     monkeypatch.setattr(start, "AdventureView", DummyView)
 
-    async def fake_run_blocking(func, *a, **kw):
+    async def fake_get_narrative(self, prompt):
         called["func"] = True
         return "story"
 
-    monkeypatch.setattr(start, "run_blocking", fake_run_blocking)
+    monkeypatch.setattr(start.AIAgent, "get_narrative", fake_get_narrative)
     interaction = DummyInteraction()
 
     await cog.start.callback(cog, interaction)

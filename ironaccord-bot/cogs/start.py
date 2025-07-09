@@ -3,15 +3,14 @@ from discord.ext import commands
 from discord import app_commands
 
 from views.adventure_view import AdventureView
-from ai.mixtral_agent import MixtralAgent
-from utils.async_utils import run_blocking
+from ai.ai_agent import AIAgent
 import asyncio
 
 
 class StartCog(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
-        self.agent = MixtralAgent()
+        self.agent = AIAgent()
 
     @app_commands.command(name="start", description="Begin your journey in the world of Iron Accord.")
     async def start(self, interaction: discord.Interaction):
@@ -25,11 +24,7 @@ class StartCog(commands.Cog):
             "break the fourth wall to introduce yourself as their witty guide through this whole... game thing."
         )
 
-        narrative_text = await run_blocking(
-            self.agent.query,
-            prompt,
-            context=f"adventure_phase_1_user_{user_name}"
-        )
+        narrative_text = await self.agent.get_narrative(prompt)
 
         embed = discord.Embed(
             title=f"The Adventure of {user_name}",

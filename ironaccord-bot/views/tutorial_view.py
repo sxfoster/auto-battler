@@ -1,8 +1,7 @@
 import discord
 import requests
 
-from ai.mixtral_agent import MixtralAgent
-from utils.async_utils import run_blocking
+from ai.ai_agent import AIAgent
 from utils.embed import simple
 from models import database as db
 
@@ -27,7 +26,7 @@ class TutorialView(discord.ui.View):
     def __init__(self, user: discord.User) -> None:
         super().__init__()
         self.user = user
-        self.agent = MixtralAgent()
+        self.agent = AIAgent()
 
     @discord.ui.button(label="Begin", style=discord.ButtonStyle.primary)
     async def begin(self, interaction: discord.Interaction, button: discord.ui.Button) -> None:
@@ -51,13 +50,8 @@ class TutorialView(discord.ui.View):
             f"Welcome them to Brasshaven in one gritty paragraph and instruct them to select a faction next."
         )
         try:
-            text = await run_blocking(self.agent.query, prompt)
-        except requests.exceptions.ConnectionError:
-            print("LOG: Failed to connect to the Mixtral/LLM server.")
-            text = (
-                "Error: Could not connect to the narration service. Is the LLM server running?"
-            )
-        except Exception as exc:
+            text = await self.agent.get_narrative(prompt)
+        except Exception as exc:  # pragma: no cover - unexpected
             print(f"Error in tutorial name step: {exc}")
             text = "An unexpected error occurred during narration."
 
