@@ -26,7 +26,8 @@ class AdventureView(discord.ui.View):
             description=narrative_text,
             color=discord.Color.dark_gold()
         )
-        await interaction.response.edit_message(embed=embed, view=self)
+        # Use edit_original_response for subsequent edits
+        await interaction.edit_original_response(embed=embed, view=self)
 
     # --- UI Components ---
 
@@ -52,15 +53,24 @@ class AdventureView(discord.ui.View):
                 7: f"As Edraz, narrate {user_name} finishing off both automatons in a cool final move. They are victorious! Griz is impressed. The narration should feel like a triumphant, over-the-top end to their first tutorial fight. Tell them their real journey is about to begin."
             }
 
+            prompt = prompts.get(view.phase)
+
+            if prompt:
+                # Pass the interaction to the helper, which will now use edit_original_response
+                await view._get_narrative_and_update(prompt, interaction)
+
             if view.phase == 3:
                 view.clear_items()
                 view.add_item(view.ClassChoiceButton("Brawler", "\U0001F44A"))
                 view.add_item(view.ClassChoiceButton("Tinkerer", "\U0001F527"))
-                await view._get_narrative_and_update(prompts[view.phase], interaction)
+                # You've already responded, so you need to edit the original response
+                await interaction.edit_original_response(view=view)
+
             elif view.phase == 7:
                 view.clear_items()
                 view.add_item(discord.ui.Button(label="To be continued...", style=discord.ButtonStyle.secondary, disabled=True))
-                await view._get_narrative_and_update(prompts[view.phase], interaction)
+                await interaction.edit_original_response(view=view)
+
             elif view.phase in prompts:
                 self.disabled = False
                 if view.phase == 5:
@@ -69,7 +79,8 @@ class AdventureView(discord.ui.View):
                 else:
                     self.label = "Continue"
                     self.style = discord.ButtonStyle.success
-                await view._get_narrative_and_update(prompts[view.phase], interaction)
+                # Edit the message with the updated button
+                await interaction.edit_original_response(view=view)
 
     class ClassChoiceButton(discord.ui.Button):
         def __init__(self, class_name: str, emoji: str):
