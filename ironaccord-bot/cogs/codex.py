@@ -6,7 +6,7 @@ from models import database as db
 from utils.embed import simple
 from utils.decorators import long_running_command
 from utils.async_utils import run_blocking
-from ai.mixtral_agent import MixtralAgent
+from ai.ai_agent import AIAgent
 import requests
 
 class CodexCog(commands.Cog):
@@ -47,7 +47,7 @@ class CodexCog(commands.Cog):
         narrative = codex_data.get('narrative', 'No lore available.')
         embed = simple(codex_data['name'], [{"name": "Lore", "value": narrative}])
 
-        agent = MixtralAgent()
+        agent = AIAgent()
         prompt = (
             f"As a weary member of the Iron Accord, I'm reading the Codex entry for '{codex_data['name']}'. "
             f"The entry says: '{narrative}'. Generate a single, short paragraph of my character's personal, gritty thoughts or memories about this."

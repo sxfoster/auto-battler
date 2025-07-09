@@ -1,10 +1,10 @@
 import discord
-from ai.mixtral_agent import MixtralAgent
+from ai.ai_agent import AIAgent
 from utils.async_utils import run_blocking
 
 
 class SimpleTutorialView(discord.ui.View):
-    def __init__(self, agent: MixtralAgent, user: discord.User):
+    def __init__(self, agent: AIAgent, user: discord.User):
         super().__init__(timeout=300)
         self.agent = agent
         self.user = user

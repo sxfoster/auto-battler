@@ -2,7 +2,7 @@ import logging
 import pytest
 import requests
 
-from ironaccord_bot.ai.mixtral_agent import MixtralAgent
+from ironaccord_bot.ai.ai_agent import AIAgent
 
 
 class DummyResponse:
@@ -17,7 +17,7 @@ class DummyResponse:
 
 
 def test_query_logs_success(monkeypatch, caplog):
-    agent = MixtralAgent(base_url="http://test")
+    agent = AIAgent(narrator_url="http://test")
 
     def fake_post(url, json, timeout):
         return DummyResponse("hello world")
@@ -33,7 +33,7 @@ def test_query_logs_success(monkeypatch, caplog):
 
 
 def test_query_logs_failure(monkeypatch, caplog):
-    agent = MixtralAgent(base_url="http://test")
+    agent = AIAgent(narrator_url="http://test")
 
     def fake_post(url, json, timeout):
         raise requests.exceptions.Timeout("boom")

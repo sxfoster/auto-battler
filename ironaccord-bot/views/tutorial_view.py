@@ -1,7 +1,7 @@
 import discord
 import requests
 
-from ai.mixtral_agent import MixtralAgent
+from ai.ai_agent import AIAgent
 from utils.async_utils import run_blocking
 from utils.embed import simple
 from models import database as db
@@ -27,7 +27,7 @@ class TutorialView(discord.ui.View):
     def __init__(self, user: discord.User) -> None:
         super().__init__()
         self.user = user
-        self.agent = MixtralAgent()
+        self.agent = AIAgent()
 
     @discord.ui.button(label="Begin", style=discord.ButtonStyle.primary)
     async def begin(self, interaction: discord.Interaction, button: discord.ui.Button) -> None:

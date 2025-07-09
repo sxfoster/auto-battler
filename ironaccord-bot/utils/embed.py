@@ -13,3 +13,10 @@ def simple(title: str, fields: Optional[List[Dict[str, str]]] = None,
     if thumbnail_url:
         embed.set_thumbnail(url=thumbnail_url)
     return embed
+
+
+def create_embed(title: str, description: str, color: discord.Color | int = discord.Color.blurple()) -> discord.Embed:
+    """Lightweight helper used by the new onboarding flow."""
+    embed = discord.Embed(title=title, description=description, color=color)
+    embed.set_footer(text="Iron Accord")
+    return embed

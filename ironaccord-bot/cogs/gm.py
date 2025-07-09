@@ -8,7 +8,7 @@ from utils.async_utils import run_blocking
 from models import database as db
 from models.audit_service import log_auth_fail
 from utils.embed import simple
-from ai.mixtral_agent import MixtralAgent
+from ai.ai_agent import AIAgent
 
 class GmCog(commands.Cog):
     def __init__(self, bot: commands.Bot):
@@ -80,7 +80,7 @@ class GmCog(commands.Cog):
         # Immediately defer to avoid the 3-second interaction timeout.
         await interaction.response.defer(ephemeral=True, thinking=True)
 
-        agent = MixtralAgent()
+        agent = AIAgent()
 
         # Append a strict instruction so the LLM replies with only one concise paragraph.
         constrained_prompt = (
