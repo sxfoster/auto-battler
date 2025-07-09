@@ -1,1 +1,0 @@
-ALTER TABLE players ADD COLUMN state VARCHAR(20) DEFAULT 'idle';

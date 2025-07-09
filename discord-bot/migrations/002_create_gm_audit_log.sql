@@ -1,8 +1,0 @@
-CREATE TABLE IF NOT EXISTS gm_audit_log (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    admin_user VARCHAR(255) NOT NULL,
-    target_user VARCHAR(255) NOT NULL,
-    action VARCHAR(50) NOT NULL,
-    details TEXT,
-    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
