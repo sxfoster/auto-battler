@@ -9,9 +9,7 @@ async def test_agent_delegates_to_service(monkeypatch):
     async def fake_get(prompt):
         return "result"
 
-    service = OllamaService()
-    monkeypatch.setattr(service, "get_narrative", fake_get)
-
-    agent = AIAgent(service=service)
+    agent = AIAgent()
+    monkeypatch.setattr(agent.ollama_service, "get_narrative", fake_get)
     result = await agent.get_narrative("hi")
     assert result == "result"
