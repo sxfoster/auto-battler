@@ -1,51 +1,53 @@
 import discord
-import requests
-
 from ai.mixtral_agent import MixtralAgent
 from utils.async_utils import run_blocking
-from utils.embed import simple
 
 
 class SimpleTutorialView(discord.ui.View):
-    """Lightweight multi-phase tutorial view."""
+    def __init__(self, agent: MixtralAgent):
+        super().__init__(timeout=300)  # 5 minute timeout
+        self.agent = agent
+        self.phase = 1  # Start at Phase 1
 
-    PROMPTS = [
-        (
-            "You are the Game Master for a gritty, steampunk survival game called Iron Accord. "
-            "Welcome a new player to the city of Brasshaven in a single dramatic paragraph."
-        ),
-        "Briefly describe the two major factions and prompt the player to continue.",
-    ]
+    @discord.ui.button(label="Begin", style=discord.ButtonStyle.success)
+    async def continue_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        # Defer immediately to handle any LLM slowness
+        await interaction.response.defer()
 
-    def __init__(self, user: discord.User) -> None:
-        super().__init__()
-        self.user = user
-        self.agent = MixtralAgent()
-        self.phase = 0
-
-    async def get_current_embed(self) -> discord.Embed:
-        """Generate narration for the current phase."""
-        prompt = self.PROMPTS[self.phase]
-        try:
-            text = await run_blocking(self.agent.query, prompt)
-        except requests.exceptions.ConnectionError:
-            print("LOG: Failed to connect to the Mixtral/LLM server.")
-            text = (
-                "Error: Could not connect to the narration service. Is the LLM server running?"
-            )
-        except Exception as exc:
-            print(f"Error generating tutorial text: {exc}")
-            text = "An unexpected error occurred during narration."
-        return simple("The World You've Entered...", description=text)
-
-    @discord.ui.button(label="Continue", style=discord.ButtonStyle.primary)
-    async def continue_button(self, interaction: discord.Interaction, button: discord.ui.Button) -> None:
-        if interaction.user.id != self.user.id:
-            await interaction.response.send_message("This is not your prompt.", ephemeral=True)
-            return
-        if self.phase + 1 >= len(self.PROMPTS):
-            await interaction.response.edit_message(view=None)
-            return
         self.phase += 1
-        embed = await self.get_current_embed()
-        await interaction.response.edit_message(embed=embed, view=self)
+
+        # Define the prompts for each phase
+        prompts = {
+            2: "As a narrator, describe the history of the Machine War and the Great Stand to a new player who has just entered the world.",
+            3: "As a narrator, explain the two opposing factions that emerged after the war: the tech-rejecting Iron Accord and the tech-embracing Neon Dharma. Frame it so the player understands the core conflict.",
+            4: "The player has chosen the Iron Accord. As a narrator, describe the city of Brasshaven, using sensory details like soot, steam, and the sound of forges. Make it feel like a real, gritty place."
+        }
+
+        if self.phase > 4:
+            # End of the simple tutorial
+            button.disabled = True
+            await interaction.followup.send("The story will continue...", ephemeral=True)
+            await interaction.edit_original_response(view=self)
+            return
+
+        # Get the new prompt and update the button label
+        prompt = prompts.get(self.phase)
+        button.label = "Continue"
+
+        # Generate the next piece of the story
+        narrative_text = await run_blocking(
+            self.agent.query,
+            prompt,
+            context=f"start_tutorial_phase_{self.phase}"
+        )
+
+        # Create a new embed for the next phase
+        embed = discord.Embed(
+            title=f"The Story Unfolds... (Part {self.phase})",
+            description=narrative_text,
+            color=discord.Color.orange()
+        )
+
+        # Send the new embed as a followup and update the original message with the button
+        await interaction.followup.send(embed=embed, ephemeral=True)
+        await interaction.edit_original_response(view=self)

@@ -41,7 +41,7 @@ class StartCog(commands.Cog):
             return "An unexpected error occurred during intro generation."
 
         embed = simple("The World You've Entered...", description=intro)
-        view = SimpleTutorialView(interaction.user)
+        view = SimpleTutorialView(self.agent)
         return (embed, view)
 
 
