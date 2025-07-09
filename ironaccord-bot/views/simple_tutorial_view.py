@@ -4,28 +4,29 @@ from utils.async_utils import run_blocking
 
 
 class SimpleTutorialView(discord.ui.View):
-    def __init__(self, agent: MixtralAgent):
-        super().__init__(timeout=300)  # 5 minute timeout
+    def __init__(self, agent: MixtralAgent, user: discord.User):
+        super().__init__(timeout=300)
         self.agent = agent
-        self.phase = 1  # Start at Phase 1
+        self.user = user
+        self.phase = 1
 
     @discord.ui.button(label="Begin", style=discord.ButtonStyle.success)
     async def continue_button(self, interaction: discord.Interaction, button: discord.ui.Button):
-        # Defer immediately to handle any LLM slowness
-        await interaction.response.defer()
+        button.disabled = True
+        button.label = "Thinking..."
+        await interaction.response.edit_message(view=self)
 
         self.phase += 1
 
-        # Define the prompts for each phase
+        user_name = self.user.display_name
+
         prompts = {
-            2: "As a narrator, describe the history of the Machine War and the Great Stand to a new player who has just entered the world.",
-            3: "As a narrator, explain the two opposing factions that emerged after the war: the tech-rejecting Iron Accord and the tech-embracing Neon Dharma. Frame it so the player understands the core conflict.",
-            4: "The player has chosen the Iron Accord. As a narrator, describe the city of Brasshaven, using sensory details like soot, steam, and the sound of forges. Make it feel like a real, gritty place."
+            2: f"As a narrator, describe the history of the Machine War and the Great Stand to a new player named {user_name}.",
+            3: f"As a narrator, explain the two opposing factions, the Iron Accord and Neon Dharma, to {user_name}, framing the core conflict.",
+            4: f"{user_name} has chosen the Iron Accord. As a narrator, describe the city of Brasshaven using sensory details to make it feel real and gritty."
         }
 
         if self.phase > 4:
-            # End of the simple tutorial
-            button.disabled = True
             button.label = "To be continued..."
             await interaction.edit_original_response(
                 content="The story will continue...",
@@ -34,23 +35,22 @@ class SimpleTutorialView(discord.ui.View):
             )
             return
 
-        # Get the new prompt and update the button label
         prompt = prompts.get(self.phase)
-        button.label = "Continue"
 
         # Generate the next piece of the story
         narrative_text = await run_blocking(
             self.agent.query,
             prompt,
-            context=f"start_tutorial_phase_{self.phase}"
+            context=f"start_tutorial_phase_{self.phase}_user_{user_name}"
         )
 
-        # Create a new embed for the next phase
+        button.disabled = False
+        button.label = "Continue"
+
         embed = discord.Embed(
             title=f"The Story Unfolds... (Part {self.phase})",
             description=narrative_text,
             color=discord.Color.orange()
         )
 
-        # Update the original message with the new embed and button
         await interaction.edit_original_response(embed=embed, view=self)

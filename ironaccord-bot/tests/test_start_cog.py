@@ -18,7 +18,7 @@ class DummyResponse:
 
 class DummyInteraction:
     def __init__(self):
-        self.user = type("User", (), {"id": 1, "name": "Test"})()
+        self.user = type("User", (), {"id": 1, "name": "Test", "display_name": "Test"})()
         self.response = DummyResponse()
         self.followup = DummyFollowup()
 
