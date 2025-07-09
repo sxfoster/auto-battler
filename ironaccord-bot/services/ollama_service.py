@@ -18,7 +18,12 @@ class OllamaService:
         try:
             logging.info(f"Sending request to Ollama model: {model_name}")
             response = await self.client.post(OLLAMA_API_URL, json=payload)
-            response.raise_for_status()
+            if response.status_code >= 400:
+                logging.error(
+                    "Ollama API returned status %s for model %s", response.status_code, model_name
+                )
+                return f"Error: Ollama API responded with status code {response.status_code}."
+
             data = response.json()
             return data.get("response", "Error: 'response' key not found in Ollama output.")
         except httpx.RequestError as e:
