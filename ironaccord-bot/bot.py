@@ -15,7 +15,7 @@ dotenv_path = os.path.join(project_root, ".env")
 load_dotenv(dotenv_path=dotenv_path)
 
 TOKEN = os.getenv("DISCORD_TOKEN")
-GUILD_ID = os.getenv("DISCORD_GUILD_ID")
+GUILD_ID = os.getenv("GUILD_ID")
 
 intents = discord.Intents.default()
 intents.message_content = True
@@ -45,20 +45,22 @@ async def on_ready():
     print(f"\nLogged in as {bot.user} (ID: {bot.user.id})")
     print("─" * 20)
 
-    print("Syncing application commands...")
+    print("Attempting to clear all old commands...")
     try:
         if GUILD_ID:
             guild = discord.Object(id=GUILD_ID)
-            bot.tree.copy_global_to(guild=guild)
-            synced = await bot.tree.sync(guild=guild)
+            bot.tree.clear_commands(guild=guild)
+            await bot.tree.sync(guild=guild)
+            print("   ✅ Successfully cleared all commands for the guild.")
         else:
-            synced = await bot.tree.sync()
-
-        print(f"  ✅ Synced {len(synced)} application commands.")
+            bot.tree.clear_commands(guild=None)
+            await bot.tree.sync()
+            print("   ✅ Successfully cleared all global commands.")
     except Exception as e:
-        print(f"  ❌ Failed to sync commands: {e}")
+        print(f"   ❌ Failed to clear commands: {e}")
+
     print("─" * 20)
-    print("🤖 Bot is online and ready.")
+    print("🤖 Commands have been cleared. Stop the bot now.")
 
 
 async def main():
