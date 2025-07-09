@@ -4,26 +4,30 @@ discord = pytest.importorskip("discord")
 from discord.ext import commands
 from ironaccord_bot.cogs import start
 
+
 class DummyResponse:
+    def __init__(self):
+        self.deferred = False
+        self.kwargs = None
+
+    async def defer(self, *args, **kwargs):
+        self.deferred = True
+        self.kwargs = kwargs
+
+class DummyFollowup:
     def __init__(self):
         self.called = False
         self.kwargs = None
 
-    async def send_message(self, *args, **kwargs):
+    async def send(self, *args, **kwargs):
         self.called = True
         self.kwargs = kwargs
-
-class DummyMessage:
-    pass
 
 class DummyInteraction:
     def __init__(self):
         self.user = type("User", (), {"id": 1, "name": "Test", "display_name": "Test"})()
         self.response = DummyResponse()
-        self.message = DummyMessage()
-
-    async def original_response(self):
-        return self.message
+        self.followup = DummyFollowup()
 
 @pytest.mark.asyncio
 async def test_start_cog_returns_view(monkeypatch):
@@ -37,15 +41,21 @@ async def test_start_cog_returns_view(monkeypatch):
             super().__init__(*args, **kwargs)
             called["created"] = True
 
-        async def _handle_next_phase(self, interaction):
-            called["interaction"] = interaction
-
     monkeypatch.setattr(start, "AdventureView", DummyView)
+
+    async def fake_run_blocking(func, *a, **kw):
+        called["func"] = True
+        return "story"
+
+    monkeypatch.setattr(start, "run_blocking", fake_run_blocking)
     interaction = DummyInteraction()
 
     await cog.start.callback(cog, interaction)
 
-    assert interaction.response.called
+    assert interaction.response.deferred
     assert interaction.response.kwargs.get("ephemeral") is True
+    assert interaction.followup.called
+    assert interaction.followup.kwargs.get("ephemeral") is True
+    assert isinstance(interaction.followup.kwargs.get("view"), DummyView)
     assert called.get("created")
-    assert called.get("interaction") is interaction.message
+    assert called.get("func")
