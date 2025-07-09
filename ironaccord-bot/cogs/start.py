@@ -5,6 +5,7 @@ from discord import app_commands
 from views.adventure_view import AdventureView
 from ai.mixtral_agent import MixtralAgent
 from utils.async_utils import run_blocking
+import asyncio
 
 
 class StartCog(commands.Cog):
@@ -37,6 +38,8 @@ class StartCog(commands.Cog):
         )
 
         view = AdventureView(agent=self.agent, user=interaction.user)
+        # Start prefetching the next phase in the background
+        asyncio.create_task(view._prefetch_for_phase(2))
         await interaction.followup.send(embed=embed, view=view, ephemeral=True)
 
 async def setup(bot: commands.Bot):
