@@ -1,9 +1,10 @@
+import os
 import httpx
 import logging
 import json
 
 # --- Constants ---
-OLLAMA_API_URL = "http://localhost:11434/api/generate"
+OLLAMA_API_URL = os.getenv("OLLAMA_API_URL", "http://localhost:11434/api/generate")
 NARRATOR_MODEL = "mixtral:8x7b-instruct-v0.1-q4_0"  # The creative storyteller
 GM_MODEL = "phi3:mini"  # The fast, logical game master
 

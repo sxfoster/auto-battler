@@ -1,18 +1,15 @@
 import discord
 from discord import app_commands
 from discord.ext import commands
-import requests
-
-from utils.async_utils import run_blocking
-
 from models import database as db
 from models.audit_service import log_auth_fail
 from utils.embed import simple
-from ai.mixtral_agent import MixtralAgent
+from ai.ai_agent import AIAgent
 
 class GmCog(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
+        self.agent = AIAgent()
         self.group = app_commands.Group(name='gm', description='Game master tools')
         self.group.command(name='reset')(self.reset)
         codex = app_commands.Group(name='codex', description='Codex commands')
@@ -80,8 +77,6 @@ class GmCog(commands.Cog):
         # Immediately defer to avoid the 3-second interaction timeout.
         await interaction.response.defer(ephemeral=True, thinking=True)
 
-        agent = MixtralAgent()
-
         # Append a strict instruction so the LLM replies with only one concise paragraph.
         constrained_prompt = (
             f"{prompt}\n\n"
@@ -90,14 +85,8 @@ class GmCog(commands.Cog):
         )
 
         try:
-            # Run the blocking request in a thread so the bot stays responsive.
-            text = await run_blocking(agent.query, constrained_prompt)
-        except requests.exceptions.ConnectionError:
-            print("LOG: Failed to connect to the Mixtral/LLM server.")
-            text = (
-                "Error: Could not connect to the narration service. Is the LLM server running?"
-            )
-        except Exception as exc:
+            text = await self.agent.get_narrative(constrained_prompt)
+        except Exception as exc:  # pragma: no cover - log unexpected errors
             print(f"Error in /gm narrate command: {exc}")
             text = "An unexpected error occurred during narration."
 
