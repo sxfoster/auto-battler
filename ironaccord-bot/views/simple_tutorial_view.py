@@ -26,8 +26,12 @@ class SimpleTutorialView(discord.ui.View):
         if self.phase > 4:
             # End of the simple tutorial
             button.disabled = True
-            await interaction.followup.send("The story will continue...", ephemeral=True)
-            await interaction.edit_original_response(view=self)
+            button.label = "To be continued..."
+            await interaction.edit_original_response(
+                content="The story will continue...",
+                embed=None,
+                view=self
+            )
             return
 
         # Get the new prompt and update the button label
@@ -48,6 +52,5 @@ class SimpleTutorialView(discord.ui.View):
             color=discord.Color.orange()
         )
 
-        # Send the new embed as a followup and update the original message with the button
-        await interaction.followup.send(embed=embed, ephemeral=True)
-        await interaction.edit_original_response(view=self)
+        # Update the original message with the new embed and button
+        await interaction.edit_original_response(embed=embed, view=self)

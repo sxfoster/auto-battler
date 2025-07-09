@@ -29,13 +29,18 @@ class MixtralAgent:
     def query(self, prompt: str, context: str = "general_query") -> str:
         """Send a prompt to the Mixtral API and return the generated text."""
         request_id = uuid.uuid4()
-        full_prompt = f"{self.world_bible}\n\nCONTEXT: {context}\nTASK: {prompt}"
+        constrained_prompt = (
+            f"{prompt}\n\n"
+            f"(IMPORTANT: Your entire response MUST be concise and less than 1000 characters.)"
+        )
+
+        full_prompt = f"{self.world_bible}\n\nCONTEXT: {context}\nTASK: {constrained_prompt}"
 
         url = self.base_url.rstrip("/") + "/chat/completions"
         payload = {
             "model": "mixtral",
             "messages": [{"role": "user", "content": full_prompt}],
-            "max_tokens": 500,
+            "max_tokens": 250,
         }
 
         logging.info(
