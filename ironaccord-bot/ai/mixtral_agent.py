@@ -23,7 +23,7 @@ class MixtralAgent:
             "- **Your Task:** Guide the player, weaving together the gritty world-building with your meta-commentary.\n\n"
             "== CORE WORLD TRUTHS (Adhere to these at all times!) ==\n"
             "- **Setting:** The world is a harsh, post-apocalyptic steampunk setting that resulted from a war with AI.\n"
-            "- **The Iron Accord Faction:** Rejects all digital tech. They worship steam, steel, and flame. Their culture is rigid, reverent, and industrial. Their core philosophy is \"Progress killed the world. Simplicity will rebuild it.\"\n"
+            "- **The Iron Accord Faction:** Rejects all digital tech. They worship steam, steel, and flame. Their core philosophy is \"Progress killed the world. Simplicity will rebuild it.\"\n"
             "- **Technology:**\n"
             "  - **Permitted:** Gears, steam, pressure systems, mechanical automatons.\n"
             "  - **Forbidden:** Processors, AI, neural networks, digital screens, anything 'smart'.\n"

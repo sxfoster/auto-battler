@@ -33,7 +33,7 @@ class AdventureView(discord.ui.View):
         user_name = self.user.display_name
 
         prompts = {
-            1: f"Your persona is Deckard Cain/Deadpool. Start the story for a new player named {user_name}. Begin with 'The world burned under the march of metal', but then immediately break the fourth wall to introduce yourself as their witty guide through this whole... game thing.",
+            1: f"Your name is Edraz. Start the story for a new player named {user_name}. Begin with 'The world burned under the march of metal', but then immediately break the fourth wall to introduce yourself as their witty guide through this whole... game thing.",
             2: f"As the narrator, tell {user_name} about the Machine War. Keep it dramatic but sprinkle in meta-commentary about it being 'classic video game backstory stuff'. Keep it brief.",
             3: f"Explain the two factions, Iron Accord and Neon Dharma, to {user_name}. Frame it as their first big choice. Tell them to 'pick a side' by clicking a button below, hinting that their choice has 'like, actual consequences... probably'.",
             4: f"The player {user_name} has chosen the {self.player_class} class. Describe them meeting an old, one-eyed mechanic named 'Griz' in Brasshaven. Griz needs them to handle a 'starter quest': clearing malfunctioning automatons from his workshop. Make Griz gruff but likable.",
@@ -58,7 +58,7 @@ class AdventureView(discord.ui.View):
                 self.add_item(discord.ui.Button(label="To be continued...", style=discord.ButtonStyle.secondary, disabled=True))
                 await interaction.edit_original_response(view=self)
         else:
-            await interaction.edit_original_response(content="Something went wrong.", view=None)
+            await interaction.edit_original_response(content="The story has encountered an error.", view=None)
 
     # --- UI Components ---
     class ContinueButton(discord.ui.Button):
@@ -68,7 +68,7 @@ class AdventureView(discord.ui.View):
 
         async def callback(self, interaction: discord.Interaction) -> None:
             self.disabled = True
-            self.label = "Thinking..."
+            self.label = "Edraz is thinking..."
             await interaction.response.edit_message(view=self.outer_view)
             await self.outer_view._handle_next_phase(interaction)
 

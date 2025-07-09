@@ -14,7 +14,7 @@ class StartCog(commands.Cog):
     @app_commands.command(name="start", description="Begin your journey in the world of Iron Accord.")
     async def start(self, interaction: discord.Interaction):
         await interaction.response.send_message(
-            "Loading your adventure...",
+            "Loading your adventure with Edraz...",
             ephemeral=True
         )
 
