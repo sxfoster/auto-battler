@@ -17,10 +17,9 @@ class SimpleTutorialView(discord.ui.View):
         "Briefly describe the two major factions and prompt the player to continue.",
     ]
 
-    def __init__(self, user: discord.User) -> None:
+    def __init__(self, agent: MixtralAgent) -> None:
         super().__init__()
-        self.user = user
-        self.agent = MixtralAgent()
+        self.agent = agent
         self.phase = 0
 
     async def get_current_embed(self) -> discord.Embed:
@@ -40,9 +39,6 @@ class SimpleTutorialView(discord.ui.View):
 
     @discord.ui.button(label="Continue", style=discord.ButtonStyle.primary)
     async def continue_button(self, interaction: discord.Interaction, button: discord.ui.Button) -> None:
-        if interaction.user.id != self.user.id:
-            await interaction.response.send_message("This is not your prompt.", ephemeral=True)
-            return
         if self.phase + 1 >= len(self.PROMPTS):
             await interaction.response.edit_message(view=None)
             return

@@ -62,6 +62,4 @@ class TutorialView(discord.ui.View):
             text = "An unexpected error occurred during narration."
 
         embed = simple(f"Welcome, {name}", description=text)
-        from ironaccord_bot.cogs.start import FactionView  # local import to avoid circular
-        view = FactionView(self.user)
-        await interaction.followup.send(embed=embed, view=view, ephemeral=True)
+        await interaction.followup.send(embed=embed, ephemeral=True)
