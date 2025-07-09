@@ -47,7 +47,7 @@ class AdventureView(discord.ui.View):
             user_name = view.user.display_name
             prompts = {
                 2: f"As Edraz, tell {user_name} about the Machine War. Keep it dramatic but sprinkle in meta-commentary about it being 'classic video game backstory stuff'. Keep it brief.",
-                3: f"As Edraz, explain the two factions, Iron Accord and Neon Dharma, to {user_name}. Frame it as their first big choice. Tell them to 'pick a side' by clicking a button below, hinting that their choice has 'like, actual consequences... probably'.",
+                3: f"As Edraz, explain the two factions, Iron Accord and Neon Dharma, to {user_name}. Tell them about only the Iron Accord's values and views. To them the Neon Dharma is the enemy. Tell them to 'pick a class' by clicking a button below, hinting that their choice has 'like, actual consequences... probably'.",
                 5: f"As Edraz, narrate the beginning of the fight in Griz's workshop for {user_name}. Describe two clunky, sparking automatons turning towards them. The player easily dodges the first clumsy attack. End by prompting them to fight back by clicking the button.",
                 6: f"The player, {user_name}, attacks! As a {view.player_class}, narrate them landing a powerful, cinematic blow that staggers one of the automatons. Describe the sparks and crunching metal.",
                 7: f"As Edraz, narrate {user_name} finishing off both automatons in a cool final move. They are victorious! Griz is impressed. The narration should feel like a triumphant, over-the-top end to their first tutorial fight. Tell them their real journey is about to begin."
