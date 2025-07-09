@@ -17,16 +17,16 @@ class StartCog(commands.Cog):
         await interaction.response.defer(ephemeral=True)
 
         # --- Phase 1: The Spark of Memory ---
+        user_name = interaction.user.display_name
         prompt = (
-            "You are the Game Master for 'Iron Accord'. Write a short, evocative opening "
-            "that uses the phrase 'The world burned under the march of metal' to introduce "
-            "a new player to the world's harsh reality."
+            f"You are the Game Master for 'Iron Accord'. Write a short, evocative opening for a new player named '{user_name}'. "
+            "Use the phrase 'The world burned under the march of metal' to introduce the world's harsh reality."
         )
 
         narrative_text = await run_blocking(
             self.agent.query,
             prompt,
-            context=f"start_tutorial_phase_1_user_{interaction.user.id}"
+            context=f"start_tutorial_phase_1_user_{user_name}"
         )
 
         embed = discord.Embed(
@@ -36,7 +36,7 @@ class StartCog(commands.Cog):
         )
 
         # Create the view and send it with the first message
-        view = SimpleTutorialView(self.agent)
+        view = SimpleTutorialView(agent=self.agent, user=interaction.user)
         await interaction.followup.send(embed=embed, view=view, ephemeral=True)
 
 async def setup(bot: commands.Bot):
