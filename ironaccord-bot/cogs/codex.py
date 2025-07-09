@@ -5,13 +5,12 @@ from discord.ext import commands
 from models import database as db
 from utils.embed import simple
 from utils.decorators import long_running_command
-from utils.async_utils import run_blocking
-from ai.mixtral_agent import MixtralAgent
-import requests
+from ai.ai_agent import AIAgent
 
 class CodexCog(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
+        self.agent = AIAgent()
         self.group = app_commands.Group(name='codex', description='Codex commands')
         self.group.command(name='list', description='Display your unlocked codex entries')(self.list)
         self.group.command(name='view', description='View a codex entry')(self.view)
@@ -47,27 +46,12 @@ class CodexCog(commands.Cog):
         narrative = codex_data.get('narrative', 'No lore available.')
         embed = simple(codex_data['name'], [{"name": "Lore", "value": narrative}])
 
-        agent = MixtralAgent()
         prompt = (
             f"As a weary member of the Iron Accord, I'm reading the Codex entry for '{codex_data['name']}'. "
             f"The entry says: '{narrative}'. Generate a single, short paragraph of my character's personal, gritty thoughts or memories about this."
         )
-        try:
-            reflection = await run_blocking(agent.query, prompt)
-            embed.add_field(name="Personal Reflection", value=f"_{reflection}_", inline=False)
-        except requests.exceptions.ConnectionError:
-            embed.add_field(
-                name="Personal Reflection",
-                value="_Error: Could not connect to the reflection service._",
-                inline=False,
-            )
-        except Exception as exc:
-            print(f"Error generating Codex reflection: {exc}")
-            embed.add_field(
-                name="Personal Reflection",
-                value="_An unexpected error occurred while generating reflection._",
-                inline=False,
-            )
+        reflection = await self.agent.get_narrative(prompt)
+        embed.add_field(name="Personal Reflection", value=f"_{reflection}_", inline=False)
 
         return embed
 
