@@ -1,10 +1,9 @@
 import discord
-from ai.mixtral_agent import MixtralAgent
-from utils.async_utils import run_blocking
+from ai.ai_agent import AIAgent
 
 
 class SimpleTutorialView(discord.ui.View):
-    def __init__(self, agent: MixtralAgent, user: discord.User):
+    def __init__(self, agent: AIAgent, user: discord.User):
         super().__init__(timeout=300)
         self.agent = agent
         self.user = user
@@ -38,11 +37,7 @@ class SimpleTutorialView(discord.ui.View):
         prompt = prompts.get(self.phase)
 
         # Generate the next piece of the story
-        narrative_text = await run_blocking(
-            self.agent.query,
-            prompt,
-            context=f"start_tutorial_phase_{self.phase}_user_{user_name}"
-        )
+        narrative_text = await self.agent.get_narrative(prompt)
 
         button.disabled = False
         button.label = "Continue"

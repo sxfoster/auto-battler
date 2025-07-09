@@ -1,8 +1,7 @@
 import asyncio
 import os
 import discord
-from ai.mixtral_agent import MixtralAgent
-from utils.async_utils import run_blocking
+from ai.ai_agent import AIAgent
 
 # Prompts used for each narrative phase
 PROMPTS = {
@@ -16,7 +15,7 @@ PROMPTS = {
 
 
 class AdventureView(discord.ui.View):
-    def __init__(self, agent: MixtralAgent, user: discord.User):
+    def __init__(self, agent: AIAgent, user: discord.User):
         super().__init__(timeout=300)
         self.agent = agent
         self.user = user
@@ -44,9 +43,8 @@ class AdventureView(discord.ui.View):
             return
 
         prompt = template.format(user_name=user_name, player_class=self.player_class)
-        context = f"adventure_phase_{phase}_user_{user_name}"
         self.prefetch_task = asyncio.create_task(
-            run_blocking(self.agent.query, prompt, context)
+            self.agent.get_narrative(prompt)
         )
 
     async def _update_message_with_narrative(self, narrative_text: str, interaction: discord.Interaction) -> None:
