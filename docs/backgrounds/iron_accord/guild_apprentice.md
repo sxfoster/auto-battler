@@ -1,31 +1,39 @@
 # Guild Apprentice
 
-**Flavor Description**
-A junior member of a trade guild who follows strict codes and hones a chosen craft.
+## Flavor Description
 
-### Typical Skills/Knowledge
-- forgecraft basics
-- inventory tracking
-- metal shaping
-- meeting quotas
+You grew up in the shadow of the Great Forges, learning your trade with stained hands and aching muscles. From an early age, you were chosen by a master craftsperson and taught to respect the rules of iron, steam, and teamwork. Every tool in your kit tells a story, and every scar is a lesson. Some apprentices stay with their guild for life. Others take what they’ve learned and head out to find their own destiny.
 
-### Starting Gear or Contacts
-- guild token
-- simple tool set
+## Typical Skills / Knowledge
 
-### Roleplay Hooks/Flaws
-- loyal to guild traditions
-- protective of secrets
-- naive about politics
-- tends to lecture novices
+- Proficiency with basic tools and machinery
+- Understanding of local guild laws and etiquette
+- Ability to assist in blacksmithing, repairs, or maintenance
 
-### Example Story Hooks
-- finish a masterwork for a mentor
-- deliver a message across enemy lines
+## Starting Gear or Contacts
 
-### Mechanics
-- gain advantage on checks to craft simple items
-- repairs cost fewer resources
+- Worn toolbelt and a set of trusted tools
+- Badge or token showing your guild membership
+- Name of a master craftsperson who can offer guidance or favors
 
-### Advancement Notes
-Over time you may open a workshop or lead apprentices.
+## Roleplay Hooks / Flaws
+
+- You have a habit of defending your guild’s honor, even when it causes trouble
+- Pride in your work sometimes makes it hard to accept criticism
+- You trust in rules and routines, and struggle when chaos erupts
+
+## Example Story Hooks
+
+- Your master has disappeared, leaving you with unfinished work and rumors of sabotage
+- A rival guild accuses you of theft, putting your reputation on the line
+- The Accord council calls on apprentices for a dangerous restoration project deep in forbidden ruins
+
+## Mechanics
+
+- Gain advantage on tasks involving basic repairs, maintenance, or operating simple machines
+- Begin with a minor favor from your former master, usable once to gain advice or access
+- May call on your guild’s network for information or shelter within Iron Accord territory
+
+## Advancement Notes
+
+As you gain experience and make your own choices, your connection to the guild may fade. Eventually, your skills and network are shaped by your actions, not your apprenticeship.
