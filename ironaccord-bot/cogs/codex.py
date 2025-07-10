@@ -2,59 +2,56 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 
-from models import database as db
-from utils.embed import simple
-from utils.decorators import long_running_command
-from ai.ai_agent import AIAgent
+from services.rag_service import RAGService
+from services.ollama_service import OllamaService
+
 
 class CodexCog(commands.Cog):
+    """Provides the `/codex` command for lore lookup."""
+
     def __init__(self, bot: commands.Bot):
         self.bot = bot
-        self.agent = AIAgent()
-        self.group = app_commands.Group(name='codex', description='Codex commands')
-        self.group.command(name='list', description='Display your unlocked codex entries')(self.list)
-        self.group.command(name='view', description='View a codex entry')(self.view)
-        bot.tree.add_command(self.group)
+        self.rag_service: RAGService = bot.rag_service
+        self.ollama_service: OllamaService = bot.ollama_service
 
-    async def list(self, interaction: discord.Interaction):
-        player_res = await db.query('SELECT id FROM players WHERE discord_id = %s', [str(interaction.user.id)])
-        if not player_res['rows']:
-            await interaction.response.send_message(embed=simple('You have no character.'), ephemeral=True)
+    @app_commands.command(name="codex", description="Search the Iron Accord knowledge base.")
+    @app_commands.describe(query="What lore are you looking for?")
+    async def codex(self, interaction: discord.Interaction, query: str):
+        """Handle the `/codex` slash command."""
+        await interaction.response.defer()
+
+        retrieved_context = self.rag_service.query_lore(query)
+
+        if not retrieved_context or "offline" in retrieved_context:
+            embed = discord.Embed(
+                title=f"Codex Entry: {query}",
+                description="I could not find any information on that topic in my archives.",
+                color=discord.Color.orange(),
+            )
+            await interaction.followup.send(embed=embed)
             return
-        player_id = player_res['rows'][0]['id']
-        entries_res = await db.query('SELECT entry_key FROM codex_entries WHERE player_id = %s', [player_id])
-        entries = [r['entry_key'] for r in entries_res['rows']]
-        value = ', '.join(entries) if entries else 'None'
-        await interaction.response.send_message(embed=simple('Codex', [{"name": 'Entries', "value": value}]), ephemeral=True)
 
-    @long_running_command
-    async def view(self, interaction: discord.Interaction, entry: str):
-        player_res = await db.query('SELECT id FROM players WHERE discord_id = %s', [str(interaction.user.id)])
-        if not player_res['rows']:
-            return simple('You have no character.')
+        prompt = f"""
+        You are a helpful assistant. Based ONLY on the following context, provide a concise answer to the user's query.
+        Structure your answer clearly. Do not add any information that is not in the context.
+        If the context does not seem relevant to the query, state that you have no information on the topic.
 
-        player_id = player_res['rows'][0]['id']
-        check = await db.query('SELECT 1 FROM codex_entries WHERE player_id = %s AND entry_key = %s', [player_id, entry])
-        if not check['rows']:
-            return simple('Entry not unlocked.')
+        CONTEXT:
+        {retrieved_context}
 
-        from data.codex import CODEX
-        codex_data = CODEX.get(entry)
-        if not codex_data:
-            return simple('Entry not found.')
+        QUERY:
+        {query}
+        """
 
-        narrative = codex_data.get('narrative', 'No lore available.')
-        embed = simple(codex_data['name'], [{"name": "Lore", "value": narrative}])
+        summary = await self.ollama_service.get_gm_response(prompt)
 
-        prompt = (
-            f"As a weary member of the Iron Accord, I'm reading the Codex entry for '{codex_data['name']}'. "
-            f"The entry says: '{narrative}'. Generate a single, short paragraph of my character's personal, gritty thoughts or memories about this."
+        embed = discord.Embed(
+            title=f"Codex Entry: {query}",
+            description=summary,
+            color=discord.Color.blue(),
         )
-        reflection = await self.agent.get_narrative(prompt)
-        embed.add_field(name="Personal Reflection", value=f"_{reflection}_", inline=False)
+        await interaction.followup.send(embed=embed)
 
-        return embed
 
 async def setup(bot: commands.Bot):
     await bot.add_cog(CodexCog(bot))
-
