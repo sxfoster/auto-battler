@@ -1,157 +1,55 @@
 import logging
-import os
-import glob
-from langchain_community.document_loaders import UnstructuredMarkdownLoader
-from langchain_community.vectorstores import FAISS
-from langchain_community.embeddings import OllamaEmbeddings
-from langchain_text_splitters import RecursiveCharacterTextSplitter
+import chromadb
+from langchain.vectorstores import Chroma
+from langchain.embeddings import HuggingFaceEmbeddings
 
-# --- Constants ---
-# Correctly navigate up two directories to the project root, then into 'docs'
-SERVICE_DIR = os.path.dirname(os.path.abspath(__file__))
-LORE_DIRECTORY = os.path.abspath(os.path.join(SERVICE_DIR, '..', '..', 'docs'))
-# --- NEW: Define a path for the cached vector store ---
-FAISS_INDEX_PATH = os.path.abspath(os.path.join(SERVICE_DIR, '..', 'cache', 'faiss_index'))
-CACHE_DIRECTORY = os.path.dirname(FAISS_INDEX_PATH)
-
-EMBEDDING_MODEL = 'nomic-embed-text'
+logger = logging.getLogger(__name__)
 
 class RAGService:
-    """Handle the Retrieval-Augmented Generation (RAG) pipeline with caching."""
+    """Service to connect to a persistent ChromaDB vector store and perform queries."""
 
-    def __init__(self):
-        """Load a cached FAISS index or build a new one if needed."""
+    def __init__(self, host="localhost", port="8000", collection_name="iron_accord_lore"):
+        self.host = host
+        self.port = port
+        self.collection_name = collection_name
+        self.client = None
         self.vector_store = None
-        logging.info("Initializing RAG Service...")
+        self._initialize()
 
-        # --- Verify cache directory exists and is writable ---
-        if not os.path.isdir(CACHE_DIRECTORY):
-            try:
-                os.makedirs(CACHE_DIRECTORY, exist_ok=True)
-                logging.info(
-                    f"Cache directory not found. Creating directory at {CACHE_DIRECTORY}."
-                )
-            except Exception as e:
-                logging.critical(
-                    f"Failed to create cache directory {CACHE_DIRECTORY}. Error: {e}. Halting startup."
-                )
-                raise
-
-        if os.access(CACHE_DIRECTORY, os.W_OK):
-            logging.info(f"Cache directory {CACHE_DIRECTORY} is writable.")
-        else:
-            logging.critical(
-                f"Insufficient permissions to write to cache directory {CACHE_DIRECTORY}. Please check folder permissions. Halting startup."
-            )
-            raise PermissionError(
-                f"Cache directory {CACHE_DIRECTORY} is not writable"
-            )
-
-        embeddings = OllamaEmbeddings(model=EMBEDDING_MODEL)
-
-        if os.path.exists(FAISS_INDEX_PATH):
-            logging.info(f"Loading cached FAISS index from: {FAISS_INDEX_PATH}")
-            try:
-                self.vector_store = FAISS.load_local(
-                    FAISS_INDEX_PATH,
-                    embeddings,
-                    allow_dangerous_deserialization=True,
-                )
-                logging.info("Successfully loaded RAG index from cache.")
-            except Exception as e:
-                logging.error(
-                    f"Failed to load cached index. Rebuilding... Error: {e}"
-                )
-                self._build_and_cache_index(embeddings)
-        else:
-            self._build_and_cache_index(embeddings)
-
-    def _build_and_cache_index(self, embeddings: OllamaEmbeddings) -> None:
-        """Build the FAISS index from lore documents and cache it."""
+    def _initialize(self):
+        """Connects to the ChromaDB server and initializes the vector store."""
+        logger.info("Initializing RAG Service...")
         try:
-            logging.warning(
-                "No cached index found. Building new RAG index from scratch."
+            # 1. Connect to the running ChromaDB instance
+            self.client = chromadb.HttpClient(host=self.host, port=self.port)
+            logger.info(f"Successfully connected to ChromaDB at {self.host}:{self.port}")
+
+            # 2. Initialize the LangChain vector store object
+            embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
+            self.vector_store = Chroma(
+                client=self.client,
+                collection_name=self.collection_name,
+                embedding_function=embeddings,
             )
-            logging.warning(
-                "This is a one-time process and may take several minutes..."
-            )
-
-            logging.info(f"Scanning for documents in: {LORE_DIRECTORY}")
-            try:
-                md_files = glob.glob(os.path.join(LORE_DIRECTORY, "**/*.md"), recursive=True)
-                total_files = len(md_files)
-                if total_files == 0:
-                    logging.error(
-                        "No markdown documents found in the specified directory. Aborting index build."
-                    )
-                    return
-                logging.info(f"Found {total_files} documents to process.")
-            except Exception as e:
-                logging.critical(f"Failed to scan for documents. Error: {e}")
-                return
-
-            all_docs = []
-            for i, doc_path in enumerate(md_files):
-                if (i + 1) % 5 == 0 or i == 0 or (i + 1) == total_files:
-                    logging.info(
-                        f"Processing document [{i+1}/{total_files}]: {os.path.basename(doc_path)}"
-                    )
-                try:
-                    loader = UnstructuredMarkdownLoader(doc_path, mode="elements")
-                    docs = loader.load()
-                    all_docs.extend(docs)
-                except Exception as e:
-                    logging.error(f"Failed to load or process document {doc_path}: {e}")
-                    continue
-
-            if not all_docs:
-                logging.error("No documents were successfully loaded. Aborting index build.")
-                return
-
-            logging.info(
-                f"Successfully loaded content from {len(md_files)} files. Now splitting text into chunks..."
+            logger.info(
+                f"RAG Service connected to collection '{self.collection_name}'. Ready for queries."
             )
 
-            text_splitter = RecursiveCharacterTextSplitter(chunk_size=1024, chunk_overlap=128)
-            splits = text_splitter.split_documents(all_docs)
-            logging.info(
-                f"Split documents into {len(splits)} chunks. Now generating embeddings..."
-            )
-
-            self.vector_store = FAISS.from_documents(splits, embeddings)
-            logging.info("Embeddings generated. Saving FAISS index to cache...")
-
-            os.makedirs(os.path.dirname(FAISS_INDEX_PATH), exist_ok=True)
-            self.vector_store.save_local(FAISS_INDEX_PATH)
-            logging.info(f"Successfully saved new RAG index to: {FAISS_INDEX_PATH}")
-
-        except Exception as e:  # pragma: no cover - safety net
-            logging.error(
-                f"Failed to build and cache RAG index: {e}", exc_info=True
-            )
+        except Exception as e:
+            logger.critical("Failed to initialize RAG Service. Is ChromaDB running and populated?")
+            logger.critical(f"Run 'python ingest.py' to populate the database. Error: {e}")
             self.vector_store = None
 
-    def query_lore(self, question: str) -> str:
-        """
-        Queries the vector store to find lore relevant to the user's question.
-
-        Args:
-            question: The user's query about the game world.
-
-        Returns:
-            A string containing the concatenated content of the most relevant
-            document chunks, or an empty string if no context is found.
-        """
+    def query(self, query_text: str, k: int = 5):
+        """Performs a similarity search on the vector store."""
         if not self.vector_store:
-            return "The Codex is currently offline or has no knowledge loaded."
+            logger.error("Vector store not available. Cannot perform query.")
+            return []
 
-        logging.info(f"Performing similarity search for query: '{question}'")
-        # Find the top 3 most relevant document chunks.
-        results = self.vector_store.similarity_search(question, k=3)
-
-        if not results:
-            return ""  # Return empty string if no relevant documents are found
-
-        # Combine the content of the found documents into a single context string.
-        context = "\n\n---\n\n".join([doc.page_content for doc in results])
-        return context
+        logger.info(f"Performing RAG query for: '{query_text}'")
+        try:
+            results = self.vector_store.similarity_search(query_text, k=k)
+            return results
+        except Exception as e:
+            logger.error(f"An error occurred during the RAG query: {e}")
+            return []

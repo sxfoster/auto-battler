@@ -18,3 +18,6 @@ markdown
 
 # Testing Framework
 pytest==8.2.2
+
+# Vector store
+chromadb

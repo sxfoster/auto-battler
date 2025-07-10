@@ -20,9 +20,9 @@ class CodexCog(commands.Cog):
         """Handle the `/codex` slash command."""
         await interaction.response.defer()
 
-        retrieved_context = self.rag_service.query_lore(query)
+        results = self.rag_service.query(query)
 
-        if not retrieved_context or "offline" in retrieved_context:
+        if not results:
             embed = discord.Embed(
                 title=f"Codex Entry: {query}",
                 description="I could not find any information on that topic in my archives.",
@@ -30,6 +30,8 @@ class CodexCog(commands.Cog):
             )
             await interaction.followup.send(embed=embed)
             return
+
+        retrieved_context = "\n\n---\n\n".join([doc.page_content for doc in results])
 
         prompt = f"""
         You are a helpful assistant. Based ONLY on the following context, provide a concise answer to the user's query.
