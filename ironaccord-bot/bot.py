@@ -26,6 +26,8 @@ class IronAccordBot(commands.Bot):
         # --- Service Initialization ---
         self.rag_service = RAGService()
         self.ai_agent = AIAgent()
+        # Expose the Ollama service directly for cogs expecting it
+        self.ollama_service = self.ai_agent.ollama_service
 
 bot = IronAccordBot()
 
