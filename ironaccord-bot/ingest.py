@@ -7,11 +7,8 @@ from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.embeddings import HuggingFaceEmbeddings
 
 # --- Configuration ---
-# Point to the local ChromaDB server
-CHROMA_HOST = "localhost"
-CHROMA_PORT = "8000"
-# This is the name of the collection inside ChromaDB
-# Think of it like a table name in a traditional database
+# NEW: Define a path for the persistent database directory
+CHROMA_DB_PATH = "./chroma_db"
 COLLECTION_NAME = "iron_accord_lore"
 # Path to your lore documents
 DOCS_PATH = "../docs"
@@ -23,17 +20,17 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 
 def ingest_data():
     """
-    Connects to ChromaDB, processes markdown files, and ingests them into a collection.
+    Connects to a local, persistent ChromaDB; processes and ingests markdown files.
     """
-    logging.info("--- Starting Data Ingestion Process ---")
+    logging.info("--- Starting Data Ingestion Process (Local Storage Mode) ---")
 
-    # --- 1. Connect to ChromaDB ---
+    # --- 1. Connect to ChromaDB using a persistent local path ---
     try:
-        logging.info(f"Connecting to ChromaDB at {CHROMA_HOST}:{CHROMA_PORT}...")
-        client = chromadb.HttpClient(host=CHROMA_HOST, port=CHROMA_PORT)
-        logging.info("Successfully connected to ChromaDB.")
+        logging.info(f"Initializing local ChromaDB at path: {CHROMA_DB_PATH}")
+        client = chromadb.PersistentClient(path=CHROMA_DB_PATH)
+        logging.info("Successfully initialized local ChromaDB client.")
     except Exception as e:
-        logging.critical(f"Failed to connect to ChromaDB. Is it running? Error: {e}")
+        logging.critical(f"Failed to initialize ChromaDB. Check permissions for the path. Error: {e}")
         return
 
     # --- 2. Get or Create the Collection ---

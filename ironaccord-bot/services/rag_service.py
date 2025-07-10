@@ -8,21 +8,20 @@ logger = logging.getLogger(__name__)
 class RAGService:
     """Service to connect to a persistent ChromaDB vector store and perform queries."""
 
-    def __init__(self, host="localhost", port="8000", collection_name="iron_accord_lore"):
-        self.host = host
-        self.port = port
+    def __init__(self, db_path="./chroma_db", collection_name="iron_accord_lore"):
+        self.db_path = db_path
         self.collection_name = collection_name
         self.client = None
         self.vector_store = None
         self._initialize()
 
     def _initialize(self):
-        """Connects to the ChromaDB server and initializes the vector store."""
-        logger.info("Initializing RAG Service...")
+        """Connects to the local ChromaDB and initializes the vector store."""
+        logger.info("Initializing RAG Service (Local Storage Mode)...")
         try:
-            # 1. Connect to the running ChromaDB instance
-            self.client = chromadb.HttpClient(host=self.host, port=self.port)
-            logger.info(f"Successfully connected to ChromaDB at {self.host}:{self.port}")
+            # 1. Connect to the same persistent local path
+            self.client = chromadb.PersistentClient(path=self.db_path)
+            logger.info(f"Successfully initialized local ChromaDB client from path: {self.db_path}")
 
             # 2. Initialize the LangChain vector store object
             embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
@@ -36,8 +35,8 @@ class RAGService:
             )
 
         except Exception as e:
-            logger.critical("Failed to initialize RAG Service. Is ChromaDB running and populated?")
-            logger.critical(f"Run 'python ingest.py' to populate the database. Error: {e}")
+            logger.critical(f"Failed to initialize RAG Service from path '{self.db_path}'.")
+            logger.critical(f"Have you run 'python ingest.py' first to create the database? Error: {e}")
             self.vector_store = None
 
     def query(self, query_text: str, k: int = 5):

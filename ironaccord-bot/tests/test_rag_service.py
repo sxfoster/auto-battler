@@ -27,7 +27,7 @@ def test_initialize_and_query(monkeypatch):
         created["client"] = True
         return DummyClient()
 
-    monkeypatch.setattr(rag_service.chromadb, "HttpClient", dummy_http_client)
+    monkeypatch.setattr(rag_service.chromadb, "PersistentClient", dummy_http_client)
     monkeypatch.setattr(rag_service, "HuggingFaceEmbeddings", lambda *a, **kw: DummyEmbeddings())
     monkeypatch.setattr(rag_service, "Chroma", lambda *a, **kw: DummyChroma(*a, **kw))
 
@@ -44,7 +44,7 @@ def test_query_without_vector_store(monkeypatch):
     def fail_client(*args, **kwargs):
         raise RuntimeError("no connection")
 
-    monkeypatch.setattr(rag_service.chromadb, "HttpClient", fail_client)
+    monkeypatch.setattr(rag_service.chromadb, "PersistentClient", fail_client)
 
     service = rag_service.RAGService()
     assert service.vector_store is None
