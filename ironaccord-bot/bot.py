@@ -1,4 +1,5 @@
 import os
+import argparse
 import discord
 from discord.ext import commands
 from dotenv import load_dotenv
@@ -14,6 +15,17 @@ load_dotenv()
 TOKEN = os.getenv("DISCORD_TOKEN")
 logger = logging.getLogger("discord")
 
+
+def parse_args() -> argparse.Namespace:
+    """Parse command line arguments for the bot."""
+    parser = argparse.ArgumentParser(description="Iron Accord Bot")
+    parser.add_argument(
+        "--redeploy",
+        action="store_true",
+        help="Clear and redeploy all slash commands on startup",
+    )
+    return parser.parse_args()
+
 # --- Bot Intents ---
 intents = discord.Intents.default()
 intents.message_content = True
@@ -28,6 +40,8 @@ class IronAccordBot(commands.Bot):
         self.ai_agent = AIAgent()
         # Expose the Ollama service directly for cogs expecting it
         self.ollama_service = self.ai_agent.ollama_service
+        # Flag controlling whether to redeploy slash commands on startup
+        self.redeploy: bool = False
 
 bot = IronAccordBot()
 
@@ -39,6 +53,14 @@ async def on_ready():
     logger.info('────────────────────')
 
     try:
+        if bot.redeploy:
+            logger.info("Clearing all global commands...")
+            try:
+                cleared = await bot.tree.clear_commands(guild=None)
+                logger.info(f"Successfully cleared {len(cleared)} global commands.")
+            except Exception as e:
+                logger.error(f"Failed to clear commands: {e}")
+
         synced = await bot.tree.sync()
         logger.info(f"Synced {len(synced)} slash command(s).")
     except Exception as e:
@@ -58,11 +80,19 @@ async def load_cogs():
 
 async def main():
     """Main function to setup and run the bot."""
+    args = parse_args()
+
     logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+    bot.redeploy = args.redeploy
+
     logger.info("Loading cogs...")
     await load_cogs()
 
-    logger.info("Bot is starting...")
+    if bot.redeploy:
+        logger.info("Bot is starting in redeploy mode...")
+    else:
+        logger.info("Bot is starting...")
+
     await bot.start(TOKEN)
 
 
