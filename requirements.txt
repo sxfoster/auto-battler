@@ -5,3 +5,5 @@ httpx
 langchain-community
 langchain-text-splitters
 faiss-cpu
+unstructured==0.12.6
+pypdf==4.2.0
