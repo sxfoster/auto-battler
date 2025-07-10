@@ -1,6 +1,7 @@
 import logging
 import os
-from langchain_community.document_loaders import DirectoryLoader
+import glob
+from langchain_community.document_loaders import UnstructuredMarkdownLoader
 from langchain_community.vectorstores import FAISS
 from langchain_community.embeddings import OllamaEmbeddings
 from langchain_text_splitters import RecursiveCharacterTextSplitter
@@ -75,30 +76,54 @@ class RAGService:
                 "This is a one-time process and may take several minutes..."
             )
 
-            logging.info(f"Loading documents from: {LORE_DIRECTORY}")
-            loader = DirectoryLoader(LORE_DIRECTORY, glob="**/*.md", show_progress=True)
-            docs = loader.load()
-
-            if not docs:
-                logging.warning(
-                    f"No documents found in '{LORE_DIRECTORY}'. RAG service will be inactive."
-                )
+            logging.info(f"Scanning for documents in: {LORE_DIRECTORY}")
+            try:
+                md_files = glob.glob(os.path.join(LORE_DIRECTORY, "**/*.md"), recursive=True)
+                total_files = len(md_files)
+                if total_files == 0:
+                    logging.error(
+                        "No markdown documents found in the specified directory. Aborting index build."
+                    )
+                    return
+                logging.info(f"Found {total_files} documents to process.")
+            except Exception as e:
+                logging.critical(f"Failed to scan for documents. Error: {e}")
                 return
 
-            text_splitter = RecursiveCharacterTextSplitter(
-                chunk_size=1000, chunk_overlap=200
-            )
-            splits = text_splitter.split_documents(docs)
+            all_docs = []
+            for i, doc_path in enumerate(md_files):
+                if (i + 1) % 5 == 0 or i == 0 or (i + 1) == total_files:
+                    logging.info(
+                        f"Processing document [{i+1}/{total_files}]: {os.path.basename(doc_path)}"
+                    )
+                try:
+                    loader = UnstructuredMarkdownLoader(doc_path, mode="elements")
+                    docs = loader.load()
+                    all_docs.extend(docs)
+                except Exception as e:
+                    logging.error(f"Failed to load or process document {doc_path}: {e}")
+                    continue
+
+            if not all_docs:
+                logging.error("No documents were successfully loaded. Aborting index build.")
+                return
 
             logging.info(
-                f"Creating embeddings for {len(splits)} document chunks. This is the slow part..."
+                f"Successfully loaded content from {len(md_files)} files. Now splitting text into chunks..."
             )
+
+            text_splitter = RecursiveCharacterTextSplitter(chunk_size=1024, chunk_overlap=128)
+            splits = text_splitter.split_documents(all_docs)
+            logging.info(
+                f"Split documents into {len(splits)} chunks. Now generating embeddings..."
+            )
+
             self.vector_store = FAISS.from_documents(splits, embeddings)
-            logging.info("Vector store created successfully.")
+            logging.info("Embeddings generated. Saving FAISS index to cache...")
 
             os.makedirs(os.path.dirname(FAISS_INDEX_PATH), exist_ok=True)
             self.vector_store.save_local(FAISS_INDEX_PATH)
-            logging.info(f"RAG index has been cached to: {FAISS_INDEX_PATH}")
+            logging.info(f"Successfully saved new RAG index to: {FAISS_INDEX_PATH}")
 
         except Exception as e:  # pragma: no cover - safety net
             logging.error(
