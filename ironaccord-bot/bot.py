@@ -1,5 +1,6 @@
 import os
 import logging
+import asyncio
 import discord
 from discord.ext import commands
 from dotenv import load_dotenv
@@ -12,6 +13,7 @@ from ai.ai_agent import AIAgent
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
 )
+logger = logging.getLogger(__name__)
 
 # --- Load Environment Variables ---
 load_dotenv()
@@ -22,25 +24,33 @@ intents = discord.Intents.default()
 intents.message_content = True
 bot = commands.Bot(command_prefix="!", intents=intents)
 
-# --- Service Initialization and Attachment ---
-logging.info("Initializing services...")
-bot.ollama_service = OllamaService()
-bot.rag_service = RAGService()
-bot.agent = AIAgent()
-logging.info("Services initialized.")
 
-# --- Cog Loading ---
-logging.info("Loading cogs...")
-cogs_path = "./cogs"
-for filename in os.listdir(cogs_path):
-    if filename.endswith(".py") and not filename.startswith("__"):
-        try:
+async def load_cogs(bot: commands.Bot) -> None:
+    for filename in os.listdir("./cogs"):
+        if filename.endswith(".py") and filename != "__init__.py":
             cog_name = f"cogs.{filename[:-3]}"
-            bot.load_extension(cog_name)
-            logging.info(f"Loaded cog: {cog_name}")
-        except Exception as e:
-            logging.error(f"Failed to load cog {filename[:-3]}: {e}", exc_info=True)
-logging.info("Cogs loaded.")
+            try:
+                await bot.load_extension(cog_name)
+                logger.info(f"Loaded cog: {cog_name}")
+            except Exception as e:
+                logger.error(f"Failed to load cog {cog_name}: {e}")
+
+
+async def main() -> None:
+    """Main function to run the bot."""
+    logger.info("Initializing services...")
+    bot.ollama_service = OllamaService()
+    bot.rag_service = RAGService()
+    bot.agent = AIAgent()
+    logger.info("Services initialized.")
+
+    logger.info("Loading cogs...")
+    await load_cogs(bot)
+
+    if DISCORD_TOKEN:
+        await bot.start(DISCORD_TOKEN)
+    else:
+        logger.error("FATAL: DISCORD_TOKEN not found in .env file. Bot cannot start.")
 
 
 # --- Bot Events ---
@@ -55,7 +65,4 @@ async def on_ready():
 
 # --- Run the Bot ---
 if __name__ == "__main__":
-    if DISCORD_TOKEN:
-        bot.run(DISCORD_TOKEN)
-    else:
-        logging.error("FATAL: DISCORD_TOKEN not found in .env file. Bot cannot start.")
+    asyncio.run(main())
