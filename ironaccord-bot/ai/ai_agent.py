@@ -1,4 +1,26 @@
+from pathlib import Path
 from services.ollama_service import OllamaService
+
+
+def _concat_markdown_files(folder: str) -> str:
+    """Concatenate all markdown files found recursively under *folder*."""
+    base = Path(folder)
+
+    # Support passing a direct file path for backwards compatibility
+    if base.is_file():
+        try:
+            return base.read_text(encoding="utf-8")
+        except Exception as exc:  # pragma: no cover - simple fallback
+            print(f"Error reading {base}: {exc}")
+            return ""
+
+    parts = []
+    for md_file in sorted(base.rglob("*.md")):
+        try:
+            parts.append(md_file.read_text(encoding="utf-8"))
+        except Exception as exc:  # pragma: no cover - simple fallback
+            print(f"Error reading {md_file}: {exc}")
+    return "\n\n".join(parts)
 
 class AIAgent:
     """
@@ -7,34 +29,37 @@ class AIAgent:
     It formats prompts and directs them to the correct model (Narrator or GM).
     """
 
-    def __init__(self, world_bible_path: str = "docs/iron_accord_lore_gdd.md"):
+    def __init__(self, world_bible_path: str = "docs/"):
         """
         Initializes the AIAgent.
 
         Args:
-            world_bible_path: The file path to the game's lore and rules document.
+            world_bible_path: Path to a folder (or file) containing markdown
+                documents with game lore and rules. Defaults to the ``docs/``
+                directory in the repository.
         """
         self.ollama_service = OllamaService()
         self.world_bible = self._load_world_bible(world_bible_path)
 
     def _load_world_bible(self, path: str) -> str:
-        """
-        Loads the world bible content from a file.
-        This provides the core context for the narrative model.
+        """Return the concatenated lore text from ``path``.
 
-        Args:
-            path: The file path to the world bible.
-
-        Returns:
-            The content of the world bible as a string.
+        The method aggregates all markdown files under the provided directory
+        (or reads a single file if ``path`` points to one). The combined content
+        is used as context for the AI models.
         """
         try:
-            with open(path, "r", encoding="utf-8") as f:
-                return f.read()
+            text = _concat_markdown_files(path)
+            if not text:
+                raise FileNotFoundError(path)
+            return text
         except FileNotFoundError:
-            # If the main lore is missing, use a fallback.
-            return "The world is a grim, dark, post-apocalyptic wasteland. Resources are scarce. Survival is paramount."
-        except Exception as e:
+            # If lore files are missing, use a simple fallback.
+            return (
+                "The world is a grim, dark, post-apocalyptic wasteland. Resources "
+                "are scarce. Survival is paramount."
+            )
+        except Exception as e:  # pragma: no cover - unexpected I/O errors
             print(f"Error loading world bible: {e}")
             return "Error: Could not load world bible."
 
