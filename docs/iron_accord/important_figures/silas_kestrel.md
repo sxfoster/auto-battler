@@ -1,34 +1,33 @@
 # Silas Kestrel
 
 ## Name and Title
-Silas Kestrel, Spymaster of Brasshaven
+Silas Kestrel, Chief of Intelligence
 
 ## Physical Description
-A shadowy figure clad in dark leathers, Silas moves with practiced silence. His face bears no distinctive marks, allowing him to blend into any crowd. Piercing eyes reflect a sharp intellect.
+Silas Kestrel moves like a shadow, his slim form wrapped in dark, nondescript clothing suited for blending in anywhere within Brasshaven. His hair is silver at the temples, eyes sharp and cold, scanning every face for hidden meaning. Silas keeps his posture relaxed, almost disarmingly casual, but those who look closer see a coiled readiness beneath every movement. He is rarely seen without a satchel full of coded messages, keys, and mysterious trinkets.
 
 ## Public Role
-Kestrel oversees the Accord's intelligence network, rooting out conspiracies and sabotage. Few see him directly, but his agents are everywhere, gathering whispers from every district.
+Kestrel serves as the Accord’s chief of intelligence, managing networks of informants, spies, and codebreakers. He is responsible for rooting out threats from within and without, quietly guiding the council away from disaster and rooting out conspiracies before they can take root. In times of crisis, his orders carry the weight of law, though his presence is almost always behind the scenes.
 
 ## Reputation and Relationships
-Feared for his vast web of informants, Silas is both respected and distrusted. He maintains a wary partnership with Magister Gage, trading secrets to keep the council in balance. The Lantern often crosses his path, leaving him both intrigued and frustrated.
+Silas is an enigma to most citizens, a name whispered with both awe and suspicion. To council members and Marshals, he is both a valuable asset and a cause for unease. He has thwarted plots against the Accord more times than anyone knows. Silas and Edraz have a relationship built on cryptic exchanges and mutual recognition of each other’s secrets. He respects Matriarch Weld and consults with Magister Gage on matters of record and precedent.
 
-## History or Origins
-Silas emerged from the underworld as a master informant. Some claim he once served rival factions before pledging loyalty to the Accord. His past remains deliberately shrouded.
+## History
+Kestrel’s past is shrouded in secrecy, with rumors ranging from noble birth to exile from a rival faction. He emerged during the War of Splinters as a master tactician and spy. Since then, he has operated from the shadows, preventing more disasters than the public will ever know.
 
 ## Personality and Voice
-Calm, precise, and analytical. Silas speaks in measured tones, always considering how much information to reveal. He prefers indirect control, manipulating events from behind the scenes.
+Silas is observant, dryly witty, and impossible to rattle. He prefers to let others underestimate him, gathering information quietly before making decisive moves. In private, he is capable of surprising loyalty and even gentle encouragement—if he sees potential in someone.
 
 ## Unique Abilities and Influence
-- Controls spies and informants across the entire city.
-- Knows secret routes and hidden passages few others suspect.
-- Expert at interrogation and deciphering coded messages.
+- Commands a network of informants and spies across the Accord and beyond
+- Expert in infiltration, counter-intelligence, and decoding hidden threats
+- Holds the power to blackmail, protect, or destroy reputations with a word
 
-## Plot Immunity Rule
-This character cannot be killed; if defeated or gravely wounded, he only retreats or vanishes, always to return changed.
+## Plot Immunity
+Silas Kestrel cannot be killed. If captured or exposed, he simply disappears, leaving behind false leads and decoys. His eventual return always signals the unravelling or resolution of a major threat.
 
-## Sample Story Hooks
-- Kestrel recruits the heroes to infiltrate a rival faction threatening the Accord.
-- A traitor within his ranks forces Silas to question his closest allies.
+## Story Hooks
+- Kestrel enlists the players’ help to expose a traitor within the council
+- A coded message implicates an ally, and Silas must decide who to trust
+- An old rival resurfaces, forcing Silas out of the shadows for a final confrontation
 
-## Living Document Notes
-Update with new covert operations or intelligence breakthroughs as they occur.
