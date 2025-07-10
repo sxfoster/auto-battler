@@ -12,9 +12,6 @@ class GmCog(commands.Cog):
         self.agent = AIAgent()
         self.group = app_commands.Group(name='gm', description='Game master tools')
         self.group.command(name='reset')(self.reset)
-        codex = app_commands.Group(name='codex', description='Codex commands')
-        codex.command(name='unlock')(self.codex_unlock)
-        self.group.add_command(codex)
         flag = app_commands.Group(name='flag', description='Flag commands')
         flag.command(name='set')(self.flag_set)
         self.group.add_command(flag)
@@ -42,18 +39,6 @@ class GmCog(commands.Cog):
         await db.query('DELETE FROM players WHERE id = %s', [player_id])
         await interaction.response.send_message(embed=simple('Player reset.'), ephemeral=True)
 
-    async def codex_unlock(self, interaction: discord.Interaction, player: discord.User, entry: str):
-        if not self.is_gm(interaction):
-            await log_auth_fail(interaction.user, 'gm codex unlock')
-            await interaction.response.send_message('Unauthorized.', ephemeral=True)
-            return
-        rows = await db.query('SELECT id FROM players WHERE discord_id = %s', [str(player.id)])
-        if not rows['rows']:
-            await interaction.response.send_message(embed=simple('Player not found.'), ephemeral=True)
-            return
-        player_id = rows['rows'][0]['id']
-        await db.query('INSERT INTO codex_entries (player_id, entry_key) VALUES (%s, %s) ON DUPLICATE KEY UPDATE unlocked_at = NOW()', [player_id, entry])
-        await interaction.response.send_message(embed=simple('Codex updated.'), ephemeral=True)
 
     async def flag_set(self, interaction: discord.Interaction, player: discord.User, flag_id: str):
         if not self.is_gm(interaction):
