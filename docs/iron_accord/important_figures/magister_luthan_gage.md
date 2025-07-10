@@ -1,34 +1,35 @@
 # Magister Luthan Gage
 
 ## Name and Title
-Magister Luthan Gage, Archivist of the Accord
+Magister Luthan Gage, Master Archivist of the Accord
 
 ## Physical Description
-A slim man perpetually surrounded by scrolls and data slates. Gage dresses in muted scholar's robes with pockets full of pens and calibration tools. His eyes dart constantly, noting every detail.
+Luthan Gage is a slender man, always impeccably dressed in tailored coats the color of parchment. His short, silvery hair and reflective spectacles hint at a mind constantly observing. Gage carries a walking stick carved with tiny runes, and ink stains frequently mark his fingers from long nights among the stacks. His sharp hazel eyes rarely show surprise.
 
 ## Public Role
-As master of the Accord's archives, Gage controls access to records both mundane and secret. He advises the council on policy, often quoting from obscure precedents.
+As the Accord’s master archivist, Gage presides over the city’s records, ancient blueprints, and forbidden texts. He advises the council on history, policy, and the dangers of repeating past mistakes.
 
 ## Reputation and Relationships
-Gage is trusted with the city’s deepest secrets, making him invaluable yet suspect. He maintains a polite rivalry with Vicar Hallow and keeps an uneasy alliance with Silas Kestrel for information exchange.
+Respected and sometimes feared for his unmatched knowledge, Gage is often approached by council members seeking lost laws or leverage against rivals. Among the Ciphers, he is a figure of fascination. He and Edraz share a professional rivalry, each claiming a longer memory than the other.
 
-## History or Origins
-Once a mere clerk, Gage rose to power through meticulous record keeping and subtle manipulation. Many suspect he holds compromising files on every figure of note.
+## History
+Gage’s family has tended the Accord’s archives for generations. He rose to the rank of Magister after unearthing records that averted a disastrous war. Rumor holds that he discovered something so dangerous in the vaults that he swore an oath of silence to protect the Accord.
 
 ## Personality and Voice
-Measured and smooth, with a penchant for sly humor. Gage rarely raises his voice, preferring to convince others with carefully chosen facts and gentle reminders of past promises.
+Meticulous and precise, Gage speaks in measured tones that reveal little while implying much. When pressed, he wields sarcasm with surgical skill. In private, he becomes more candid, sharing riddles and historical trivia with those who earn his trust.
 
 ## Unique Abilities and Influence
-- Holds keys to restricted knowledge within the Great Archive.
-- Expert in codifying laws and editing historical accounts.
-- Can discreetly sway council decisions by controlling what information is revealed.
+- Can recall or locate any record, blueprint, or precedent needed by the council or its agents.
+- Holds sway over the city’s bureaucratic machinery and the fate of those judged by old law.
+- Able to seal or unseal documents that could shift the balance of power.
 
-## Plot Immunity Rule
-This character cannot be killed; if defeated or gravely wounded, he only retreats or vanishes, always to return changed.
+## Plot Immunity
+Magister Gage cannot be killed. If forced from his post, he retreats into the deepest archives, unreachable for a time. His return always coincides with new revelations, secrets, or shifts in Accord policy.
 
-## Sample Story Hooks
-- Gage hires the heroes to recover stolen tomes before damaging truths come to light.
-- An assassination attempt on Gage reveals a conspiracy that implicates multiple council members.
+## Story Hooks
+- Gage seeks help to recover a lost codex before it falls into the wrong hands.
+- A powerful figure pressures Gage to alter the records, risking scandal and blackmail.
+- A secret sealed by Gage’s ancestors comes to light, forcing him to decide who can be trusted with the truth.
 
 ## Living Document Notes
-Future sections may detail additional blackmail material or ties to other factions.
+Further updates may expand on Gage's influence within the Accord and his hidden alliances.
