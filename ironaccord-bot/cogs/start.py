@@ -11,6 +11,8 @@ class StartCog(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
         self.agent = AIAgent()
+        # Access the shared RAG service from the bot
+        self.rag_service = getattr(bot, "rag_service", None)
 
     @app_commands.command(name="start", description="Begin your journey in the world of Iron Accord.")
     async def start(self, interaction: discord.Interaction):
@@ -18,11 +20,33 @@ class StartCog(commands.Cog):
         await interaction.response.defer(ephemeral=True)
 
         user_name = interaction.user.display_name
-        prompt = (
-            f"Your name is Edraz. Start the story for a new player named {user_name}. "
-            "Begin with 'The world burned under the march of metal', but then immediately "
-            "break the fourth wall to introduce yourself as their witty guide through this whole... game thing."
-        )
+
+        character_name = "Edraz"
+
+        summary = self.rag_service.get_character_section(character_name, "Summary") if self.rag_service else ""
+        physical_desc = self.rag_service.get_character_section(character_name, "Physical Description") if self.rag_service else ""
+        personality = self.rag_service.get_character_section(character_name, "Personality & Mannerisms") if self.rag_service else ""
+
+        character_brief = f"""
+**Character Summary:**
+{summary}
+
+**Visual Appearance:**
+{physical_desc}
+
+**Behavior and Personality:**
+{personality}
+"""
+
+        prompt = f"""System: You are the Lore Weaver, a master storyteller for a steampunk tabletop RPG. Your task is to introduce a key character to the player. Use the detailed brief below to craft a compelling narrative description. Do not simply list the details; weave them into a story.
+
+---
+**CHARACTER BRIEF**
+{character_brief}
+---
+
+**TASK**
+The player has just entered the Iron Accord's command center. They see {character_name} for the first time, standing over a holographic map table that casts a blue glow on his face. Describe the scene, focusing on the character's appearance, demeanor, and the overall atmosphere of the room."""
 
         narrative_text = await self.agent.get_narrative(prompt)
 
