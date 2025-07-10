@@ -61,7 +61,7 @@
 *   **Tailwind CSS for Rapid UI Prototyping:** Demonstrates the utility of a utility-first CSS framework for quickly building UI mockups.
 
 ## 8. Connections to Other Projects
-*   **Visual Basis:** Provides a potential visual direction for the cards used in the `auto-battler-react/` client and the `discord-bot/` (especially for `cardRenderer.js`).
+*   **Visual Basis:** Provides a potential visual direction for the cards used in the `auto-battler-react/` client and the `ironaccord-bot/` (especially for `cardRenderer.js`).
 *   **Data Structure Ideas:** The hardcoded data (hero stats, abilities) reflects the kind of information that is structured in `data.js` files in other projects.
 *   The "Ultra Rare" rarity used here likely corresponds to the "Epic" rarity defined in the main game data.
 
