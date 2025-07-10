@@ -11,4 +11,4 @@ This directory houses profiles of notable individuals in the Iron Accord setting
 - [**Breaker Gull—Salvage Runner Hero**](breaker_gull.md) – Daring leader of the outer districts famed for rescues and duels.
 - [**Artificer Rynn Solace—Mysterious Inventor**](artificer_rynn_solace.md) – Turns scrap into marvels and vanishes before each breakthrough.
 - [**Silas Kestrel—Shadowy Spymaster**](silas_kestrel.md) – Oversees intelligence operations, rooting out conspiracies and saboteurs.
-- [**Rook—Outcast-Turned-Defender**](rook.md) – Legendary exile who returns in times of true peril, a symbol of redemption.
+- [**High Marshal Calder Roake—Unyielding Defender of the Accord**](calder_roake.md) – The stern commander responsible for law and order in Brasshaven and beyond.
