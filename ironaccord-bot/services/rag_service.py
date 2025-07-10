@@ -11,6 +11,7 @@ SERVICE_DIR = os.path.dirname(os.path.abspath(__file__))
 LORE_DIRECTORY = os.path.abspath(os.path.join(SERVICE_DIR, '..', '..', 'docs'))
 # --- NEW: Define a path for the cached vector store ---
 FAISS_INDEX_PATH = os.path.abspath(os.path.join(SERVICE_DIR, '..', 'cache', 'faiss_index'))
+CACHE_DIRECTORY = os.path.dirname(FAISS_INDEX_PATH)
 
 EMBEDDING_MODEL = 'nomic-embed-text'
 
@@ -21,6 +22,29 @@ class RAGService:
         """Load a cached FAISS index or build a new one if needed."""
         self.vector_store = None
         logging.info("Initializing RAG Service...")
+
+        # --- Verify cache directory exists and is writable ---
+        if not os.path.isdir(CACHE_DIRECTORY):
+            try:
+                os.makedirs(CACHE_DIRECTORY, exist_ok=True)
+                logging.info(
+                    f"Cache directory not found. Creating directory at {CACHE_DIRECTORY}."
+                )
+            except Exception as e:
+                logging.critical(
+                    f"Failed to create cache directory {CACHE_DIRECTORY}. Error: {e}. Halting startup."
+                )
+                raise
+
+        if os.access(CACHE_DIRECTORY, os.W_OK):
+            logging.info(f"Cache directory {CACHE_DIRECTORY} is writable.")
+        else:
+            logging.critical(
+                f"Insufficient permissions to write to cache directory {CACHE_DIRECTORY}. Please check folder permissions. Halting startup."
+            )
+            raise PermissionError(
+                f"Cache directory {CACHE_DIRECTORY} is not writable"
+            )
 
         embeddings = OllamaEmbeddings(model=EMBEDDING_MODEL)
 
