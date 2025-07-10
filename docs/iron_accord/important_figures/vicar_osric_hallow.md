@@ -1,34 +1,19 @@
-# Vicar Osric Hallow
+# Osric Hallow, Keeper of Ritual Flames
 
-## Name and Title
-Vicar Osric Hallow, Keeper of Ritual Flames
+## Summary
+Vicar Osric Hallow oversees the Accord's rites, blending faith and superstition to bless engines and sanctify new inventions. His fiery zeal inspires the devout and unsettles the skeptical.
 
 ## Physical Description
-A lean man draped in soot-stained vestments. His hands are perpetually smudged with ash, and his eyes glow with fervent conviction beneath a hooded cowl.
+A lean man draped in soot‑stained vestments, Hallow's hands are perpetually smudged with ash. His eyes glow with fervent conviction beneath a hooded cowl as he leads processions through Brasshaven.
 
-## Public Role
-Hallow maintains the Accord's rites and folk rituals, presiding over blessings for everything from engines to funerals. His authority is most visible during festivals when he leads grand processions through Brasshaven.
+## Personality & Mannerisms
+- **Passionate & Theatrical:** Speaks in parables and chants to command attention.
+- **Calculating:** Understands how faith can sway the masses as effectively as force.
+- **Mannerism:** Traces symbols in the air with ash-stained fingers during blessings.
 
-## Reputation and Relationships
-Osric commands the loyalty of the devout but draws suspicion from pragmatic engineers. He respects Matriarch Thessa Weld but questions her reluctance to fully embrace the spiritual side of the Accord. His influence often clashes with Magister Luthan Gage's more secular control of knowledge.
+## Background
+Born to a line of forgemasters, Hallow rose within the clergy for his zeal and knack for weaving superstition with ceremony. Rumor holds he keeps relics predating the Machine Fall. He respects Matriarch Thessa Weld yet clashes with Magister Gage over the role of faith.
 
-## History or Origins
-Born to a lineage of forgemasters, Hallow rose within the clergy for his zeal and ability to weave superstition with ceremony. He is rumored to possess relics predating the Machine Fall, though he keeps them hidden.
-
-## Personality and Voice
-Passionate, intense, and theatrical. He speaks in parables and chants, invoking blessings even in casual conversation. In private he is more calculating, aware that faith can sway crowds as effectively as force.
-
-## Unique Abilities and Influence
-- Can ignite ceremonial flames said to purify machines and people alike.
-- Holds sway over the Forgewardens, a militant order of ritualists.
-- Uses secret rites to sanctify new inventions, claiming divine approval.
-
-## Plot Immunity Rule
-This character cannot be killed; if defeated or gravely wounded, he only retreats or vanishes, always to return changed.
-
-## Sample Story Hooks
-- A string of mysterious engine failures draws Hallow to perform a dangerous exorcism ritual.
-- He seeks assistance exposing a cult that has corrupted one of the Accord's sacred sites.
-
-## Living Document Notes
-Future updates may include forbidden prayers or details about his hidden relics.
+## Plot Hooks
+- **Exorcism Ritual:** Called to purge mysterious engine failures blamed on spirits.
+- **Hidden Cult:** Seeks allies to expose a secret sect defiling a sacred site.

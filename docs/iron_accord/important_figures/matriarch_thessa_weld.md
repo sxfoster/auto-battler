@@ -1,34 +1,19 @@
-# Matriarch Thessa Weld
+# Thessa Weld, Last Founder
 
-## Name and Title
-Matriarch Thessa Weld, Last Founder of the Iron Accord
+## Summary
+Matriarch Thessa Weld is the stern custodian of the Iron Accord's laws and traditions. As the oldest surviving founder, she commands deep respect and keeps careful watch over every council decision.
 
 ## Physical Description
-A weathered yet imposing elder, Thessa stands tall in ceremonial iron-wrought robes. Her silver hair is braided with small gears and tools, and her gaze carries decades of stern judgment.
+Weathered yet imposing, Thessa stands tall in ceremonial iron-wrought robes. Silver hair braided with tiny gears frames her steely gaze, which has judged decades of transgressions.
 
-## Public Role
-As the oldest surviving founder, Thessa serves as living memory and unofficial judge for all matters of Accord law and tradition. She oversees rituals, mediates disputes, and is consulted on every major decision.
+## Personality & Mannerisms
+- **Blunt & Austere:** Expects obedience and wastes no words.
+- **Wise & Vigilant:** Holds the Accord's history in memory and notices every slight.
+- **Mannerism:** Fingers the gears in her braids when pondering a ruling.
 
-## Reputation and Relationships
-Thessa's wisdom is feared as much as respected. Council members seek her counsel but tread carefully around her temper. She and Vicar Osric Hallow share a complicated alliance rooted in duty rather than affection. Rumors suggest she keeps tabs on all other important figures, knowing their secrets and weaknesses.
+## Background
+Thessa helped forge the Accord after the Machine Fall and has survived every crisis since. Rumors claim she witnessed the creation of the first Forgeseers and that she knows secrets about each council member. Her alliances are rooted in duty rather than affection, especially with Vicar Hallow.
 
-## History or Origins
-Thessa helped shape the Accord during its earliest days after the Machine Fall. Her survival through each crisis has made her a legend. Some say she witnessed the creation of the first Forgeseers, though she rarely speaks of the past.
-
-## Personality and Voice
-Blunt, austere, and meticulous. Thessa rarely wastes words and expects complete obedience when she speaks. Her tone is steeped in formality, yet occasionally softens when she recounts lost comrades.
-
-## Unique Abilities and Influence
-- Keeper of the "Iron Annals," a collection of unwritten laws remembered only by her.
-- Serves as arbiter during internal conflicts, her decisions treated as final.
-- Commands great respect from veteran engineers and Forgeseers alike.
-
-## Plot Immunity Rule
-This character cannot be killed; if defeated or gravely wounded, she only retreats or vanishes, always to return changed.
-
-## Sample Story Hooks
-- Thessa calls upon the heroes to retrieve a relic she claims will prevent a disastrous prophecy.
-- Political rivals attempt to undermine her authority by uncovering secrets of her past.
-
-## Living Document Notes
-Further tales of Thessa's early exploits and private reflections can be expanded here as the lore grows.
+## Plot Hooks
+- **Ancient Relic:** Sends heroes to retrieve a device she insists will avert disaster.
+- **Power Struggle:** Political rivals seek to undermine her authority by exposing her hidden past.

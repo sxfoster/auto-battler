@@ -1,35 +1,20 @@
-# Doctor Mirelle Voss
+# Mirelle Voss, Chief Surgeon
 
-## Name and Title
-Doctor Mirelle Voss, Chief Surgeon of the Accord
+## Summary
+Doctor Mirelle Voss is the Accord's uncompromising medical authority, famed for saving lives with ruthless efficiency and rumored pre-Fall knowledge. She leads every crisis response, inspiring awe and fear in equal measure.
 
 ## Physical Description
-Doctor Mirelle Voss is a tall, sharp-featured woman whose presence radiates both command and care. Her white coat is patched with faded badges from campaigns and crises past. Her hands are steady, her movements quick and precise. A pair of polished goggles always rests atop her head, ready for sudden emergencies. She wears a necklace of old surgical tools, each a token from a life she saved or lost.
+Tall and sharp-featured, Voss wears a patched white coat decorated with campaign badges. Steady hands and quick movements reveal her experience. Polished goggles rest atop her head, and a necklace of old surgical tools marks each life she has touched.
 
-## Public Role
-Voss is the Accord’s chief surgeon and leader of all field medics and healers. In times of peace, she trains apprentices and develops new remedies. In times of war or plague, she is always at the front, performing miracles where hope has nearly vanished. Her authority in all matters of life and death is rarely questioned.
+## Personality & Mannerisms
+- **Practical & Unyielding:** Demands strict obedience in the infirmary.
+- **Compassionate Beneath the Surface:** Small gestures reveal genuine care for the wounded.
+- **Mannerism:** Adjusts her goggles before beginning any procedure.
 
-## Reputation and Relationships
-Among the injured and sick, Voss is a living legend—some call her the Iron Angel, others the Lady of the Last Chance. She holds the respect of both Marshals and Ciphers, sometimes pushing boundaries in the name of survival. Her relationship with Matriarch Weld is one of quiet mutual understanding; with Vicar Hallow, there is respectful debate on the limits of science and faith. Voss and Edraz exchange veiled professional courtesies, each respecting the other’s skill with repairs.
+## Background
+A field medic during the Machine Fall, Voss founded the Accord's first hospital and pioneered many modern practices. Her reputation as the "Iron Angel" stems from miracles performed when hope seemed lost. She maintains complex relationships with other leaders, debating faith with Vicar Hallow and trading professional courtesies with Edraz.
 
-## History or Origins
-Mirelle Voss was a field medic during the Machine Fall and survived horrors few can imagine. She founded the Accord’s first hospital and pioneered many of its current medical practices. Stories persist that she has access to forbidden medical knowledge—cures and procedures predating the Accord’s founding.
-
-## Personality and Voice
-Doctor Voss is brisk, practical, and unyielding in her care. She is direct with her orders and expects them to be followed. Beneath her hard exterior lies deep compassion, revealed in small acts and fleeting glances. When challenged, she meets fear with defiance and pain with determination.
-
-## Unique Abilities and Influence
-- Can stabilize or revive the gravely injured, even when all hope seems lost
-- Develops antidotes and cures for new plagues or poisons
-- Holds authority to declare medical quarantine or override non-medical leaders during crises
-
-## Plot Immunity Rule
-Doctor Voss cannot be killed. When gravely wounded or on the verge of collapse, she retreats into the shadows, her absence sorely felt by those left behind. She will always return, often with new skills, experimental remedies, or hardened resolve.
-
-## Sample Story Hooks
-- Voss seeks help gathering rare herbs or ingredients to craft a lifesaving cure
-- During an outbreak, she’s accused of hiding forbidden treatments, and needs allies to prove her innocence—or secrecy
-- A patient brought in from the wild carries a secret tied to the Accord’s future, and Voss must decide who to trust
-
-## Living Document Notes
-Details on Voss's ongoing work and evolving medical practices may be expanded as needed.
+## Plot Hooks
+- **Rare Cure:** Needs allies to gather ingredients for a lifesaving remedy.
+- **Forbidden Treatments:** Accused of hiding dangerous knowledge during an outbreak.
+- **Mysterious Patient:** An injured stranger carries secrets that could shape the Accord's future.
