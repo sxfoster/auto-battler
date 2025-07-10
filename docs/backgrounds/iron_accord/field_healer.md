@@ -1,33 +1,39 @@
 # Field Healer
 
-**Flavor Description**
-A medic trained to treat wounds with minimal equipment.
+## Flavor Description
 
-### Typical Skills/Knowledge
-- first aid
-- herbal remedies
-- simple surgery
-- crisis triage
+You have patched wounds in the middle of storms and tended to fevers with limited supplies. Field Healers are essential in the Accord, trusted to save lives when resources are scarce and conditions are rough. You learned to improvise remedies, keep calm under pressure, and never turn away someone in need. The marks on your hands are reminders of the battles you’ve survived, and your reputation follows you wherever you go.
 
-### Starting Gear or Contacts
-- medical pouch
-- herbal kit
-- access to an infirmary
-- trusted nurse contact
+## Typical Skills / Knowledge
 
-### Roleplay Hooks/Flaws
-- compassionate to a fault
-- haunted by past failures
-- expects respect
-- quick to help the wounded
+- Proficiency in first aid, herbal medicine, and emergency triage
+- Skilled at improvising medical solutions using available resources
+- Familiarity with local plants and minor surgical procedures
 
-### Example Story Hooks
-- save a wounded scout
-- gather rare herbs for a plague
+## Starting Gear or Contacts
 
-### Mechanics
-- restores extra hit points
-- reduces downtime after injuries
+- Well-used satchel stocked with basic supplies and herbs
+- Set of hand-crafted bandages and simple surgical tools
+- Trusted connection with a town elder or another healer
 
-### Advancement Notes
-Might oversee a clinic or train new medics.
+## Roleplay Hooks / Flaws
+
+- You sometimes take risks to help others, even when it puts you in danger
+- The weight of past failures or losses still lingers
+- Others seek your help for every ailment, making it hard to rest or refuse
+
+## Example Story Hooks
+
+- An outbreak of sickness threatens the settlement, and supplies are running low
+- You’re asked to treat a wounded outsider, forcing a difficult moral decision
+- A rare medicinal plant has been spotted in a dangerous area, and you’re sent to retrieve it
+
+## Mechanics
+
+- Gain advantage when treating injuries, illnesses, or poisoning in the field
+- May stabilize a critically injured character once per session, even in harsh conditions
+- Start with a unique herbal remedy that can remove a minor status effect
+
+## Advancement Notes
+
+With experience, you might be called to train others or oversee larger clinics. As crises evolve, so does your approach, shaping your place in the Accord’s story.
