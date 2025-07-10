@@ -4,31 +4,32 @@
 Breaker Gull, Warden of the Outer Districts
 
 ## Physical Description
-A scarred brawler with a wild mane of hair. Gull wears patched armor made from salvaged machine plating. His grin is famous—and intimidating—among the salvage crews he leads.
+Breaker Gull is a broad-shouldered woman with windburned skin and a shock of unruly copper hair. Her arms and face bear scars from countless salvage runs. She wears layered leather armor patched with salvaged metal, and her boots are forever caked with mud from the Accord’s outskirts. Gull carries a battered crowbar, a coil of rope, and a salvaged mechanical gauntlet that hums with hidden power.
 
 ## Public Role
-Leader of the salvage runners and protector of Brasshaven's outer districts. Gull organizes daring raids into hazardous zones to retrieve valuable scrap and rescue stranded workers.
+Gull leads the salvage runners, those daring enough to retrieve lost tech and supplies from the ruins beyond Brasshaven’s walls. She organizes expeditions, negotiates with merchants, and fights off raiders and wild machines that threaten the Accord’s fragile borders. In times of siege or famine, it is Gull who finds a way through.
 
 ## Reputation and Relationships
-Gull's exploits are legendary, making him a folk hero to many. He frequently clashes with raider bands and mechanical monstrosities. Breaker holds grudges against those who threaten his crews but shows loyalty to Magister Gage for providing maps and intel.
+Breaker Gull is famous among the outer districts as both a rescuer and a wild card. Salvagers, farmers, and scouts all look to her when hope is thin. She maintains a friendly rivalry with the Marshals, often bending rules in pursuit of a good haul. Gull is fiercely loyal to her runners but mistrusts the council. She once saved Edraz from a collapsing ruin, earning his grudging respect.
 
 ## History or Origins
-Born in the slums beyond the city walls, Gull forged his reputation through successive victories over raiders. His leadership earned him command of the salvage runners, a crucial lifeline for the Accord's industry.
+Orphaned during a border raid, Gull survived by running salvage in the ruins. She quickly earned a reputation for risking anything to bring people home. Over the years she forged alliances with outcasts, traders, and even rival factions—always for the Accord’s survival.
 
 ## Personality and Voice
-Boisterous and fearless, Gull delights in the thrill of combat. His speech is peppered with bravado and raucous humor, rallying his followers with contagious enthusiasm.
+Breaker Gull is bold, irreverent, and quick to laugh in the face of danger. She thrives on chaos and improvisation but carries a deep sense of responsibility for those under her command. When angered, her voice is thunderous; when plotting, her wit razor-sharp.
 
 ## Unique Abilities and Influence
-- Master tactician in hostile terrain.
-- Commands a fleet of jury-rigged vehicles used for salvage runs.
-- Personally trains new recruits in swordplay and scrapping techniques.
+- Leads and inspires teams into the most dangerous salvage missions
+- Can negotiate, bluff, or fight her way through nearly any crisis
+- Knows hidden routes and the secrets of the wilds beyond the city
 
 ## Plot Immunity Rule
-This character cannot be killed; if defeated or gravely wounded, he only retreats or vanishes, always to return changed.
+Breaker Gull cannot be killed. If gravely wounded or captured, she vanishes into the ruins, her fate uncertain. She always returns, often at a pivotal moment, bringing new resources or unexpected allies.
 
 ## Sample Story Hooks
-- Gull enlists the heroes to recover a lost engine core from raider territory.
-- A rival salvage gang challenges Gull's leadership, threatening to split the district's loyalty.
+- Gull seeks help retrieving a vital artifact from territory held by hostile forces
+- A rival salvage crew challenges Gull’s leadership, causing tension and sabotage
+- Rumors of a machine uprising on the outskirts draw Gull and her runners into a dangerous new alliance
 
 ## Living Document Notes
-Possible future notes include details on Gull's personal vendettas and alliances with other factions.
+Possible future notes include details on Gull’s personal vendettas and alliances with other factions.
