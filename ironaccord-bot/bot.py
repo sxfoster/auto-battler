@@ -9,6 +9,10 @@ import asyncio
 # --- Local Imports ---
 from ai.ai_agent import AIAgent
 from services.rag_service import RAGService
+try:
+    from services.mission_generator import MissionGenerator
+except Exception:  # pragma: no cover - optional dependency
+    MissionGenerator = None
 
 # --- Environment and Logging ---
 load_dotenv()
@@ -38,6 +42,9 @@ class IronAccordBot(commands.Bot):
         # --- Service Initialization ---
         self.rag_service = RAGService()
         self.ai_agent = AIAgent()
+        self.mission_generator = (
+            MissionGenerator(self.ai_agent, self.rag_service) if MissionGenerator else None
+        )
         # Expose the Ollama service directly for cogs expecting it
         self.ollama_service = self.ai_agent.ollama_service
         # Flag controlling whether to redeploy slash commands on startup
