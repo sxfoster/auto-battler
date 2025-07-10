@@ -3,9 +3,7 @@ import glob
 import logging
 import chromadb
 # NEW: Updated imports to fix deprecation warnings
-from langchain_community.document_loaders import UnstructuredMarkdownLoader
-from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain_community.embeddings import HuggingFaceEmbeddings
+from langchain.text_splitter import MarkdownHeaderTextSplitter
 
 # --- Configuration ---
 # NEW: Define a path for the persistent database directory
@@ -47,8 +45,14 @@ def ingest_data():
         logging.critical(f"Failed to initialize ChromaDB. Check permissions for the path. Error: {e}")
         return
 
-    # --- 2. Get or Create the Collection ---
-    logging.info(f"Accessing collection: '{COLLECTION_NAME}'")
+    # --- 2. Reset the Collection ---
+    logging.info(f"Resetting collection: '{COLLECTION_NAME}'")
+    try:
+        client.delete_collection(name=COLLECTION_NAME)
+        logging.info("Existing collection deleted.")
+    except Exception:
+        logging.info("No existing collection to delete or deletion failed; continuing with fresh collection.")
+
     collection = client.get_or_create_collection(name=COLLECTION_NAME)
     logging.info("Collection is ready.")
 
@@ -65,26 +69,28 @@ def ingest_data():
         logging.critical(f"Failed to scan for documents. Error: {e}")
         return
 
-    all_docs = []
+    all_chunks = []
+    splitter = MarkdownHeaderTextSplitter(headers_to_split_on=[("#", "character_name"), ("##", "section")])
+
     for i, doc_path in enumerate(md_files):
-        logging.info(f"Loading document [{i+1}/{total_files}]: {os.path.basename(doc_path)}")
+        logging.info(f"Processing document [{i+1}/{total_files}]: {os.path.basename(doc_path)}")
         try:
-            loader = UnstructuredMarkdownLoader(doc_path, mode="elements")
-            docs = loader.load()
-            all_docs.extend(docs)
+            with open(doc_path, "r", encoding="utf-8") as f:
+                text = f.read()
+            docs = splitter.split_text(text)
+            for doc in docs:
+                doc.metadata["source"] = os.path.basename(doc_path)
+            all_chunks.extend(docs)
         except Exception as e:
-            logging.error(f"Failed to load or process document {doc_path}: {e}")
+            logging.error(f"Failed to process document {doc_path}: {e}")
             continue
 
-    if not all_docs:
-        logging.error("No documents were successfully loaded. Aborting ingestion.")
+    if not all_chunks:
+        logging.error("No document sections were successfully parsed. Aborting ingestion.")
         return
 
-    # --- 4. Split Documents into Chunks ---
-    logging.info("Splitting documents into manageable chunks...")
-    text_splitter = RecursiveCharacterTextSplitter(chunk_size=1024, chunk_overlap=128)
-    chunks = text_splitter.split_documents(all_docs)
-    logging.info(f"Split documents into {len(chunks)} chunks.")
+    chunks = all_chunks
+    logging.info(f"Split documents into {len(chunks)} chunks based on headings.")
 
     # --- 5. Add Chunks to ChromaDB ---
     logging.info("Starting ingestion of chunks into ChromaDB. This may take a while...")

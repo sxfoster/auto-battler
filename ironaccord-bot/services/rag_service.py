@@ -52,3 +52,26 @@ class RAGService:
         except Exception as e:
             logger.error(f"An error occurred during the RAG query: {e}")
             return []
+
+    def get_character_section(self, character_name: str, section_name: str) -> str:
+        """Retrieve a specific section of lore for a character."""
+        if not self.vector_store:
+            logger.error("Vector store not available. Cannot perform query.")
+            return ""
+
+        try:
+            results = self.vector_store._collection.query(
+                query_texts=[f"Retrieve the {section_name} for {character_name}"],
+                where={"character_name": character_name, "section": section_name},
+                n_results=1,
+            )
+
+            if results and results.get("documents") and results["documents"][0]:
+                return results["documents"][0][0]
+
+            return f"Section '{section_name}' not found for character '{character_name}'."
+        except Exception as e:
+            logger.error(
+                f"Error retrieving section '{section_name}' for character '{character_name}': {e}"
+            )
+            return ""
