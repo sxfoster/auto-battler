@@ -7,17 +7,22 @@ from services.ollama_service import OllamaService
 
 
 class CodexCog(commands.Cog):
-    """Provides the `/codex` command for lore lookup."""
+    """Provides the `/codex query` command for lore lookup."""
 
     def __init__(self, bot: commands.Bot):
         self.bot = bot
         self.rag_service: RAGService = bot.rag_service
         self.ollama_service: OllamaService = bot.ollama_service
 
-    @app_commands.command(name="codex", description="Search the Iron Accord knowledge base.")
+        self.group = app_commands.Group(
+            name="codex", description="Codex commands"
+        )
+        self.group.command(name="query", description="Search the Iron Accord knowledge base.")(self.query)
+        bot.tree.add_command(self.group)
+
     @app_commands.describe(query="What lore are you looking for?")
-    async def codex(self, interaction: discord.Interaction, query: str):
-        """Handle the `/codex` slash command."""
+    async def query(self, interaction: discord.Interaction, query: str):
+        """Handle the `/codex query` slash command."""
         await interaction.response.defer()
 
         results = self.rag_service.query(query)
