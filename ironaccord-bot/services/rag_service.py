@@ -1,11 +1,14 @@
 import logging
+import os
 from langchain_community.document_loaders import DirectoryLoader
 from langchain_community.vectorstores import FAISS
 from langchain_community.embeddings import OllamaEmbeddings
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 
 # --- Constants ---
-LORE_DIRECTORY = 'docs'
+# Construct an absolute path to the docs directory relative to this file
+SERVICE_DIR = os.path.dirname(__file__)
+LORE_DIRECTORY = os.path.abspath(os.path.join(SERVICE_DIR, '..', 'docs'))
 EMBEDDING_MODEL = 'nomic-embed-text'
 
 class RAGService:
