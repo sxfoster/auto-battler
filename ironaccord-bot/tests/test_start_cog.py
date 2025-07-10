@@ -32,6 +32,13 @@ class DummyInteraction:
 @pytest.mark.asyncio
 async def test_start_cog_returns_view(monkeypatch):
     bot = commands.Bot(command_prefix="!", intents=discord.Intents.none())
+    rag_called = {"count": 0}
+
+    def fake_get_section(*args, **kwargs):
+        rag_called["count"] += 1
+        return "info"
+
+    bot.rag_service = type("RAG", (), {"get_character_section": fake_get_section})()
     cog = start.StartCog(bot)
 
     called = {}
@@ -59,3 +66,4 @@ async def test_start_cog_returns_view(monkeypatch):
     assert isinstance(interaction.followup.kwargs.get("view"), DummyView)
     assert called.get("created")
     assert called.get("func")
+    assert rag_called["count"] == 3
