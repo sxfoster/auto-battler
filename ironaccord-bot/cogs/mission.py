@@ -15,6 +15,7 @@ class MissionCog(commands.Cog):
         self.bot = bot
         self.group = app_commands.Group(name='mission', description='Mission commands')
         self.group.command(name='start', description='Start a mission')(self.start)
+        self.group.command(name='create', description='Generate a mission')(self.create)
         bot.tree.add_command(self.group)
 
     def load_mission(self, name: str):
@@ -50,6 +51,19 @@ class MissionCog(commands.Cog):
         await mission_service.complete_mission(log_id, outcome, mission.get('rewards'), mission.get('codexFragment'), player_id)
         await thread.send(f"Mission complete with outcome: {outcome}")
         await interaction.response.send_message(embed=simple('Mission started! Check the thread.'), ephemeral=True)
+
+    async def create(self, interaction: discord.Interaction):
+        await interaction.response.defer(ephemeral=True)
+        generator = getattr(self.bot, 'mission_generator', None)
+        if not generator:
+            await interaction.followup.send('Mission generator unavailable.', ephemeral=True)
+            return
+        mission = await generator.generate(str(interaction.user.id))
+        if not mission:
+            await interaction.followup.send('Failed to generate mission.', ephemeral=True)
+            return
+        pretty = json.dumps(mission, indent=2)
+        await interaction.followup.send(f'```json\n{pretty}\n```', ephemeral=True)
 
 async def setup(bot: commands.Bot):
     await bot.add_cog(MissionCog(bot))
