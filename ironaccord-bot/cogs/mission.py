@@ -59,10 +59,17 @@ class MissionCog(commands.Cog):
         if not mission:
             await interaction.response.send_message(embed=simple('Mission not found.'), ephemeral=True)
             return
+        await self.start_mission_from_json(interaction, mission)
+
+    async def start_mission_from_json(self, interaction: discord.Interaction, mission: dict, *, followup: bool = False):
+        """Begin a mission using the provided mission dictionary."""
+        send = interaction.followup.send if followup else interaction.response.send_message
+
         player_id = await mission_service.get_player_id(str(interaction.user.id))
         if not player_id:
-            await interaction.response.send_message(embed=simple('You have no character.'), ephemeral=True)
+            await send(embed=simple('You have no character.'), ephemeral=True)
             return
+
         thread = await interaction.channel.create_thread(name=mission['name'], auto_archive_duration=60)
         await thread.send(mission['intro'])
         log_id = await mission_service.start_mission(player_id, mission['id'])
@@ -81,7 +88,7 @@ class MissionCog(commands.Cog):
         outcome = 'success' if durability > 0 else 'fail'
         await mission_service.complete_mission(log_id, outcome, mission.get('rewards'), mission.get('codexFragment'), player_id)
         await thread.send(f"Mission complete with outcome: {outcome}")
-        await interaction.response.send_message(embed=simple('Mission started! Check the thread.'), ephemeral=True)
+        await send(embed=simple('Mission started! Check the thread.'), ephemeral=True)
 
     async def create(self, interaction: discord.Interaction):
         await interaction.response.defer(ephemeral=True)
@@ -93,8 +100,7 @@ class MissionCog(commands.Cog):
         if not mission:
             await interaction.followup.send('Failed to generate mission.', ephemeral=True)
             return
-        pretty = json.dumps(mission, indent=2)
-        await interaction.followup.send(f'```json\n{pretty}\n```', ephemeral=True)
+        await self.start_mission_from_json(interaction, mission, followup=True)
 
 async def setup(bot: commands.Bot):
     await bot.add_cog(MissionCog(bot))
