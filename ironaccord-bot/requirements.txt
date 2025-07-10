@@ -1,9 +1,18 @@
-discord.py
-python-dotenv
-mysql-connector-python
-aiomysql
-requests
-httpx
-langchain-community
-langchain-text-splitters
-faiss-cpu
+
+# Core Discord Bot Libraries
+discord.py==2.3.2
+python-dotenv==1.0.1
+
+# Asynchronous Database Connector
+aiomysql==0.2.0
+
+# Asynchronous HTTP Requests for Ollama API
+httpx==0.27.0
+
+# --- NEW: RAG and Vector Store Libraries ---
+langchain==0.1.16
+langchain-community==0.0.32
+faiss-cpu==1.7.4 # For local vector storage
+
+# Testing Framework
+pytest==8.2.2
