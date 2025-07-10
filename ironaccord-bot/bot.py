@@ -31,7 +31,8 @@ logging.info("Services initialized.")
 
 # --- Cog Loading ---
 logging.info("Loading cogs...")
-for filename in os.listdir("./ironaccord-bot/cogs"):
+cogs_path = "./cogs"
+for filename in os.listdir(cogs_path):
     if filename.endswith(".py") and not filename.startswith("__"):
         try:
             cog_name = f"cogs.{filename[:-3]}"
