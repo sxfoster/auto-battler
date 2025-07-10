@@ -1,6 +1,5 @@
 import os
-import sys
-import asyncio
+import logging
 import discord
 from discord.ext import commands
 from dotenv import load_dotenv
@@ -9,89 +8,53 @@ from services.ollama_service import OllamaService
 from services.rag_service import RAGService
 from ai.ai_agent import AIAgent
 
-# --- Path and Environment Setup ---
+# --- Basic Logging Setup ---
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+)
 
-project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-sys.path.insert(0, project_root)
-sys.path.insert(0, os.path.dirname(__file__))
+# --- Load Environment Variables ---
+load_dotenv()
+DISCORD_TOKEN = os.getenv("DISCORD_TOKEN")
 
-dotenv_path = os.path.join(project_root, ".env")
-load_dotenv(dotenv_path=dotenv_path)
-
-TOKEN = os.getenv("DISCORD_TOKEN")
-GUILD_ID = os.getenv("GUILD_ID")
-
+# --- Bot Initialization ---
 intents = discord.Intents.default()
 intents.message_content = True
-intents.members = True
-
 bot = commands.Bot(command_prefix="!", intents=intents)
 
-# Cogs to load
-cogs_list = [
-    'start',
-    'codex',
-]
+# --- Service Initialization and Attachment ---
+logging.info("Initializing services...")
+bot.ollama_service = OllamaService()
+bot.rag_service = RAGService()
+bot.agent = AIAgent()
+logging.info("Services initialized.")
 
-
-async def load_cogs():
-    """Load all cogs listed in ``cogs_list``."""
-    print("─" * 20)
-    print("Loading cogs...")
-    for cog in cogs_list:
+# --- Cog Loading ---
+logging.info("Loading cogs...")
+for filename in os.listdir("./ironaccord-bot/cogs"):
+    if filename.endswith(".py") and not filename.startswith("__"):
         try:
-            await bot.load_extension(f"cogs.{cog}")
-            print(f"  ✅ Loaded cog: {cog}")
+            cog_name = f"cogs.{filename[:-3]}"
+            bot.load_extension(cog_name)
+            logging.info(f"Loaded cog: {cog_name}")
         except Exception as e:
-            print(f"  ❌ Failed to load cog {cog}: {e}")
-    print("─" * 20)
+            logging.error(f"Failed to load cog {filename[:-3]}: {e}", exc_info=True)
+logging.info("Cogs loaded.")
 
 
+# --- Bot Events ---
 @bot.event
 async def on_ready():
-    """Event handler for when the bot logs in and is ready."""
-    print(f"\nLogged in as {bot.user} (ID: {bot.user.id})")
-    print("─" * 20)
-
-    # Initialize services and attach them to the bot instance
-    print("Initializing services...")
-    bot.ollama_service = OllamaService()
-    bot.rag_service = RAGService()
-    bot.agent = AIAgent()
-    print("Services initialized.")
-
-    print("Attempting to clear all old commands...")
-    try:
-        if GUILD_ID:
-            guild = discord.Object(id=GUILD_ID)
-            bot.tree.clear_commands(guild=guild)
-            await bot.tree.sync(guild=guild)
-            print("   ✅ Successfully cleared all commands for the guild.")
-        else:
-            bot.tree.clear_commands(guild=None)
-            await bot.tree.sync()
-            print("   ✅ Successfully cleared all global commands.")
-    except Exception as e:
-        print(f"   ❌ Failed to clear commands: {e}")
-
-    print("─" * 20)
-    print("🤖 Commands have been cleared. Stop the bot now.")
+    """Called when the bot is fully logged in and ready."""
+    print("────────────────────")
+    print(f"Logged in as {bot.user.name} (ID: {bot.user.id})")
+    print("────────────────────")
+    await bot.change_presence(activity=discord.Game(name="Iron Accord | /start"))
 
 
-async def main():
-    """Main function to load cogs and run the bot."""
-    if not TOKEN:
-        print("❌ ERROR: DISCORD_TOKEN is not set. Please check your .env file.")
-        return
-
-    async with bot:
-        await load_cogs()
-        await bot.start(TOKEN)
-
-
+# --- Run the Bot ---
 if __name__ == "__main__":
-    try:
-        asyncio.run(main())
-    except KeyboardInterrupt:
-        print("\n🤖 Bot shutting down.")
-
+    if DISCORD_TOKEN:
+        bot.run(DISCORD_TOKEN)
+    else:
+        logging.error("FATAL: DISCORD_TOKEN not found in .env file. Bot cannot start.")
