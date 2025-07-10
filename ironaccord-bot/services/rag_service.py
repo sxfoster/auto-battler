@@ -5,54 +5,82 @@ from langchain_community.vectorstores import FAISS
 from langchain_community.embeddings import OllamaEmbeddings
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 
-# --- CORRECTED PATH LOGIC ---
-# This gets the directory where rag_service.py is located (e.g., .../ironaccord-bot/services)
+# --- Constants ---
+# Correctly navigate up two directories to the project root, then into 'docs'
 SERVICE_DIR = os.path.dirname(os.path.abspath(__file__))
-# This constructs a path from there up two levels to the project root, then into 'docs'
 LORE_DIRECTORY = os.path.abspath(os.path.join(SERVICE_DIR, '..', '..', 'docs'))
+# --- NEW: Define a path for the cached vector store ---
+FAISS_INDEX_PATH = os.path.abspath(os.path.join(SERVICE_DIR, '..', 'cache', 'faiss_index'))
 
 EMBEDDING_MODEL = 'nomic-embed-text'
 
 class RAGService:
-    """
-    A service to handle the Retrieval-Augmented Generation (RAG) pipeline.
-    This includes loading lore documents, creating vector embeddings, and
-    retrieving relevant context based on a user's query.
-    """
+    """Handle the Retrieval-Augmented Generation (RAG) pipeline with caching."""
 
     def __init__(self):
-        """
-        Initializes the RAG service by loading and processing the lore documents.
-        This is a one-time setup process that builds the in-memory vector store.
-        """
+        """Load a cached FAISS index or build a new one if needed."""
         self.vector_store = None
-        try:
-            logging.info("Initializing RAG Service...")
+        logging.info("Initializing RAG Service...")
 
-            # This now uses the correct absolute path.
+        embeddings = OllamaEmbeddings(model=EMBEDDING_MODEL)
+
+        if os.path.exists(FAISS_INDEX_PATH):
+            logging.info(f"Loading cached FAISS index from: {FAISS_INDEX_PATH}")
+            try:
+                self.vector_store = FAISS.load_local(
+                    FAISS_INDEX_PATH,
+                    embeddings,
+                    allow_dangerous_deserialization=True,
+                )
+                logging.info("Successfully loaded RAG index from cache.")
+            except Exception as e:
+                logging.error(
+                    f"Failed to load cached index. Rebuilding... Error: {e}"
+                )
+                self._build_and_cache_index(embeddings)
+        else:
+            self._build_and_cache_index(embeddings)
+
+    def _build_and_cache_index(self, embeddings: OllamaEmbeddings) -> None:
+        """Build the FAISS index from lore documents and cache it."""
+        try:
+            logging.warning(
+                "No cached index found. Building new RAG index from scratch."
+            )
+            logging.warning(
+                "This is a one-time process and may take several minutes..."
+            )
+
             logging.info(f"Loading documents from: {LORE_DIRECTORY}")
             loader = DirectoryLoader(LORE_DIRECTORY, glob="**/*.md", show_progress=True)
             docs = loader.load()
 
             if not docs:
-                logging.warning(f"No documents found in '{LORE_DIRECTORY}'. RAG service will be inactive.")
+                logging.warning(
+                    f"No documents found in '{LORE_DIRECTORY}'. RAG service will be inactive."
+                )
                 return
 
-            # 2. Split the documents into smaller chunks for better retrieval.
-            text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
+            text_splitter = RecursiveCharacterTextSplitter(
+                chunk_size=1000, chunk_overlap=200
+            )
             splits = text_splitter.split_documents(docs)
 
-            # 3. Create vector embeddings for each chunk using the local Ollama model.
-            embeddings = OllamaEmbeddings(model=EMBEDDING_MODEL)
-
-            # 4. Build an in-memory FAISS vector store from the document chunks.
-            # This is the "long-term memory" of the bot.
+            logging.info(
+                f"Creating embeddings for {len(splits)} document chunks. This is the slow part..."
+            )
             self.vector_store = FAISS.from_documents(splits, embeddings)
-            logging.info(f"RAG Service initialized successfully. Indexed {len(splits)} document chunks.")
+            logging.info("Vector store created successfully.")
 
-        except Exception as e:
-            logging.error(f"Failed to initialize RAG Service: {e}", exc_info=True)
-            # self.vector_store remains None, so the service will be disabled.
+            os.makedirs(os.path.dirname(FAISS_INDEX_PATH), exist_ok=True)
+            self.vector_store.save_local(FAISS_INDEX_PATH)
+            logging.info(f"RAG index has been cached to: {FAISS_INDEX_PATH}")
+
+        except Exception as e:  # pragma: no cover - safety net
+            logging.error(
+                f"Failed to build and cache RAG index: {e}", exc_info=True
+            )
+            self.vector_store = None
 
     def query_lore(self, question: str) -> str:
         """
