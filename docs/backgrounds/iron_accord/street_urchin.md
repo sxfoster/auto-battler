@@ -1,33 +1,32 @@
 # Street Urchin
 
 **Flavor Description**
-You survived by wits in the crowded alleys of Brasshaven.
+You learned to survive where others looked away, making a life among back alleys, crowded markets, and forgotten corners of the settlement. Street Urchins pick up odd jobs, gather gossip, and slip through cracks in the Accord's order. Quick hands and quicker thinking have kept you fed and out of trouble, but trust is something you've had to earn, not expect.
 
 ### Typical Skills/Knowledge
-- pickpocketing
-- street navigation
-- quick escapes
-- gossip trading
+- Skilled at pickpocketing, stealth, and finding hidden routes
+- Proficiency in reading crowds and sensing danger
+- Knowledge of market stalls, underground trades, and local rumors
 
 ### Starting Gear or Contacts
-- dagger or sling
-- bundle of stolen keys
-- network of vagrants
-- safe hideout known only to you
+- Collection of scavenged trinkets and lockpicks
+- Tattered cloak and well-worn boots made for running
+- Connection to a fence, street gang, or kindly merchant
 
 ### Roleplay Hooks/Flaws
-- suspicious of authority
-- protective of fellow outcasts
-- quick to run from danger
-- occasionally acts impulsively
+- Distrustful of authority and slow to rely on others
+- You carry a secret about someone powerful in the Accord
+- Old debts or grudges from your past may come back to haunt you
 
 ### Example Story Hooks
-- stumble upon a secret meeting
-- hired for petty thefts
+- You witness a crime that no one else saw, putting you in a difficult spot
+- A lost child or newcomer asks you to guide them through dangerous streets
+- The local watch starts cracking down on street kids, forcing you to make hard choices
 
 ### Mechanics
-- advantage on stealth in cities
-- call in favors from urchins
+- Gain advantage on checks involving stealth, escape, or gathering street-level information
+- May call in a favor from the city's underbelly once per session
+- Start with a minor, valuable item picked up during your wanderings
 
 ### Advancement Notes
-Could become a spy or smuggler.
+As you carve out your place in the Accord, you may rise above your origins, lead others, or use your unique skills to influence events from the shadows.
