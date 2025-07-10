@@ -1,31 +1,20 @@
-# High Marshal Calder Roake — Character Profile
+# Calder Roake, High Marshal of Brasshaven
 
-**Title:** High Marshal of Brasshaven and the Accord
+## Summary
+Calder Roake stands as the unyielding guardian of the Accord, commanding its Marshals and enforcing order with uncompromising resolve. His presence alone signals that justice—and consequences—are close at hand.
 
 ## Physical Description
-Calder Roake is an imposing figure, tall and broad‑shouldered, with streaks of grey at his temples and a gaze that never seems to rest. He wears the blue and brass uniform of the Marshals with pride. A ceremonial saber and heavy cane are always by his side, and his posture reveals years of discipline and command.
+Tall and broad‑shouldered with grey streaks at his temples, Roake wears the blue-and-brass Marshal uniform with pride. A ceremonial saber and heavy cane never leave his side, and his disciplined posture reflects years of command.
 
-## Public Role
-Roake oversees law, order, and the defense of all Accord settlements. He trains new Marshals, leads patrols, and personally investigates any crisis that threatens the city. His presence signals that justice—and consequences—are never far away.
+## Personality & Mannerisms
+- **Stern & Disciplined:** Rewards loyalty and punishes betrayal swiftly.
+- **Mentor:** Offers guidance and warmth to promising recruits.
+- **Mannerism:** Taps his cane lightly when contemplating a decision.
 
-## Reputation and Relationships
-Respected and feared in equal measure, Roake is the voice of order for the citizens. To the council, he is both a steadying force and an occasional obstacle. To his Marshals, he is mentor and commander. He treats the automaton Edraz with cautious respect, fully aware that the machine's wisdom is as dangerous as it is valuable.
+## Background
+A veteran of the Siege of Iron Bridge, Roake rose to High Marshal after his mentor vanished under mysterious circumstances. Rumors whisper that he knows secrets of the Machine Fall the council dares not reveal. He leads patrols, trains new Marshals, and personally investigates threats to the city.
 
-## History
-A veteran of the Siege of Iron Bridge, Roake ascended to the rank of High Marshal after the mysterious disappearance of his mentor. Rumors persist that he knows secrets about the Machine Fall that even the council does not.
-
-## Personality and Voice
-Stern, thoughtful, and deliberate, Roake rewards loyalty and punishes betrayal swiftly. In private he can show surprising warmth, especially toward new recruits or those who remind him of his younger self.
-
-## Unique Abilities and Influence
-- Commands all Accord Marshals and the city’s defenders
-- Renowned for tactical insight and his ability to keep order during crises
-- Holds authority to declare martial law or negotiate emergency alliances
-
-## Plot Immunity
-The High Marshal cannot be killed. If gravely wounded, he will disappear from public view, later returning with new scars and renewed resolve. His absence sows unrest, and his return always marks significant change.
-
-## Story Hooks
-- Roake requests help investigating a threat within the Marshals
-- Disappears after an assassination attempt, leaving the Accord uneasy
-- Uncovers a conspiracy dating back to the Machine Fall and seeks trustworthy allies
+## Plot Hooks
+- **Internal Threat:** Seeks allies to uncover corruption within the Marshals.
+- **Assassination Attempt:** Disappears after an attack, leaving the Accord uneasy.
+- **Ancient Conspiracy:** Holds knowledge about the Machine Fall that could change everything.

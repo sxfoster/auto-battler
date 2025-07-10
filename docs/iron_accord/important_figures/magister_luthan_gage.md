@@ -1,35 +1,20 @@
-# Magister Luthan Gage
+# Luthan Gage, Master Archivist
 
-## Name and Title
-Magister Luthan Gage, Master Archivist of the Accord
+## Summary
+Magister Luthan Gage oversees the Accord's vast records and wields quiet influence through his unmatched knowledge of history. His counsel often shapes policy, though few trust the full extent of what he knows.
 
 ## Physical Description
-Luthan Gage is a slender man, always impeccably dressed in tailored coats the color of parchment. His short, silvery hair and reflective spectacles hint at a mind constantly observing. Gage carries a walking stick carved with tiny runes, and ink stains frequently mark his fingers from long nights among the stacks. His sharp hazel eyes rarely show surprise.
+A slender man always clad in parchment‑colored coats, Gage sports short silvery hair and reflective spectacles. He carries a rune-carved walking stick, and ink stains smudge his fingers from long nights among the stacks.
 
-## Public Role
-As the Accord’s master archivist, Gage presides over the city’s records, ancient blueprints, and forbidden texts. He advises the council on history, policy, and the dangers of repeating past mistakes.
+## Personality & Mannerisms
+- **Meticulous & Precise:** Chooses his words carefully and rarely shows surprise.
+- **Subtle Manipulator:** Uses knowledge to steer others without revealing his hand.
+- **Mannerism:** Taps his ink-stained fingers on his walking stick while thinking.
 
-## Reputation and Relationships
-Respected and sometimes feared for his unmatched knowledge, Gage is often approached by council members seeking lost laws or leverage against rivals. Among the Ciphers, he is a figure of fascination. He and Edraz share a professional rivalry, each claiming a longer memory than the other.
+## Background
+Descended from generations of archivists, Gage rose to Magister after uncovering records that prevented a disastrous war. Rumors suggest he unearthed secrets so dangerous he swore an oath of silence. He maintains a professional rivalry with Edraz and often advises the council on avoiding past mistakes.
 
-## History
-Gage’s family has tended the Accord’s archives for generations. He rose to the rank of Magister after unearthing records that averted a disastrous war. Rumor holds that he discovered something so dangerous in the vaults that he swore an oath of silence to protect the Accord.
-
-## Personality and Voice
-Meticulous and precise, Gage speaks in measured tones that reveal little while implying much. When pressed, he wields sarcasm with surgical skill. In private, he becomes more candid, sharing riddles and historical trivia with those who earn his trust.
-
-## Unique Abilities and Influence
-- Can recall or locate any record, blueprint, or precedent needed by the council or its agents.
-- Holds sway over the city’s bureaucratic machinery and the fate of those judged by old law.
-- Able to seal or unseal documents that could shift the balance of power.
-
-## Plot Immunity
-Magister Gage cannot be killed. If forced from his post, he retreats into the deepest archives, unreachable for a time. His return always coincides with new revelations, secrets, or shifts in Accord policy.
-
-## Story Hooks
-- Gage seeks help to recover a lost codex before it falls into the wrong hands.
-- A powerful figure pressures Gage to alter the records, risking scandal and blackmail.
-- A secret sealed by Gage’s ancestors comes to light, forcing him to decide who can be trusted with the truth.
-
-## Living Document Notes
-Further updates may expand on Gage's influence within the Accord and his hidden alliances.
+## Plot Hooks
+- **Lost Codex:** Needs discreet help retrieving a record before it falls into the wrong hands.
+- **Political Pressure:** Faces blackmail to alter documents, risking scandal.
+- **Family Secret:** An ancestor's sealed archive resurfaces, forcing Gage to choose who can be trusted with the truth.

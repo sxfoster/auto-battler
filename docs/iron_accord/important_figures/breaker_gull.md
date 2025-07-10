@@ -1,35 +1,20 @@
-# Breaker Gull
+# Breaker Gull, Warden of the Outer Districts
 
-## Name and Title
-Breaker Gull, Warden of the Outer Districts
+## Summary
+Breaker Gull commands the salvage runners who scour the wastelands for supplies and lost technology. She is a daring leader whose knack for navigating danger keeps Brasshaven alive during crises.
 
 ## Physical Description
-Breaker Gull is a broad-shouldered woman with windburned skin and a shock of unruly copper hair. Her arms and face bear scars from countless salvage runs. She wears layered leather armor patched with salvaged metal, and her boots are forever caked with mud from the Accord’s outskirts. Gull carries a battered crowbar, a coil of rope, and a salvaged mechanical gauntlet that hums with hidden power.
+A broad-shouldered woman with windburned skin and wild copper hair, Breaker Gull bears the scars of countless salvage runs. She wears patched leather armor reinforced with scrap metal, mud-caked boots, and carries a battered crowbar, rope, and a humming mechanical gauntlet.
 
-## Public Role
-Gull leads the salvage runners, those daring enough to retrieve lost tech and supplies from the ruins beyond Brasshaven’s walls. She organizes expeditions, negotiates with merchants, and fights off raiders and wild machines that threaten the Accord’s fragile borders. In times of siege or famine, it is Gull who finds a way through.
+## Personality & Mannerisms
+- **Bold & Irreverent:** Laughs in the face of danger and bends rules to achieve her goals.
+- **Loyal:** Fiercely protective of her runners and allies.
+- **Mannerism:** Clacks her gauntlet fingers when sizing up a challenge.
 
-## Reputation and Relationships
-Breaker Gull is famous among the outer districts as both a rescuer and a wild card. Salvagers, farmers, and scouts all look to her when hope is thin. She maintains a friendly rivalry with the Marshals, often bending rules in pursuit of a good haul. Gull is fiercely loyal to her runners but mistrusts the council. She once saved Edraz from a collapsing ruin, earning his grudging respect.
+## Background
+Orphaned during a border raid, Gull survived by running salvage in the ruins. Her reputation for risking anything to bring people home won her influence among outcasts and traders. Though she mistrusts the council, her resourcefulness has saved the Accord more than once, even earning Edraz's reluctant respect.
 
-## History or Origins
-Orphaned during a border raid, Gull survived by running salvage in the ruins. She quickly earned a reputation for risking anything to bring people home. Over the years she forged alliances with outcasts, traders, and even rival factions—always for the Accord’s survival.
-
-## Personality and Voice
-Breaker Gull is bold, irreverent, and quick to laugh in the face of danger. She thrives on chaos and improvisation but carries a deep sense of responsibility for those under her command. When angered, her voice is thunderous; when plotting, her wit razor-sharp.
-
-## Unique Abilities and Influence
-- Leads and inspires teams into the most dangerous salvage missions
-- Can negotiate, bluff, or fight her way through nearly any crisis
-- Knows hidden routes and the secrets of the wilds beyond the city
-
-## Plot Immunity Rule
-Breaker Gull cannot be killed. If gravely wounded or captured, she vanishes into the ruins, her fate uncertain. She always returns, often at a pivotal moment, bringing new resources or unexpected allies.
-
-## Sample Story Hooks
-- Gull seeks help retrieving a vital artifact from territory held by hostile forces
-- A rival salvage crew challenges Gull’s leadership, causing tension and sabotage
-- Rumors of a machine uprising on the outskirts draw Gull and her runners into a dangerous new alliance
-
-## Living Document Notes
-Possible future notes include details on Gull’s personal vendettas and alliances with other factions.
+## Plot Hooks
+- **High-Stakes Retrieval:** Needs help recovering a vital artifact from hostile territory.
+- **Rival Crew:** Another salvage leader challenges her authority, sowing sabotage and tension.
+- **Machine Uprising:** Rumors of rebellious machines draw Gull into dangerous new alliances.

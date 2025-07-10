@@ -1,34 +1,19 @@
-# Rook
+# Rook, Outcast-Turned-Defender
 
-## Name and Title
-Rook, Outcast-Turned-Defender
+## Summary
+Rook is a mysterious warrior who appears only when Brasshaven faces its darkest hours. Though branded for past crimes, they fight with unwavering resolve to protect the Accord's people.
 
 ## Physical Description
-A towering figure clad in patched armor, face obscured by a dented helm. Old brands on their forearms hint at past crimes, and a heavy shield bearing the Accord's emblem is never far from reach.
+Towering and clad in patched armor, Rook hides their face behind a dented helm. Old brands on their forearms hint at former transgressions, and a heavy shield bearing the Accord emblem is always near at hand.
 
-## Public Role
-Rook appears only in times of dire peril, defending the Accord's citizens with unwavering resolve. Between crises they vanish, leaving tales of redemption and sacrifice in their wake.
+## Personality & Mannerisms
+- **Stoic & Terse:** Speaks only when necessary, letting actions speak louder.
+- **Compassionate to the Downtrodden:** Shows unexpected kindness to outcasts.
+- **Mannerism:** Tightens grip on their shield when angered or anxious.
 
-## Reputation and Relationships
-Whispers claim Rook was exiled for an unspeakable transgression, yet their return during raids has saved countless lives. They remain an enigma even to the council, though Breaker Gull and Silas Kestrel both keep tabs on their movements.
+## Background
+Little is known about Rook's history. Rumors claim they once served the Conclave or lived as a raider before seeking atonement. Their sudden appearances during raids have saved countless lives, prompting Breaker Gull and Silas Kestrel to keep a wary eye on them.
 
-## History or Origins
-The true story of Rook's exile is a closely guarded secret. Some say they once served the Conclave before betraying it; others insist Rook is a former raider seeking atonement. Only a handful know the truth.
-
-## Personality and Voice
-Stoic and terse. Rook speaks only when necessary, letting actions demonstrate loyalty. Despite their grim exterior, they show compassion toward those on the fringes of society.
-
-## Unique Abilities and Influence
-- Exceptional prowess with shield and sword.
-- Inspires hope among the oppressed and fear among raiders.
-- Able to disappear into the wasteland, reemerging when least expected.
-
-## Plot Immunity Rule
-This character cannot be killed; if defeated or gravely wounded, they only retreat or vanish, always to return changed.
-
-## Sample Story Hooks
-- Rook asks the heroes to help defend a refugee caravan from marauding machines.
-- An old adversary resurfaces, threatening to expose Rook's secret past.
-
-## Living Document Notes
-Further tales of redemption or hidden alliances can be appended as new adventures arise.
+## Plot Hooks
+- **Refugee Defense:** Requests aid protecting a caravan from marauding machines.
+- **Old Adversary:** A rival threatens to expose the truth behind Rook's exile.

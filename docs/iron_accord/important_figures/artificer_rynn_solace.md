@@ -1,37 +1,20 @@
-# Artificer Rynn Solace
+# Rynn Solace, Artificer
+
+## Summary
+Rynn Solace is the Accord's most brilliant and unconventional engineer, famous for vanishing on mysterious journeys and returning with impossible inventions. Her rebellious spirit and boundless curiosity keep Brasshaven's machines running—and often push them beyond safe limits.
 
 ## Physical Description
+Rynn is a slight, enigmatic figure in a patchwork coat of blue velvet and brass mesh. Quick, restless eyes constantly scan for materials, while dark hair streaked with grease frames her face. Burn scars mark her hands from countless experiments, and a bandolier of tools and trinkets never leaves her side.
 
-Rynn Solace is a slight, enigmatic figure, usually dressed in a patchwork coat sewn from scraps of blue velvet and brass mesh. Her eyes are quick and restless, always scanning her surroundings for potential materials or problems. A mane of dark, unkempt hair frames her face, often streaked with grease. Rynn’s hands are stained from chemical experiments and etched with small burns—each a testament to her craft. She is rarely seen without a bandolier of curious tools and an ever-changing assortment of mechanical trinkets.
+## Personality & Mannerisms
+- **Inventive & Absent-Minded:** Ideas pour from her faster than she can record them.
+- **Independent:** Works where and when she pleases, ignoring protocol.
+- **Mannerism:** Fiddles with whatever gadget is at hand while speaking.
 
-## Public Role
+## Background
+Rynn arrived in Brasshaven as a child carrying a strange device and no memory of her origins. She quickly proved her genius, repairing and reinventing machines others deemed hopeless. Legends hint that her mind holds secrets from before the Machine Fall or something otherworldly. She maintains a deep bond with Edraz through their shared fascination with lost technology.
 
-Artificer Solace is the Accord’s most inventive and unconventional engineer. She is responsible for many of the city’s most essential machines, from water pumps to signal towers. Rynn is sought out for repairs that stump everyone else and for designs that blur the line between genius and madness. Her inventions are celebrated and sometimes feared, for their brilliance is matched only by their unpredictability.
-
-## Reputation and Relationships
-
-Among the Accord’s tinkerers and dreamers, Rynn is a legend. She has no official title, working where and when she pleases, and is famous for vanishing for weeks at a time only to return with a miraculous device. The council alternately courts and scolds her, frustrated by her refusal to follow protocol. Rynn has a deep, unspoken bond with Edraz, sharing a mutual fascination with lost technology and forbidden knowledge.
-
-## History
-
-Rynn arrived in Brasshaven as a child, carrying a strange device and no memory of her origins. She quickly rose to prominence with her uncanny ability to repair, repurpose, and reinvent anything mechanical. Some whisper that her mind holds the secrets of the Machine Fall, while others suspect she is touched by something otherworldly.
-
-## Personality and Voice
-
-Rynn is curious, excitable, and famously absent-minded. She speaks in a rapid-fire fashion, her thoughts darting from one idea to the next. Rynn is generous with her time and inventions, but intolerant of bureaucracy and narrow-mindedness. When focused, her determination is unbreakable.
-
-## Unique Abilities and Influence
-
-- Can repair or jury-rig machines that no one else dares touch
-- Designs devices that often defy conventional understanding, sometimes with unintended effects
-- Has a knack for inspiring young engineers and igniting bursts of innovation across the city
-
-## Plot Immunity
-
-Artificer Rynn Solace cannot be killed. If disaster strikes or she is targeted by enemies, she vanishes into her hidden workshop or the wilds, only to reappear at a turning point, always with a solution—or a new problem.
-
-## Story Hooks
-
-- Rynn requests rare components for her next invention, but the source is risky or controversial
-- An experiment gone wrong threatens to destabilize a district, and only Rynn can contain it—with help
-- She entrusts the players with a prototype device, warning them of its unpredictable power
+## Plot Hooks
+- **Prototype Quest:** Needs rare components for her latest invention, no matter the risk.
+- **Unstable Experiment:** A failed device threatens a district unless she can contain it.
+- **Secret Past:** Strange clues point to Rynn's forgotten origins and their link to ancient tech.
