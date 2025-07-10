@@ -8,6 +8,7 @@ Additional worldbuilding details for the Iron Accord project can be found in
 
 Background lore for the Iron Accord has been split into several focused files:
 - [lore/world_overview.md](lore/world_overview.md)
+- [lore/iron_accord_society.md](lore/iron_accord_society.md)
 - [factions/iron_accord.md](factions/iron_accord.md)
 - [factions/neon_dharma.md](factions/neon_dharma.md)
 - [factions/npc_groups.md](factions/npc_groups.md)
