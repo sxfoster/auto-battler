@@ -31,15 +31,17 @@ Base item properties live in `ironaccord-bot/data/items.py`. The mission engine 
 ## Running Python Tests
 
 The repository includes pytest suites for both the legacy prototype and the new
-Iron Accord bot. After installing the requirements from `requirements.txt` and
-`ironaccord-bot/requirements.txt`, execute the tests from the project root:
+Iron Accord bot. After installing the requirements from `requirements.txt`,
+`ironaccord-bot/requirements.txt` and the additional packages listed in
+`dev-requirements.txt`, execute the tests from the project root:
 
 ```bash
 pip install -r requirements.txt
 pip install -r ironaccord-bot/requirements.txt
+pip install -r dev-requirements.txt
 pytest
 ```
 
-The optional dependencies `discord.py` and `aiomysql` are needed for some tests
-under `ironaccord-bot`. Tests that rely on these packages will be skipped if
-they are not installed.
+The tests under `ironaccord-bot` rely on `discord.py`, `aiomysql` and `httpx`.
+Installing `dev-requirements.txt` ensures these packages are available;
+otherwise the affected tests will be skipped.
