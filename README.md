@@ -4,10 +4,10 @@ This repository houses the Discord bot used for the auto battler experiments alo
 
 ## Repository Layout
 
-- `discord-bot/` – Node.js bot and MySQL schema (legacy implementation).
+- `ironaccord-bot/` – Python Discord bot and data files.
 - `docs/` – design notes and lore.
 - `index.html`, `poc2/` – early browser prototypes kept for reference.
-- `discord-bot/src/data/items.js` – base item definitions consumed by missions and rewards.
+- `ironaccord-bot/data/items.py` – base item definitions consumed by missions and rewards.
 
 ## Setup
 
@@ -15,13 +15,13 @@ This repository houses the Discord bot used for the auto battler experiments alo
 2. Copy `.env.example` to `.env` and provide your Discord token, application ID, guild ID and MySQL credentials. These values are required for the Python bot as well. The Node.js utilities additionally use `PVP_CHANNEL_ID` and `WEB_APP_URL`.
 3. Install dependencies and start the bot:
    ```bash
-   cd discord-bot
+   cd ironaccord-bot
    npm install
    node deploy-commands.js
    node index.js
    ```
 
-See [discord-bot/README.md](discord-bot/README.md) for additional details on running tests and migrating the database schema.
+See [ironaccord-bot/README.md](ironaccord-bot/README.md) for additional details on running tests and migrating the database schema.
 
 ## Python Bot
 
@@ -46,7 +46,7 @@ A small Python prototype is also provided. Environment variables match the Node.
 
 ## Item Data
 
-Base item properties live in `discord-bot/src/data/items.js`. The mission engine and other services import this file to look up item bonuses when applying rewards or combat modifiers.
+Base item properties live in `ironaccord-bot/data/items.py`. The mission engine and other services import this file to look up item bonuses when applying rewards or combat modifiers.
 
 ## Running Python Tests
 
