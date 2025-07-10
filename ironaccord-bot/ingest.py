@@ -2,9 +2,10 @@ import os
 import glob
 import logging
 import chromadb
-from langchain.document_loaders import UnstructuredMarkdownLoader
+# NEW: Updated imports to fix deprecation warnings
+from langchain_community.document_loaders import UnstructuredMarkdownLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain.embeddings import HuggingFaceEmbeddings
+from langchain_community.embeddings import HuggingFaceEmbeddings
 
 # --- Configuration ---
 # NEW: Define a path for the persistent database directory
@@ -17,6 +18,19 @@ EMBEDDING_MODEL = "sentence-transformers/all-MiniLM-L6-v2"
 
 # --- Logging Setup ---
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+
+# NEW: Helper function to clean up metadata for ChromaDB
+def sanitize_metadata(metadata: dict) -> dict:
+    """Sanitize metadata values to ensure compatibility with ChromaDB."""
+    sanitized = {}
+    for key, value in metadata.items():
+        if isinstance(value, list):
+            sanitized[key] = ", ".join(map(str, value))
+        elif isinstance(value, (str, int, float, bool)) or value is None:
+            sanitized[key] = value
+        else:
+            sanitized[key] = str(value)
+    return sanitized
 
 def ingest_data():
     """
@@ -76,7 +90,8 @@ def ingest_data():
     logging.info("Starting ingestion of chunks into ChromaDB. This may take a while...")
 
     chunk_texts = [chunk.page_content for chunk in chunks]
-    chunk_metadatas = [chunk.metadata for chunk in chunks]
+    # NEW: Apply the sanitization function to each chunk's metadata
+    chunk_metadatas = [sanitize_metadata(chunk.metadata) for chunk in chunks]
     chunk_ids = [f"chunk_{i}" for i in range(len(chunks))]
 
     try:
