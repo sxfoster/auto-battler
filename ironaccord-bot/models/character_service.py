@@ -15,19 +15,6 @@ FLAG_DATA: Dict[str, Dict[str, Any]] = {
     }
 }
 
-CODEX_DATA: Dict[str, Dict[str, Any]] = {
-    'ancient-tech': {
-        'name': 'Ancient Tech',
-        'emoji': '\ud83d\udcdc',
-        'statBonuses': {'ING': 2}
-    },
-    'martial-training': {
-        'name': 'Martial Training',
-        'emoji': '\u2694\ufe0f',
-        'statBonuses': {'MGT': 1}
-    }
-}
-
 async def get_character_sheet(discord_id: str) -> Dict[str, Any] | None:
     res = await db.query(
         'SELECT id, level, equipped_weapon_id, equipped_armor_id, equipped_ability_id FROM players WHERE discord_id = %s',
@@ -59,11 +46,6 @@ async def get_character_sheet(discord_id: str) -> Dict[str, Any] | None:
             for stat, bonus in data['statBonuses'].items():
                 stats[stat] = stats.get(stat, 0) + bonus
 
-    for entry in codex:
-        data = CODEX_DATA.get(entry)
-        if data and data.get('statBonuses'):
-            for stat, bonus in data['statBonuses'].items():
-                stats[stat] = stats.get(stat, 0) + bonus
 
     gear = {
         'weapon': weapon_res['rows'][0]['name'] if weapon_res['rows'] else None,
