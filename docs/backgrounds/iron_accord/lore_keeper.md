@@ -1,33 +1,32 @@
 # Lore Keeper
 
 **Flavor Description**
-You study oral histories and maintain the Accord's written records.
+You have spent your life gathering stories, memories, and the wisdom of those who came before. Lore Keepers preserve the Accord’s history, guard old secrets, and remind others of both triumphs and mistakes. You can recite lineages, tales of invention, and warnings whispered around the fire. Your voice helps shape the community’s future, and many turn to you when they seek guidance or truth.
 
 ### Typical Skills/Knowledge
-- research
-- storytelling
-- ancient languages
-- record keeping
+- Skilled in record keeping, oral storytelling, and deciphering old manuscripts
+- Proficiency in local history, traditions, and folklore
+- Ability to recall important details and mediate disputes with knowledge of precedent
 
 ### Starting Gear or Contacts
-- library case
-- scrolls
-- mentor in archives
-- connections to traveling scribes
+- Weathered journal filled with notes and transcribed stories
+- Set of inks, quills, or writing implements
+- Trusted relationship with at least one elder or influential figure
 
 ### Roleplay Hooks/Flaws
-- curious by nature
-- long-winded
-- protective of records
-- clashes with revisionists
+- Deep respect for tradition sometimes conflicts with the need for change
+- Carrying a secret you cannot share, out of loyalty or fear
+- Rivalry with another Lore Keeper who challenges your version of events
 
 ### Example Story Hooks
-- recover lost texts
-- chronicle a hero's deeds
+- A lost chapter of the Accord’s past resurfaces, threatening current peace
+- The council requests your help to verify an important claim or resolve a heated argument
+- Outsiders arrive, claiming knowledge that does not match the records you protect
 
 ### Mechanics
-- advantage on knowledge checks about the Accord
-- cite laws or traditions for persuasion
+- Gain advantage on checks involving history, investigation, or persuasion rooted in precedent
+- May settle one dispute or reveal a critical piece of information per session by citing records
+- Start with a unique piece of lore, which could serve as a clue or inspire new quests
 
 ### Advancement Notes
-Experienced keepers may teach apprentices or join the council.
+Over time, you may become a chronicler of great events or a trusted advisor to leaders. The stories you keep may change lives and influence the very course of the Accord.
