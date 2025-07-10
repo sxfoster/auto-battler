@@ -10,6 +10,35 @@ from models import mission_service
 
 MISSIONS_PATH = Path(__file__).parent.parent / 'data' / 'missions'
 
+
+class OptionView(discord.ui.View):
+    """View presenting buttons for mission options."""
+
+    class OptionButton(discord.ui.Button):
+        def __init__(self, index: int, label: str):
+            super().__init__(label=label, style=discord.ButtonStyle.primary)
+            self.index = index
+
+        async def callback(self, interaction: discord.Interaction) -> None:
+            view: "OptionView" = self.view  # type: ignore[assignment]
+            if interaction.user.id != view.user.id:
+                await interaction.response.send_message(
+                    "This is not your prompt.", ephemeral=True
+                )
+                return
+            view.choice = self.index
+            for child in view.children:
+                child.disabled = True
+            await interaction.response.edit_message(view=view)
+            view.stop()
+
+    def __init__(self, user: discord.User, options: list[dict]):
+        super().__init__(timeout=120)
+        self.user = user
+        self.choice: int | None = None
+        for idx, opt in enumerate(options):
+            self.add_item(self.OptionButton(idx, opt.get("text", str(idx + 1))))
+
 class MissionCog(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
@@ -39,8 +68,10 @@ class MissionCog(commands.Cog):
         durability = 3
         for i, rnd in enumerate(mission['rounds']):
             opts = '\n'.join(f"{idx+1}. {o['text']}" for idx, o in enumerate(rnd['options']))
-            await thread.send(f"{rnd['text']}\n{opts}")
-            choice = 0
+            view = OptionView(interaction.user, rnd['options'])
+            await thread.send(f"{rnd['text']}\n{opts}", view=view)
+            await view.wait()
+            choice = view.choice if view.choice is not None else 0
             option = rnd['options'][choice]
             result = await resolve_choice(player_id, option)
             await thread.send(f"Outcome: {result['tier']}")
