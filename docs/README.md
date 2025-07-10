@@ -28,7 +28,7 @@ The phased rollout strategy is outlined in [iron_accord_mvp_rollout.md](iron_acc
 
 The dual LLM architecture powering narration and rules logic is documented in [dual_llm_engine.md](dual_llm_engine.md).
 
-The snarky shopkeeper NPC is detailed in [edraz_character_bible.md](edraz_character_bible.md).
+The snarky shopkeeper NPC is detailed in [character_bible_edraz.md](character_bible_edraz.md).
 
 
 ## Mission Data Fields
