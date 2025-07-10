@@ -4,7 +4,7 @@ This directory houses profiles of notable individuals in the Iron Accord setting
 
 - [**Edraz, Grandfather of Rust—Shopkeeper, Oracle, and Hidden Power of the Accord**](edraz.md) – An enigmatic automaton who peddles wares and painful truths while secretly guarding ancient protocols.
 - [**Matriarch Thessa Weld—Last Founder and Relentless Judge**](matriarch_thessa_weld.md) – The oldest living founder, keeper of Accord law and feared arbiter of tradition.
-- [**Vicar Osric Hallow—Keeper of Ritual Flames**](vicar_osric_hallow.md) – Spiritual leader blending folk faith with superstition, blessing engines in secret rites.
+- [**Vicar Osric Hallow—Keeper of Ritual Flames**](vicar_osric_hallow.md) – The Accord's spiritual leader, guiding rituals and weighing the risks of old tech.
 - [**Doctor Mirelle Voss—Chief Surgeon and Harsh Miracle-Worker**](doctor_mirelle_voss.md) – Known for brutal methods and rumored pre-Fall medical secrets.
 - [**The Lantern—Masked Vigilante of Brasshaven**](the_lantern.md) – A mysterious savior appearing when disaster strikes, identity unknown.
 - [**Magister Luthan Gage—Archivist and Quiet Manipulator**](magister_luthan_gage.md) – Master of records who subtly steers council policy.

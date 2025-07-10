@@ -1,5 +1,3 @@
-# Osric Hallow, Keeper of Ritual Flames
-
 ## Summary
 Vicar Osric Hallow oversees the Accord's rites, blending faith and superstition to bless engines and sanctify new inventions. His fiery zeal inspires the devout and unsettles the skeptical.
 
