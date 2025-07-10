@@ -1,8 +1,13 @@
+from __future__ import annotations
+
 import pytest
 import httpx
 from unittest.mock import AsyncMock, patch
+from typing import TYPE_CHECKING
 
-from services.ollama_service import OllamaService
+# Import OllamaService only for type checking to allow environment overrides
+if TYPE_CHECKING:  # pragma: no cover - type checking
+    from services.ollama_service import OllamaService
 
 # Mark all tests in this file as asyncio
 pytestmark = pytest.mark.asyncio
@@ -10,6 +15,7 @@ pytestmark = pytest.mark.asyncio
 @pytest.fixture
 def ollama_service():
     """Pytest fixture to create an instance of OllamaService for each test."""
+    from services.ollama_service import OllamaService
     return OllamaService()
 
 async def test_get_narrative_success(ollama_service: OllamaService):
@@ -67,3 +73,27 @@ async def test_api_connection_error(ollama_service: OllamaService):
 
         # Assert that the method returns a user-friendly error message
         assert "Error: Could not connect to the Ollama API" in result
+
+async def test_env_override_narrator_model(monkeypatch):
+    """Ensure environment variable overrides the narrator model."""
+    monkeypatch.setenv("OLLAMA_NARRATOR_MODEL", "test-narrator")
+    from importlib import reload
+    import services.ollama_service as module
+    reload(module)
+    service = module.OllamaService()
+    with patch.object(service.client, "post", new_callable=AsyncMock) as mock_post:
+        mock_post.return_value = httpx.Response(200, json={"response": "ok"})
+        await service.get_narrative("Hi")
+        assert mock_post.call_args.kwargs["json"]["model"] == "test-narrator"
+
+async def test_env_override_gm_model(monkeypatch):
+    """Ensure environment variable overrides the GM model."""
+    monkeypatch.setenv("OLLAMA_GM_MODEL", "test-gm")
+    from importlib import reload
+    import services.ollama_service as module
+    reload(module)
+    service = module.OllamaService()
+    with patch.object(service.client, "post", new_callable=AsyncMock) as mock_post:
+        mock_post.return_value = httpx.Response(200, json={"response": "ok"})
+        await service.get_gm_response("Hi")
+        assert mock_post.call_args.kwargs["json"]["model"] == "test-gm"
