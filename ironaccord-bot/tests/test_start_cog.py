@@ -29,3 +29,54 @@ async def test_start_cog_returns_view(monkeypatch):
     await cog.start.callback(cog, interaction)
 
     assert isinstance(interaction.response.modal, start.CharacterPromptModal)
+
+
+class DummyFollowup:
+    def __init__(self):
+        self.kwargs = None
+
+    async def send(self, *args, **kwargs):
+        self.kwargs = kwargs
+
+
+class DummyInteraction2:
+    def __init__(self):
+        self.user = type("User", (), {"id": 2, "display_name": "Hero"})()
+        self.followup = DummyFollowup()
+
+
+@pytest.mark.asyncio
+async def test_handle_character_description(monkeypatch):
+    bot = commands.Bot(command_prefix="!", intents=discord.Intents.none())
+    bot.rag_service = None
+    cog = start.StartCog(bot)
+
+    class DummyService:
+        called = None
+
+        def __init__(self, agent, rag):
+            pass
+
+        async def generate_opening(self, desc):
+            DummyService.called = desc
+            return {
+                "scene": "begin", 
+                "question": "what do?", 
+                "choices": ["a", "b"]
+            }
+
+    class DummyView:
+        def __init__(self, choices):
+            self.choices = choices
+
+    monkeypatch.setattr(start, "OpeningSceneService", DummyService)
+    monkeypatch.setattr(start, "OpeningSceneView", DummyView)
+
+    interaction = DummyInteraction2()
+
+    await cog.handle_character_description(interaction, "desc")
+
+    assert DummyService.called == "desc"
+    assert interaction.followup.kwargs["ephemeral"] is True
+    assert isinstance(interaction.followup.kwargs["view"], DummyView)
+    assert interaction.followup.kwargs["view"].choices == ["a", "b"]
