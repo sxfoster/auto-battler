@@ -32,29 +32,10 @@ class DummyInteraction:
 @pytest.mark.asyncio
 async def test_start_cog_returns_view(monkeypatch):
     bot = commands.Bot(command_prefix="!", intents=discord.Intents.none())
-    rag_called = {"count": 0}
-
-    def fake_get_section(*args, **kwargs):
-        rag_called["count"] += 1
-        return "info"
-
-    bot.rag_service = type("RAG", (), {"get_character_section": fake_get_section})()
+    bot.rag_service = None
     cog = start.StartCog(bot)
 
-    called = {}
-
-    class DummyView(start.AdventureView):
-        def __init__(self, *args, **kwargs):
-            super().__init__(*args, **kwargs)
-            called["created"] = True
-
-    monkeypatch.setattr(start, "AdventureView", DummyView)
-
-    async def fake_get_narrative(self, prompt):
-        called["func"] = True
-        return "story"
-
-    monkeypatch.setattr(start.AIAgent, "get_narrative", fake_get_narrative)
+    monkeypatch.setattr(start.random, "sample", lambda seq, k: ["A", "B"])
     interaction = DummyInteraction()
 
     await cog.start.callback(cog, interaction)
@@ -63,7 +44,4 @@ async def test_start_cog_returns_view(monkeypatch):
     assert interaction.response.kwargs.get("ephemeral") is True
     assert interaction.followup.called
     assert interaction.followup.kwargs.get("ephemeral") is True
-    assert isinstance(interaction.followup.kwargs.get("view"), DummyView)
-    assert called.get("created")
-    assert called.get("func")
-    assert rag_called["count"] == 3
+    assert isinstance(interaction.followup.kwargs.get("view"), start.BackgroundView)

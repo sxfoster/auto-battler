@@ -1,64 +1,83 @@
+import random
+from pathlib import Path
+
 import discord
 from discord.ext import commands
 from discord import app_commands
 
-from views.adventure_view import AdventureView
 from ai.ai_agent import AIAgent
-import asyncio
+from services.mission_generator import MissionGenerator
+
+
+
+class BackgroundView(discord.ui.View):
+    def __init__(self, user: discord.User, backgrounds: list[str], generator: MissionGenerator):
+        super().__init__(timeout=300)
+        self.user = user
+        self.generator = generator
+        for bg in backgrounds:
+            self.add_item(self.BackgroundButton(bg))
+
+    class BackgroundButton(discord.ui.Button):
+        def __init__(self, name: str):
+            super().__init__(label=name, style=discord.ButtonStyle.primary)
+            self.name = name
+
+        async def callback(self, interaction: discord.Interaction):
+            view: "BackgroundView" = self.view
+            if interaction.user.id != view.user.id:
+                await interaction.response.send_message("This is not your prompt.", ephemeral=True)
+                return
+            await interaction.response.defer(ephemeral=True, thinking=True)
+            text = await view.generator.generate_intro(self.name)
+            if not text:
+                text = "Failed to generate adventure. Please try again later."
+            await interaction.followup.send(text, ephemeral=True)
+            view.stop()
 
 
 class StartCog(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
         self.agent = AIAgent()
-        # Access the shared RAG service from the bot
         self.rag_service = getattr(bot, "rag_service", None)
+        self.generator = MissionGenerator(self.agent, self.rag_service)
+
+    def _intro_text(self) -> str:
+        path = Path("docs/lore/world_overview.md")
+        try:
+            lines = [ln.strip() for ln in path.read_text(encoding="utf-8").splitlines() if ln.strip() and not ln.startswith("#")]
+            return " ".join(lines[:2])
+        except Exception:
+            return "Welcome to the war-torn world of Iron Accord."
+
+    def _background_names(self) -> list[str]:
+        base = Path("docs/backgrounds/iron_accord")
+        names: list[str] = []
+        for p in base.glob("*.md"):
+            if p.name == "README.md":
+                continue
+            try:
+                first = p.read_text(encoding="utf-8").splitlines()[0]
+                names.append(first.lstrip("#").strip())
+            except Exception:
+                names.append(p.stem.replace("_", " ").title())
+        return names
 
     @app_commands.command(name="start", description="Begin your journey in the world of Iron Accord.")
     async def start(self, interaction: discord.Interaction):
-        # Give the LLM time to respond
-        await interaction.response.defer(ephemeral=True)
+        await interaction.response.defer(ephemeral=True, thinking=True)
 
-        user_name = interaction.user.display_name
-
-        character_name = "Edraz"
-
-        summary = self.rag_service.get_character_section(character_name, "Summary") if self.rag_service else ""
-        physical_desc = self.rag_service.get_character_section(character_name, "Physical Description") if self.rag_service else ""
-        personality = self.rag_service.get_character_section(character_name, "Personality & Mannerisms") if self.rag_service else ""
-
-        character_brief = f"""
-**Character Summary:**
-{summary}
-
-**Visual Appearance:**
-{physical_desc}
-
-**Behavior and Personality:**
-{personality}
-"""
-
-        prompt = f"""System: You are the Lore Weaver, a master storyteller for a steampunk tabletop RPG. Your task is to introduce a key character to the player. Use the detailed brief below to craft a compelling narrative description. Do not simply list the details; weave them into a story.
-
----
-**CHARACTER BRIEF**
-{character_brief}
----
-
-**TASK**
-The player has just entered the Iron Accord's command center. They see {character_name} for the first time, standing over a holographic map table that casts a blue glow on his face. Describe the scene, focusing on the character's appearance, demeanor, and the overall atmosphere of the room."""
-
-        narrative_text = await self.agent.get_narrative(prompt)
+        intro_text = self._intro_text()
+        backgrounds = random.sample(self._background_names(), k=2)
 
         embed = discord.Embed(
-            title=f"The Adventure of {user_name}",
-            description=narrative_text,
-            color=discord.Color.dark_gold()
+            title="Welcome to Iron Accord",
+            description=intro_text,
+            color=discord.Color.dark_gold(),
         )
 
-        view = AdventureView(agent=self.agent, user=interaction.user)
-        # Start prefetching the next phase in the background
-        asyncio.create_task(view._prefetch_for_phase(2))
+        view = BackgroundView(interaction.user, backgrounds, self.generator)
         await interaction.followup.send(embed=embed, view=view, ephemeral=True)
 
 async def setup(bot: commands.Bot):

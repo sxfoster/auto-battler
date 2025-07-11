@@ -1,56 +1,35 @@
 import pytest
-pytest.importorskip("aiomysql")
-
 from services.mission_generator import MissionGenerator
-from models import mission_service, database
 
 @pytest.mark.asyncio
-async def test_generate_returns_json(monkeypatch):
+async def test_generate_intro(monkeypatch):
     calls = {}
 
-    async def fake_get_player_id(did):
-        calls['pid'] = did
-        return 1
-
-    async def fake_query(sql, params=None):
-        calls.setdefault('queries', []).append(sql)
-        if 'FROM players' in sql:
-            return {'rows': [{'level': 2}]}
-        return {'rows': []}
-
-    def fake_rag_query(q, k=5):
-        calls['rag'] = True
-        return ['lore']
+    def fake_rag_query(self, q, k=3):
+        calls.setdefault('rag', []).append(q)
+        return [type('D', (), {'page_content': 'lore'})()]
 
     async def fake_get_narrative(self, prompt):
         calls['prompt'] = prompt
-        return '{"id":1,"name":"test"}'
+        return 'scene'
 
-    monkeypatch.setattr(mission_service, 'get_player_id', fake_get_player_id)
-    monkeypatch.setattr(database, 'query', fake_query)
     rag = type('R', (), {'query': fake_rag_query})()
     agent = type('A', (), {'get_narrative': fake_get_narrative})()
 
     gen = MissionGenerator(agent, rag)
-    mission = await gen.generate('123', 'item_retrieval', 'find a part')
+    text = await gen.generate_intro('Scout')
 
-    assert mission == {"id": 1, "name": "test"}
-    assert calls['pid'] == '123'
-    assert 'prompt' in calls
+    assert text == 'scene'
+    assert 'world overview' in calls['rag'][0]
+
 
 @pytest.mark.asyncio
-async def test_invalid_json(monkeypatch):
-    async def fake_get_player_id(did):
-        return 1
-
-    async def fake_query(sql, params=None):
-        return {'rows': []}
-
+async def test_generate_intro_failure(monkeypatch):
     async def fake_get_narrative(self, prompt):
-        return 'not json'
+        raise RuntimeError('fail')
 
-    monkeypatch.setattr(mission_service, 'get_player_id', fake_get_player_id)
-    monkeypatch.setattr(database, 'query', fake_query)
+    rag = type('R', (), {'query': lambda q, k=3: []})()
     agent = type('A', (), {'get_narrative': fake_get_narrative})()
-    gen = MissionGenerator(agent, None)
-    assert await gen.generate('x', 't', 'd') is None
+
+    gen = MissionGenerator(agent, rag)
+    assert await gen.generate_intro('Scout') is None
