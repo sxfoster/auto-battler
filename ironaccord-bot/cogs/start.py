@@ -16,12 +16,15 @@ class CharacterPromptModal(discord.ui.Modal):
         super().__init__(title="Welcome to Iron Accord")
         self.cog = cog
         self.description = discord.ui.TextInput(
-            label=(
+            label="Character Description",
+            placeholder=(
                 "Tell me about the person you want to be. "
-                "What is their name? What do they look like? What drives them?"
+                "What is their name? What do they look like? "
+                "What drives them?"
             ),
             style=discord.TextStyle.paragraph,
             max_length=500,
+            required=True,
         )
         self.add_item(self.description)
 
