@@ -17,11 +17,12 @@ class MissionGenerator:
         self.rag_service = rag_service
 
 
-    def _get_lore_snippets(self) -> str:
+    def _get_lore_snippets(self, query: str) -> str:
+        """Return lore snippets related to *query* from the RAG service."""
         if not self.rag_service:
             return ""
         try:
-            results = self.rag_service.query("important lore", k=3)
+            results = self.rag_service.query(query, k=3)
             snippets = []
             for doc in results:
                 if hasattr(doc, "page_content"):
@@ -33,17 +34,23 @@ class MissionGenerator:
             logger.warning("RAG query failed: %s", exc)
             return ""
 
-    async def generate(self, discord_id: str, objective: str = "") -> Optional[Dict[str, Any]]:
+    async def generate(
+        self,
+        discord_id: str,
+        request_type: str,
+        request_details: str,
+    ) -> Optional[Dict[str, Any]]:
         """Generate a mission for the given player."""
         context = await gather_player_context(discord_id)
         if context is None:
             return None
 
-        lore = self._get_lore_snippets()
+        lore = self._get_lore_snippets(request_details)
         prompt = (
             "You are a mission design AI. Use the player info and lore below to "
             "create a short mission in JSON format.\n\n"
-            f"PLAYER: {context}\n\nLORE:\n{lore}\n\nOBJECTIVE: {objective}\n"
+            f"PLAYER: {context}\n\nLORE:\n{lore}\n\nMISSION TYPE: {request_type}\n"
+            f"REQUEST DETAILS: {request_details}\n"
             "Return only valid JSON describing the mission with keys 'id', "
             "'name', 'intro', 'rounds', 'rewards', and 'codexFragment'."
         )
