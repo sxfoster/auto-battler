@@ -20,8 +20,9 @@ This repository houses the Discord bot used for the auto battler experiments alo
    ```
 4. Start the bot:
    ```bash
-   python ironaccord-bot/bot.py
+   python -m ironaccord_bot.bot
    ```
+   Using `python -m` runs the package as a module so relative imports work.
 5. Once the bot is online, use `/start` in your Discord server to begin character creation.
 
 ## Item Data
