@@ -44,7 +44,9 @@ class MissionCog(commands.Cog):
         self.bot = bot
         self.group = app_commands.Group(name='mission', description='Mission commands')
         self.group.command(name='start', description='Start a mission')(self.start)
-        self.group.command(name='create', description='Generate a mission')(self.create)
+        self.create = self.group.command(
+            name='create', description='Generate a mission'
+        )(self.create)
         bot.tree.add_command(self.group)
 
     def load_mission(self, name: str):

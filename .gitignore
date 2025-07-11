@@ -16,3 +16,6 @@ coverage/
 __pycache__/
 *.pyc
 chroma_db/
+chromadb/
+langchain_community/
+dotenv.py
