@@ -48,7 +48,7 @@ This roadmap outlines the high-level and detailed phases of development for **Ir
 - Scavenging loot tables & mission zones
 - Item crafting system
 - Field repair logic with failure states
-- `/mission` creation tool
+- `/mission create` tool for generating dynamic missions
 - Faction-themed NPC generation
 - Codex discovery hooks & narrative ties
 

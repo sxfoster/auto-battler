@@ -37,8 +37,8 @@ async def test_mission_create(monkeypatch):
     class DummyGen:
         def __init__(self):
             self.called = False
-        async def generate(self, did):
-            self.called = True
+        async def generate(self, did, typ, details):
+            self.called = (did, typ, details)
             return {"id": 1}
 
     bot.mission_generator = DummyGen()
@@ -53,12 +53,12 @@ async def test_mission_create(monkeypatch):
 
     monkeypatch.setattr(mission.MissionCog, "start_mission_from_json", fake_start)
 
-    await cog.create(interaction)
+    await cog.create.callback(cog, interaction, "item_retrieval", "part")
 
     assert interaction.response.deferred
     assert called.get("mission") == {"id": 1}
     assert called.get("followup") is True
-    assert bot.mission_generator.called
+    assert bot.mission_generator.called == ("1", "item_retrieval", "part")
 
 
 class DummySend:

@@ -56,12 +56,22 @@ class MissionCog(commands.Cog):
         with open(file, 'r', encoding='utf-8') as f:
             return json.load(f)
 
-    async def start(self, interaction: discord.Interaction, name: str):
-        mission = self.load_mission(name)
-        if not mission:
-            await interaction.response.send_message(embed=simple('Mission not found.'), ephemeral=True)
-            return
+    async def start_mission(
+        self, interaction: discord.Interaction, mission: str | dict
+    ) -> None:
+        """Start a mission by name or using a JSON definition."""
+        if isinstance(mission, str):
+            mission = self.load_mission(mission)
+            if not mission:
+                await interaction.response.send_message(
+                    embed=simple('Mission not found.'), ephemeral=True
+                )
+                return
         await self.start_mission_from_json(interaction, mission)
+
+    async def start(self, interaction: discord.Interaction, name: str):
+        """Slash command to start a predefined mission by name."""
+        await self.start_mission(interaction, name)
 
     async def start_mission_from_json(self, interaction: discord.Interaction, mission: dict, *, followup: bool = False):
         """Begin a mission using the provided mission dictionary."""
@@ -92,13 +102,14 @@ class MissionCog(commands.Cog):
         await thread.send(f"Mission complete with outcome: {outcome}")
         await send(embed=simple('Mission started! Check the thread.'), ephemeral=True)
 
-    async def create(self, interaction: discord.Interaction):
+    async def create(self, interaction: discord.Interaction, type: str, details: str):
+        """Slash command handler to generate a mission dynamically."""
         await interaction.response.defer(ephemeral=True)
         generator = getattr(self.bot, 'mission_generator', None)
         if not generator:
             await interaction.followup.send('Mission generator unavailable.', ephemeral=True)
             return
-        mission = await generator.generate(str(interaction.user.id))
+        mission = await generator.generate(str(interaction.user.id), type, details)
         if not mission:
             await interaction.followup.send('Failed to generate mission.', ephemeral=True)
             return

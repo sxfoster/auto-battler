@@ -32,7 +32,7 @@ async def test_generate_returns_json(monkeypatch):
     agent = type('A', (), {'get_narrative': fake_get_narrative})()
 
     gen = MissionGenerator(agent, rag)
-    mission = await gen.generate('123')
+    mission = await gen.generate('123', 'item_retrieval', 'find a part')
 
     assert mission == {"id": 1, "name": "test"}
     assert calls['pid'] == '123'
@@ -53,4 +53,4 @@ async def test_invalid_json(monkeypatch):
     monkeypatch.setattr(database, 'query', fake_query)
     agent = type('A', (), {'get_narrative': fake_get_narrative})()
     gen = MissionGenerator(agent, None)
-    assert await gen.generate('x') is None
+    assert await gen.generate('x', 't', 'd') is None
