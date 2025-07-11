@@ -1,9 +1,11 @@
 import json
 import logging
-from typing import Optional
+from typing import Optional, TYPE_CHECKING
 
-from ai.ai_agent import AIAgent
 from services.rag_service import RAGService
+
+if TYPE_CHECKING:
+    from ai.ai_agent import AIAgent
 
 logger = logging.getLogger(__name__)
 
@@ -11,7 +13,7 @@ logger = logging.getLogger(__name__)
 class OpeningSceneService:
     """Generate an introductory scene using RAG context and the Lore Weaver LLM."""
 
-    def __init__(self, agent: AIAgent, rag_service: RAGService | None = None) -> None:
+    def __init__(self, agent: "AIAgent", rag_service: RAGService | None = None) -> None:
         self.agent = agent
         self.rag_service = rag_service
 
