@@ -3,6 +3,7 @@ import pytest
 discord = pytest.importorskip("discord")
 from discord.ext import commands
 from ironaccord_bot.cogs import start
+from ironaccord_bot.interview_config import QUESTIONS
 
 
 class DummyResponse:
@@ -28,7 +29,7 @@ async def test_start_cog_returns_view(monkeypatch):
 
     await cog.start.callback(cog, interaction)
 
-    assert isinstance(interaction.response.kwargs["view"], start.OracleView)
+    assert isinstance(interaction.response.kwargs["view"], start.InterviewView)
     assert interaction.response.kwargs["ephemeral"] is True
 
 
@@ -110,18 +111,18 @@ async def test_oracle_view_compiles_answers(monkeypatch):
 
     monkeypatch.setattr(start.StartCog, "handle_character_description", fake_handle)
 
-    view = start.OracleView(cog)
+    view = start.InterviewView(cog)
     inter = DummyInteraction3()
 
     # simulate clicking first option for each question
-    for _ in range(len(view.QUESTIONS)):
+    for _ in range(len(QUESTIONS)):
         button = view.children[0]
         await button.callback(inter)
 
     expected = (
-        "This person sees the old world as a tragic loss. "
-        "They share what little you have with those in need. "
-        "They seek the truth behind conspiracies. "
-        "They value unwavering loyalty in a companion."
+        "Signal Profile: you mourn what was lost, "
+        "you share without hesitation, "
+        "you dig deeper, "
+        "you value steadfast allies"
     )
     assert called["summary"] == expected
