@@ -66,7 +66,10 @@ async def test_handle_character_description(monkeypatch):
             }
 
     class DummyView:
-        def __init__(self, choices):
+        def __init__(self, agent, scene, question, choices):
+            self.agent = agent
+            self.scene = scene
+            self.question = question
             self.choices = choices
 
     monkeypatch.setattr(start, "OpeningSceneService", DummyService)
