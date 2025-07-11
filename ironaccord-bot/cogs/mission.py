@@ -89,7 +89,11 @@ class MissionCog(commands.Cog):
         if not generator:
             await interaction.followup.send('Mission generator unavailable.', ephemeral=True)
             return
-        mission = await generator.generate(str(interaction.user.id))
+        context = await generator._collect_player_context(str(interaction.user.id))
+        if context is None:
+            await interaction.followup.send('Failed to load player context.', ephemeral=True)
+            return
+        mission = await generator.generate('default', '', context)
         if not mission:
             await interaction.followup.send('Failed to generate mission.', ephemeral=True)
             return

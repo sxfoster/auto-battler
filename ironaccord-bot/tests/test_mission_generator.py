@@ -24,7 +24,7 @@ async def test_generate_returns_json(monkeypatch):
 
     async def fake_get_narrative(self, prompt):
         calls['prompt'] = prompt
-        return '{"id":1,"name":"test"}'
+        return '{"id":1,"name":"test","intro":"hi","rounds":[],"rewards":{},"codexFragment":null}'
 
     monkeypatch.setattr(mission_service, 'get_player_id', fake_get_player_id)
     monkeypatch.setattr(database, 'query', fake_query)
@@ -32,9 +32,17 @@ async def test_generate_returns_json(monkeypatch):
     agent = type('A', (), {'get_narrative': fake_get_narrative})()
 
     gen = MissionGenerator(agent, rag)
-    mission = await gen.generate('123')
+    context = await gen._collect_player_context('123')
+    mission = await gen.generate('basic', 'find stuff', context)
 
-    assert mission == {"id": 1, "name": "test"}
+    assert mission == {
+        "id": 1,
+        "name": "test",
+        "intro": "hi",
+        "rounds": [],
+        "rewards": {},
+        "codexFragment": None,
+    }
     assert calls['pid'] == '123'
     assert 'prompt' in calls
 
@@ -53,4 +61,5 @@ async def test_invalid_json(monkeypatch):
     monkeypatch.setattr(database, 'query', fake_query)
     agent = type('A', (), {'get_narrative': fake_get_narrative})()
     gen = MissionGenerator(agent, None)
-    assert await gen.generate('x') is None
+    context = await gen._collect_player_context('x')
+    assert await gen.generate('basic', 'info', context) is None

@@ -54,24 +54,50 @@ class MissionGenerator:
             logger.warning("RAG query failed: %s", exc)
             return ""
 
-    async def generate(self, discord_id: str, objective: str = "") -> Optional[Dict[str, Any]]:
-        """Generate a mission for the given player."""
-        context = await self._collect_player_context(discord_id)
-        if context is None:
+    async def generate(
+        self,
+        request_type: str,
+        request_details: str,
+        player_context: Dict[str, Any],
+    ) -> Optional[Dict[str, Any]]:
+        """Generate a mission for the given player context."""
+
+        if not player_context:
             return None
 
         lore = self._get_lore_snippets()
+        if self.rag_service:
+            try:
+                keywords = " ".join(request_details.split()[:5])
+                results = self.rag_service.query(keywords, k=3)
+                snippets = []
+                for doc in results:
+                    if hasattr(doc, "page_content"):
+                        snippets.append(doc.page_content)
+                    else:
+                        snippets.append(str(doc))
+                if snippets:
+                    lore = "\n".join(snippets)
+            except Exception as exc:  # pragma: no cover - RAG may fail
+                logger.warning("RAG query failed: %s", exc)
+
+        system_msg = "You are a mission design AI."
         prompt = (
-            "You are a mission design AI. Use the player info and lore below to "
-            "create a short mission in JSON format.\n\n"
-            f"PLAYER: {context}\n\nLORE:\n{lore}\n\nOBJECTIVE: {objective}\n"
-            "Return only valid JSON describing the mission with keys 'id', "
-            "'name', 'intro', 'rounds', 'rewards', and 'codexFragment'."
+            f"{system_msg}\n\nWORLD LORE:\n{lore}\n\nPLAYER CONTEXT:\n{player_context}\n\n"
+            f"MISSION TYPE: {request_type}\nDETAILS: {request_details}\n"
+            "Return only valid JSON describing the mission with keys 'id', 'name', 'intro', 'rounds', 'rewards', and 'codexFragment'."
         )
 
         response = await self.agent.get_narrative(prompt)
         try:
-            return json.loads(response)
+            mission = json.loads(response)
         except json.JSONDecodeError:
             logger.error("Failed to parse mission JSON: %s", response)
             return None
+
+        required = {"id", "name", "intro", "rounds", "rewards", "codexFragment"}
+        if not isinstance(mission, dict) or not required.issubset(mission.keys()):
+            logger.error("Mission JSON missing keys: %s", response)
+            return None
+
+        return mission
