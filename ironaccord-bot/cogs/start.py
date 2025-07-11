@@ -7,21 +7,31 @@ from services.opening_scene_service import OpeningSceneService
 from views.opening_scene_view import OpeningSceneView
 
 
+class StartView(discord.ui.View):
+    """View that launches the character creation modal."""
+
+    def __init__(self, cog: "StartCog") -> None:
+        super().__init__(timeout=None)
+        self.cog = cog
+
+    @discord.ui.button(label="Create My Character", style=discord.ButtonStyle.success)
+    async def create_character(
+        self, interaction: discord.Interaction, button: discord.ui.Button
+    ) -> None:
+        await interaction.response.send_modal(CharacterPromptModal(self.cog))
+
+
 
 
 class CharacterPromptModal(discord.ui.Modal):
     """Prompt the player to describe their character."""
 
     def __init__(self, cog: "StartCog") -> None:
-        super().__init__(title="Welcome to Iron Accord")
+        super().__init__(title="Create Your Character")
         self.cog = cog
         self.description = discord.ui.TextInput(
-            label="Character Description",
-            placeholder=(
-                "Tell me about the person you want to be. "
-                "What is their name? What do they look like? "
-                "What drives them?"
-            ),
+            label="Describe Your Character",
+            placeholder="Tell your story here...",
             style=discord.TextStyle.paragraph,
             max_length=500,
             required=True,
@@ -43,8 +53,13 @@ class StartCog(commands.Cog):
     @app_commands.command(name="start", description="Begin your journey in the world of Iron Accord.")
     async def start(self, interaction: discord.Interaction):
         """Begin the character creation flow."""
-        modal = CharacterPromptModal(self)
-        await interaction.response.send_modal(modal)
+        prompt_text = (
+            "Welcome to the world of Iron Accord. Before your story can begin, "
+            "tell me about the person you want to be. What is their name? "
+            "What do they look like? What drives them? What secrets do they keep?"
+        )
+        view = StartView(self)
+        await interaction.response.send_message(prompt_text, view=view, ephemeral=True)
 
     async def handle_character_description(
         self, interaction: discord.Interaction, text: str
