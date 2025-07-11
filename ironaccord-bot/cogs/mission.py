@@ -44,7 +44,10 @@ class MissionCog(commands.Cog):
         self.bot = bot
         self.group = app_commands.Group(name='mission', description='Mission commands')
         self.group.command(name='start', description='Start a mission')(self.start)
-        self.group.command(name='create', description='Generate a mission')(self.create)
+        self.group.command(
+            name='create',
+            description='Generate a mission with the given type and details'
+        )(self.create)
         bot.tree.add_command(self.group)
 
     def load_mission(self, name: str):
@@ -83,13 +86,14 @@ class MissionCog(commands.Cog):
         await thread.send(f"Mission complete with outcome: {outcome}")
         await interaction.response.send_message(embed=simple('Mission started! Check the thread.'), ephemeral=True)
 
-    async def create(self, interaction: discord.Interaction):
+    async def create(self, interaction: discord.Interaction, type: str, details: str):
         await interaction.response.defer(ephemeral=True)
         generator = getattr(self.bot, 'mission_generator', None)
         if not generator:
             await interaction.followup.send('Mission generator unavailable.', ephemeral=True)
             return
-        mission = await generator.generate(str(interaction.user.id))
+        objective = f"{type}: {details}"
+        mission = await generator.generate(str(interaction.user.id), objective)
         if not mission:
             await interaction.followup.send('Failed to generate mission.', ephemeral=True)
             return

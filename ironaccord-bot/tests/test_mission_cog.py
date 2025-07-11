@@ -36,16 +36,20 @@ async def test_mission_create(monkeypatch):
     class DummyGen:
         def __init__(self):
             self.called = False
-        async def generate(self, did):
+            self.args = None
+
+        async def generate(self, did, objective=""):
             self.called = True
+            self.args = (did, objective)
             return {"id": 1}
 
     bot.mission_generator = DummyGen()
     cog = mission.MissionCog(bot)
     interaction = DummyInteraction()
 
-    await cog.create.callback(cog, interaction)
+    await cog.create(interaction, "rescue", "save the hostages")
 
     assert interaction.response.deferred
     assert interaction.followup.called
     assert bot.mission_generator.called
+    assert bot.mission_generator.args == ("1", "rescue: save the hostages")
