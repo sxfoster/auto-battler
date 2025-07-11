@@ -58,6 +58,19 @@ class OpeningSceneView(discord.ui.View):
         self.turn += 1
         return data
 
+    async def _summarize_story(self) -> str | None:
+        """Return a summary of the completed prelude from the Lore Weaver."""
+        history_text = "\n".join(self.history)
+        prompt = (
+            "Summarize the events of this prelude and describe the character that has been forged by these actions.\n"
+            f"Story so far:\n{history_text}"
+        )
+        try:
+            return await self.agent.get_narrative(prompt)
+        except Exception as exc:  # pragma: no cover - network or model failure
+            logger.error("Lore Weaver summary failed: %s", exc, exc_info=True)
+            return None
+
     class ChoiceButton(discord.ui.Button):
         def __init__(self, text: str, idx: int):
             super().__init__(
@@ -80,21 +93,26 @@ class OpeningSceneView(discord.ui.View):
                 )
                 return
 
-            scene = result.get("scene", "")
-            question = result.get("question", "")
-            choices = result.get("choices", [])
-
-            embed = discord.Embed(
-                title=view.embed_title,
-                description=f"{scene}\n\n**{question}**",
-                color=discord.Color.dark_gold(),
-            )
-
             if view.turn > view.turns:
-                # Story complete
+                summary = await view._summarize_story()
+                if summary is None:
+                    summary = "An error occurred while summarizing the story."
                 view.clear_items()
-                embed.set_footer(text="The End")
+                embed = discord.Embed(
+                    title="Prelude Complete",
+                    description=f"{summary}\n\nYour story has just begun.",
+                    color=discord.Color.dark_gold(),
+                )
             else:
+                scene = result.get("scene", "")
+                question = result.get("question", "")
+                choices = result.get("choices", [])
+
+                embed = discord.Embed(
+                    title=view.embed_title,
+                    description=f"{scene}\n\n**{question}**",
+                    color=discord.Color.dark_gold(),
+                )
                 view._populate_buttons(choices)
 
             await interaction.message.edit(embed=embed, view=view)
