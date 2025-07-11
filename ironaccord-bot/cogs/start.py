@@ -67,7 +67,7 @@ class StartCog(commands.Cog):
             color=discord.Color.dark_gold(),
         )
 
-        view = OpeningSceneView(choices)
+        view = OpeningSceneView(self.agent, scene, question, choices)
         await interaction.followup.send(embed=embed, view=view, ephemeral=True)
 
 async def setup(bot: commands.Bot):
