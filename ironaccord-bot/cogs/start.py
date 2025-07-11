@@ -3,6 +3,8 @@ from discord.ext import commands
 from discord import app_commands
 
 from ai.ai_agent import AIAgent
+from services.opening_scene_service import OpeningSceneService
+from views.opening_scene_view import OpeningSceneView
 
 
 
@@ -41,10 +43,32 @@ class StartCog(commands.Cog):
         modal = CharacterPromptModal(self)
         await interaction.response.send_modal(modal)
 
-    async def handle_character_description(self, interaction: discord.Interaction, text: str) -> None:
-        """Receive the player's free-text character description."""
-        # Store or process ``text`` for the next phase. For now we simply acknowledge receipt.
-        await interaction.followup.send("Character description recorded.", ephemeral=True)
+    async def handle_character_description(
+        self, interaction: discord.Interaction, text: str
+    ) -> None:
+        """Generate the opening scene from the player's description."""
+
+        service = OpeningSceneService(self.agent, self.rag_service)
+        result = await service.generate_opening(text)
+
+        if not result:
+            await interaction.followup.send(
+                "An error occurred while generating the scene.", ephemeral=True
+            )
+            return
+
+        scene = result.get("scene", "")
+        question = result.get("question", "")
+        choices = result.get("choices", [])
+
+        embed = discord.Embed(
+            title="A Fateful Encounter",
+            description=f"{scene}\n\n**{question}**",
+            color=discord.Color.dark_gold(),
+        )
+
+        view = OpeningSceneView(choices)
+        await interaction.followup.send(embed=embed, view=view, ephemeral=True)
 
 async def setup(bot: commands.Bot):
     await bot.add_cog(StartCog(bot))
