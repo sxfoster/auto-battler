@@ -7,10 +7,14 @@ from ironaccord_bot.cogs import start
 
 class DummyResponse:
     def __init__(self):
+        self.kwargs = None
         self.modal = None
 
     async def send_modal(self, modal):
         self.modal = modal
+
+    async def send_message(self, *args, **kwargs):
+        self.kwargs = kwargs
 
 class DummyInteraction:
     def __init__(self):
@@ -28,7 +32,8 @@ async def test_start_cog_returns_view(monkeypatch):
 
     await cog.start.callback(cog, interaction)
 
-    assert isinstance(interaction.response.modal, start.CharacterPromptModal)
+    assert isinstance(interaction.response.kwargs["view"], start.StartView)
+    assert interaction.response.kwargs["ephemeral"] is True
 
 
 class DummyFollowup:
