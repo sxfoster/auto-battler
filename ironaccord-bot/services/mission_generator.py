@@ -1,16 +1,16 @@
-import json
+"""Generate narrative scenes using world lore and player choices."""
+
 import logging
-from typing import Any, Dict, Optional
+from typing import Optional
 
 from ai.ai_agent import AIAgent
 from services.rag_service import RAGService
-from services.player_context_service import gather_player_context
 
 logger = logging.getLogger(__name__)
 
 
 class MissionGenerator:
-    """Generate missions using player context and lore."""
+    """Generate story scenes using the player's chosen background and lore."""
 
     def __init__(self, agent: AIAgent, rag_service: RAGService | None = None) -> None:
         self.agent = agent
@@ -21,6 +21,7 @@ class MissionGenerator:
         """Return lore snippets related to *query* from the RAG service."""
         if not self.rag_service:
             return ""
+        logger.info("Calling RAG service for '%s'", query)
         try:
             results = self.rag_service.query(query, k=3)
             snippets = []
@@ -31,33 +32,35 @@ class MissionGenerator:
                     snippets.append(str(doc))
             return "\n".join(snippets)
         except Exception as exc:  # pragma: no cover - RAG may fail
-            logger.warning("RAG query failed: %s", exc)
+            logger.error("Failed during RAG service call: %s", exc, exc_info=True)
             return ""
 
-    async def generate(
-        self,
-        discord_id: str,
-        request_type: str,
-        request_details: str,
-    ) -> Optional[Dict[str, Any]]:
-        """Generate a mission for the given player."""
-        context = await gather_player_context(discord_id)
-        if context is None:
-            return None
+    async def generate_intro(self, background: str) -> Optional[str]:
+        """Generate the opening scene for the chosen ``background``."""
 
-        lore = self._get_lore_snippets(request_details)
+        logger.info("Gathering lore snippets for world overview")
+        world_lore = self._get_lore_snippets("world overview")
+
+        logger.info("Gathering lore snippets for Iron Accord faction")
+        faction_lore = self._get_lore_snippets("iron accord faction")
+
         prompt = (
-            "You are a mission design AI. Use the player info and lore below to "
-            "create a short mission in JSON format.\n\n"
-            f"PLAYER: {context}\n\nLORE:\n{lore}\n\nMISSION TYPE: {request_type}\n"
-            f"REQUEST DETAILS: {request_details}\n"
-            "Return only valid JSON describing the mission with keys 'id', "
-            "'name', 'intro', 'rounds', 'rewards', and 'codexFragment'."
+            "System: You are a master TTRPG Dungeon Master. Your task is to start a "
+            "short, self-contained steampunk adventure for the player based on their "
+            "chosen background. The story must have an introduction and an immediate "
+            "situation that requires the player to make a decision.\n\n"
+            f"WORLD LORE:\n{world_lore}\n{faction_lore}\n\n"
+            f"PLAYER CONTEXT:\nPlayer Background: {background}\n\n"
+            "TASK:\nCraft the opening scene of an adventure. Describe the player's "
+            "immediate surroundings and present them with a challenge or a mystery. "
+            "End your response by explicitly asking the player: 'What do you do?'"
         )
 
-        response = await self.agent.get_narrative(prompt)
+        logger.info("Calling language model for story generation")
         try:
-            return json.loads(response)
-        except json.JSONDecodeError:
-            logger.error("Failed to parse mission JSON: %s", response)
+            text = await self.agent.get_narrative(prompt)
+        except Exception as exc:
+            logger.error("Failed during LLM call: %s", exc, exc_info=True)
             return None
+
+        return text
