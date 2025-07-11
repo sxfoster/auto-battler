@@ -69,7 +69,26 @@ class StartCog(commands.Cog):
         await interaction.response.defer(ephemeral=True, thinking=True)
 
         intro_text = self._intro_text()
-        backgrounds = random.sample(self._background_names(), k=2)
+        background_names = self._background_names()
+
+        # Randomly sample backgrounds only if at least two are available. This
+        # avoids ValueError when the list is too small and lets us gracefully
+        # fall back to whatever options exist.
+        if len(background_names) >= 2:
+            backgrounds = random.sample(background_names, k=2)
+        elif len(background_names) == 1:
+            backgrounds = background_names
+        else:
+            backgrounds = []
+
+        # If no backgrounds exist, inform the user and exit early. The
+        # followup message is ephemeral so only they see the warning.
+        if not backgrounds:
+            await interaction.followup.send(
+                "No backgrounds are available. Please contact an administrator.",
+                ephemeral=True,
+            )
+            return
 
         embed = discord.Embed(
             title="Welcome to Iron Accord",
