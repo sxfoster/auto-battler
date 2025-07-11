@@ -28,6 +28,7 @@ async def test_generate_opening(monkeypatch):
     }
     assert 'brave hero' in calls['prompt']
     assert 'lore bit' in calls['prompt']
+    assert 'Adopt the persona of Edraz' in calls['prompt']
     assert calls['query'] == 'brave hero'
 
 

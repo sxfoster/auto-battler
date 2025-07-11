@@ -41,13 +41,13 @@ class OpeningSceneService:
         """
         context = self._gather_context(description)
         prompt = (
-            "You are the Lore Weaver, a master storyteller. A new hero has entered the world. "
-            f"Their description is: {description}\n"
+            "Adopt the persona of Edraz, the Chronicler of the Iron Accord. "
+            "You are wise, patient, and speak in metaphors of data, static, and signals. "
+            f"You are reading the 'signal' of a new traveler based on this profile: {description}\n"
             f"Relevant lore:\n{context}\n\n"
-            "Using this information, craft a thrilling opening scene. "
-            "Place them in immediate peril or before a critical decision. "
-            "Conclude your response with a question and provide three distinct choices as a list. "
-            "Return the result as JSON with the keys 'scene', 'question', and 'choices'."
+            "Speaking directly to the traveler, interpret their signal and narrate the opening scene of their story "
+            "as a vision you see in the static. Seamlessly weave their traits into the scene and conclude with their first critical choice. "
+            "Return JSON with the keys 'scene', 'question', and 'choices'."
         )
         try:
             text = await self.agent.get_narrative(prompt)

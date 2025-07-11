@@ -5,7 +5,8 @@ from discord import app_commands
 from ai.ai_agent import AIAgent
 from services.opening_scene_service import OpeningSceneService
 from views.opening_scene_view import OpeningSceneView
-from views.oracle_view import OracleView
+from views.interview_view import InterviewView
+from ironaccord_bot.interview_config import EDRAZ_GREETING, EDRAZ_IMAGE_URL
 
 
 class StartCog(commands.Cog):
@@ -16,17 +17,14 @@ class StartCog(commands.Cog):
 
     @app_commands.command(name="start", description="Begin your journey in the world of Iron Accord.")
     async def start(self, interaction: discord.Interaction):
-        """Begin the Wasteland Oracle question flow."""
-        view = OracleView(self)
+        """Begin the Edraz interview question flow."""
+        view = InterviewView(self)
         embed = discord.Embed(
-            title="The Wasteland Oracle",
-            description=(
-                "A crackle of static breaks the silence. A voice, smooth and calm, "
-                "echoes from a forgotten frequency... it's the Oracle. He has a question for you.\n\n"
-                f"**{view._current_question()}**"
-            ),
+            title="Edraz, Chronicler of the Accord",
+            description=f"{EDRAZ_GREETING}\n\n**{view._current_question()}**",
             color=discord.Color.dark_gold(),
         )
+        embed.set_image(url=EDRAZ_IMAGE_URL)
         await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
 
     async def handle_character_description(
