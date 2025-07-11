@@ -2,9 +2,9 @@ import json
 import logging
 from typing import Any, Dict, Optional
 
-from models import mission_service, database
 from ai.ai_agent import AIAgent
 from services.rag_service import RAGService
+from services.player_context_service import gather_player_context
 
 logger = logging.getLogger(__name__)
 
@@ -16,27 +16,6 @@ class MissionGenerator:
         self.agent = agent
         self.rag_service = rag_service
 
-    async def _collect_player_context(self, discord_id: str) -> Dict[str, Any] | None:
-        player_id = await mission_service.get_player_id(discord_id)
-        if not player_id:
-            return None
-
-        res = await database.query(
-            "SELECT level FROM players WHERE id = %s", [player_id]
-        )
-        level = res["rows"][0]["level"] if res["rows"] else 1
-
-        stats_res = await database.query(
-            "SELECT stat, value FROM user_stats WHERE player_id = %s", [player_id]
-        )
-        stats = {row["stat"]: row["value"] for row in stats_res["rows"]}
-
-        codex_res = await database.query(
-            "SELECT entry_key FROM codex_entries WHERE player_id = %s", [player_id]
-        )
-        codex = [r["entry_key"] for r in codex_res["rows"]]
-
-        return {"level": level, "stats": stats, "codex": codex}
 
     def _get_lore_snippets(self) -> str:
         if not self.rag_service:
@@ -56,7 +35,7 @@ class MissionGenerator:
 
     async def generate(self, discord_id: str, objective: str = "") -> Optional[Dict[str, Any]]:
         """Generate a mission for the given player."""
-        context = await self._collect_player_context(discord_id)
+        context = await gather_player_context(discord_id)
         if context is None:
             return None
 
