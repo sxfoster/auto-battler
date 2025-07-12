@@ -36,13 +36,21 @@ class OpeningSceneService:
         return "\n".join(snippets)
 
     async def generate_opening(self, text: str) -> dict | None:
-        """
-        Generates the opening scene using the AI agent and RAG service.
-        This method is now robust against malformed JSON from the LLM.
-        """
-        logging.info(f"Performing RAG query for: '{text}'")
-        rag_context = self.rag_service.query(text)
-        prompt = self.agent.get_opening_scene_prompt(text, rag_context)
+        """Return an opening scene generated from structured lore."""
+
+        if not self.rag_service:
+            logger.error("RAG service not configured; cannot build opening scene")
+            return None
+
+        # Fetch the canonical location and NPC for the one-shot intro
+        location_data = self.rag_service.get_entity_by_name("Brasshaven", "Location")
+        npc_data = self.rag_service.get_entity_by_name("Edraz", "NPC")
+
+        if not location_data or not npc_data:
+            logger.error("Could not retrieve one-shot adventure data from RAG service.")
+            return None
+
+        prompt = self.agent.get_structured_scene_prompt(location_data, npc_data)
 
         raw_response = await self.agent.get_completion(prompt)
 
