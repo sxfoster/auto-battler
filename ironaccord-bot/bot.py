@@ -1,11 +1,15 @@
 import sys
 import os
+import pprint
 
 # Add the parent directory of 'ironaccord-bot' to the Python path
-# This allows for absolute imports from the project root.
-project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 if project_root not in sys.path:
     sys.path.insert(0, project_root)
+
+print("--- PYTHON PATH ---")
+pprint.pprint(sys.path)
+print("-------------------")
 
 import argparse
 import discord
