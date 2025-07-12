@@ -75,3 +75,39 @@ class RAGService:
                 f"Error retrieving section '{section_name}' for character '{character_name}': {e}"
             )
             return ""
+
+    def get_entity_by_name(self, name: str, entity_type: str) -> dict | None:
+        """Return a YAML object stored in the collection filtered by ``name`` and ``type``."""
+
+        if not self.vector_store:
+            logger.error("Vector store not available. Cannot perform query.")
+            return None
+
+        try:
+            results = self.vector_store._collection.get(
+                where={"name": name, "type": entity_type},
+                include=["documents"],
+                limit=1,
+            )
+
+            docs = results.get("documents") if results else None
+            if not docs:
+                return None
+
+            doc = docs[0]
+            if isinstance(doc, list):
+                doc = doc[0] if doc else None
+            if doc is None:
+                return None
+
+            try:  # Attempt to parse with PyYAML if available
+                import yaml  # type: ignore
+
+                return yaml.safe_load(doc)
+            except Exception:
+                return doc
+        except Exception as e:
+            logger.error(
+                f"Error retrieving entity '{name}' of type '{entity_type}': {e}"
+            )
+            return None
