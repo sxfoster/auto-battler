@@ -1,4 +1,5 @@
 import json
+import re
 import logging
 from typing import Optional, TYPE_CHECKING
 
@@ -34,28 +35,33 @@ class OpeningSceneService:
                 snippets.append(str(doc))
         return "\n".join(snippets)
 
-    async def generate_opening(self, description: str) -> Optional[dict]:
-        """Create an opening scene for *description*.
-
-        Returns the parsed JSON result or ``None`` on failure.
+    async def generate_opening(self, text: str) -> dict | None:
         """
-        context = self._gather_context(description)
-        prompt = (
-            "Adopt the persona of Edraz, the Chronicler of the Iron Accord. "
-            "You are wise, patient, and speak in metaphors of data, static, and signals. "
-            f"You are reading the 'signal' of a new traveler based on this profile: {description}\n"
-            f"Relevant lore:\n{context}\n\n"
-            "Speaking directly to the traveler, interpret their signal and narrate the opening scene of their story "
-            "as a vision you see in the static. Seamlessly weave their traits into the scene and conclude with their first critical choice. "
-            "Return JSON with the keys 'scene', 'question', and 'choices'."
-        )
-        try:
-            text = await self.agent.get_narrative(prompt)
-        except Exception as exc:  # pragma: no cover - unexpected model failure
-            logger.error("Lore Weaver call failed: %s", exc, exc_info=True)
+        Generates the opening scene using the AI agent and RAG service.
+        This method is now robust against malformed JSON from the LLM.
+        """
+        logging.info(f"Performing RAG query for: '{text}'")
+        rag_context = self.rag_service.query(text)
+        prompt = self.agent.get_opening_scene_prompt(text, rag_context)
+
+        raw_response = await self.agent.get_completion(prompt)
+
+        if not raw_response:
+            logging.error("Received no response from the AI agent.")
             return None
+
         try:
-            return json.loads(text)
-        except json.JSONDecodeError:
-            logger.error("Lore Weaver returned invalid JSON: %s", text)
+            json_match = re.search(r'\{.*\}', raw_response, re.DOTALL)
+
+            if not json_match:
+                logging.error(f"No JSON object found in the LLM response: {raw_response}")
+                return None
+
+            json_string = json_match.group(0)
+
+            return json.loads(json_string)
+
+        except json.JSONDecodeError as e:
+            logging.error(f"Lore Weaver returned invalid JSON: {raw_response}")
+            logging.error(f"JSON parsing failed with error: {e}")
             return None
