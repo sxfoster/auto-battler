@@ -1,5 +1,14 @@
 from pathlib import Path
-from services.ollama_service import OllamaService
+import importlib.util
+import sys
+
+# Load OllamaService directly to avoid importing the heavy ``services`` package
+_ollama_path = Path(__file__).resolve().parents[1] / "services" / "ollama_service.py"
+_spec = importlib.util.spec_from_file_location("services.ollama_service", _ollama_path)
+_ollama_mod = importlib.util.module_from_spec(_spec)
+_spec.loader.exec_module(_ollama_mod)
+sys.modules.setdefault("services.ollama_service", _ollama_mod)
+OllamaService = _ollama_mod.OllamaService
 
 
 def _concat_markdown_files(folder: str) -> str:
@@ -122,4 +131,28 @@ class AIAgent:
                 {{"Choice": "...", "Result": "..."}}
             ]
         }}
+        """
+
+    def get_structured_scene_prompt(self, location: dict, npc: dict) -> str:
+        """Return a prompt for generating a scene focused on ``location`` and ``npc``.
+
+        The prompt embeds the provided dictionaries as factual context and
+        instructs the language model to return structured JSON, mirroring the
+        style of the opening scene prompt.
+        """
+
+        return f"""
+        You are Lore Weaver, a master storyteller guiding a tabletop role-playing game.
+        Use the factual details below to describe the current scene and the NPC's interaction.
+
+        **Location Facts:**
+        {location}
+
+        **NPC Facts:**
+        {npc}
+
+        **Your Instructions:**
+        Craft a concise scene description featuring the location and NPC. Conclude with a
+        single question for the player and two short choices they might take. Respond only
+        with a JSON object using the keys "scene", "question", and "choices" as shown earlier.
         """
