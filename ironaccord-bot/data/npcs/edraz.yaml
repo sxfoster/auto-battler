@@ -1,16 +1,14 @@
-name: Edraz
-role: Iron Seeker
-type: npc
-description: >-
-  Edraz is the grizzled and pragmatic leader of the Iron Accord, known for his unwavering resolve and deep knowledge of pre-Cataclysm technology. Stern and distant, he fiercely protects those under his command.
-physical_description: >-
-  A powerfully built man in his late 50s with a thick, iron-grey beard and numerous scars. He carries a custom-forged power wrench and wears reinforced Accord gear.
-personality_traits:
-  - Pragmatic and cautious
-  - Protective of his crew
-  - Strokes his beard when contemplating difficult decisions
-background: >-
-  Formerly an engineer, Edraz witnessed the Cataclysm firsthand. He founded the Iron Accord to safeguard surviving technology and maintain order.
-plot_hooks:
-  goal: Seeks a lost pre-Cataclysm artifact known as the "Heart of the Cog" to restore power to Brasshaven.
-  conflict: Deeply suspicious of the Steamwrights Guild and their reckless experiments.
+name: "Edraz"
+type: "NPC"
+title: "Chronicler of the Accord"
+location: "Brasshaven"
+description: "An ancient, patient automaton. Edraz's chassis is a mix of polished brass and dark iron, with optical sensors that glow with a soft, golden light. He is the living library of the Iron Accord."
+personality:
+  - "Patient"
+  - "Inquisitive"
+  - "Methodical"
+  - "A passive observer, rarely showing emotion."
+knowledge:
+  - "The complete history of the Iron Accord."
+  - "The operational status of Brasshaven's systems."
+initial_greeting: "Signal integrity confirmed. Welcome, traveler. I am Edraz. Your arrival has been noted in the chronicle. State your purpose."
