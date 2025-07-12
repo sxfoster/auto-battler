@@ -53,6 +53,25 @@ class RAGService:
             logger.error(f"An error occurred during the RAG query: {e}")
             return []
 
+    def get_entity_by_name(self, name: str) -> dict:
+        """Return YAML data for an entity by ``name`` if available."""
+        import yaml  # Local import avoids dependency when unused
+        from pathlib import Path
+
+        key = name.lower()
+        search_paths = [
+            Path("ironaccord-bot/data/locations") / f"{key}.yaml",
+            Path("ironaccord-bot/data/npcs") / f"{key}.yaml",
+        ]
+        for path in search_paths:
+            try:
+                if path.exists():
+                    with path.open("r", encoding="utf-8") as f:
+                        return yaml.safe_load(f) or {}
+            except Exception as exc:  # pragma: no cover - unexpected file errors
+                logger.error("Failed to read %s: %s", path, exc)
+        return {}
+
     def get_character_section(self, character_name: str, section_name: str) -> str:
         """Retrieve a specific section of lore for a character."""
         if not self.vector_store:
