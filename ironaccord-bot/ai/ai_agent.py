@@ -123,3 +123,36 @@ class AIAgent:
             ]
         }}
         """
+
+    def get_structured_scene_prompt(
+        self, character_description: str, location: str, npc: str
+    ) -> str:
+        """Return the prompt for a structured opening scene."""
+        return f"""
+        You are Lore Weaver, a master storyteller and game master for a tabletop role-playing game.
+        Your task is to generate the opening scene for a new player based on their character description
+        and the following world information.
+
+        **Character Description:**
+        {character_description}
+
+        **Location Lore:**
+        {location}
+
+        **NPC Lore:**
+        {npc}
+
+        **Instructions:** Generate a JSON object with "scene", "question", and "choices" keys.
+        The scene must be concise (no more than two short paragraphs).
+        Each choice should have a "Choice" and a "Result" describing the immediate consequence.
+
+        **Output Format (Strictly JSON):**
+        {{
+            "scene": "...",
+            "question": "...",
+            "choices": [
+                {{"Choice": "...", "Result": "..."}},
+                {{"Choice": "...", "Result": "..."}}
+            ]
+        }}
+        """

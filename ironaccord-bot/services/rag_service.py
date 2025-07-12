@@ -75,3 +75,24 @@ class RAGService:
                 f"Error retrieving section '{section_name}' for character '{character_name}': {e}"
             )
             return ""
+
+    def get_entity_by_name(self, name: str) -> str:
+        """Retrieve lore for an entity identified by ``name``."""
+        if not self.vector_store:
+            logger.error("Vector store not available. Cannot perform query.")
+            return ""
+
+        try:
+            results = self.vector_store._collection.query(
+                query_texts=[f"Retrieve lore for {name}"],
+                where={"name": name},
+                n_results=1,
+            )
+
+            if results and results.get("documents") and results["documents"][0]:
+                return results["documents"][0][0]
+
+            return ""
+        except Exception as e:
+            logger.error("Error retrieving entity '%s': %s", name, e)
+            return ""

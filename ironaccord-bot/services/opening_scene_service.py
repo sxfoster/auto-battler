@@ -40,9 +40,20 @@ class OpeningSceneService:
         Generates the opening scene using the AI agent and RAG service.
         This method is now robust against malformed JSON from the LLM.
         """
-        logging.info(f"Performing RAG query for: '{text}'")
-        rag_context = self.rag_service.query(text)
-        prompt = self.agent.get_opening_scene_prompt(text, rag_context)
+        logging.info("Fetching opening scene context from RAG")
+        location_info = ""
+        npc_info = ""
+        if self.rag_service:
+            try:
+                location_info = self.rag_service.get_entity_by_name("Brasshaven")
+            except Exception as exc:  # pragma: no cover - rag failure
+                logger.error("Failed retrieving Brasshaven info: %s", exc, exc_info=True)
+            try:
+                npc_info = self.rag_service.get_entity_by_name("Edraz")
+            except Exception as exc:  # pragma: no cover - rag failure
+                logger.error("Failed retrieving Edraz info: %s", exc, exc_info=True)
+
+        prompt = self.agent.get_structured_scene_prompt(text, location_info, npc_info)
 
         raw_response = await self.agent.get_completion(prompt)
 
