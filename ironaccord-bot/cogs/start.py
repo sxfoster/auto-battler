@@ -14,10 +14,14 @@ class StartCog(commands.Cog):
         self.bot = bot
         self.agent = AIAgent()
         self.rag_service = getattr(bot, "rag_service", None)
+        self.opening_scene_service: OpeningSceneService | None = None
 
     @app_commands.command(name="start", description="Begin your journey in the world of Iron Accord.")
     async def start(self, interaction: discord.Interaction):
         """Begin the Edraz interview question flow."""
+        self.opening_scene_service = OpeningSceneService(
+            self.agent, self.rag_service
+        )
         view = InterviewView(self)
         embed = discord.Embed(
             title="Edraz, Chronicler of the Accord",
@@ -31,8 +35,12 @@ class StartCog(commands.Cog):
         self, interaction: discord.Interaction, text: str
     ) -> None:
         """Generate the opening scene from the player's answers."""
-        service = OpeningSceneService(self.agent, self.rag_service)
-        result = await service.generate_opening(text)
+        if not self.opening_scene_service:
+            self.opening_scene_service = OpeningSceneService(
+                self.agent, self.rag_service
+            )
+
+        result = await self.opening_scene_service.generate_opening(text)
 
         if not result:
             await interaction.followup.send(

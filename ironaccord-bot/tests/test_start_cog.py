@@ -25,12 +25,22 @@ async def test_start_cog_returns_view(monkeypatch):
     bot.rag_service = None
     cog = start.StartCog(bot)
 
+    created = {}
+
+    class DummyService:
+        def __init__(self, agent, rag):
+            created["rag"] = rag
+
+    monkeypatch.setattr(start, "OpeningSceneService", DummyService)
+
     interaction = DummyInteraction()
 
     await cog.start.callback(cog, interaction)
 
     assert isinstance(interaction.response.kwargs["view"], start.InterviewView)
     assert interaction.response.kwargs["ephemeral"] is True
+    assert isinstance(cog.opening_scene_service, DummyService)
+    assert created["rag"] is bot.rag_service
 
 
 class DummyFollowup:
@@ -86,8 +96,8 @@ async def test_handle_character_description(monkeypatch):
             self.question = question
             self.choices = choices
 
-    monkeypatch.setattr(start, "OpeningSceneService", DummyService)
     monkeypatch.setattr(start, "OpeningSceneView", DummyView)
+    cog.opening_scene_service = DummyService(None, None)
 
     interaction = DummyInteraction2()
 
