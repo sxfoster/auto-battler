@@ -6,7 +6,7 @@ from ai.ai_agent import AIAgent
 from services.opening_scene_service import OpeningSceneService
 from views.opening_scene_view import OpeningSceneView
 from views.interview_view import InterviewView
-from ..interview_config import EDRAZ_GREETING, EDRAZ_IMAGE_URL
+from interview_config import EDRAZ_GREETING, EDRAZ_IMAGE_URL
 
 
 class StartCog(commands.Cog):

@@ -1,5 +1,5 @@
 import discord
-from ironaccord_bot.interview_config import QUESTIONS
+from interview_config import QUESTIONS
 
 class InterviewView(discord.ui.View):
     """Interactive interview conducted by Edraz."""
