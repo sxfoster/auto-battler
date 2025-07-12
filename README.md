@@ -5,7 +5,8 @@ This repository houses the Discord bot used for the auto battler experiments alo
 ## Repository Layout
 
 - `ironaccord-bot/` – Python Discord bot and data files.
-- `docs/` – design notes and lore.
+- `docs/` – design notes and lore in Markdown.
+- `docs/yaml/` – structured YAML lore used for retrieval.
 - `index.html`, `poc2/` – early browser prototypes kept for reference.
 - `ironaccord-bot/data/items.py` – base item definitions consumed by missions and rewards.
 
@@ -18,12 +19,16 @@ This repository houses the Discord bot used for the auto battler experiments alo
    pip install -r requirements.txt
    pip install -r ironaccord-bot/requirements.txt
    ```
-4. Start the bot:
+4. Build the lore database:
+   ```bash
+   python ironaccord-bot/ingest.py
+   ```
+5. Start the bot:
    ```bash
    python -m ironaccord_bot.bot
    ```
    Using `python -m` runs the package as a module so relative imports work.
-5. Once the bot is online, use `/start` in your Discord server to begin character creation.
+6. Once the bot is online, use `/start` in your Discord server to play through a one-shot adventure generated from the structured lore data.
 
 ## Item Data
 
