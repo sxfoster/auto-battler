@@ -2,7 +2,8 @@ import os
 import glob
 import logging
 import chromadb
-# NEW: Updated imports to fix deprecation warnings
+import yaml
+from types import SimpleNamespace
 from langchain.text_splitter import MarkdownHeaderTextSplitter
 
 # --- Configuration ---
@@ -11,6 +12,9 @@ CHROMA_DB_PATH = "./chroma_db"
 COLLECTION_NAME = "iron_accord_lore"
 # Path to your lore documents
 DOCS_PATH = "../docs"
+# NEW: Paths to YAML data
+DATA_LOCATIONS_PATH = "../data/locations"
+DATA_NPCS_PATH = "../data/npcs"
 # Model used to create embeddings. "all-MiniLM-L6-v2" is a great starting point.
 EMBEDDING_MODEL = "sentence-transformers/all-MiniLM-L6-v2"
 
@@ -83,6 +87,37 @@ def ingest_data():
             all_chunks.extend(docs)
         except Exception as e:
             logging.error(f"Failed to process document {doc_path}: {e}")
+            continue
+
+    # --- NEW: Load YAML files from data directories ---
+    yaml_files = []
+    for path in (DATA_LOCATIONS_PATH, DATA_NPCS_PATH):
+        logging.info(f"Scanning for YAML files in: {path}")
+        if os.path.isdir(path):
+            yaml_files.extend(glob.glob(os.path.join(path, "**/*.yml"), recursive=True))
+            yaml_files.extend(glob.glob(os.path.join(path, "**/*.yaml"), recursive=True))
+        else:
+            logging.warning(f"Directory not found: {path}")
+
+    logging.info(f"Found {len(yaml_files)} YAML files to process.")
+
+    TEXT_FIELDS = {"description", "atmosphere"}
+    for yaml_path in yaml_files:
+        logging.info(f"Processing YAML file: {os.path.basename(yaml_path)}")
+        try:
+            with open(yaml_path, "r", encoding="utf-8") as f:
+                data = yaml.safe_load(f) or {}
+            if not isinstance(data, dict):
+                logging.warning(f"Skipping {yaml_path}: root element is not a mapping")
+                continue
+            text_parts = [v for k, v in data.items() if k.lower() in TEXT_FIELDS and isinstance(v, str)]
+            content = "\n\n".join(text_parts) if text_parts else ""
+            meta = data.copy()
+            meta["source"] = os.path.basename(yaml_path)
+            doc = SimpleNamespace(page_content=content, metadata=meta)
+            all_chunks.append(doc)
+        except Exception as e:
+            logging.error(f"Failed to process YAML file {yaml_path}: {e}")
             continue
 
     if not all_chunks:
