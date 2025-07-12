@@ -90,3 +90,36 @@ class AIAgent:
             A direct response string from the GM model.
         """
         return await self.ollama_service.get_gm_response(prompt)
+
+    async def get_completion(self, prompt: str) -> str:
+        """Return a creative completion from the Lore Weaver model."""
+        return await self.get_narrative(prompt)
+
+    def get_opening_scene_prompt(self, character_description: str, rag_context: str) -> str:
+        """Return the prompt used to generate the opening scene."""
+        return f"""
+        You are Lore Weaver, a master storyteller and game master for a tabletop role-playing game.
+        Your task is to generate the opening scene for a new player based on their character description and relevant lore.
+
+        **Character Description:**
+        {character_description}
+
+        **Relevant Lore from the World Codex:**
+        {rag_context}
+
+        **Your Instructions:**
+        Generate a JSON object with three keys: "scene", "question", and "choices".
+        - "scene": A compelling opening scene that introduces the character to the world. **The scene description must be concise and limited to a maximum of two to three paragraphs.**
+        - "question": A thought-provoking question for the player to answer, based on the scene.
+        - "choices": An array of two distinct choices the player can make in response to the question. Each choice should be an object with a "Choice" and a "Result" key, describing the immediate consequence of that choice.
+
+        **Output Format (Strictly JSON):**
+        {{
+            "scene": "...",
+            "question": "...",
+            "choices": [
+                {{"Choice": "...", "Result": "..."}},
+                {{"Choice": "...", "Result": "..."}}
+            ]
+        }}
+        """
