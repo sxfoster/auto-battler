@@ -1,4 +1,4 @@
-import importlib, importlib.util, sys, pathlib
+import importlib, importlib.util, sys, pathlib, types
 pkg_path = pathlib.Path(__file__).resolve().parent / 'ironaccord-bot'
 if pkg_path.exists():
     spec = importlib.util.spec_from_file_location(
@@ -12,6 +12,11 @@ if pkg_path.exists():
     # ensure interview_config is loaded first since other modules may depend on it
     for name in ("interview_config", "models", "services", "ai", "views", "utils", "data"):
         try:
-            sys.modules.setdefault(name, importlib.import_module(f"ironaccord-bot.{name}"))
+            if name == "services":
+                mod = types.ModuleType(name)
+                mod.__path__ = [str(pkg_path / name)]
+                sys.modules.setdefault(name, mod)
+            else:
+                sys.modules.setdefault(name, importlib.import_module(f"ironaccord_bot.{name}"))
         except Exception:
             pass

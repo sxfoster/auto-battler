@@ -4,8 +4,9 @@ from discord import app_commands
 
 from ai.ai_agent import AIAgent
 from services.opening_scene_service import OpeningSceneService
+from services.background_quiz_service import BackgroundQuizService
 from views.opening_scene_view import OpeningSceneView
-from views.interview_view import InterviewView
+from views.background_quiz_view import BackgroundQuizView
 from interview_config import EDRAZ_GREETING, EDRAZ_IMAGE_URL
 
 
@@ -14,14 +15,17 @@ class StartCog(commands.Cog):
         self.bot = bot
         self.agent = AIAgent()
         self.rag_service = getattr(bot, "rag_service", None)
+        self.quiz_service = BackgroundQuizService(self.agent, self.rag_service)
 
     @app_commands.command(name="start", description="Begin your journey in the world of Iron Accord.")
     async def start(self, interaction: discord.Interaction):
         """Begin the Edraz interview question flow."""
-        view = InterviewView(self)
+        questions = await self.quiz_service.generate_questions()
+        view = BackgroundQuizView(self, questions, self.quiz_service)
+        first_question = view._current_question() if questions else ""
         embed = discord.Embed(
             title="Edraz, Chronicler of the Accord",
-            description=f"{EDRAZ_GREETING}\n\n**{view._current_question()}**",
+            description=f"{EDRAZ_GREETING}\n\n**{first_question}**",
             color=discord.Color.dark_gold(),
         )
         embed.set_image(url=EDRAZ_IMAGE_URL)

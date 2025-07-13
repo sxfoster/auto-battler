@@ -27,9 +27,17 @@ async def test_start_cog_returns_view(monkeypatch):
 
     interaction = DummyInteraction()
 
+    async def fake_gen(self):
+        fake_gen.called = True
+        return [{"text": "q", "options": ["a"]}]
+
+    fake_gen.called = False
+    monkeypatch.setattr(start.BackgroundQuizService, "generate_questions", fake_gen)
+
     await cog.start.callback(cog, interaction)
 
-    assert isinstance(interaction.response.kwargs["view"], start.InterviewView)
+    assert fake_gen.called
+    assert isinstance(interaction.response.kwargs["view"], start.BackgroundQuizView)
     assert interaction.response.kwargs["ephemeral"] is True
 
 
@@ -100,29 +108,29 @@ async def test_handle_character_description(monkeypatch):
 
 
 @pytest.mark.asyncio
-async def test_oracle_view_compiles_answers(monkeypatch):
+async def test_background_quiz_evaluates_answers(monkeypatch):
     bot = commands.Bot(command_prefix="!", intents=discord.Intents.none())
     cog = start.StartCog(bot)
 
     called = {}
 
+    async def fake_eval(self, answers):
+        called["answers"] = list(answers)
+        return "summary"
+
     async def fake_handle(self, inter, summary):
         called["summary"] = summary
 
+    monkeypatch.setattr(start.BackgroundQuizService, "evaluate_answers", fake_eval)
     monkeypatch.setattr(start.StartCog, "handle_character_description", fake_handle)
 
-    view = start.InterviewView(cog)
+    questions = [{"text": "Q1", "options": [("A", "a")]}, {"text": "Q2", "options": [("B", "b")]}]
+    view = start.BackgroundQuizView(cog, questions, cog.quiz_service)
     inter = DummyInteraction3()
 
-    # simulate clicking first option for each question
-    for _ in range(len(QUESTIONS)):
+    for _ in range(len(questions)):
         button = view.children[0]
         await button.callback(inter)
 
-    expected = (
-        "Signal Profile: you mourn what was lost, "
-        "you share without hesitation, "
-        "you dig deeper, "
-        "you value steadfast allies"
-    )
-    assert called["summary"] == expected
+    assert called["answers"] == ["a", "b"]
+    assert called["summary"] == "summary"
