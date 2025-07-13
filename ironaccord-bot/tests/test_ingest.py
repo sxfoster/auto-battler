@@ -52,3 +52,16 @@ def test_ingest_mixed_sources(tmp_path, monkeypatch):
     assert all(isinstance(d, Document) for d in DummySplitter.docs)
     assert len(DummyChroma.docs) == len(DummySplitter.docs)
     assert DummyChroma.persisted
+
+
+def test_sanitize_metadata_flattens_list():
+    meta = {
+        "name": "Brasshaven",
+        "type": "location",
+        "tags": ["steam", "gear"]
+    }
+
+    sanitized = ingest.sanitize_metadata(meta)
+
+    assert sanitized["tags"] == "steam\ngear"
+    assert sanitized["name"] == "Brasshaven"
