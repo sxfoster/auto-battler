@@ -8,8 +8,21 @@ from ironaccord_bot.cogs import start
 class DummyResponse:
     def __init__(self):
         self.kwargs = None
+        self.deferred = False
 
     async def send_message(self, *args, **kwargs):
+        self.kwargs = kwargs
+
+    async def defer(self, *args, **kwargs):
+        self.deferred = True
+        self.kwargs = kwargs
+
+
+class DummyFollowup:
+    def __init__(self):
+        self.kwargs = None
+
+    async def send(self, *args, **kwargs):
         self.kwargs = kwargs
 
 
@@ -19,7 +32,7 @@ class DummyInteraction:
             "User", (), {"id": 1, "name": "Test", "display_name": "Test"}
         )()
         self.response = DummyResponse()
-        self.followup = None
+        self.followup = DummyFollowup()
 
 
 @pytest.mark.asyncio
@@ -37,16 +50,9 @@ async def test_start_cog_returns_view(monkeypatch):
 
     await cog.start.callback(cog, interaction)
 
-    assert isinstance(interaction.response.kwargs["view"], start.BackgroundQuizView)
-    assert interaction.response.kwargs["ephemeral"] is True
-
-
-class DummyFollowup:
-    def __init__(self):
-        self.kwargs = None
-
-    async def send(self, *args, **kwargs):
-        self.kwargs = kwargs
+    assert interaction.response.deferred is True
+    assert isinstance(interaction.followup.kwargs["view"], start.BackgroundQuizView)
+    assert interaction.followup.kwargs["ephemeral"] is True
 
 
 class DummyInteraction2:

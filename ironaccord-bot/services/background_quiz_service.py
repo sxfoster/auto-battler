@@ -5,6 +5,16 @@ from typing import List, Dict, Any
 
 from ai.ai_agent import AIAgent
 
+
+def extract_json_from_llm(response_text: str) -> dict:
+    """Find and parse a JSON object embedded in ``response_text``."""
+    start_index = response_text.find("{")
+    end_index = response_text.rfind("}") + 1
+    if start_index == -1 or end_index == 0:
+        raise ValueError("No JSON object found in the LLM response.")
+    json_str = response_text[start_index:end_index]
+    return json.loads(json_str)
+
 logger = logging.getLogger(__name__)
 
 
@@ -42,9 +52,9 @@ class BackgroundQuizService:
             return []
 
         try:
-            data = json.loads(text)
+            data = extract_json_from_llm(text)
             return data.get("questions", [])
-        except json.JSONDecodeError:
+        except Exception:
             logger.error("Invalid JSON from LLM: %s", text)
             return []
 
@@ -69,7 +79,7 @@ class BackgroundQuizService:
             return None
 
         try:
-            return json.loads(text)
-        except json.JSONDecodeError:
+            return extract_json_from_llm(text)
+        except Exception:
             logger.error("Invalid JSON from LLM: %s", text)
             return None
