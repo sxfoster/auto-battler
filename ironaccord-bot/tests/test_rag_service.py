@@ -53,8 +53,8 @@ def test_query_without_vector_store(monkeypatch):
 
 
 class DummyCollection:
-    def __init__(self, document):
-        self.document = document
+    def __init__(self, metadata):
+        self.metadata = metadata
         self.last_where = None
         self.last_include = None
         self.last_limit = None
@@ -63,7 +63,9 @@ class DummyCollection:
         self.last_where = where
         self.last_include = include
         self.last_limit = limit
-        return {"documents": [self.document]}
+        if self.metadata is None:
+            return {"metadatas": []}
+        return {"metadatas": [self.metadata]}
 
 
 def _init_service(monkeypatch):
@@ -73,39 +75,29 @@ def _init_service(monkeypatch):
     return rag_service.RAGService()
 
 
-def test_get_entity_by_name_parses_yaml(monkeypatch):
+def test_get_entity_by_name_returns_metadata(monkeypatch):
     service = _init_service(monkeypatch)
-    coll = DummyCollection("foo: bar")
+    coll = DummyCollection({"foo": "bar"})
     service.vector_store._collection = coll
-
-    parsed = {"foo": "bar"}
-
-    import types
-
-    fake_yaml = types.SimpleNamespace(safe_load=lambda x: parsed)
-    monkeypatch.setitem(sys.modules, "yaml", fake_yaml)
 
     result = service.get_entity_by_name("foo", "npc")
 
-    assert coll.last_where == {"name": "foo", "type": "npc"}
-    assert result == parsed
+    assert coll.last_where == {
+        "$and": [
+            {"name": {"$eq": "foo"}},
+            {"type": {"$eq": "npc"}},
+        ]
+    }
+    assert coll.last_include == ["metadatas"]
+    assert coll.last_limit == 1
+    assert result == {"foo": "bar"}
 
 
-def test_get_entity_by_name_without_yaml(monkeypatch):
+def test_get_entity_by_name_missing(monkeypatch):
     service = _init_service(monkeypatch)
-    coll = DummyCollection("foo: bar")
+    coll = DummyCollection(None)
     service.vector_store._collection = coll
-
-    import builtins
-    orig_import = builtins.__import__
-
-    def fake_import(name, globals=None, locals=None, fromlist=(), level=0):
-        if name == "yaml":
-            raise ModuleNotFoundError
-        return orig_import(name, globals, locals, fromlist, level)
-
-    monkeypatch.setattr(builtins, "__import__", fake_import)
 
     result = service.get_entity_by_name("foo", "npc")
 
-    assert result == "foo: bar"
+    assert result is None

@@ -77,35 +77,36 @@ class RAGService:
             return ""
 
     def get_entity_by_name(self, name: str, entity_type: str) -> dict | None:
-        """Return a YAML object stored in the collection filtered by ``name`` and ``type``."""
+        """Retrieve an entity's metadata by its name and type."""
 
         if not self.vector_store:
             logger.error("Vector store not available. Cannot perform query.")
             return None
 
+        # ChromaDB requires an '$and' operator when filtering on multiple fields
+        where_filter = {
+            "$and": [
+                {"name": {"$eq": name}},
+                {"type": {"$eq": entity_type}},
+            ]
+        }
+
         try:
+            logger.info(f"Retrieving entity '{name}' of type '{entity_type}'")
             results = self.vector_store._collection.get(
-                where={"name": name, "type": entity_type},
-                include=["documents"],
+                where=where_filter,
                 limit=1,
+                include=["metadatas"],
             )
 
-            docs = results.get("documents") if results else None
-            if not docs:
-                return None
+            if results and results.get("metadatas"):
+                return results["metadatas"][0]
 
-            doc = docs[0]
-            if isinstance(doc, list):
-                doc = doc[0] if doc else None
-            if doc is None:
-                return None
+            logger.warning(
+                f"Entity '{name}' of type '{entity_type}' not found."
+            )
+            return None
 
-            try:  # Attempt to parse with PyYAML if available
-                import yaml  # type: ignore
-
-                return yaml.safe_load(doc)
-            except Exception:
-                return doc
         except Exception as e:
             logger.error(
                 f"Error retrieving entity '{name}' of type '{entity_type}': {e}"
