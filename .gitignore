@@ -19,3 +19,4 @@ chroma_db/
 chromadb/
 langchain_community/
 dotenv.py
+db/
