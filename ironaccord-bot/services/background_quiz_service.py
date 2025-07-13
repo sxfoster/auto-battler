@@ -7,13 +7,34 @@ from ai.ai_agent import AIAgent
 
 
 def extract_json_from_llm(response_text: str) -> dict:
-    """Find and parse a JSON object embedded in ``response_text``."""
-    start_index = response_text.find("{")
-    end_index = response_text.rfind("}") + 1
-    if start_index == -1 or end_index == 0:
-        raise ValueError("No JSON object found in the LLM response.")
-    json_str = response_text[start_index:end_index]
-    return json.loads(json_str)
+    """Parse a JSON object embedded in ``response_text`` from an LLM.
+
+    The LLM sometimes returns additional text or even omits the opening
+    brace of the JSON payload. This helper attempts to recover from those
+    cases so callers always receive a valid dictionary or an informative
+    error.
+    """
+
+    try:
+        start_index = response_text.find("{")
+        end_index = response_text.rfind("}") + 1
+
+        if start_index == -1:
+            # If the opening brace is missing entirely, assume the text is the
+            # inner portion of the JSON and add braces around it.
+            json_str = "{" + response_text + "}"
+        elif end_index == 0:
+            raise ValueError("No closing brace found in LLM response.")
+        else:
+            json_str = response_text[start_index:end_index]
+
+        cleaned_json_str = json_str.strip()
+        return json.loads(cleaned_json_str)
+
+    except (ValueError, json.JSONDecodeError) as exc:
+        logger.error("Failed to parse JSON. Raw response: %s", response_text)
+        logger.error("Attempted to parse: %s", json_str)
+        raise ValueError(f"LLM returned malformed JSON: {exc}") from exc
 
 logger = logging.getLogger(__name__)
 
