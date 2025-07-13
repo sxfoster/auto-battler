@@ -2,12 +2,33 @@ import os
 import yaml
 from langchain.schema import Document
 from langchain_community.vectorstores import Chroma
-from langchain_community.embeddings import OllamaEmbeddings
+try:  # OllamaEmbeddings may not be available during testing
+    from langchain_community.embeddings import OllamaEmbeddings
+except Exception:  # pragma: no cover - provide lightweight fallback
+    class OllamaEmbeddings:  # type: ignore
+        def __init__(self, *a, **kw):
+            pass
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_community.document_loaders import DirectoryLoader, UnstructuredMarkdownLoader
 
 DATA_PATH = "data"
 DB_PATH = "db"
+
+
+def sanitize_metadata(metadata: dict) -> dict:
+    """Ensure metadata only contains simple types supported by ChromaDB."""
+    sanitized = {}
+    for key, value in metadata.items():
+        if isinstance(value, list):
+            sanitized[key] = "\n".join(map(str, value))
+        elif isinstance(value, dict):
+            # Convert nested dictionaries to a string representation
+            sanitized[key] = str(value)
+        elif isinstance(value, (str, int, float, bool)) or value is None:
+            sanitized[key] = value
+        else:
+            sanitized[key] = str(value)
+    return sanitized
 
 
 def ingest_data():
@@ -30,7 +51,8 @@ def ingest_data():
                     and "description" in data
                 ):
                     doc = Document(
-                        page_content=data.get("description", ""), metadata=data
+                        page_content=data.get("description", ""),
+                        metadata=sanitize_metadata(data),
                     )
                     all_documents.append(doc)
                     print(f"  - Loaded entity: {data['name']}")
