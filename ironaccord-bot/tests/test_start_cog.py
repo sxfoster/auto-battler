@@ -3,7 +3,6 @@ import pytest
 discord = pytest.importorskip("discord")
 from discord.ext import commands
 from ironaccord_bot.cogs import start
-from ironaccord_bot.interview_config import QUESTIONS
 
 
 class DummyResponse:
@@ -27,9 +26,14 @@ async def test_start_cog_returns_view(monkeypatch):
 
     interaction = DummyInteraction()
 
+    async def fake_gen(self):
+        return [{"text": "q1", "choices": ["a", "b"]}]
+
+    monkeypatch.setattr(start.BackgroundQuizService, "generate_questions", fake_gen)
+
     await cog.start.callback(cog, interaction)
 
-    assert isinstance(interaction.response.kwargs["view"], start.InterviewView)
+    assert isinstance(interaction.response.kwargs["view"], start.BackgroundQuizView)
     assert interaction.response.kwargs["ephemeral"] is True
 
 
@@ -100,29 +104,28 @@ async def test_handle_character_description(monkeypatch):
 
 
 @pytest.mark.asyncio
-async def test_oracle_view_compiles_answers(monkeypatch):
+async def test_background_view_compiles_answers(monkeypatch):
     bot = commands.Bot(command_prefix="!", intents=discord.Intents.none())
     cog = start.StartCog(bot)
 
     called = {}
 
-    async def fake_handle(self, inter, summary):
-        called["summary"] = summary
+    async def fake_eval(self, q, a):
+        return {"background": "scout", "explanation": "because"}
 
-    monkeypatch.setattr(start.StartCog, "handle_character_description", fake_handle)
+    monkeypatch.setattr(start.BackgroundQuizService, "evaluate_answers", fake_eval)
 
-    view = start.InterviewView(cog)
+    async def fake_result(self, inter, bg, exp):
+        called.update({"bg": bg, "exp": exp})
+
+    monkeypatch.setattr(start.StartCog, "handle_background_result", fake_result)
+
+    questions = [{"text": "q1", "choices": ["a", "b"]}, {"text": "q2", "choices": ["a", "b"]}]
+    view = start.BackgroundQuizView(cog, questions)
     inter = DummyInteraction3()
 
-    # simulate clicking first option for each question
-    for _ in range(len(QUESTIONS)):
+    for _ in range(len(questions)):
         button = view.children[0]
         await button.callback(inter)
 
-    expected = (
-        "Signal Profile: you mourn what was lost, "
-        "you share without hesitation, "
-        "you dig deeper, "
-        "you value steadfast allies"
-    )
-    assert called["summary"] == expected
+    assert called["bg"] == "scout"

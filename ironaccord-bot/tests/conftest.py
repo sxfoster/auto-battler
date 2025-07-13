@@ -32,7 +32,10 @@ try:
     )
     sys.modules.setdefault(
         "langchain_community.embeddings",
-        types.SimpleNamespace(HuggingFaceEmbeddings=None),
+        types.SimpleNamespace(
+            HuggingFaceEmbeddings=None,
+            OllamaEmbeddings=None,
+        ),
     )
 except Exception:
     pass
