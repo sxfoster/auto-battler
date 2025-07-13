@@ -1,5 +1,6 @@
 import os
 import yaml
+from langchain.schema import Document
 from langchain_community.vectorstores import Chroma
 from langchain_community.embeddings import OllamaEmbeddings
 from langchain.text_splitter import RecursiveCharacterTextSplitter
@@ -28,7 +29,9 @@ def ingest_data():
                     and "type" in data
                     and "description" in data
                 ):
-                    doc = {"page_content": data["description"], "metadata": data}
+                    doc = Document(
+                        page_content=data.get("description", ""), metadata=data
+                    )
                     all_documents.append(doc)
                     print(f"  - Loaded entity: {data['name']}")
                 else:
