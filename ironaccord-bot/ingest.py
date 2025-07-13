@@ -2,6 +2,7 @@ import os
 import yaml
 from langchain.schema import Document
 from langchain_community.vectorstores import Chroma
+from services.rag_service import DEFAULT_COLLECTION
 try:  # OllamaEmbeddings may not be available during testing
     from langchain_community.embeddings import OllamaEmbeddings
 except Exception:  # pragma: no cover - provide lightweight fallback
@@ -78,7 +79,7 @@ def ingest_data():
     vector_store = Chroma.from_documents(
         documents=splits,
         embedding=OllamaEmbeddings(model="nomic-embed-text", show_progress=True),
-        collection_name="ironaccord-lore",
+        collection_name=DEFAULT_COLLECTION,
         persist_directory=DB_PATH,
     )
 
