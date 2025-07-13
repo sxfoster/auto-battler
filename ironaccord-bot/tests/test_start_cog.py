@@ -12,11 +12,15 @@ class DummyResponse:
     async def send_message(self, *args, **kwargs):
         self.kwargs = kwargs
 
+
 class DummyInteraction:
     def __init__(self):
-        self.user = type("User", (), {"id": 1, "name": "Test", "display_name": "Test"})()
+        self.user = type(
+            "User", (), {"id": 1, "name": "Test", "display_name": "Test"}
+        )()
         self.response = DummyResponse()
         self.followup = None
+
 
 @pytest.mark.asyncio
 async def test_start_cog_returns_view(monkeypatch):
@@ -55,6 +59,7 @@ class DummyInteraction3:
     def __init__(self):
         async def edit_message(*args, **kwargs):
             pass
+
         self.response = type("Resp", (), {"edit_message": edit_message})()
         self.followup = DummyFollowup()
         self.kwargs = None
@@ -77,11 +82,7 @@ async def test_handle_character_description(monkeypatch):
 
         async def generate_opening(self, desc):
             DummyService.called = desc
-            return {
-                "scene": "begin", 
-                "question": "what do?", 
-                "choices": ["a", "b"]
-            }
+            return {"scene": "begin", "question": "what do?", "choices": ["a", "b"]}
 
     class DummyView:
         def __init__(self, agent, scene, question, choices):
@@ -120,7 +121,10 @@ async def test_background_view_compiles_answers(monkeypatch):
 
     monkeypatch.setattr(start.StartCog, "handle_background_result", fake_result)
 
-    questions = [{"text": "q1", "choices": ["a", "b"]}, {"text": "q2", "choices": ["a", "b"]}]
+    questions = [
+        {"text": "q1", "choices": ["a", "b"]},
+        {"text": "q2", "choices": ["a", "b"]},
+    ]
     view = start.BackgroundQuizView(cog, questions)
     inter = DummyInteraction3()
 
@@ -129,3 +133,35 @@ async def test_background_view_compiles_answers(monkeypatch):
         await button.callback(inter)
 
     assert called["bg"] == "scout"
+
+
+@pytest.mark.asyncio
+async def test_handle_background_result_saves_and_narrates(monkeypatch):
+    bot = commands.Bot(command_prefix="!", intents=discord.Intents.none())
+    cog = start.StartCog(bot)
+
+    interaction = DummyInteraction2()
+
+    stored = {}
+
+    async def fake_store(discord_id, background):
+        stored["id"] = discord_id
+        stored["bg"] = background
+
+    async def fake_narrative(prompt):
+        return "story"
+
+    async def fake_desc(self, inter, text):
+        stored["desc"] = text
+
+    monkeypatch.setattr(start.character_service, "set_player_background", fake_store)
+    monkeypatch.setattr(cog.agent, "get_narrative", fake_narrative)
+    monkeypatch.setattr(start.StartCog, "handle_character_description", fake_desc)
+
+    await cog.handle_background_result(interaction, "lore keeper", "because")
+
+    assert stored["id"] == str(interaction.user.id)
+    assert stored["bg"] == "lore keeper"
+    assert stored["desc"] == "because"
+    assert interaction.followup.kwargs["embed"].description == "story"
+    assert interaction.followup.kwargs["ephemeral"] is True
