@@ -8,7 +8,7 @@ logger = logging.getLogger(__name__)
 class RAGService:
     """Service to connect to a persistent ChromaDB vector store and perform queries."""
 
-    def __init__(self, db_path="./chroma_db", collection_name="iron_accord_lore"):
+    def __init__(self, db_path="./db", collection_name="iron_accord_lore"):
         self.db_path = db_path
         self.collection_name = collection_name
         self.client = None

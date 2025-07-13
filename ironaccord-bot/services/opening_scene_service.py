@@ -46,7 +46,7 @@ class OpeningSceneService:
         location_data = self.rag_service.get_entity_by_name("Brasshaven", "Location")
         npc_data = self.rag_service.get_entity_by_name("Edraz", "NPC")
 
-        if not location_data or not npc_data:
+        if location_data is None or npc_data is None:
             logger.error("Could not retrieve one-shot adventure data from RAG service.")
             return None
 
