@@ -7,9 +7,6 @@ project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 if project_root not in sys.path:
     sys.path.insert(0, project_root)
 
-print("--- PYTHON PATH ---")
-pprint.pprint(sys.path)
-print("-------------------")
 
 import argparse
 import discord
@@ -30,6 +27,9 @@ except Exception:  # pragma: no cover - optional dependency
 load_dotenv()
 TOKEN = os.getenv("DISCORD_TOKEN")
 logger = logging.getLogger("discord")
+logger.debug("--- PYTHON PATH ---")
+logger.debug(pprint.pformat(sys.path))
+logger.debug("-------------------")
 
 
 def parse_args() -> argparse.Namespace:
