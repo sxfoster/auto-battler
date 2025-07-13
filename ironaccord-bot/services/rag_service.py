@@ -2,6 +2,7 @@ import logging
 import chromadb
 from langchain_community.vectorstores import Chroma
 from langchain_community.embeddings import HuggingFaceEmbeddings
+import traceback
 
 logger = logging.getLogger(__name__)
 
@@ -34,9 +35,12 @@ class RAGService:
                 f"RAG Service connected to collection '{self.collection_name}'. Ready for queries."
             )
 
-        except Exception as e:
-            logger.critical(f"Failed to initialize RAG Service from path '{self.db_path}'.")
-            logger.critical(f"Have you run 'python ingest.py' first to create the database? Error: {e}")
+        except Exception as exc:
+            logger.error(
+                "Failed to initialize RAG Service from path '%s'. Have you run 'python ingest.py'?",
+                self.db_path,
+                exc_info=True,
+            )
             self.vector_store = None
 
     def query(self, query_text: str, k: int = 5):
