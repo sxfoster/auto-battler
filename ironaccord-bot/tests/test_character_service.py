@@ -22,3 +22,14 @@ async def test_insert_character(monkeypatch):
         'INSERT INTO characters (name, origin, skill) VALUES (%s, %s, %s)',
         ['Alice', 'Brasshaven', 'tinker']
     )
+
+
+@pytest.mark.asyncio
+async def test_set_player_background(monkeypatch):
+    monkeypatch.setattr(character_service, 'db', db)
+    db.calls.clear()
+    await character_service.set_player_background('42', 'steamwright')
+    assert db.calls[0] == (
+        'UPDATE players SET background=%s WHERE discord_id=%s',
+        ['steamwright', '42']
+    )

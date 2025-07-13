@@ -64,3 +64,11 @@ async def insert_character(name: str, origin: str, skill: str) -> int:
     )
     return res['insertId']
 
+
+async def set_player_background(discord_id: str, background: str) -> None:
+    """Persist the player's chosen background."""
+    await db.query(
+        'UPDATE players SET background=%s WHERE discord_id=%s',
+        [background, discord_id],
+    )
+
