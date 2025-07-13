@@ -7,9 +7,11 @@ try:
     pkg = importlib.import_module("ironaccord-bot")
     sys.modules["ironaccord_bot"] = pkg
 
-    # Expose subpackages like ``services`` and ``models`` at the top level
-    # so tests can simply ``import services`` without the dashed package name.
-    for name in ("services", "models"):
+    # Expose subpackages like ``services`` and ``models`` at the top level so
+    # tests can simply ``import services`` without the dashed package name.
+    # Import ``models`` first so that ``services`` modules depending on it load
+    # correctly during this setup.
+    for name in ("models", "services"):
         try:
             sys.modules.setdefault(name, importlib.import_module(f"ironaccord-bot.{name}"))
         except Exception:
