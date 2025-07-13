@@ -9,8 +9,7 @@ if pkg_path.exists():
     spec.loader.exec_module(pkg)
     sys.modules.setdefault('ironaccord_bot', pkg)
     # expose subpackages like ai, services, models, views, utils
-    # ensure interview_config is loaded first since other modules may depend on it
-    for name in ("interview_config", "models", "services", "ai", "views", "utils", "data"):
+    for name in ("models", "services", "ai", "views", "utils", "data"):
         try:
             sys.modules.setdefault(name, importlib.import_module(f"ironaccord-bot.{name}"))
         except Exception:

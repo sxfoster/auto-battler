@@ -5,8 +5,17 @@ from discord import app_commands
 from ai.ai_agent import AIAgent
 from services.opening_scene_service import OpeningSceneService
 from views.opening_scene_view import OpeningSceneView
-from views.interview_view import InterviewView
-from interview_config import EDRAZ_GREETING, EDRAZ_IMAGE_URL
+from views.background_quiz_view import BackgroundQuizView
+from services.background_quiz_service import BackgroundQuizService
+
+
+EDRAZ_GREETING = (
+    "Signal acquired. I am Edraz, the Chronicler. I read the static between the worlds, "
+    "and today it led me to you. Your story is unwritten, a blank slate in the great archive. "
+    "Before we begin, I need to tune into your signal."
+)
+
+EDRAZ_IMAGE_URL = "https://example.com/edraz-sanctum.png"
 
 
 class StartCog(commands.Cog):
@@ -14,11 +23,19 @@ class StartCog(commands.Cog):
         self.bot = bot
         self.agent = AIAgent()
         self.rag_service = getattr(bot, "rag_service", None)
+        self.quiz_service = BackgroundQuizService(self.agent)
 
     @app_commands.command(name="start", description="Begin your journey in the world of Iron Accord.")
     async def start(self, interaction: discord.Interaction):
         """Begin the Edraz interview question flow."""
-        view = InterviewView(self)
+        questions = await self.quiz_service.generate_questions()
+        if not questions:
+            await interaction.response.send_message(
+                "An error occurred while generating the quiz.", ephemeral=True
+            )
+            return
+
+        view = BackgroundQuizView(self, questions)
         embed = discord.Embed(
             title="Edraz, Chronicler of the Accord",
             description=f"{EDRAZ_GREETING}\n\n**{view._current_question()}**",
@@ -26,6 +43,24 @@ class StartCog(commands.Cog):
         )
         embed.set_image(url=EDRAZ_IMAGE_URL)
         await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
+
+    async def handle_background_result(
+        self, interaction: discord.Interaction, background: str, explanation: str
+    ) -> None:
+        """Narrate the chosen background then continue to the opening scene."""
+        try:
+            narration = await self.agent.get_narrative(explanation)
+        except Exception:  # pragma: no cover - network failure
+            narration = explanation
+
+        embed = discord.Embed(
+            title=f"Background Chosen: {background}",
+            description=narration,
+            color=discord.Color.dark_gold(),
+        )
+        await interaction.followup.send(embed=embed, ephemeral=True)
+
+        await self.handle_character_description(interaction, explanation)
 
     async def handle_character_description(
         self, interaction: discord.Interaction, text: str
