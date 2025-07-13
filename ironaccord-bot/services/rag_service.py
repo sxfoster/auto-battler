@@ -4,12 +4,15 @@ from langchain_community.vectorstores import Chroma
 from langchain_community.embeddings import HuggingFaceEmbeddings
 import traceback
 
+# Default collection name shared with the ingest script
+DEFAULT_COLLECTION = "ironaccord-lore"
+
 logger = logging.getLogger(__name__)
 
 class RAGService:
     """Service to connect to a persistent ChromaDB vector store and perform queries."""
 
-    def __init__(self, db_path="./db", collection_name="iron_accord_lore"):
+    def __init__(self, db_path="./db", collection_name: str = DEFAULT_COLLECTION):
         self.db_path = db_path
         self.collection_name = collection_name
         self.client = None
