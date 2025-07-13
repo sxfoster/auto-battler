@@ -1,6 +1,15 @@
+import os
 import sys
 import importlib
 from pathlib import Path
+
+# Ensure the project root is on the Python path and advertise it via the
+# PYTHONPATH environment variable so that ``ironaccord_bot`` can be imported
+# when tests run from any directory.
+project_root = Path(__file__).resolve().parents[1]
+if str(project_root) not in sys.path:
+    sys.path.insert(0, str(project_root))
+os.environ.setdefault("PYTHONPATH", str(project_root))
 
 # Alias the hyphenated package name so `import ironaccord_bot` works
 try:
@@ -32,7 +41,10 @@ try:
     )
     sys.modules.setdefault(
         "langchain_community.embeddings",
-        types.SimpleNamespace(HuggingFaceEmbeddings=None),
+        types.SimpleNamespace(
+            HuggingFaceEmbeddings=None,
+            OllamaEmbeddings=None,
+        ),
     )
 except Exception:
     pass
