@@ -32,9 +32,19 @@ class StartCog(commands.Cog):
     )
     async def start(self, interaction: discord.Interaction):
         """Begin the Edraz interview question flow."""
-        questions = await self.quiz_service.generate_questions()
+        await interaction.response.defer(ephemeral=True)
+
+        try:
+            questions = await self.quiz_service.generate_questions()
+        except Exception as exc:  # pragma: no cover - unexpected failure
+            logging.error("Failed generating quiz questions: %s", exc, exc_info=True)
+            await interaction.followup.send(
+                "An error occurred while generating the quiz.", ephemeral=True
+            )
+            return
+
         if not questions:
-            await interaction.response.send_message(
+            await interaction.followup.send(
                 "An error occurred while generating the quiz.", ephemeral=True
             )
             return
@@ -46,7 +56,8 @@ class StartCog(commands.Cog):
             color=discord.Color.dark_gold(),
         )
         embed.set_image(url=EDRAZ_IMAGE_URL)
-        await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
+
+        await interaction.followup.send(embed=embed, view=view, ephemeral=True)
 
     async def handle_background_result(
         self, interaction: discord.Interaction, background: str, explanation: str
