@@ -1,121 +1,57 @@
 import logging
-import chromadb
-from langchain_community.vectorstores import Chroma
-from langchain_community.embeddings import HuggingFaceEmbeddings
 import traceback
+from langchain_community.embeddings import OllamaEmbeddings, HuggingFaceEmbeddings
+from langchain_community.vectorstores import Chroma
 
-# Default collection name shared with the ingest script
-DEFAULT_COLLECTION = "ironaccord-lore"
-
-logger = logging.getLogger(__name__)
+# --- CONSTANTS ---
+CHROMA_PATH = "./db"
+EMBEDDING_MODEL_NAME = "nomic-embed-text"
+DEFAULT_COLLECTION = "ironaccord"
 
 class RAGService:
-    """Service to connect to a persistent ChromaDB vector store and perform queries."""
-
-    def __init__(self, db_path="./db", collection_name: str = DEFAULT_COLLECTION):
-        self.db_path = db_path
-        self.collection_name = collection_name
-        self.client = None
+    def __init__(self, persist_directory: str = CHROMA_PATH):
+        """
+        Initializes the RAGService. Does NOT load the vector store.
+        """
+        self.persist_directory = persist_directory
         self.vector_store = None
-        self._initialize()
+        self._is_loaded = False
+        logging.info("RAGService initialized but not yet loaded.")
 
-    def _initialize(self):
-        """Connects to the local ChromaDB and initializes the vector store."""
-        logger.info("Initializing RAG Service (Local Storage Mode)...")
+    def load(self):
+        """
+        Loads the Chroma vector store from disk. This is where the import error occurs.
+        """
+        if self._is_loaded:
+            return
+
+        logging.info(f"Attempting to load vector store from: {self.persist_directory}")
         try:
-            # 1. Connect to the same persistent local path
-            self.client = chromadb.PersistentClient(path=self.db_path)
-            logger.info(f"Successfully initialized local ChromaDB client from path: {self.db_path}")
-
-            # 2. Initialize the LangChain vector store object
-            embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
+            # This is the line that has been causing all the problems.
+            # We isolate it here.
+            embeddings = OllamaEmbeddings(model=EMBEDDING_MODEL_NAME)
             self.vector_store = Chroma(
-                client=self.client,
-                collection_name=self.collection_name,
+                persist_directory=self.persist_directory,
                 embedding_function=embeddings,
+                collection_name=DEFAULT_COLLECTION
             )
-            logger.info(
-                f"RAG Service connected to collection '{self.collection_name}'. Ready for queries."
-            )
-
-        except Exception as exc:
-            logger.error(
-                "Failed to initialize RAG Service from path '%s'. Have you run 'python ingest.py'?",
-                self.db_path,
-                exc_info=True,
-            )
+            self._is_loaded = True
+            logging.info("RAG Service loaded successfully.")
+        except Exception:
+            logging.error("CRITICAL: Failed to load Chroma vector store.")
+            traceback.print_exc()
             self.vector_store = None
+            self._is_loaded = False
 
-    def query(self, query_text: str, k: int = 5):
-        """Performs a similarity search on the vector store."""
-        if not self.vector_store:
-            logger.error("Vector store not available. Cannot perform query.")
-            return []
+    def get_retriever(self):
+        """
+        Gets the retriever if the store is loaded.
+        """
+        if not self._is_loaded:
+            self.load()  # Attempt to load on-demand
 
-        logger.info(f"Performing RAG query for: '{query_text}'")
-        try:
-            results = self.vector_store.similarity_search(query_text, k=k)
-            return results
-        except Exception as e:
-            logger.error(f"An error occurred during the RAG query: {e}")
-            return []
-
-    def get_character_section(self, character_name: str, section_name: str) -> str:
-        """Retrieve a specific section of lore for a character."""
-        if not self.vector_store:
-            logger.error("Vector store not available. Cannot perform query.")
-            return ""
-
-        try:
-            results = self.vector_store._collection.query(
-                query_texts=[f"Retrieve the {section_name} for {character_name}"],
-                where={"character_name": character_name, "section": section_name},
-                n_results=1,
-            )
-
-            if results and results.get("documents") and results["documents"][0]:
-                return results["documents"][0][0]
-
-            return f"Section '{section_name}' not found for character '{character_name}'."
-        except Exception as e:
-            logger.error(
-                f"Error retrieving section '{section_name}' for character '{character_name}': {e}"
-            )
-            return ""
-
-    def get_entity_by_name(self, name: str, entity_type: str) -> dict | None:
-        """Retrieve an entity's metadata by its name and type."""
-
-        if not self.vector_store:
-            logger.error("Vector store not available. Cannot perform query.")
-            return None
-
-        # ChromaDB requires an '$and' operator when filtering on multiple fields
-        where_filter = {
-            "$and": [
-                {"name": {"$eq": name}},
-                {"type": {"$eq": entity_type}},
-            ]
-        }
-
-        try:
-            logger.info(f"Retrieving entity '{name}' of type '{entity_type}'")
-            results = self.vector_store._collection.get(
-                where=where_filter,
-                limit=1,
-                include=["metadatas"],
-            )
-
-            if results and results.get("metadatas"):
-                return results["metadatas"][0]
-
-            logger.warning(
-                f"Entity '{name}' of type '{entity_type}' not found."
-            )
-            return None
-
-        except Exception as e:
-            logger.error(
-                f"Error retrieving entity '{name}' of type '{entity_type}': {e}"
-            )
+        if self.vector_store:
+            return self.vector_store.as_retriever()
+        else:
+            logging.error("Cannot get retriever, RAG store is not available.")
             return None
