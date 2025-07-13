@@ -7,6 +7,8 @@ from services.opening_scene_service import OpeningSceneService
 from views.opening_scene_view import OpeningSceneView
 from views.background_quiz_view import BackgroundQuizView
 from services.background_quiz_service import BackgroundQuizService
+from models import character_service
+import logging
 
 
 EDRAZ_GREETING = (
@@ -25,7 +27,9 @@ class StartCog(commands.Cog):
         self.rag_service = getattr(bot, "rag_service", None)
         self.quiz_service = BackgroundQuizService(self.agent)
 
-    @app_commands.command(name="start", description="Begin your journey in the world of Iron Accord.")
+    @app_commands.command(
+        name="start", description="Begin your journey in the world of Iron Accord."
+    )
     async def start(self, interaction: discord.Interaction):
         """Begin the Edraz interview question flow."""
         questions = await self.quiz_service.generate_questions()
@@ -48,6 +52,12 @@ class StartCog(commands.Cog):
         self, interaction: discord.Interaction, background: str, explanation: str
     ) -> None:
         """Narrate the chosen background then continue to the opening scene."""
+        try:
+            await character_service.set_player_background(
+                str(interaction.user.id), background
+            )
+        except Exception as exc:  # pragma: no cover - db failure
+            logging.error("Failed to store background: %s", exc, exc_info=True)
         try:
             narration = await self.agent.get_narrative(explanation)
         except Exception:  # pragma: no cover - network failure
