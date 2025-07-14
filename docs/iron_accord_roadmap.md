@@ -25,11 +25,14 @@ This roadmap outlines the high-level and detailed phases of development for **Ir
 - Scalable flavor text system using execution tiers
 
 ### Phase 3: Prototyping & MVP Bot
-**Backend (PHP/MySQL):**
-- Action resolver (roll engine)
-- Inventory & gear storage
-- User state tracking (fatigue, encumbrance, debuffs)
-- Faction-lock & XP tracking
+**Backend (Python-based Local Persistence):**
+- Player Data (SQLite):
+    - Inventory, gear, and stat storage.
+    - User state tracking (fatigue, encumbrance, debuffs).
+    - Faction-lock and progression tracking.
+- Lore & RAG (ChromaDB):
+    - Vector store for all lore documents.
+    - Powers the Retrieval-Augmented Generation service.
 
 **Discord Bot:**
 - Command parser
@@ -81,6 +84,7 @@ This roadmap outlines the high-level and detailed phases of development for **Ir
 - Survival is the natural time gate — no artificial energy/timer
 - Initial deployment is Discord-only with optional React-based Codex browser
 - Content expands via Codex unlocks, mission discoveries, and updates
+- The project is a fully self-contained Python application. All data persistence is handled locally via SQLite (for player data) and ChromaDB (for lore vectors), removing the need for external databases or web hosting.
 
 ## Current Documentation Assets
 - ✅ Game Design Document (System)
