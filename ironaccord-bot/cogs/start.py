@@ -2,8 +2,8 @@ import discord
 from discord.ext import commands
 from discord import app_commands
 
-from ironaccord_bot.services.background_quiz_service import BackgroundQuizService
-from ironaccord_bot.views.background_quiz_view import BackgroundQuizView
+from ..services.background_quiz_service import BackgroundQuizService
+from ..views.background_quiz_view import BackgroundQuizView
 
 
 class StartCog(commands.Cog):
