@@ -5,59 +5,61 @@ import discord
 from discord.ext import commands
 from dotenv import load_dotenv
 
-# Add the project root to the path to allow for absolute imports
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+# -- Start of Path Fix --
+# This block of code ensures that the script can find its modules,
+# no matter how it's run.
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+PROJECT_ROOT = os.path.dirname(SCRIPT_DIR)
+if PROJECT_ROOT not in sys.path:
+    sys.path.append(PROJECT_ROOT)
+# -- End of Path Fix --
 
-# Import our custom services
 from services.rag_service import RAGService
 from services.player_service import PlayerService
-from ai.ai_agent import AIAgent
+from cogs.game_commands_cog import GameCommandsCog
 
-# --- Bot Setup ---
+# Load environment variables from .env file
 load_dotenv()
 DISCORD_TOKEN = os.getenv("DISCORD_TOKEN")
+OLLAMA_ENDPOINT = os.getenv("OLLAMA_ENDPOINT")
 
+# Define the intents for the bot
 intents = discord.Intents.default()
 intents.message_content = True
 
 class IronAccordBot(commands.Bot):
     def __init__(self):
         super().__init__(command_prefix="!", intents=intents)
-        # Create instances of our services
-        self.rag_service = RAGService()
+        self.rag_service = RAGService(ollama_endpoint=OLLAMA_ENDPOINT)
         self.player_service = PlayerService()
-        # Initialize the main AI agent
-        self.ai_agent = AIAgent()
-        # Expose the underlying ollama_service for convenience
-        self.ollama_service = self.ai_agent.ollama_service
-        # Flag used in tests to indicate the bot is being redeployed
-        self.redeploy: bool = False
+
+    async def setup_hook(self):
+        """A hook that is called when the bot is setting up."""
+        print("Running setup hook...")
+        # Pass the services to the cog when initializing it
+        await self.add_cog(GameCommandsCog(self, self.rag_service, self.player_service))
+        print("Cogs loaded.")
 
     async def on_ready(self):
+        """Event that is called when the bot is ready and connected to Discord."""
         print(f'Logged in as {self.user} (ID: {self.user.id})')
         print('------')
 
-    async def setup_hook(self):
-        # This is the new way to load cogs in discord.py 2.0
-        # It runs after the bot logs in but before it connects to the gateway.
-        await self.load_extension("cogs.game_commands_cog")
-        print("Cogs loaded.")
-        await self.tree.sync()
+async def main():
+    """The main function to run the bot."""
+    if not DISCORD_TOKEN:
+        print("Error: DISCORD_TOKEN is not set in the .env file.")
+        return
 
-bot = IronAccordBot()
-
-
-@bot.event
-async def on_ready():
-    """Handle the bot ready event and optionally redeploy commands."""
-    print(f'Logged in as {bot.user} (ID: {bot.user.id})')
-    print('------')
-    if getattr(bot, 'redeploy', False):
-        await bot.tree.clear_commands()
-    await bot.tree.sync()
+    if not OLLAMA_ENDPOINT:
+        print("Error: OLLAMA_ENDPOINT is not set in the .env file.")
+        return
+        
+    bot = IronAccordBot()
+    await bot.start(DISCORD_TOKEN)
 
 if __name__ == "__main__":
-    if DISCORD_TOKEN is None:
-        print("FATAL: DISCORD_TOKEN not found in .env file.")
-    else:
-        bot.run(DISCORD_TOKEN)
+    try:
+        asyncio.run(main())
+    except KeyboardInterrupt:
+        print("Bot shutdown gracefully.")
