@@ -1,17 +1,16 @@
 import os
 from langchain_community.vectorstores import Chroma
 from langchain_community.embeddings import SentenceTransformerEmbeddings
+from langchain_community.llms import Ollama
 from langchain.prompts import PromptTemplate
 from langchain.chains import RetrievalQA
-from langchain_openai import OpenAI
 
 # Define paths and constants
 ABS_PATH = os.path.dirname(os.path.abspath(__file__))
 DB_DIR = os.path.join(ABS_PATH, "../../", "chromadb")
-DEFAULT_COLLECTION = "ironaccord"
 
 class RAGService:
-    """Handles the Retrieval-Augmented Generation logic."""
+    """Handles the Retrieval-Augmented Generation logic using a local LLM via Ollama."""
 
     def __init__(self):
         # Initialize embeddings and vector store
@@ -21,9 +20,8 @@ class RAGService:
             embedding_function=self.embedding_function
         )
 
-        # Initialize the Language Model (LLM)
-        # Note: You would typically use an API key from .env here
-        self.llm = OpenAI(temperature=0.7)
+        # Initialize the local Language Model (LLM) via Ollama
+        self.llm = Ollama(model="mixtral")
 
         # Define the prompt template
         prompt_template = """
@@ -43,11 +41,15 @@ class RAGService:
             return_source_documents=True,
             chain_type_kwargs={"prompt": qa_prompt},
         )
-        print("RAGService initialized.")
+        print("RAGService initialized with local Ollama model.")
 
     def query(self, query_text: str) -> dict:
         """Queries the QA chain and returns a standardized dictionary."""
         raw_result = self.qa_chain({"query": query_text})
         answer = raw_result.get("result", "No answer could be generated.")
         source_docs = raw_result.get("source_documents", [])
-        return {"answer": answer, "source_documents": source_docs}
+
+        return {
+            "answer": answer,
+            "source_documents": source_docs
+        }
