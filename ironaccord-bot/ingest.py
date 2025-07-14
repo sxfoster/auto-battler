@@ -61,16 +61,19 @@ def ingest_data():
                     print(f"  - WARNING: Skipping {filename}, missing required fields.")
 
     print("Checking for unstructured markdown data...")
-    docs_path = "docs"
-    if os.path.exists(docs_path) and os.path.isdir(docs_path):
-        print("Processing unstructured markdown data...")
-        markdown_loader = DirectoryLoader(
-            docs_path, glob="**/*.md", loader_cls=UnstructuredMarkdownLoader, show_progress=True
-        )
-        markdown_docs = markdown_loader.load()
-        all_documents.extend(markdown_docs)
-    else:
-        print("  - 'docs' directory not found, skipping markdown ingestion.")
+    md_paths = ["docs", DATA_PATH]
+    found_any = False
+    for md_path in md_paths:
+        if os.path.exists(md_path) and os.path.isdir(md_path):
+            print(f"Processing markdown data in '{md_path}'...")
+            markdown_loader = DirectoryLoader(
+                md_path, glob="**/*.md", loader_cls=UnstructuredMarkdownLoader, show_progress=True
+            )
+            markdown_docs = markdown_loader.load()
+            all_documents.extend(markdown_docs)
+            found_any = True
+    if not found_any:
+        print("  - No markdown directories found, skipping markdown ingestion.")
 
     print("Splitting documents and creating vector store...")
     text_splitter = RecursiveCharacterTextSplitter(chunk_size=750, chunk_overlap=50)
