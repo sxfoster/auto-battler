@@ -39,8 +39,9 @@ Base item properties live in `ironaccord-bot/data/items.py`. The mission engine 
 ## Running Python Tests
 
 The repository includes pytest suites for both the legacy prototype and the new
-Iron Accord bot. After installing the requirements from `requirements.txt` and
-the additional packages listed in `dev-requirements.txt`, execute the tests
+Iron Accord bot. After installing the runtime requirements in
+`requirements.txt` and the development dependencies from
+`dev-requirements.txt` (both located in the repository root), execute the tests
 from the project root:
 
 ```bash
