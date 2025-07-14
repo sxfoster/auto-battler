@@ -1,94 +1,80 @@
 import os
 import yaml
-from langchain.schema import Document
+from tqdm import tqdm
 from langchain_community.vectorstores import Chroma
-from services.rag_service import DEFAULT_COLLECTION
-try:  # OllamaEmbeddings may not be available during testing
-    from langchain_community.embeddings import OllamaEmbeddings
-except Exception:  # pragma: no cover - provide lightweight fallback
-    class OllamaEmbeddings:  # type: ignore
-        def __init__(self, *a, **kw):
-            pass
+from langchain_community.embeddings import SentenceTransformerEmbeddings
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_community.document_loaders import DirectoryLoader, UnstructuredMarkdownLoader
+from langchain.docstore.document import Document
 
-DATA_PATH = "data"
-DB_PATH = "db"
+# --- Configuration ---
+ABS_PATH = os.path.dirname(os.path.abspath(__file__))
+DB_DIR = os.path.join(ABS_PATH, "../../", "chromadb")
+DATA_DIR = os.path.join(ABS_PATH, "../../", "data")
+NPC_DATA_DIR = os.path.join(DATA_DIR, "npcs")
+LOCATION_DATA_DIR = os.path.join(DATA_DIR, "locations")
 
+# --- Main Ingestion Logic ---
+def main():
+    """
+    Main function to process all data and ingest it into the vector store.
+    """
+    documents = []
+    text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
 
-def sanitize_metadata(metadata: dict) -> dict:
-    """Ensure metadata only contains simple types supported by ChromaDB."""
-    sanitized = {}
-    for key, value in metadata.items():
-        if isinstance(value, list):
-            sanitized[key] = "\n".join(map(str, value))
-        elif isinstance(value, dict):
-            # Convert nested dictionaries to a string representation
-            sanitized[key] = str(value)
-        elif isinstance(value, (str, int, float, bool)) or value is None:
-            sanitized[key] = value
+    # 1. Process structured YAML data
+    print("--- Processing structured YAML data ---")
+    for entity_type, path in [("NPC", NPC_DATA_DIR), ("Location", LOCATION_DATA_DIR)]:
+        if os.path.exists(path):
+            for filename in os.listdir(path):
+                if filename.endswith(".yaml"):
+                    with open(os.path.join(path, filename), 'r') as f:
+                        data = yaml.safe_load(f)
+                        # Create a Document object from the YAML content
+                        content = f"Entity Type: {entity_type}\n"
+                        for key, value in data.items():
+                            content += f"{key}: {value}\n"
+                        
+                        doc = Document(page_content=content, metadata={"source": filename})
+                        documents.append(doc)
+                        print(f"  - Loaded {entity_type}: {data.get('name', filename)}")
+
+    # 2. Process unstructured markdown data
+    print("\n--- Processing unstructured markdown data ---")
+    if os.path.exists(DATA_DIR):
+        loader = DirectoryLoader(DATA_DIR, glob="**/*.md", loader_cls=UnstructuredMarkdownLoader, show_progress=True)
+        markdown_docs = loader.load()
+        if markdown_docs:
+            split_docs = text_splitter.split_documents(markdown_docs)
+            documents.extend(split_docs)
+            print(f"  - Loaded and split {len(markdown_docs)} markdown file(s) into {len(split_docs)} chunks.")
         else:
-            sanitized[key] = str(value)
-    return sanitized
+            print("  - No markdown files found to process.")
+    else:
+        print(f"  - Directory not found: {DATA_DIR}")
 
 
-def ingest_data():
-    """Ingest structured YAML and unstructured Markdown data into the vector store."""
+    # 3. Create vector store from all processed documents
+    if not documents:
+        print("\nNo documents found to ingest. Exiting.")
+        return
 
-    all_documents = []
+    print(f"\n--- Ingesting {len(documents)} document chunks into ChromaDB ---")
+    embedding_function = SentenceTransformerEmbeddings(model_name="all-MiniLM-L6-v2")
 
-    print("Processing structured YAML data...")
-    for root, _, files in os.walk(DATA_PATH):
-        for filename in files:
-            if filename.endswith(".yaml"):
-                file_path = os.path.join(root, filename)
-                with open(file_path, "r") as f:
-                    data = yaml.safe_load(f)
-
-                if (
-                    isinstance(data, dict)
-                    and "name" in data
-                    and "type" in data
-                    and "description" in data
-                ):
-                    doc = Document(
-                        page_content=data.get("description", ""),
-                        metadata=sanitize_metadata(data),
-                    )
-                    all_documents.append(doc)
-                    print(f"  - Loaded entity: {data['name']}")
-                else:
-                    print(f"  - WARNING: Skipping {filename}, missing required fields.")
-
-    print("Checking for unstructured markdown data...")
-    md_paths = ["docs", DATA_PATH]
-    found_any = False
-    for md_path in md_paths:
-        if os.path.exists(md_path) and os.path.isdir(md_path):
-            print(f"Processing markdown data in '{md_path}'...")
-            markdown_loader = DirectoryLoader(
-                md_path, glob="**/*.md", loader_cls=UnstructuredMarkdownLoader, show_progress=True
-            )
-            markdown_docs = markdown_loader.load()
-            all_documents.extend(markdown_docs)
-            found_any = True
-    if not found_any:
-        print("  - No markdown directories found, skipping markdown ingestion.")
-
-    print("Splitting documents and creating vector store...")
-    text_splitter = RecursiveCharacterTextSplitter(chunk_size=750, chunk_overlap=50)
-    splits = text_splitter.split_documents(all_documents)
-
-    vector_store = Chroma.from_documents(
-        documents=splits,
-        embedding=OllamaEmbeddings(model="nomic-embed-text", show_progress=True),
-        collection_name=DEFAULT_COLLECTION,
-        persist_directory=DB_PATH,
+    # This is a blocking call, so we let the user know what's happening.
+    print("  - Calculating embeddings and building the vector store... (This may take a moment)")
+    
+    # We will still use from_documents for efficiency, but now the user knows why it's \"hanging\".
+    Chroma.from_documents(
+        documents=documents,
+        embedding=embedding_function,
+        persist_directory=DB_DIR
     )
 
-    vector_store.persist()
-    print("Ingestion complete. Database persisted.")
+    print("\n--- Ingestion Complete! ---")
+    print(f"Vector store created/updated at: {DB_DIR}")
 
 
 if __name__ == "__main__":
-    ingest_data()
+    main()
