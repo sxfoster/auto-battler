@@ -22,14 +22,14 @@ A robust progression system beyond simple hero acquisition to keep players engag
 
 ### Leveling and Experience (XP)
 **Implementation Plan:**
--   **Database:** Propose adding `xp` and `level` columns to a new `user_heroes` table in `ironaccord-bot/db-schema.sql`. This table would link users (`discord_id`) to `allPossibleHeroes` (`id`) and store instance-specific data.
+-   **Database:** Propose adding `xp` and `level` columns to a new `user_heroes` table in `ironaccord_bot/db-schema.sql`. This table would link users (`discord_id`) to `allPossibleHeroes` (`id`) and store instance-specific data.
 -   **Game Engine:** Modify `backend/game/engine.js` to calculate and return the XP awarded at the end of a battle based on the outcome.
--   **Discord Bot:** Update the `InteractionCreate` handler in `ironaccord-bot/index.js`. After a battle completes, update the user's XP in the database and notify them if they've leveled up.
+-   **Discord Bot:** Update the `InteractionCreate` handler in `ironaccord_bot/index.js`. After a battle completes, update the user's XP in the database and notify them if they've leveled up.
 
 ### Skill Trees
 **Implementation Plan:**
 -   **Data Structure:** Propose a new object, `allHeroSkillTrees`, in `backend/game/data.js` to define unique skills for each hero class.
--   **Discord Command:** Suggest a new command, `/skills [hero]`, in the `ironaccord-bot/commands/` directory that allows a player to view their hero's skill tree and spend skill points.
+-   **Discord Command:** Suggest a new command, `/skills [hero]`, in the `ironaccord_bot/commands/` directory that allows a player to view their hero's skill tree and spend skill points.
 
 ### Prestige/Evolution
 **Implementation Plan:**
@@ -46,13 +46,13 @@ The core combat is already implemented but can be expanded for a Discord environ
 
 ### Party System
 **Implementation Plan:**
--   **Session Management:** Suggest expanding `ironaccord-bot/sessionManager.js` to handle multiple users in a single draft/battle session.
+-   **Session Management:** Suggest expanding `ironaccord_bot/sessionManager.js` to handle multiple users in a single draft/battle session.
 -   **Database:** Modify the `games` table in `db-schema.sql` to allow for multiple player IDs (e.g., `player1_id`, `player2_id`, etc.).
 
 ### Detailed Combat Logs
 **Implementation Plan:**
     -   **Existing Feature:** Note that `BattleScene.jsx` in `auto-battler-react/src/scenes` and the `GameEngine` in the backend already produce detailed battle logs.
--   **Discord Display:** The task is to format this log output within a Discord embed, potentially using pagination for long fights. Reference the simple embed builder in `ironaccord-bot/src/utils/embedBuilder.js`.
+-   **Discord Display:** The task is to format this log output within a Discord embed, potentially using pagination for long fights. Reference the simple embed builder in `ironaccord_bot/src/utils/embedBuilder.js`.
 
 ## 3. In-Game Economy and Currency
 A currency system will motivate players. Reference `docs/progression_economy_gdd.md`.
@@ -82,7 +82,7 @@ A currency system will motivate players. Reference `docs/progression_economy_gdd
 **Sub-Features & Implementation Plan:**
 -   **Daily/Weekly Quests:**
     -   **Data Structure:** Define quest types (e.g., 'win_x_battles', 'collect_y_heroes') in `backend/game/data.js`.
-    -   **Discord Bot:** A system in `ironaccord-bot/index.js` to assign daily/weekly quests and track progress, storing status in a new `user_quests` table.
+    -   **Discord Bot:** A system in `ironaccord_bot/index.js` to assign daily/weekly quests and track progress, storing status in a new `user_quests` table.
 -   **Achievement Tiers:**
     -   **Database:** A new `achievements` table (id, name, description, criteria) and `user_achievements` (user_id, achievement_id, progress).
     -   **Discord Command:** `/achievements` to view completed and in-progress achievements.
@@ -91,7 +91,7 @@ A currency system will motivate players. Reference `docs/progression_economy_gdd
 **Summary:** Host time-limited events and tournaments with unique rules and rewards.
 **Sub-Features & Implementation Plan:**
 -   **Event System:**
-    -   **Session Management:** Extend `ironaccord-bot/sessionManager.js` to manage event-specific states (e.g., tournament brackets, special event currency).
+    -   **Session Management:** Extend `ironaccord_bot/sessionManager.js` to manage event-specific states (e.g., tournament brackets, special event currency).
     -   **Discord Commands:** `/event join [event_name]`, `/tournament register`.
 -   **Special Game Modes:**
     -   **Game Engine:** Allow `backend/game/engine.js` to accept modifiers or rule variations for event battles. Reference `docs/game_modes_gdd.md`.
@@ -100,7 +100,7 @@ A currency system will motivate players. Reference `docs/progression_economy_gdd
 **Summary:** Allow players to personalize their heroes with cosmetic items.
 **Sub-Features & Implementation Plan:**
 -   **Skins/Variant Art:**
-    -   **Asset Storage:** Store alternative hero art in `ironaccord-bot/assets/heroes/[hero_name]/skins/`.
+    -   **Asset Storage:** Store alternative hero art in `ironaccord_bot/assets/heroes/[hero_name]/skins/`.
     -   **Database:** A `user_hero_cosmetics` table to track unlocked skins for each hero instance.
     -   **Discord Command:** `/equip_skin [hero] [skin_name]`.
 -   **Titles and Badges:**
@@ -122,10 +122,10 @@ A currency system will motivate players. Reference `docs/progression_economy_gdd
 **Summary:** Introduce engaging minigames for players to earn rewards or pass the time.
 **Sub-Features & Implementation Plan:**
 -   **Example Minigame (e.g., Gacha/Card Pack Opening):**
-    -   **Existing Logic:** Reference `ironaccord-bot/commands/openpack.js` for the gacha mechanism.
+    -   **Existing Logic:** Reference `ironaccord_bot/commands/openpack.js` for the gacha mechanism.
     -   **Expansion:** Could be expanded with different pack types or probabilities defined in `backend/game/data.js`.
 -   **Other Minigames:**
-    -   **System Design:** Propose simple text-based or RNG games initially, managed within new commands in `ironaccord-bot/commands/`.
+    -   **System Design:** Propose simple text-based or RNG games initially, managed within new commands in `ironaccord_bot/commands/`.
 
 ## 10. Story Mode and Lore Integration
 **Summary:** Develop a narrative campaign or integrate lore elements to enrich the game world.

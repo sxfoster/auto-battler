@@ -4,12 +4,12 @@ This repository houses the Discord bot used for the auto battler experiments alo
 
 ## Repository Layout
 
-- `ironaccord-bot/` – Python Discord bot and data files.
+- `ironaccord_bot/` – Python Discord bot and data files.
 - `docs/` – design notes and lore in Markdown.
 - `docs/yaml/` – structured YAML lore used for retrieval.
 - `index.html`, `poc2/` – early browser prototypes kept for reference.
-- `ironaccord-bot/data/items.py` – base item definitions consumed by missions and rewards.
-- `ironaccord-bot/tests/stubs/chromadb/` – lightweight stand‑in for the
+- `ironaccord_bot/data/items.py` – base item definitions consumed by missions and rewards.
+- `ironaccord_bot/tests/stubs/chromadb/` – lightweight stand‑in for the
   [Chromadb](https://github.com/chroma-core/chroma) client so the test suite can
   run without the heavy dependency installed.
 
@@ -23,7 +23,7 @@ This repository houses the Discord bot used for the auto battler experiments alo
    ```
 4. Build the lore database:
    ```bash
-   python ironaccord-bot/ingest.py
+    python ironaccord_bot/ingest.py
    ```
 5. Start the bot:
    ```bash
@@ -34,7 +34,7 @@ This repository houses the Discord bot used for the auto battler experiments alo
 
 ## Item Data
 
-Base item properties live in `ironaccord-bot/data/items.py`. The mission engine and other services import this file to look up item bonuses when applying rewards or combat modifiers.
+Base item properties live in `ironaccord_bot/data/items.py`. The mission engine and other services import this file to look up item bonuses when applying rewards or combat modifiers.
 
 ## Running Python Tests
 
@@ -49,5 +49,5 @@ pip install -r requirements.txt
 pytest
 ```
 
-The tests under `ironaccord-bot` rely on `discord.py`, `aiomysql` and `httpx`,
+The tests under `ironaccord_bot` rely on `discord.py`, `aiomysql` and `httpx`,
 all of which are included in the consolidated `requirements.txt` file.

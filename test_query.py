@@ -1,8 +1,8 @@
 import sys
 import asyncio
 
-# This tells Python to look for code inside the 'ironaccord-bot' directory
-sys.path.append('ironaccord-bot')
+# This tells Python to look for code inside the 'ironaccord_bot' directory
+sys.path.append('ironaccord_bot')
 
 from services.rag_service import RAGService
 

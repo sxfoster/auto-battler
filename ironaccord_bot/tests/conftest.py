@@ -7,30 +7,29 @@ from pathlib import Path
 # Ensure the project root is on the Python path and advertise it via the
 # PYTHONPATH environment variable so that ``ironaccord_bot`` can be imported
 # when tests run from any directory.
-project_root = Path(__file__).resolve().parents[1]
+project_root = Path(__file__).resolve().parents[2]
 if str(project_root) not in sys.path:
     sys.path.insert(0, str(project_root))
 os.environ.setdefault("PYTHONPATH", str(project_root))
 os.environ.setdefault("OPENAI_API_KEY", "test")
+import sitecustomize  # ensure package aliases are registered
 
-# Alias the hyphenated package name so `import ironaccord_bot` works
+# Import the package from the project root so tests can ``import ironaccord_bot``
 try:
-    pkg = importlib.import_module("ironaccord-bot")
-    sys.modules["ironaccord_bot"] = pkg
+    pkg = importlib.import_module("ironaccord_bot")
+    sys.modules.setdefault("ironaccord_bot", pkg)
 
     # Expose subpackages like ``services`` and ``models`` at the top level so
-    # tests can simply ``import services`` without the dashed package name.
-    # Import ``models`` first so that ``services`` modules depending on it load
-    # correctly during this setup.
+    # tests can simply ``import services`` without a package prefix.
     for name in ("models", "services"):
         try:
-            sys.modules.setdefault(name, importlib.import_module(f"ironaccord-bot.{name}"))
+            sys.modules.setdefault(name, importlib.import_module(f"ironaccord_bot.{name}"))
         except Exception:
             pass
 
     # Ensure ``services`` and other subpackages can be imported by adding the
     # package path directly to ``sys.path``.
-    pkg_path = Path(__file__).resolve().parent.parent / "ironaccord-bot"
+    pkg_path = Path(__file__).resolve().parent.parent / "ironaccord_bot"
     sys.path.insert(0, str(pkg_path))
 
     # Provide lightweight stand-ins for optional heavy dependencies used by the
