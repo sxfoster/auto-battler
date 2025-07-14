@@ -46,10 +46,8 @@ from the project root:
 
 ```bash
 pip install -r requirements.txt
-pip install -r dev-requirements.txt
 pytest
 ```
 
-The tests under `ironaccord-bot` rely on `discord.py`, `aiomysql` and `httpx`.
-Installing `dev-requirements.txt` ensures these packages are available;
-otherwise the affected tests will be skipped.
+The tests under `ironaccord-bot` rely on `discord.py`, `aiomysql` and `httpx`,
+all of which are included in the consolidated `requirements.txt` file.
