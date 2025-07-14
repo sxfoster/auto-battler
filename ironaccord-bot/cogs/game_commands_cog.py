@@ -1,4 +1,5 @@
 import discord
+from discord import app_commands
 from discord.ext import commands
 import asyncio
 
@@ -18,15 +19,15 @@ class GameCommandsCog(commands.Cog):
     async def run_sync_query(self, query_fn, *args):
         return await asyncio.to_thread(query_fn, *args)
 
-    @commands.command(name="lore")
-    async def lore(self, ctx: commands.Context, *, query: str):
+    @app_commands.command(name="lore", description="Ask Edraz a question about the world's lore.")
+    async def lore(self, interaction: discord.Interaction, query: str):
         """Asks a question to the Lore Weaver AI."""
-        async with ctx.typing():
-            print(f"Received lore query: '{query}'")
-            # CORRECTED: The RAG service query is now run in a non-blocking way.
-            result = await self.run_sync_query(self.rag_service.query, query)
-            answer = result.get("answer", "I do not have an answer for that.")
-            await ctx.send(f"**Query:** {query}\n**Answer:** {answer}")
+        await interaction.response.defer(ephemeral=True)
+        print(f"Received lore query: '{query}'")
+        # CORRECTED: The RAG service query is now run in a non-blocking way.
+        result = await self.run_sync_query(self.rag_service.query, query)
+        answer = result.get("answer", "I do not have an answer for that.")
+        await interaction.followup.send(f"**Query:** {query}\n**Answer:** {answer}", ephemeral=True)
 
     @commands.command(name="status")
     async def status(self, ctx: commands.Context):
