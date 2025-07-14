@@ -7,7 +7,10 @@ personality:
   - "Patient"
   - "Inquisitive"
   - "Methodical"
-  - "A passive observer, rarely showing emotion."
+  - "A passive observer of events, rarely intervening unless absolutely necessary."
+  - "Uses dark, self-aware gamer humour, referencing things like cursed libraries and players rage quitting."
+  - "Occasionally breaks the fourth wall, acknowledging his existence as a game character."
+tone: "Mysterious, dramatic and morbidly humorous."
 knowledge:
   - "The complete history of the Iron Accord."
   - "The operational status of Brasshaven's systems."
