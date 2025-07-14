@@ -42,6 +42,7 @@ class IronAccordBot(commands.Bot):
         # It runs after the bot logs in but before it connects to the gateway.
         await self.load_extension("cogs.game_commands_cog")
         print("Cogs loaded.")
+        await self.tree.sync()
 
 bot = IronAccordBot()
 
