@@ -1,13 +1,13 @@
 import sys
 import asyncio
-sys.path.append('ironaccord-bot')
+sys.path.append('ironaccord_bot')
 from services.rag_service import RAGService
 
 async def main():
     """ Initializes the RAGService and performs a test query to verify the system. """
     print("--- Initializing RAG Service ---")
     try:
-        rag_service = RAGService(persist_directory="ironaccord-bot/db")
+        rag_service = RAGService(persist_directory="ironaccord_bot/db")
         await asyncio.sleep(1)
         print("Service initialized successfully.")
     except Exception as e:

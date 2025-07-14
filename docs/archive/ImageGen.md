@@ -1,6 +1,6 @@
 # Image Generation Utility
 
-This bot composes team images using the `makeTeamImage` helper. Icons are loaded from `ironaccord-bot/assets/heroes`.
+This bot composes team images using the `makeTeamImage` helper. Icons are loaded from `ironaccord_bot/assets/heroes`.
 
 ## Usage
 
@@ -14,7 +14,7 @@ The function returns a PNG `Buffer` that can be attached to a Discord message.
 ## Folder Structure
 
 ```
-ironaccord-bot/
+ironaccord_bot/
   assets/
     heroes/
       hero-1.png

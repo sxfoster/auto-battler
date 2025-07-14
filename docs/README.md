@@ -35,7 +35,7 @@ The snarky shopkeeper NPC is detailed in [character_bible_edraz.md](character_bi
 
 ## Mission Data Fields
 
-Mission JSON files are stored in `ironaccord-bot/data/missions`. Each mission defines several rounds of player choices. Choice objects support additional fields used during combat:
+Mission JSON files are stored in `ironaccord_bot/data/missions`. Each mission defines several rounds of player choices. Choice objects support additional fields used during combat:
 
 - `combat` – boolean indicating that selecting the choice triggers a combat roll.
 - `dc` – numeric difficulty class for that roll.

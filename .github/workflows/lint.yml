@@ -16,10 +16,10 @@ jobs:
           node-version: '20'
       - name: Install dependencies
         run: npm install
-        working-directory: ironaccord-bot
+        working-directory: ironaccord_bot
       - name: Run ESLint
         run: npx --yes eslint .
-        working-directory: ironaccord-bot
+        working-directory: ironaccord_bot
       - name: Run Tests
         run: npm test
-        working-directory: ironaccord-bot
+        working-directory: ironaccord_bot
