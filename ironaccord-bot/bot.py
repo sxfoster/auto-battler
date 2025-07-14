@@ -11,6 +11,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')
 # Import our custom services
 from services.rag_service import RAGService
 from services.player_service import PlayerService
+from ai.ai_agent import AIAgent
 
 # --- Bot Setup ---
 load_dotenv()
@@ -25,6 +26,12 @@ class IronAccordBot(commands.Bot):
         # Create instances of our services
         self.rag_service = RAGService()
         self.player_service = PlayerService()
+        # Initialize the main AI agent
+        self.ai_agent = AIAgent()
+        # Expose the underlying ollama_service for convenience
+        self.ollama_service = self.ai_agent.ollama_service
+        # Flag used in tests to indicate the bot is being redeployed
+        self.redeploy: bool = False
 
     async def on_ready(self):
         print(f'Logged in as {self.user} (ID: {self.user.id})')
@@ -37,6 +44,16 @@ class IronAccordBot(commands.Bot):
         print("Cogs loaded.")
 
 bot = IronAccordBot()
+
+
+@bot.event
+async def on_ready():
+    """Handle the bot ready event and optionally redeploy commands."""
+    print(f'Logged in as {bot.user} (ID: {bot.user.id})')
+    print('------')
+    if getattr(bot, 'redeploy', False):
+        await bot.tree.clear_commands()
+    await bot.tree.sync()
 
 if __name__ == "__main__":
     if DISCORD_TOKEN is None:
