@@ -9,6 +9,8 @@ sentence-transformers
 faiss-cpu
 numpy
 PyYAML
+httpx
+aiomysql
 
 # Development & Testing Dependencies
 pytest
