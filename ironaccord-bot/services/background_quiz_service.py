@@ -46,7 +46,7 @@ class BackgroundQuizService:
         self.agent = agent
 
     def _read_background_docs(self) -> str:
-        base = Path("docs/backgrounds/iron_accord")
+        base = Path("data/backgrounds/iron_accord")
         parts: list[str] = []
         for md in sorted(base.glob("*.md")):
             try:
