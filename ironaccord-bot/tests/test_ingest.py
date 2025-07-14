@@ -1,14 +1,7 @@
 import os
 from pathlib import Path
-from types import SimpleNamespace
 from langchain.schema import Document
 from ironaccord_bot import ingest
-
-class DummyLoader:
-    def __init__(self, *a, **kw):
-        self.docs = [Document(page_content="md", metadata={"src": "m"})]
-    def load(self):
-        return self.docs
 
 class DummySplitter:
     def __init__(self, *a, **kw):
@@ -21,7 +14,7 @@ class DummyChroma:
     def __init__(self, *a, **kw):
         pass
     @classmethod
-    def from_documents(cls, documents, embedding, collection_name, persist_directory):
+    def from_documents(cls, documents, embedding, persist_directory):
         DummyChroma.docs = documents
         DummyChroma.persist_dir = persist_directory
         return cls()
@@ -32,36 +25,23 @@ class DummyEmb:
     pass
 
 
-def test_ingest_mixed_sources(tmp_path, monkeypatch):
+def test_ingest_recursively_loads_markdown(tmp_path, monkeypatch):
     data_dir = tmp_path / "data"
-    data_dir.mkdir()
-    yaml_file = data_dir / "npc.yaml"
-    yaml_file.write_text("""\nname: Test\ntype: npc\ndescription: hi\n""")
-    docs_dir = tmp_path / "docs"
-    docs_dir.mkdir()
+    nested = data_dir / "a" / "b"
+    nested.mkdir(parents=True)
+    (nested / "lore.md").write_text("hello")
+    (nested / "README.md").write_text("skip")
 
-    monkeypatch.setattr(ingest, "DATA_PATH", str(data_dir))
-    monkeypatch.setattr(ingest, "DB_PATH", str(tmp_path / "db"))
-    monkeypatch.setattr(ingest, "DirectoryLoader", DummyLoader)
+    monkeypatch.setattr(ingest, "DATA_DIR", data_dir)
+    monkeypatch.setattr(ingest, "DB_DIR", tmp_path / "db")
     monkeypatch.setattr(ingest, "RecursiveCharacterTextSplitter", DummySplitter)
     monkeypatch.setattr(ingest, "Chroma", DummyChroma)
-    monkeypatch.setattr(ingest, "OllamaEmbeddings", lambda *a, **kw: DummyEmb())
+    monkeypatch.setattr(ingest, "SentenceTransformerEmbeddings", lambda *a, **kw: DummyEmb())
 
-    ingest.ingest_data()
+    ingest.main()
 
+    assert DummyChroma.persist_dir == str(tmp_path / "db")
     assert all(isinstance(d, Document) for d in DummySplitter.docs)
-    assert len(DummyChroma.docs) == len(DummySplitter.docs)
-    assert DummyChroma.persisted
+    assert len(DummyChroma.docs) == len(DummySplitter.docs) == 1
 
 
-def test_sanitize_metadata_flattens_list():
-    meta = {
-        "name": "Brasshaven",
-        "type": "location",
-        "tags": ["steam", "gear"]
-    }
-
-    sanitized = ingest.sanitize_metadata(meta)
-
-    assert sanitized["tags"] == "steam\ngear"
-    assert sanitized["name"] == "Brasshaven"
