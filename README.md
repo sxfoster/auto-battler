@@ -14,10 +14,9 @@ This repository houses the Discord bot used for the auto battler experiments alo
 
 1. Install **Python 3.11+**.
 2. Copy `.env.example` to `.env` and provide your Discord token, application ID, guild ID and MySQL credentials. You can also override the default Ollama models by setting `OLLAMA_NARRATOR_MODEL` and `OLLAMA_GM_MODEL`.
-3. Install dependencies:
+3. Install dependencies from the unified requirements file:
    ```bash
    pip install -r requirements.txt
-   pip install -r ironaccord-bot/requirements.txt
    ```
 4. Build the lore database:
    ```bash
@@ -38,16 +37,16 @@ Base item properties live in `ironaccord-bot/data/items.py`. The mission engine 
 
 The repository includes pytest suites for both the legacy prototype and the new
 Iron Accord bot. After installing the requirements from `requirements.txt`,
-`ironaccord-bot/requirements.txt` and the additional packages listed in
-`dev-requirements.txt`, execute the tests from the project root:
+execute the tests from the project root. Set `PYTHONPATH` to the project
+directory so that `sitecustomize.py` is imported automatically when pytest
+starts:
 
 ```bash
 pip install -r requirements.txt
-pip install -r ironaccord-bot/requirements.txt
-pip install -r dev-requirements.txt
+export PYTHONPATH=$(pwd)
 pytest
 ```
 
-The tests under `ironaccord-bot` rely on `discord.py`, `aiomysql` and `httpx`.
-Installing `dev-requirements.txt` ensures these packages are available;
-otherwise the affected tests will be skipped.
+The tests rely on packages such as `discord.py` and `aiomysql` which are
+included in `requirements.txt`, so installing it is sufficient for running the
+entire suite.

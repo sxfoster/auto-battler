@@ -1,5 +1,6 @@
 import logging
 import traceback
+import chromadb
 from langchain_community.embeddings import OllamaEmbeddings, HuggingFaceEmbeddings
 from langchain_community.vectorstores import Chroma
 
@@ -17,6 +18,9 @@ class RAGService:
         self.vector_store = None
         self._is_loaded = False
         logging.info("RAGService initialized but not yet loaded.")
+        # Load the vector store immediately so tests have access without
+        # calling ``load`` explicitly.
+        self.load()
 
     def load(self):
         """
@@ -27,13 +31,12 @@ class RAGService:
 
         logging.info(f"Attempting to load vector store from: {self.persist_directory}")
         try:
-            # This is the line that has been causing all the problems.
-            # We isolate it here.
             embeddings = OllamaEmbeddings(model=EMBEDDING_MODEL_NAME)
+            self.client = chromadb.PersistentClient(path=self.persist_directory)
             self.vector_store = Chroma(
-                persist_directory=self.persist_directory,
+                client=self.client,
+                collection_name=DEFAULT_COLLECTION,
                 embedding_function=embeddings,
-                collection_name=DEFAULT_COLLECTION
             )
             self._is_loaded = True
             logging.info("RAG Service loaded successfully.")
@@ -54,4 +57,46 @@ class RAGService:
             return self.vector_store.as_retriever()
         else:
             logging.error("Cannot get retriever, RAG store is not available.")
+            return None
+
+    def query(self, query_text: str, k: int = 5):
+        """Perform a similarity search on the vector store."""
+        if not self.vector_store:
+            logging.error("Vector store not available. Cannot perform query.")
+            return []
+
+        try:
+            return self.vector_store.similarity_search(query_text, k=k)
+        except Exception:
+            logging.error("An error occurred during the RAG query.")
+            return []
+
+    def get_entity_by_name(self, name: str, entity_type: str) -> dict | None:
+        """Retrieve an entity's metadata by its name and type."""
+
+        if not self.vector_store:
+            logging.error("Vector store not available. Cannot perform query.")
+            return None
+
+        where_filter = {
+            "$and": [
+                {"name": {"$eq": name}},
+                {"type": {"$eq": entity_type}},
+            ]
+        }
+
+        try:
+            results = self.vector_store._collection.get(
+                where=where_filter,
+                limit=1,
+                include=["metadatas"],
+            )
+
+            if results and results.get("metadatas"):
+                return results["metadatas"][0]
+            return None
+        except Exception:
+            logging.error(
+                "Error retrieving entity '%s' of type '%s'", name, entity_type
+            )
             return None
