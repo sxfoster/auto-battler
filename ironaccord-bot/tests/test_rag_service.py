@@ -16,7 +16,7 @@ def _init_service(monkeypatch):
         def as_retriever(self):
             return None
     monkeypatch.setattr(rag_service, "Chroma", DummyChroma)
-    monkeypatch.setattr(rag_service, "OpenAI", lambda *a, **kw: object())
+    monkeypatch.setattr(rag_service, "Ollama", lambda *a, **kw: object())
     dummy = DummyQA()
     monkeypatch.setattr(rag_service.RetrievalQA, "from_chain_type", classmethod(lambda cls, **kw: dummy))
     service = rag_service.RAGService()
