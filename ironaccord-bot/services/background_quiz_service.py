@@ -1,106 +1,106 @@
-import json
+import random
 import logging
+import json
 from pathlib import Path
-from typing import List, Dict, Any
+from collections import Counter
+from typing import Dict, List, Tuple
 
-from ai.ai_agent import AIAgent
-
-
-def extract_json_from_llm(response_text: str) -> dict:
-    """Parse a JSON object embedded in ``response_text`` from an LLM.
-
-    The LLM sometimes returns additional text or even omits the opening
-    brace of the JSON payload. This helper attempts to recover from those
-    cases so callers always receive a valid dictionary or an informative
-    error.
-    """
-
-    try:
-        start_index = response_text.find("{")
-        end_index = response_text.rfind("}") + 1
-
-        if start_index == -1:
-            # If the opening brace is missing entirely, assume the text is the
-            # inner portion of the JSON and add braces around it.
-            json_str = "{" + response_text + "}"
-        elif end_index == 0:
-            raise ValueError("No closing brace found in LLM response.")
-        else:
-            json_str = response_text[start_index:end_index]
-
-        cleaned_json_str = json_str.strip()
-        return json.loads(cleaned_json_str)
-
-    except (ValueError, json.JSONDecodeError) as exc:
-        logger.error("Failed to parse JSON. Raw response: %s", response_text)
-        logger.error("Attempted to parse: %s", json_str)
-        raise ValueError(f"LLM returned malformed JSON: {exc}") from exc
+from ironaccord_bot.services.ollama_service import OllamaService
+from ironaccord_bot.views.background_quiz_view import QuizSession
 
 logger = logging.getLogger(__name__)
 
+# Folder containing the background markdown files
+BACKGROUNDS_PATH = Path("data/backgrounds/iron_accord")
+
+
+def _extract_json(response: str) -> Dict:
+    """Best-effort parse of JSON text returned from the LLM."""
+    try:
+        start = response.find("{")
+        end = response.rfind("}") + 1
+        if start == -1 or end == 0:
+            raise ValueError("No JSON object found")
+        return json.loads(response[start:end])
+    except Exception as exc:  # pragma: no cover - malformed json
+        logger.error("Failed to parse JSON from LLM: %s", response)
+        raise
+
 
 class BackgroundQuizService:
-    """Generate and evaluate character background quizzes."""
+    """Generate and evaluate background quizzes."""
 
-    def __init__(self, agent: AIAgent) -> None:
-        self.agent = agent
+    def __init__(self) -> None:
+        self.ollama_service = OllamaService()
+        self.active_quizzes: Dict[int, QuizSession] = {}
 
-    def _read_background_docs(self) -> str:
-        base = Path("data/backgrounds/iron_accord")
-        parts: list[str] = []
-        for md in sorted(base.glob("*.md")):
-            try:
-                parts.append(md.read_text(encoding="utf-8"))
-            except Exception as exc:  # pragma: no cover - unexpected I/O error
-                logger.error("Failed reading %s: %s", md, exc)
-        return "\n\n".join(parts)
+    async def start_quiz(self, user_id: int) -> QuizSession | None:
+        """Create a new quiz session for ``user_id``."""
+        background_files = [p for p in BACKGROUNDS_PATH.glob("*.md") if p.name.lower() != "readme.md"]
+        if len(background_files) < 3:
+            return None
 
-    async def generate_questions(self) -> List[Dict[str, Any]]:
-        """Return a list of quiz questions generated from the background docs."""
-        lore = self._read_background_docs()
-        prompt = (
-            "Using the following background descriptions, craft five multiple-choice "
-            "questions to determine which background best suits a player. "
-            "Each question should include four short answer choices. "
-            "Respond with JSON using the key 'questions' containing a list of "
-            "objects with 'text' and 'choices'.\n\n"
-            f"BACKGROUND INFO:\n{lore}"
-        )
+        chosen = random.sample(background_files, 3)
+        names = [f.stem.replace("_", " ").title() for f in chosen]
+        text_map = {label: path.read_text(encoding="utf-8") for label, path in zip(["A", "B", "C"], chosen)}
+        name_map = {label: name for label, name in zip(["A", "B", "C"], names)}
+
+        prompt = self._create_question_generation_prompt({name_map[l]: text_map[l] for l in ["A", "B", "C"]})
         try:
-            text = await self.agent.get_completion(prompt)
-        except Exception as exc:  # pragma: no cover - network/model failure
+            raw = await self.ollama_service.get_gm_response(prompt)
+            data = _extract_json(raw)
+        except Exception as exc:  # pragma: no cover - network or parsing failure
             logger.error("Quiz generation failed: %s", exc, exc_info=True)
-            return []
+            return None
 
-        try:
-            data = extract_json_from_llm(text)
-            return data.get("questions", [])
-        except Exception:
-            logger.error("Invalid JSON from LLM: %s", text)
-            return []
+        session = QuizSession(
+            questions=data.get("questions", []),
+            background_map=name_map,
+            background_text=text_map,
+        )
+        self.active_quizzes[user_id] = session
+        return session
 
-    async def evaluate_answers(
-        self, questions: List[Dict[str, Any]], answers: List[str]
-    ) -> Dict[str, Any] | None:
-        """Return the chosen background and explanation based on player answers."""
-        qa_lines = []
-        for idx, (q, ans) in enumerate(zip(questions, answers)):
-            qa_lines.append(f"Q{idx+1}: {q.get('text', '')}")
-            qa_lines.append(f"A{idx+1}: {ans}")
+    def _create_question_generation_prompt(self, backgrounds: Dict[str, str]) -> str:
+        labels = list(backgrounds.keys())
+        a, b, c = labels[0], labels[1], labels[2]
+        return (
+            f"You are a Game Master AI for a grim, industrial world called Iron Accord.\n"
+            "Your task is to generate a 5-question multiple-choice quiz to help a player find their character's background.\n\n"
+            f"BACKGROUND {a}: \"{a}\"\n{backgrounds[a]}\n\n"
+            f"BACKGROUND {b}: \"{b}\"\n{backgrounds[b]}\n\n"
+            f"BACKGROUND {c}: \"{c}\"\n{backgrounds[c]}\n\n"
+            "Generate 5 scenario-based questions. Each question must have 3 answers (A, B, and C), where each answer reflects the mindset of one of the backgrounds.\n"
+            "Return ONLY a JSON object with two keys: 'background_map' and 'questions'.\n"
+            "- 'background_map': maps labels 'A', 'B', 'C' to the background names.\n"
+            "- 'questions': a list of objects, each with a 'question' string and a list of three 'answers' strings."
+        )
+
+    async def record_answer_and_get_next(self, user_id: int, answer_label: str) -> Tuple[QuizSession, str | None]:
+        session = self.active_quizzes[user_id]
+        session.record_answer(answer_label)
+        if not session.is_finished():
+            next_text = session.get_current_question_text()
+        else:
+            next_text = None
+        return session, next_text
+
+    async def evaluate_result(self, user_id: int) -> str:
+        session = self.active_quizzes[user_id]
+        counts = Counter(session.answers)
+        most_common = counts.most_common(1)[0][0]
+        background_name = session.background_map[most_common]
+        background_text = session.background_text[most_common]
         prompt = (
-            "Given the following quiz questions and player answers, choose the "
-            "most fitting background from the Iron Accord backgrounds. "
-            "Respond only with JSON containing 'background' and 'explanation'.\n\n"
-            + "\n".join(qa_lines)
+            "You are Edraz, a stoic and wise warrior of the Iron Accord.\n"
+            f"A recruit has just completed an aptitude quiz. Their answers show they are best suited to be a \"{background_name}\".\n\n"
+            "Based on the following description of that role, explain to the recruit why they are a good fit and welcome them to their new life. Speak in character. Keep it to 2-3 paragraphs.\n\n"
+            f"Background Description:\n{background_text}"
         )
         try:
-            text = await self.agent.get_completion(prompt)
-        except Exception as exc:  # pragma: no cover - network/model failure
-            logger.error("Quiz evaluation failed: %s", exc, exc_info=True)
-            return None
-
-        try:
-            return extract_json_from_llm(text)
-        except Exception:
-            logger.error("Invalid JSON from LLM: %s", text)
-            return None
+            result = await self.ollama_service.get_narrative(prompt)
+        except Exception as exc:  # pragma: no cover - network failure
+            logger.error("Failed to generate final result: %s", exc, exc_info=True)
+            result = "An error occurred while determining your background."
+        del self.active_quizzes[user_id]
+        return result
