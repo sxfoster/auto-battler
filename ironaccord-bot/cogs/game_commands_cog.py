@@ -1,5 +1,6 @@
 import discord
 from discord.ext import commands
+import asyncio
 
 # We will pass our services to this cog when we load it
 from services.rag_service import RAGService
@@ -12,12 +13,18 @@ class GameCommandsCog(commands.Cog):
         self.player_service = player_service
         print("GameCommandsCog loaded.")
 
+    # Helper function to run a synchronous function in a separate thread.
+    # This prevents the AI query from blocking the bot's event loop.
+    async def run_sync_query(self, query_fn, *args):
+        return await asyncio.to_thread(query_fn, *args)
+
     @commands.command(name="lore")
     async def lore(self, ctx: commands.Context, *, query: str):
         """Asks a question to the Lore Weaver AI."""
         async with ctx.typing():
             print(f"Received lore query: '{query}'")
-            result = await self.rag_service.query(query)
+            # CORRECTED: The RAG service query is now run in a non-blocking way.
+            result = await self.run_sync_query(self.rag_service.query, query)
             answer = result.get("answer", "I do not have an answer for that.")
             await ctx.send(f"**Query:** {query}\n**Answer:** {answer}")
 
@@ -35,8 +42,8 @@ class GameCommandsCog(commands.Cog):
             user_id = ctx.author.id
             mission_prompt = "Generate a simple, one-sentence mission objective for a new warrior of the Iron Accord."
             
-            # Get the mission from our AI
-            result = await self.rag_service.query(mission_prompt)
+            # CORRECTED: The RAG service query is now run in a non-blocking way.
+            result = await self.run_sync_query(self.rag_service.query, mission_prompt)
             mission_objective = result.get("answer", "Patrol the walls of Brasshaven.") # Fallback mission
 
             # Update the player's status
@@ -46,7 +53,6 @@ class GameCommandsCog(commands.Cog):
 
 async def setup(bot: commands.Bot):
     # This setup function is called when the cog is loaded
-    # We will need to get our services from the bot instance
     rag_service = bot.rag_service
     player_service = bot.player_service
     await bot.add_cog(GameCommandsCog(bot, rag_service, player_service))
