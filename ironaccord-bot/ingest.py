@@ -1,20 +1,21 @@
 import os
 import sys
 import yaml
-import shutil # Import the shutil library for directory operations
+import shutil  # Import the shutil library for directory operations
+from pathlib import Path
 from langchain_community.vectorstores import Chroma
 from langchain_community.embeddings import SentenceTransformerEmbeddings
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.docstore.document import Document
 
 # --- Configuration ---
-ABS_PATH = os.path.dirname(os.path.abspath(__file__)) 
-PROJECT_ROOT = os.path.abspath(os.path.join(ABS_PATH, "..")) 
+ABS_PATH = Path(__file__).resolve().parent
+PROJECT_ROOT = ABS_PATH.parent
 
-DB_DIR = os.path.join(PROJECT_ROOT, "chromadb")
-DATA_DIR = os.path.join(PROJECT_ROOT, "data")
-NPC_DATA_DIR = os.path.join(DATA_DIR, "npcs")
-LOCATION_DATA_DIR = os.path.join(DATA_DIR, "locations")
+DB_DIR = PROJECT_ROOT / "chromadb"
+DATA_DIR = PROJECT_ROOT / "data"
+NPC_DATA_DIR = DATA_DIR / "npcs"
+LOCATION_DATA_DIR = DATA_DIR / "locations"
 
 # --- Main Ingestion Logic ---
 def main():
@@ -23,7 +24,7 @@ def main():
     """
     # --- NEW: Automated Cleanup Step ---
     print("--- Preparing for Ingestion ---")
-    if os.path.exists(DB_DIR):
+    if DB_DIR.exists():
         print(f"  - Found existing database at {DB_DIR}. Deleting it for a clean rebuild.")
         try:
             shutil.rmtree(DB_DIR)
@@ -42,47 +43,49 @@ def main():
     print("\n--- Processing structured YAML data ---")
     # ... (rest of the script remains the same) ...
     for entity_type, path in [("NPC", NPC_DATA_DIR), ("Location", LOCATION_DATA_DIR)]:
-        if os.path.exists(path):
-            for filename in os.listdir(path):
-                if filename.endswith(".yaml"):
+        if path.exists():
+            for yaml_file in path.iterdir():
+                if yaml_file.suffix == ".yaml":
                     try:
-                        with open(os.path.join(path, filename), 'r', encoding='utf-8') as f:
+                        with yaml_file.open("r", encoding="utf-8") as f:
                             data = yaml.safe_load(f)
                             content = f"Entity Type: {entity_type}\n"
                             for key, value in data.items():
                                 content += f"{key}: {value}\n"
                             
-                            doc = Document(page_content=content, metadata={"source": filename})
+                            doc = Document(page_content=content, metadata={"source": yaml_file.name})
                             documents.append(doc)
-                            print(f"  - Loaded {entity_type}: {data.get('name', filename)}")
+                            print(f"  - Loaded {entity_type}: {data.get('name', yaml_file.name)}")
                     except Exception as e:
-                        print(f"  - ERROR: Failed to process YAML file {filename}. Reason: {e}")
+                        print(f"  - ERROR: Failed to process YAML file {yaml_file.name}. Reason: {e}")
         else:
              print(f"  - Directory not found for {entity_type}: {path}")
 
 
     # 2. Process unstructured markdown data
     print("\n--- Processing unstructured markdown data ---")
-    if os.path.exists(DATA_DIR):
-        for filename in os.listdir(DATA_DIR):
-            if filename.endswith(".md"):
-                file_path = os.path.join(DATA_DIR, filename)
-                print(f"  - Loading markdown file: {filename}")
-                try:
-                    with open(file_path, "r", encoding="utf-8") as f:
-                        text = f.read()
-                    
-                    metadata = {"source": filename}
-                    doc = Document(page_content=text, metadata=metadata)
-                    
-                    split_docs = text_splitter.split_documents([doc])
-                    documents.extend(split_docs)
-                    print(f"    - Success! Split into {len(split_docs)} chunks.")
-                except Exception as e:
-                    print(f"    - ERROR: Failed to load or split {filename}. Reason: {e}")
-                    continue
+    data_path = Path(DATA_DIR)
+    if data_path.exists():
+        for md_file in data_path.rglob("*.md"):
+            if md_file.name.lower() == "readme.md":
+                print(f"  - Skipping README file: {md_file}")
+                continue
+
+            print(f"  - Loading markdown file: {md_file}")
+            try:
+                text = md_file.read_text(encoding="utf-8")
+
+                metadata = {"source": str(md_file)}
+                doc = Document(page_content=text, metadata=metadata)
+
+                split_docs = text_splitter.split_documents([doc])
+                documents.extend(split_docs)
+                print(f"    - Success! Split into {len(split_docs)} chunks.")
+            except Exception as e:
+                print(f"    - ERROR: Failed to load or split {md_file}. Reason: {e}")
+                continue
     else:
-        print(f"  - Data directory not found: {DATA_DIR}")
+        print(f"  - Data directory not found: {data_path}")
 
 
     # 3. Create vector store from all processed documents
@@ -99,7 +102,7 @@ def main():
         Chroma.from_documents(
             documents=documents,
             embedding=embedding_function,
-            persist_directory=DB_DIR
+            persist_directory=str(DB_DIR)
         )
     except Exception as e:
         print(f"  - FATAL ERROR: Failed during ChromaDB creation. Reason: {e}")
