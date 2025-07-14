@@ -1,0 +1,5 @@
+# Packages used only for development and testing
+pytest
+pytest-asyncio
+httpx
+aiomysql
