@@ -17,6 +17,7 @@ __pycache__/
 *.pyc
 chroma_db/
 chromadb/
+!ironaccord-bot/tests/stubs/chromadb/
 langchain_community/
 dotenv.py
 db/

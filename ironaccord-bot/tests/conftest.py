@@ -1,6 +1,7 @@
 import os
 import sys
 import importlib
+import types
 from pathlib import Path
 
 # Ensure the project root is on the Python path and advertise it via the
@@ -33,8 +34,12 @@ try:
 
     # Provide lightweight stand-ins for optional heavy dependencies used by the
     # RAG service so the module can be imported during testing.
-    import types
-    sys.modules.setdefault("chromadb", types.SimpleNamespace(PersistentClient=None))
+    import importlib.util
+    stub_path = Path(__file__).parent / "stubs" / "chromadb" / "__init__.py"
+    spec = importlib.util.spec_from_file_location("chromadb", stub_path)
+    chroma_stub = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(chroma_stub)
+    sys.modules.setdefault("chromadb", chroma_stub)
     sys.modules.setdefault(
         "langchain_community.vectorstores",
         types.SimpleNamespace(Chroma=None),
@@ -47,4 +52,11 @@ try:
         ),
     )
 except Exception:
+    # Even if package imports fail, ensure the chromadb stub is available
+    import importlib.util
+    stub_path = Path(__file__).parent / "stubs" / "chromadb" / "__init__.py"
+    spec = importlib.util.spec_from_file_location("chromadb", stub_path)
+    chroma_stub = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(chroma_stub)
+    sys.modules.setdefault("chromadb", chroma_stub)
     pass

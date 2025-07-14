@@ -9,6 +9,9 @@ This repository houses the Discord bot used for the auto battler experiments alo
 - `docs/yaml/` – structured YAML lore used for retrieval.
 - `index.html`, `poc2/` – early browser prototypes kept for reference.
 - `ironaccord-bot/data/items.py` – base item definitions consumed by missions and rewards.
+- `ironaccord-bot/tests/stubs/chromadb/` – lightweight stand‑in for the
+  [Chromadb](https://github.com/chroma-core/chroma) client so the test suite can
+  run without the heavy dependency installed.
 
 ## Setup
 
