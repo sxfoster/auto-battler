@@ -2,7 +2,8 @@ import pytest
 
 discord = pytest.importorskip("discord")
 from discord.ext import commands
-from ironaccord_bot.cogs import start
+from importlib import import_module
+start = import_module('ironaccord-bot.cogs.start')
 
 
 class DummyResponse:

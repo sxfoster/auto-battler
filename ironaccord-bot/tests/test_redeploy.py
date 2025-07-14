@@ -2,7 +2,8 @@ import pytest
 
 discord = pytest.importorskip("discord")
 
-from ironaccord_bot import bot as bot_module
+from importlib import import_module
+bot_module = import_module('ironaccord-bot.bot')
 
 
 class DummyTree:

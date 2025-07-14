@@ -1,5 +1,6 @@
 import pytest
-from services.mission_generator import MissionGenerator
+from importlib import import_module
+MissionGenerator = import_module('ironaccord-bot.services.mission_generator').MissionGenerator
 
 @pytest.mark.asyncio
 async def test_generate_intro(monkeypatch):

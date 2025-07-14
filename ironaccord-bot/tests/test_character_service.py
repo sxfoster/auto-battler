@@ -1,7 +1,7 @@
 import pytest
 pytest.importorskip("aiomysql")
-
-from ironaccord_bot.models import character_service
+from importlib import import_module
+character_service = import_module('ironaccord-bot.models.character_service')
 
 class DummyDB:
     def __init__(self):

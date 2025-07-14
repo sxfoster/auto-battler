@@ -2,7 +2,8 @@ import pytest
 discord = pytest.importorskip("discord")
 from discord.ext import commands
 
-from ironaccord_bot.cogs import ping
+from importlib import import_module
+ping = import_module('ironaccord-bot.cogs.ping')
 
 class DummySend:
     def __init__(self):

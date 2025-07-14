@@ -1,6 +1,7 @@
 import pytest
 
-from services.opening_scene_service import OpeningSceneService
+from importlib import import_module
+OpeningSceneService = import_module('ironaccord-bot.services.opening_scene_service').OpeningSceneService
 
 
 @pytest.mark.asyncio

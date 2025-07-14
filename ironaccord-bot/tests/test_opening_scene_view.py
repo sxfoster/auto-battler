@@ -2,7 +2,8 @@ import pytest
 
 discord = pytest.importorskip("discord")
 
-from ironaccord_bot.views.opening_scene_view import OpeningSceneView
+from importlib import import_module
+OpeningSceneView = import_module('ironaccord-bot.views.opening_scene_view').OpeningSceneView
 
 
 class DummyResponse:

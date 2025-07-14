@@ -1,6 +1,7 @@
 import pytest
+from importlib import import_module
 
-from ironaccord_bot.bot import IronAccordBot
+IronAccordBot = import_module('ironaccord-bot.bot').IronAccordBot
 
 class DummyService:
     pass
@@ -14,7 +15,7 @@ class DummyRAG:
 
 
 def test_bot_exposes_ollama_service(monkeypatch):
-    monkeypatch.setattr('ironaccord_bot.bot.RAGService', lambda: DummyRAG())
-    monkeypatch.setattr('ironaccord_bot.bot.AIAgent', DummyAgent)
+    monkeypatch.setattr('ironaccord-bot.bot.RAGService', lambda: DummyRAG())
+    monkeypatch.setattr('ironaccord-bot.bot.AIAgent', DummyAgent)
     bot = IronAccordBot()
     assert bot.ollama_service is bot.ai_agent.ollama_service

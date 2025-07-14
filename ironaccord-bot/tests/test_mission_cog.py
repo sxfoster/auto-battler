@@ -3,8 +3,9 @@ pytest.importorskip("aiomysql")
 
 discord = pytest.importorskip("discord")
 from discord.ext import commands
-from ironaccord_bot.cogs import mission
-from models import mission_service as mission_service
+from importlib import import_module
+mission = import_module('ironaccord-bot.cogs.mission')
+mission_service = import_module('ironaccord-bot.models.mission_service')
 
 class DummyResponse:
     def __init__(self):

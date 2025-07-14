@@ -25,7 +25,7 @@ This repository houses the Discord bot used for the auto battler experiments alo
    ```
 5. Start the bot:
    ```bash
-   python -m ironaccord_bot.bot
+   python -m ironaccord-bot.bot
    ```
    Using `python -m` runs the package as a module so relative imports work.
 6. Once the bot is online, use `/start` in your Discord server to play through a one-shot adventure generated from the structured lore data.

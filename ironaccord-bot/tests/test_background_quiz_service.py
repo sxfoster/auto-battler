@@ -1,6 +1,7 @@
 import pytest
 
-from services.background_quiz_service import BackgroundQuizService
+from importlib import import_module
+BackgroundQuizService = import_module('ironaccord-bot.services.background_quiz_service').BackgroundQuizService
 
 
 @pytest.mark.asyncio

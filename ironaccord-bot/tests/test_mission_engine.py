@@ -1,6 +1,7 @@
 import pytest
 
-from ironaccord_bot.utils import mission_engine
+from importlib import import_module
+mission_engine = import_module('ironaccord-bot.utils.mission_engine')
 
 class DummyDB:
     def __init__(self, stats_rows=None, eq_row=None, items=None):

@@ -2,7 +2,8 @@ import types
 import pytest
 
 pytest.importorskip("aiomysql")
-from ironaccord_bot.models import database
+from importlib import import_module
+database = import_module('ironaccord-bot.models.database')
 
 class DummyCursor:
     def __init__(self, rows=None, description=True, lastrowid=1):

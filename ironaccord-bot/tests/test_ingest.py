@@ -2,7 +2,8 @@ import os
 from pathlib import Path
 from types import SimpleNamespace
 from langchain.schema import Document
-from ironaccord_bot import ingest
+from importlib import import_module
+ingest = import_module('ironaccord-bot.ingest')
 
 class DummyLoader:
     def __init__(self, *a, **kw):

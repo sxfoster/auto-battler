@@ -1,6 +1,8 @@
 import pytest
-from services import player_context_service
-from models import mission_service, database
+from importlib import import_module
+player_context_service = import_module('ironaccord-bot.services.player_context_service')
+mission_service = import_module('ironaccord-bot.models.mission_service')
+database = import_module('ironaccord-bot.models.database')
 
 pytest.importorskip("aiomysql")
 

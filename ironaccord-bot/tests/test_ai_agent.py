@@ -1,7 +1,8 @@
 import pytest
+from importlib import import_module
 
-from ironaccord_bot.ai.ai_agent import AIAgent
-from ironaccord_bot.services.ollama_service import OllamaService
+AIAgent = import_module('ironaccord-bot.ai.ai_agent').AIAgent
+OllamaService = import_module('ironaccord-bot.services.ollama_service').OllamaService
 
 
 @pytest.mark.asyncio

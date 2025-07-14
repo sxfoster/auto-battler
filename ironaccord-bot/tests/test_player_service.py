@@ -1,5 +1,6 @@
 import pytest
-from ironaccord_bot.models import player_service
+from importlib import import_module
+player_service = import_module('ironaccord-bot.models.player_service')
 
 
 @pytest.mark.asyncio

@@ -1,7 +1,8 @@
 import pytest
 import sys
+from importlib import import_module
 
-from services import rag_service
+rag_service = import_module('ironaccord-bot.services.rag_service')
 
 
 class DummyClient:
