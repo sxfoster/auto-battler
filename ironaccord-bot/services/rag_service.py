@@ -8,6 +8,7 @@ from langchain.chains import RetrievalQA
 # Define paths and constants
 ABS_PATH = os.path.dirname(os.path.abspath(__file__))
 DB_DIR = os.path.join(ABS_PATH, "../../", "chromadb")
+DEFAULT_COLLECTION = "lore"
 
 class RAGService:
     """Handles the Retrieval-Augmented Generation logic using a local LLM via Ollama."""
