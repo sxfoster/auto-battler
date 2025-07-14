@@ -5,8 +5,8 @@ from pathlib import Path
 from collections import Counter
 from typing import Dict, List, Tuple
 
-from ironaccord_bot.services.ollama_service import OllamaService
-from ironaccord_bot.views.background_quiz_view import QuizSession
+from .ollama_service import OllamaService
+from ..views.background_quiz_view import QuizSession
 
 logger = logging.getLogger(__name__)
 
