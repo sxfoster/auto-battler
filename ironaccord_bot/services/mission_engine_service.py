@@ -116,3 +116,8 @@ class MissionEngineService:
         if data.get("status"):
             self.active_sessions.pop(user_id, None)
         return data
+
+    async def generate_mission(self, background: str, template_name: str = "missing_person") -> Optional[Dict[str, Any]]:
+        """Return a mission dictionary using ``background`` and ``template_name``."""
+
+        return await self.generate_opening(background, template_name)
