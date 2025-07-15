@@ -18,6 +18,10 @@ Background lore for the Iron Accord has been split into several focused files:
 - [lore/story_design_principles.md](lore/story_design_principles.md)
 - [lore/narrative_hooks.md](lore/narrative_hooks.md)
 - [../data/backgrounds/iron_accord/README.md](../data/backgrounds/iron_accord/README.md)
+- Lore creation templates:
+  - [templates/faction_template.md](templates/faction_template.md)
+  - [templates/poi_template.md](templates/poi_template.md)
+  - [templates/npc_template.md](templates/npc_template.md)
 
 The original combined document lives in
 [archive/iron_accord_lore_gdd.md](archive/iron_accord_lore_gdd.md). The
