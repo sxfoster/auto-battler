@@ -17,29 +17,31 @@ class CodexCog(commands.Cog):
         self.rag_service: RAGService = bot.rag_service
         self.ollama_service: OllamaService = bot.ollama_service
 
-        self.group = app_commands.Group(name="codex", description="Codex commands")
-        self.group.command(
-            name="query", description="Search the Iron Accord knowledge base."
-        )(self.query)
-        bot.tree.add_command(self.group)
+        # Commands are added directly via decorators
 
+    @app_commands.command(name="query", description="Consult the Iron Accord codex for lore.")
     @app_commands.describe(query="What lore are you looking for?")
     async def query(self, interaction: discord.Interaction, query: str):
-        """Handle the `/codex query` slash command."""
+        """
+        Handle the `/codex query` slash command.
+        MODIFIED: This method is updated for source-aware prompting and logging.
+        """
         logger.info(f"Received /codex query from '{interaction.user.name}': '{query}'")
-        await interaction.response.defer()
+        await interaction.response.defer(ephemeral=True)
 
         try:
             prompt_template = (
                 "Within the context of the steampunk fantasy game world known as 'Iron Accord', "
-                'please answer the following question: "{user_query}"'
+                "please answer the following question: \"{user_query}\""
             )
             enhanced_query = prompt_template.format(user_query=query)
             logger.info(f"Enhanced query for RAG: '{enhanced_query}'")
 
+            # The retriever should be configured to return source documents
             results = self.rag_service.query(enhanced_query)
+            source_documents = results.get("source_documents", [])
 
-            if not results or not results.get("source_documents"):
+            if not source_documents:
                 logger.warning(
                     f"RAG service returned no results for query: '{enhanced_query}'"
                 )
@@ -51,27 +53,34 @@ class CodexCog(commands.Cog):
                 await interaction.followup.send(embed=embed)
                 return
 
-            retrieved_context = "\n\n---\n\n".join(
-                [doc.page_content for doc in results["source_documents"]]
-            )
-            logger.debug(
-                f"Retrieved context for prompt:\n---\n{retrieved_context}\n---"
-            )
+            # --- NEW: Log the sources and build a structured context ---
+            source_filenames = list(set([doc.metadata.get("source", "Unknown") for doc in source_documents]))
+            logger.info(f"Retrieved {len(source_documents)} chunks from sources: {source_filenames}")
 
-            prompt = f"""
-            You are a helpful assistant. Based ONLY on the following context, provide a concise answer to the user's query.
-            Structure your answer clearly. Do not add any information that is not in the context.
-            If the context does not seem relevant to the query, state that you have no information on the topic.
+            context_parts = []
+            for doc in source_documents:
+                source = doc.metadata.get("source", "Unknown")
+                content = doc.page_content
+                context_parts.append(f"[Source: {source}]\n{content}")
+
+            structured_context = "\n\n---\n\n".join(context_parts)
+            logger.debug(f"Structured context for prompt:\n---\n{structured_context}\n---")
+
+            # --- NEW: Updated, more advanced prompt ---
+            final_prompt = f"""
+            You are a helpful assistant and lore master for the world of Iron Accord.
+            Based ONLY on the following context, which includes the source file for each piece of information, provide a concise and synthesized answer to the user's query.
+            Do not add any information that is not in the context. If the context does not seem relevant, state that you have no information on the topic.
 
             CONTEXT:
-            {retrieved_context}
+            {structured_context}
 
             QUERY:
             {query}
             """
 
             logger.info("Sending final prompt to GM model for summary.")
-            summary = await self.ollama_service.get_gm_response(prompt)
+            summary = await self.ollama_service.get_gm_response(final_prompt)
             logger.info("Received summary from GM model.")
 
             embed = discord.Embed(
@@ -79,6 +88,8 @@ class CodexCog(commands.Cog):
                 description=summary,
                 color=discord.Color.blue(),
             )
+            # Add sources to the footer for traceability
+            embed.set_footer(text=f"Sources: {', '.join(source_filenames)}")
             await interaction.followup.send(embed=embed)
             logger.info(f"Successfully sent codex response for query: '{query}'")
 

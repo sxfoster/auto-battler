@@ -75,12 +75,16 @@ def main():
             try:
                 text = md_file.read_text(encoding="utf-8")
 
-                metadata = {"source": str(md_file)}
+                # Store only the filename for cleaner metadata
+                metadata = {"source": md_file.name}
                 doc = Document(page_content=text, metadata=metadata)
 
                 split_docs = text_splitter.split_documents([doc])
+                # Ensure each chunk carries the source filename
+                for chunk in split_docs:
+                    chunk.metadata["source"] = md_file.name
                 documents.extend(split_docs)
-                print(f"    - Success! Split into {len(split_docs)} chunks.")
+                print(f"    - Success! Split into {len(split_docs)} chunks. First chunk source: {split_docs[0].metadata['source']}")
             except Exception as e:
                 print(f"    - ERROR: Failed to load or split {md_file}. Reason: {e}")
                 continue
