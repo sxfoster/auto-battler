@@ -4,7 +4,7 @@ import logging
 from typing import Optional
 
 from ai.ai_agent import AIAgent
-from services.rag_service import RAGService
+from .rag_service import RAGService
 
 logger = logging.getLogger(__name__)
 
