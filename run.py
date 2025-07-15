@@ -16,6 +16,13 @@ def main():
         sys.path.insert(0, project_root)
         print(f"[Launcher] Added project root to path: {project_root}")
 
+    # Add the package directory to the system path so top-level imports like
+    # 'from models import ...' resolve correctly when run from this launcher.
+    package_path = os.path.join(project_root, "ironaccord_bot")
+    if package_path not in sys.path:
+        sys.path.insert(0, package_path)
+        print(f"[Launcher] Added package path to path: {package_path}")
+
     print("[Launcher] Attempting to start the bot directly...")
 
     try:
