@@ -85,7 +85,7 @@ class BackgroundQuizService:
             next_text = None
         return session, next_text
 
-    async def evaluate_result(self, user_id: int) -> str:
+    async def evaluate_result(self, user_id: int) -> tuple[str, str]:
         session = self.active_quizzes[user_id]
         counts = Counter(session.answers)
         most_common = counts.most_common(1)[0][0]
@@ -103,4 +103,4 @@ class BackgroundQuizService:
             logger.error("Failed to generate final result: %s", exc, exc_info=True)
             result = "An error occurred while determining your background."
         del self.active_quizzes[user_id]
-        return result
+        return result, background_name

@@ -28,13 +28,19 @@ class QuizSession:
         return self.current_question_index >= len(self.questions)
 
 
+from ..services.mission_engine_service import MissionEngineService
+from .mission_view import MissionView
+
+
 class BackgroundQuizView(discord.ui.View):
     """Discord UI for progressing through the background quiz."""
 
-    def __init__(self, quiz_service, user_id: int):
+    def __init__(self, quiz_service, mission_service: MissionEngineService, user_id: int, template: str = "salvage_run"):
         super().__init__(timeout=300)
         self.quiz_service = quiz_service
+        self.mission_service = mission_service
         self.user_id = user_id
+        self.template = template
 
     async def handle_answer(self, interaction: discord.Interaction, answer_label: str):
         session, next_question = await self.quiz_service.record_answer_and_get_next(
@@ -45,8 +51,14 @@ class BackgroundQuizView(discord.ui.View):
             await interaction.response.edit_message(content=next_question, view=self)
         else:
             await interaction.response.edit_message(content="Edraz is considering your answers...", view=None)
-            final_result = await self.quiz_service.evaluate_result(self.user_id)
-            await interaction.followup.send(final_result, ephemeral=True)
+            final_text, background = await self.quiz_service.evaluate_result(self.user_id)
+            await interaction.followup.send(final_text, ephemeral=True)
+            opening = await self.mission_service.start_mission(self.user_id, background, self.template)
+            if opening:
+                view = MissionView(self.mission_service, self.user_id, opening.get("text", ""), opening.get("choices", []))
+                await interaction.followup.send(opening.get("text", ""), view=view, ephemeral=True)
+            else:
+                await interaction.followup.send("Failed to start mission.", ephemeral=True)
             self.stop()
 
     @discord.ui.button(label="A", style=discord.ButtonStyle.secondary, custom_id="answer_a")
