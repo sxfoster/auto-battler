@@ -25,7 +25,17 @@ class CodexCog(commands.Cog):
         """Handle the `/codex query` slash command."""
         await interaction.response.defer()
 
-        results = self.rag_service.query(query)
+        # Provide the RAG service with additional context so searches prefer
+        # Iron Accord lore over generic definitions.
+        prompt_template = (
+            "Within the context of the steampunk fantasy game world known as 'Iron Accord', "
+            "please answer the following question: \"{user_query}\""
+        )
+        enhanced_query = prompt_template.format(user_query=query)
+        print(f"Original codex query: '{query}'")
+        print(f"Enhanced query for RAG: '{enhanced_query}'")
+
+        results = self.rag_service.query(enhanced_query)
 
         if not results:
             embed = discord.Embed(
