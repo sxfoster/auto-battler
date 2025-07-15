@@ -2,7 +2,7 @@
 
 from typing import Any, Dict
 
-from models import mission_service, database
+from ironaccord_bot.models import mission_service, database
 
 
 async def gather_player_context(discord_id: str) -> Dict[str, Any] | None:

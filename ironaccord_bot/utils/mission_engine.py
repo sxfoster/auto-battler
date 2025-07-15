@@ -1,7 +1,7 @@
 import random
 from typing import Dict, Any
 
-from models import database as db
+from ironaccord_bot.models import database as db
 from data.items import BY_NAME
 
 async def resolve_choice(player_id: int, choice: Dict[str, Any]) -> Dict[str, Any]:
