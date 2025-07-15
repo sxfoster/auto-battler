@@ -24,8 +24,18 @@ class GameCommandsCog(commands.Cog):
         """Asks a question to the Lore Weaver AI."""
         await interaction.response.defer(ephemeral=True)
         print(f"Received lore query: '{query}'")
+
+        # Build a more descriptive query so the RAG system understands this is
+        # about the Iron Accord setting rather than a generic term.
+        prompt_template = (
+            "Within the context of the steampunk fantasy game world known as 'Iron Accord', "
+            "please answer the following question: \"{user_query}\""
+        )
+        enhanced_query = prompt_template.format(user_query=query)
+        print(f"Enhanced query for RAG: '{enhanced_query}'")
+
         # CORRECTED: The RAG service query is now run in a non-blocking way.
-        result = await self.run_sync_query(self.rag_service.query, query)
+        result = await self.run_sync_query(self.rag_service.query, enhanced_query)
         answer = result.get("answer", "I do not have an answer for that.")
         await interaction.followup.send(f"**Query:** {query}\n**Answer:** {answer}", ephemeral=True)
 
