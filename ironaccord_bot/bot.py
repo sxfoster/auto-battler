@@ -11,6 +11,7 @@ from dotenv import load_dotenv
 from ironaccord_bot.services.rag_service import RAGService
 from ironaccord_bot.services.player_service import PlayerService
 from ironaccord_bot.ai.ai_agent import AIAgent
+from ironaccord_bot.services.ollama_service import OllamaService
 
 # --- Load Environment Variables ---
 load_dotenv()
@@ -34,6 +35,12 @@ class IronAccordBot(commands.Bot):
         self.rag_service = RAGService()
         self.player_service = PlayerService()
         self.ai_agent = AIAgent()
+        self.ollama_service = OllamaService()
+        self.ai_agent.ollama_service = self.ollama_service
+
+        # Deployment flag used in tests
+        self.redeploy = False
+
         self.status_channel = None
 
     async def setup_hook(self):
@@ -77,7 +84,7 @@ class IronAccordBot(commands.Bot):
                 description=f"{self.user.name} has connected and is ready.",
                 color=discord.Color.green(),
             )
-            embed.set_timestamp(datetime.utcnow())
+            embed.timestamp = datetime.utcnow()
             await self.status_channel.send(embed=embed)
         else:
             logging.warning(f"Could not find status channel with ID: {STATUS_CHANNEL_ID}")
@@ -94,12 +101,20 @@ class IronAccordBot(commands.Bot):
                 description=f"{self.user.name} is shutting down.",
                 color=discord.Color.red(),
             )
-            embed.set_timestamp(datetime.utcnow())
+            embed.timestamp = datetime.utcnow()
             await self.status_channel.send(embed=embed)
 
 
 # --- Main Execution ---
 bot: IronAccordBot | None = None
+
+async def on_ready():
+    """Handle the on_ready event for redeploy tests."""
+    if not bot:
+        return
+    if getattr(bot, "redeploy", False):
+        await bot.tree.clear_commands()
+    await bot.tree.sync()
 
 async def start_bot():
     """The main function to run the bot."""
