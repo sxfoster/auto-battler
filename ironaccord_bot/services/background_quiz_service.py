@@ -1,10 +1,11 @@
 import logging
 import json
-from typing import Dict, List, Tuple
+from typing import Dict, Tuple
 from collections import Counter
 
 from ironaccord_bot.services.ollama_service import OllamaService
 from ironaccord_bot.views.background_quiz_view import QuizSession
+from ironaccord_bot.utils.json_utils import extract_json_from_string
 
 logger = logging.getLogger(__name__)
 
@@ -17,30 +18,33 @@ class BackgroundQuizService:
         self.active_quizzes: Dict[int, QuizSession] = {}
 
     def _create_question_generation_prompt(self, backgrounds: Dict[str, str]) -> str:
-        """
-        Creates the prompt to generate the quiz questions.
-        MODIFIED: Now asks for a variable number of answers (2 to 4).
-        """
+        """Create the LLM prompt for generating quiz questions."""
         labels = list(backgrounds.keys())
         a, b, c = labels[0], labels[1], labels[2]
         return (
-            f"You are a Game Master AI for a grim, industrial world called Iron Accord.\n"
-            "Your task is to generate a 5-question multiple-choice quiz to help a player find their character's background.\n\n"
-            f"BACKGROUND {a}: \"{a}\"\n{backgrounds[a]}\n\n"
-            f"BACKGROUND {b}: \"{b}\"\n{backgrounds[b]}\n\n"
-            f"BACKGROUND {c}: \"{c}\"\n{backgrounds[c]}\n\n"
-            "Generate 5 scenario-based questions. Each question must have between 2 and 4 answers, where each answer reflects the mindset of one of the backgrounds (A, B, or C).\n"
-            "Return ONLY a JSON object with two keys: 'background_map' and 'questions'.\n"
+            f"You are a Game Master AI. Your task is to generate a 5-question multiple-choice quiz.\n\n"
+            f"BACKGROUND A: \"{backgrounds[a]}\"\n"
+            f"BACKGROUND B: \"{backgrounds[b]}\"\n"
+            f"BACKGROUND C: \"{backgrounds[c]}\"\n\n"
+            "Generate 5 scenario-based questions. Each question must have between 2 and 4 answers, where each answer reflects one of the backgrounds.\n"
+            "CRITICAL INSTRUCTION: Your entire response must be ONLY the raw, valid JSON object. Do not include any text, explanations, or markdown like ```json before or after the JSON object.\n"
+            "The JSON object must have two keys: 'background_map' and 'questions'.\n"
             "- 'background_map': maps labels 'A', 'B', 'C' to the background names.\n"
-            "- 'questions': a list of objects, each with a 'question' string and a list of 'answers' strings. Each answer string must start with 'A)', 'B)', or 'C)' to map back to a background."
+            "- 'questions': a list of objects, each with a 'question' string and a list of 'answers' strings. Each answer string must start with 'A)', 'B)', or 'C)'."
         )
 
     async def start_quiz(self, user_id: int, backgrounds: Dict[str, str]) -> QuizSession | None:
         """Generates and starts a new quiz for a user."""
         prompt = self._create_question_generation_prompt(backgrounds)
         try:
-            response = await self.ollama_service.get_gm_response(prompt)
-            quiz_data = json.loads(response)
+            raw_response = await self.ollama_service.get_gm_response(prompt)
+
+            json_string = extract_json_from_string(raw_response)
+            if not json_string:
+                logger.error("Could not extract valid JSON from LLM response. Raw response: %s", raw_response)
+                return None
+
+            quiz_data = json.loads(json_string)
             
             # Create background text map
             background_text_map = {
@@ -57,7 +61,12 @@ class BackgroundQuizService:
             self.active_quizzes[user_id] = session
             return session
         except (json.JSONDecodeError, KeyError) as e:
-            logger.error("Failed to parse quiz data from LLM: %s\nResponse: %s", e, response, exc_info=True)
+            logger.error(
+                "Failed to parse cleaned quiz data: %s\nCleaned JSON String: %s",
+                e,
+                json_string,
+                exc_info=True,
+            )
             return None
         except Exception as e:
             logger.error("An unexpected error occurred during quiz start: %s", e, exc_info=True)
