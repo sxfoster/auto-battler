@@ -4,6 +4,7 @@ from langchain_community.embeddings import SentenceTransformerEmbeddings
 from langchain_community.llms import Ollama
 from langchain.prompts import PromptTemplate
 from langchain.chains import RetrievalQA
+from chromadb.config import Settings
 
 # Define paths and constants
 ABS_PATH = os.path.dirname(os.path.abspath(__file__))
@@ -18,7 +19,8 @@ class RAGService:
         self.embedding_function = SentenceTransformerEmbeddings(model_name="all-MiniLM-L6-v2")
         self.vector_store = Chroma(
             persist_directory=DB_DIR,
-            embedding_function=self.embedding_function
+            embedding_function=self.embedding_function,
+            client_settings=Settings(anonymized_telemetry=False)
         )
 
         # Initialize the local Language Model (LLM) via Ollama
