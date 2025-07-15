@@ -2,10 +2,10 @@ import discord
 from discord.ext import commands
 from discord import app_commands
 
-from ..services.background_quiz_service import BackgroundQuizService
-from ..services.mission_engine_service import MissionEngineService
-from ..views.background_quiz_view import BackgroundQuizView
-from ..ai.ai_agent import AIAgent
+from services.background_quiz_service import BackgroundQuizService
+from services.mission_engine_service import MissionEngineService
+from views.background_quiz_view import BackgroundQuizView
+from ai.ai_agent import AIAgent
 
 
 class StartCog(commands.Cog):
