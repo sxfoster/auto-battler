@@ -1,13 +1,32 @@
 import logging
 import json
+import re
 from typing import Dict, Tuple
 from collections import Counter
 
 from ironaccord_bot.services.ollama_service import OllamaService
 from ironaccord_bot.views.background_quiz_view import QuizSession
-from ironaccord_bot.utils.json_utils import extract_json_from_string
 
 logger = logging.getLogger(__name__)
+
+
+def _extract_json(response: str) -> Dict:
+    """Best-effort parse of JSON text returned from the LLM."""
+    if not response:
+        raise ValueError("LLM returned an empty response.")
+
+    # Regex to find a JSON object within optional markdown code blocks
+    match = re.search(r'```json\s*(\{.*\})\s*```|(\{.*\})', response, re.DOTALL)
+    if match:
+        json_string = match.group(1) or match.group(2)
+        try:
+            return json.loads(json_string)
+        except json.JSONDecodeError as e:
+            logger.error("Failed to parse the extracted JSON string: %s", json_string)
+            raise ValueError(f"Extracted text is not valid JSON: {e}") from e
+
+    logger.error("No JSON object could be found in the LLM response: %s", response)
+    raise ValueError("No JSON object found in the response string.")
 
 
 class BackgroundQuizService:
@@ -39,12 +58,7 @@ class BackgroundQuizService:
         try:
             raw_response = await self.ollama_service.get_gm_response(prompt)
 
-            json_string = extract_json_from_string(raw_response)
-            if not json_string:
-                logger.error("Could not extract valid JSON from LLM response. Raw response: %s", raw_response)
-                return None
-
-            quiz_data = json.loads(json_string)
+            quiz_data = _extract_json(raw_response)
             
             # Create background text map
             background_text_map = {
@@ -60,11 +74,11 @@ class BackgroundQuizService:
             )
             self.active_quizzes[user_id] = session
             return session
-        except (json.JSONDecodeError, KeyError) as e:
+        except (ValueError, KeyError, json.JSONDecodeError) as e:
             logger.error(
-                "Failed to parse cleaned quiz data: %s\nCleaned JSON String: %s",
+                "Failed to parse cleaned quiz data: %s\nRaw response: %s",
                 e,
-                json_string,
+                raw_response,
                 exc_info=True,
             )
             return None
