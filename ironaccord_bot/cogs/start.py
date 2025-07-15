@@ -1,18 +1,31 @@
 import discord
+import random
+from pathlib import Path
 from discord.ext import commands
 from discord import app_commands
 
 from ironaccord_bot.services.background_quiz_service import BackgroundQuizService
 from ironaccord_bot.services.mission_engine_service import MissionEngineService
+from ironaccord_bot.services.ollama_service import OllamaService
 from ironaccord_bot.views.background_quiz_view import BackgroundQuizView
 from ironaccord_bot.ai.ai_agent import AIAgent
+
+BACKGROUNDS_PATH = Path("data/backgrounds/iron_accord")
 
 
 class StartCog(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
-        self.quiz_service = BackgroundQuizService()
+        self.ollama_service = OllamaService()
+        self.quiz_service = BackgroundQuizService(self.ollama_service)
         self.mission_service = MissionEngineService(AIAgent())
+
+    def _load_random_backgrounds(self, count: int = 3) -> dict[str, str]:
+        files = [p for p in BACKGROUNDS_PATH.glob("*.md") if p.name.lower() != "readme.md"]
+        if len(files) < count:
+            return {}
+        chosen = random.sample(files, count)
+        return {f.stem.replace("_", " ").title(): f.read_text(encoding="utf-8") for f in chosen}
 
     @app_commands.command(
         name="start",
@@ -24,7 +37,8 @@ class StartCog(commands.Cog):
 
         try:
             user_id = interaction.user.id
-            session = await self.quiz_service.start_quiz(user_id)
+            backgrounds = self._load_random_backgrounds()
+            session = await self.quiz_service.start_quiz(user_id, backgrounds)
             if not session:
                 await interaction.followup.send(
                     content="There was an error generating the quiz. Please try again later.",

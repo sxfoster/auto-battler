@@ -41,10 +41,11 @@ async def test_start_cog_sends_first_question(monkeypatch):
         def get_current_question_text(self):
             return "Q1"
 
-    async def fake_start(self, user_id):
+    async def fake_start(self, user_id, backgrounds):
         return DummySession()
 
     monkeypatch.setattr(start.BackgroundQuizService, "start_quiz", fake_start)
+    monkeypatch.setattr(start.StartCog, "_load_random_backgrounds", lambda self: {})
 
     await cog.start.callback(cog, interaction)
 
