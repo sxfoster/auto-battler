@@ -70,20 +70,20 @@ class BackgroundQuizService:
             f"BACKGROUND {a}: \"{a}\"\n{backgrounds[a]}\n\n"
             f"BACKGROUND {b}: \"{b}\"\n{backgrounds[b]}\n\n"
             f"BACKGROUND {c}: \"{c}\"\n{backgrounds[c]}\n\n"
-            "Generate 5 scenario-based questions. Each question must have 3 answers (A, B, and C), where each answer reflects the mindset of one of the backgrounds.\n"
+            "Generate 5 scenario-based questions. Each question must have between 2 and 4 answers, where each answer reflects the mindset of one of the backgrounds (A, B, or C).\n"
             "Return ONLY a JSON object with two keys: 'background_map' and 'questions'.\n"
             "- 'background_map': maps labels 'A', 'B', 'C' to the background names.\n"
-            "- 'questions': a list of objects, each with a 'question' string and a list of three 'answers' strings."
+            "- 'questions': a list of objects, each with a 'question' string and a list of 'answers' strings. Each answer string must start with 'A)', 'B)', or 'C)' to map back to a background."
         )
 
-    async def record_answer_and_get_next(self, user_id: int, answer_label: str) -> Tuple[QuizSession, str | None]:
+    async def record_answer_and_get_next(self, user_id: int, answer_label: str) -> Tuple[QuizSession, Dict | None]:
         session = self.active_quizzes[user_id]
         session.record_answer(answer_label)
         if not session.is_finished():
-            next_text = session.get_current_question_text()
+            next_q = session.get_current_question()
         else:
-            next_text = None
-        return session, next_text
+            next_q = None
+        return session, next_q
 
     async def evaluate_result(self, user_id: int) -> tuple[str, str]:
         session = self.active_quizzes[user_id]
@@ -92,10 +92,10 @@ class BackgroundQuizService:
         background_name = session.background_map[most_common]
         background_text = session.background_text[most_common]
         prompt = (
-            "You are Edraz, a stoic and wise warrior of the Iron Accord.\n"
-            f"A recruit has just completed an aptitude quiz. Their answers show they are best suited to be a \"{background_name}\".\n\n"
-            "Based on the following description of that role, explain to the recruit why they are a good fit and welcome them to their new life. Speak in character. Keep it to 2-3 paragraphs.\n\n"
-            f"Background Description:\n{background_text}"
+            f"You are Edraz, a grizzled and wise warrior of the Iron Accord. Your tone is stern, but welcoming.\n"
+            f"A new recruit is best suited to be a \"{background_name}\".\n\n"
+            "Based on the following description of that role, write a welcome speech for the recruit. Explain their new role and why their temperament is a good fit. Keep it to two concise paragraphs.\n\n"
+            f"BACKGROUND DESCRIPTION:\n{background_text}"
         )
         try:
             result = await self.ollama_service.get_narrative(prompt)
