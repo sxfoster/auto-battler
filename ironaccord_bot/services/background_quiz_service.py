@@ -1,6 +1,7 @@
 import logging
 import json
 import re
+import asyncio
 from typing import Dict, Tuple
 from collections import Counter
 
@@ -37,7 +38,10 @@ class BackgroundQuizService:
         self.active_quizzes: Dict[int, QuizSession] = {}
 
     def _create_question_generation_prompt(self, backgrounds: Dict[str, str]) -> str:
-        """Create the LLM prompt for generating quiz questions."""
+        """
+        Creates the prompt to generate the quiz questions.
+        MODIFIED: Reinforced the instructions for the 'questions' array.
+        """
         labels = list(backgrounds.keys())
         a, b, c = labels[0], labels[1], labels[2]
         return (
@@ -45,46 +49,57 @@ class BackgroundQuizService:
             f"BACKGROUND A: \"{backgrounds[a]}\"\n"
             f"BACKGROUND B: \"{backgrounds[b]}\"\n"
             f"BACKGROUND C: \"{backgrounds[c]}\"\n\n"
-            "Generate 5 scenario-based questions. Each question must have between 2 and 4 answers, where each answer reflects one of the backgrounds.\n"
-            "CRITICAL INSTRUCTION: Your entire response must be ONLY the raw, valid JSON object. Do not include any text, explanations, or markdown like ```json before or after the JSON object.\n"
+            "CRITICAL INSTRUCTION: Your entire response must be ONLY a raw, valid JSON object. Do not include any text, explanations, or markdown before or after the JSON object.\n"
             "The JSON object must have two keys: 'background_map' and 'questions'.\n"
             "- 'background_map': maps labels 'A', 'B', 'C' to the background names.\n"
-            "- 'questions': a list of objects, each with a 'question' string and a list of 'answers' strings. Each answer string must start with 'A)', 'B)', or 'C)'."
+            "- 'questions': a list of JSON objects. Ensure the list contains only comma-separated objects `[ {obj1}, {obj2}, ... ]` with no other text or numbers between them."
         )
 
     async def start_quiz(self, user_id: int, backgrounds: Dict[str, str]) -> QuizSession | None:
-        """Generates and starts a new quiz for a user."""
+        """
+        Generates and starts a new quiz for a user.
+        MODIFIED: Implements a retry loop to handle malformed JSON from the LLM.
+        """
         prompt = self._create_question_generation_prompt(backgrounds)
-        try:
-            raw_response = await self.ollama_service.get_gm_response(prompt)
+        max_attempts = 3
 
-            quiz_data = _extract_json(raw_response)
-            
-            # Create background text map
-            background_text_map = {
-                "A": backgrounds.get(quiz_data["background_map"]["A"], ""),
-                "B": backgrounds.get(quiz_data["background_map"]["B"], ""),
-                "C": backgrounds.get(quiz_data["background_map"]["C"], ""),
-            }
+        for attempt in range(max_attempts):
+            logger.info(f"Attempting to generate quiz (Attempt {attempt + 1}/{max_attempts})")
+            try:
+                raw_response = await self.ollama_service.get_gm_response(prompt)
+                json_string = extract_json_from_string(raw_response)
 
-            session = QuizSession(
-                questions=quiz_data["questions"],
-                background_map=quiz_data["background_map"],
-                background_text=background_text_map
-            )
-            self.active_quizzes[user_id] = session
-            return session
-        except (ValueError, KeyError, json.JSONDecodeError) as e:
-            logger.error(
-                "Failed to parse cleaned quiz data: %s\nRaw response: %s",
-                e,
-                raw_response,
-                exc_info=True,
-            )
-            return None
-        except Exception as e:
-            logger.error("An unexpected error occurred during quiz start: %s", e, exc_info=True)
-            return None
+                if not json_string:
+                    logger.warning(f"Attempt {attempt + 1}: Could not extract JSON from LLM response.")
+                    await asyncio.sleep(1)
+                    continue
+
+                quiz_data = json.loads(json_string)
+
+                background_text_map = {
+                    "A": backgrounds.get(quiz_data["background_map"]["A"], ""),
+                    "B": backgrounds.get(quiz_data["background_map"]["B"], ""),
+                    "C": backgrounds.get(quiz_data["background_map"]["C"], ""),
+                }
+
+                session = QuizSession(
+                    questions=quiz_data["questions"],
+                    background_map=quiz_data["background_map"],
+                    background_text=background_text_map,
+                )
+                self.active_quizzes[user_id] = session
+                logger.info(f"Successfully generated quiz on attempt {attempt + 1}.")
+                return session
+
+            except (json.JSONDecodeError, KeyError, ValueError) as e:
+                logger.error(f"Attempt {attempt + 1} failed to parse quiz data: {e}", exc_info=True)
+                if attempt < max_attempts - 1:
+                    await asyncio.sleep(1)
+                else:
+                    logger.error("All attempts to generate a valid quiz have failed.")
+                    return None
+
+        return None
 
     async def record_answer_and_get_next(self, user_id: int, answer_label: str) -> Tuple[QuizSession, Dict | None]:
         """Records a user's answer and returns the next question."""
