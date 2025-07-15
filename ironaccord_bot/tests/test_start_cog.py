@@ -8,26 +8,21 @@ from ironaccord_bot.cogs import start
 class DummyResponse:
     def __init__(self):
         self.kwargs = None
-        self.deferred = False
+        self.args = None
 
-    async def defer(self, *args, **kwargs):
-        self.deferred = True
+    async def send_message(self, *args, **kwargs):
         self.kwargs = kwargs
-
-
-class DummyFollowup:
-    def __init__(self):
-        self.kwargs = None
-
-    async def send(self, *args, **kwargs):
-        self.kwargs = kwargs
+        self.args = args
 
 
 class DummyInteraction:
     def __init__(self):
         self.user = type("User", (), {"id": 1})()
         self.response = DummyResponse()
-        self.followup = DummyFollowup()
+        self.edited = None
+
+    async def edit_original_response(self, **kwargs):
+        self.edited = kwargs
 
 
 @pytest.mark.asyncio
@@ -49,8 +44,8 @@ async def test_start_cog_sends_first_question(monkeypatch):
 
     await cog.start.callback(cog, interaction)
 
-    assert interaction.response.deferred is True
-    assert interaction.followup.kwargs["content"] == "Q1"
-    assert isinstance(interaction.followup.kwargs["view"], start.BackgroundQuizView)
-    assert interaction.followup.kwargs["ephemeral"] is True
+    assert interaction.response.args[0].startswith("Edraz is consulting")
+    assert interaction.response.kwargs["ephemeral"] is True
+    assert interaction.edited["content"] == "Q1"
+    assert isinstance(interaction.edited["view"], start.BackgroundQuizView)
 
