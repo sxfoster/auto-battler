@@ -3,10 +3,10 @@ import re
 import logging
 from typing import Optional, TYPE_CHECKING
 
-from services.rag_service import RAGService
+from ironaccord_bot.services.rag_service import RAGService
 
 if TYPE_CHECKING:
-    from ai.ai_agent import AIAgent
+    from ironaccord_bot.ai.ai_agent import AIAgent
 
 logger = logging.getLogger(__name__)
 

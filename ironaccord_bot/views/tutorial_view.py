@@ -1,9 +1,9 @@
 import discord
 import requests
 
-from ai.ai_agent import AIAgent
-from utils.embed import simple
-from models import database as db
+from ironaccord_bot.ai.ai_agent import AIAgent
+from ironaccord_bot.utils.embed import simple
+from ironaccord_bot.models import database as db
 
 
 class NameInputModal(discord.ui.Modal):

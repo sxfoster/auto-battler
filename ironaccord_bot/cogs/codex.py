@@ -2,8 +2,8 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 
-from services.rag_service import RAGService
-from services.ollama_service import OllamaService
+from ironaccord_bot.services.rag_service import RAGService
+from ironaccord_bot.services.ollama_service import OllamaService
 
 
 class CodexCog(commands.Cog):
