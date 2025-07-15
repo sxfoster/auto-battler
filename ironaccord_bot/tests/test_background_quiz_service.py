@@ -7,11 +7,8 @@ from ironaccord_bot.services import background_quiz_service as bqs
 
 @pytest.mark.asyncio
 async def test_start_quiz_parses_json(monkeypatch, tmp_path):
-    # create three dummy background files
-    for i in range(3):
-        (tmp_path / f"bg{i}.md").write_text(f"lore {i}")
-
-    monkeypatch.setattr(bqs, "BACKGROUNDS_PATH", Path(tmp_path))
+    # prepare some fake background text
+    backgrounds = {f"BG{i}": f"lore {i}" for i in range(3)}
 
     async def fake_gm(self, prompt):
         return json.dumps(
@@ -23,8 +20,8 @@ async def test_start_quiz_parses_json(monkeypatch, tmp_path):
 
     monkeypatch.setattr(bqs.OllamaService, "get_gm_response", fake_gm)
 
-    service = bqs.BackgroundQuizService()
-    session = await service.start_quiz(1)
+    service = bqs.BackgroundQuizService(bqs.OllamaService())
+    session = await service.start_quiz(1, backgrounds)
 
     assert session is not None
     assert session.get_current_question_text().startswith("Q1")
@@ -32,7 +29,7 @@ async def test_start_quiz_parses_json(monkeypatch, tmp_path):
 
 @pytest.mark.asyncio
 async def test_evaluate_result(monkeypatch):
-    service = bqs.BackgroundQuizService()
+    service = bqs.BackgroundQuizService(bqs.OllamaService())
     session = bqs.QuizSession(
         questions=[{"question": "Q1", "answers": ["A", "B", "C"]}],
         background_map={"A": "Alpha", "B": "Beta", "C": "Gamma"},

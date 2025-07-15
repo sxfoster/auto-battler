@@ -1,67 +1,26 @@
-import random
 import logging
 import json
-from pathlib import Path
-from collections import Counter
 from typing import Dict, List, Tuple
+from collections import Counter
 
 from ironaccord_bot.services.ollama_service import OllamaService
 from ironaccord_bot.views.background_quiz_view import QuizSession
 
 logger = logging.getLogger(__name__)
 
-# Folder containing the background markdown files
-BACKGROUNDS_PATH = Path("data/backgrounds/iron_accord")
-
-
-def _extract_json(response: str) -> Dict:
-    """Best-effort parse of JSON text returned from the LLM."""
-    try:
-        start = response.find("{")
-        end = response.rfind("}") + 1
-        if start == -1 or end == 0:
-            raise ValueError("No JSON object found")
-        return json.loads(response[start:end])
-    except Exception as exc:  # pragma: no cover - malformed json
-        logger.error("Failed to parse JSON from LLM: %s", response)
-        raise
-
 
 class BackgroundQuizService:
-    """Generate and evaluate background quizzes."""
+    """Manages the logic and state for the character background quiz."""
 
-    def __init__(self) -> None:
-        self.ollama_service = OllamaService()
+    def __init__(self, ollama_service: OllamaService):
+        self.ollama_service = ollama_service
         self.active_quizzes: Dict[int, QuizSession] = {}
 
-    async def start_quiz(self, user_id: int) -> QuizSession | None:
-        """Create a new quiz session for ``user_id``."""
-        background_files = [p for p in BACKGROUNDS_PATH.glob("*.md") if p.name.lower() != "readme.md"]
-        if len(background_files) < 3:
-            return None
-
-        chosen = random.sample(background_files, 3)
-        names = [f.stem.replace("_", " ").title() for f in chosen]
-        text_map = {label: path.read_text(encoding="utf-8") for label, path in zip(["A", "B", "C"], chosen)}
-        name_map = {label: name for label, name in zip(["A", "B", "C"], names)}
-
-        prompt = self._create_question_generation_prompt({name_map[l]: text_map[l] for l in ["A", "B", "C"]})
-        try:
-            raw = await self.ollama_service.get_gm_response(prompt)
-            data = _extract_json(raw)
-        except Exception as exc:  # pragma: no cover - network or parsing failure
-            logger.error("Quiz generation failed: %s", exc, exc_info=True)
-            return None
-
-        session = QuizSession(
-            questions=data.get("questions", []),
-            background_map=name_map,
-            background_text=text_map,
-        )
-        self.active_quizzes[user_id] = session
-        return session
-
     def _create_question_generation_prompt(self, backgrounds: Dict[str, str]) -> str:
+        """
+        Creates the prompt to generate the quiz questions.
+        MODIFIED: Now asks for a variable number of answers (2 to 4).
+        """
         labels = list(backgrounds.keys())
         a, b, c = labels[0], labels[1], labels[2]
         return (
@@ -76,21 +35,55 @@ class BackgroundQuizService:
             "- 'questions': a list of objects, each with a 'question' string and a list of 'answers' strings. Each answer string must start with 'A)', 'B)', or 'C)' to map back to a background."
         )
 
+    async def start_quiz(self, user_id: int, backgrounds: Dict[str, str]) -> QuizSession | None:
+        """Generates and starts a new quiz for a user."""
+        prompt = self._create_question_generation_prompt(backgrounds)
+        try:
+            response = await self.ollama_service.get_gm_response(prompt)
+            quiz_data = json.loads(response)
+            
+            # Create background text map
+            background_text_map = {
+                "A": backgrounds.get(quiz_data["background_map"]["A"], ""),
+                "B": backgrounds.get(quiz_data["background_map"]["B"], ""),
+                "C": backgrounds.get(quiz_data["background_map"]["C"], ""),
+            }
+
+            session = QuizSession(
+                questions=quiz_data["questions"],
+                background_map=quiz_data["background_map"],
+                background_text=background_text_map
+            )
+            self.active_quizzes[user_id] = session
+            return session
+        except (json.JSONDecodeError, KeyError) as e:
+            logger.error("Failed to parse quiz data from LLM: %s\nResponse: %s", e, response, exc_info=True)
+            return None
+        except Exception as e:
+            logger.error("An unexpected error occurred during quiz start: %s", e, exc_info=True)
+            return None
+
     async def record_answer_and_get_next(self, user_id: int, answer_label: str) -> Tuple[QuizSession, Dict | None]:
+        """Records a user's answer and returns the next question."""
         session = self.active_quizzes[user_id]
         session.record_answer(answer_label)
-        if not session.is_finished():
-            next_q = session.get_current_question()
-        else:
-            next_q = None
-        return session, next_q
+        next_question = session.get_current_question()
+        return session, next_question
 
-    async def evaluate_result(self, user_id: int) -> tuple[str, str]:
-        session = self.active_quizzes[user_id]
+    async def evaluate_result(self, user_id: int) -> Tuple[str, str]:
+        """
+        Evaluates the quiz results and generates a welcome message.
+        MODIFIED: Prompt is improved for tone and brevity.
+        """
+        session = self.active_quizzes.get(user_id)
+        if not session:
+            return "Error: Could not find your quiz session.", "Unknown"
+
         counts = Counter(session.answers)
-        most_common = counts.most_common(1)[0][0]
-        background_name = session.background_map[most_common]
-        background_text = session.background_text[most_common]
+        most_common_label = counts.most_common(1)[0][0]
+        background_name = session.background_map[most_common_label]
+        background_text = session.background_text[most_common_label]
+
         prompt = (
             f"You are Edraz, a grizzled and wise warrior of the Iron Accord. Your tone is stern, but welcoming.\n"
             f"A new recruit is best suited to be a \"{background_name}\".\n\n"
@@ -99,8 +92,9 @@ class BackgroundQuizService:
         )
         try:
             result = await self.ollama_service.get_narrative(prompt)
-        except Exception as exc:  # pragma: no cover - network failure
+        except Exception as exc:
             logger.error("Failed to generate final result: %s", exc, exc_info=True)
             result = "An error occurred while determining your background."
+
         del self.active_quizzes[user_id]
         return result, background_name
