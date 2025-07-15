@@ -30,6 +30,16 @@ class IronAccordBot(commands.Bot):
     async def setup_hook(self):
         """A hook that is called when the bot is setting up."""
         print("[Bot] Running setup hook...")
+        guild_id = os.getenv("DISCORD_GUILD_ID")
+        if not guild_id:
+            print("[Bot] WARNING: DISCORD_GUILD_ID is not set. Commands will be synced globally, which can be slow.")
+            await self.tree.sync()
+        else:
+            guild = discord.Object(id=int(guild_id))
+            self.tree.copy_global_to(guild=guild)
+            await self.tree.sync(guild=guild)
+            print(f"[Bot] Commands synced to development guild (ID: {guild_id})")
+
         await self.add_cog(GameCommandsCog(self, self.rag_service, self.player_service))
         print("[Bot] Cogs loaded.")
 
