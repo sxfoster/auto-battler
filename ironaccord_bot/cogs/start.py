@@ -24,18 +24,18 @@ class StartCog(commands.Cog):
             session = await self.quiz_service.start_quiz(user_id)
             if not session:
                 await interaction.followup.send(
-                    "There was an error generating the quiz. Please try again later.",
+                    content="There was an error generating the quiz. Please try again later.",
                     ephemeral=True,
                 )
                 return
 
             view = BackgroundQuizView(self.quiz_service, user_id)
             first_question = session.get_current_question_text()
-            await interaction.followup.send(first_question, view=view, ephemeral=True)
+            await interaction.followup.send(content=first_question, view=view, ephemeral=True)
         except Exception as exc:  # pragma: no cover - safety net
             print(f"Error starting quiz: {exc}")
             await interaction.followup.send(
-                "A critical error occurred while starting your journey. The archivists have been notified.",
+                content="A critical error occurred while starting your journey. The archivists have been notified.",
                 ephemeral=True,
             )
 
