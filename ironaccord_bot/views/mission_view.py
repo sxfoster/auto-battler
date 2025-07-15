@@ -1,10 +1,13 @@
 import discord
+from ..services.mission_engine_service import MissionEngineService
 
 class MissionView(discord.ui.View):
     """Simple view for presenting a mission scene with multiple choices."""
 
-    def __init__(self, narrative_text: str, choices: list[str]):
+    def __init__(self, service: MissionEngineService, user_id: int, narrative_text: str, choices: list[str]):
         super().__init__(timeout=300)
+        self.service = service
+        self.user_id = user_id
         self.narrative_text = narrative_text
         self.choices = choices
         self.selected_choice: str | None = None
@@ -30,10 +33,19 @@ class MissionView(discord.ui.View):
 
         async def callback(self, interaction: discord.Interaction) -> None:
             view: "MissionView" = self.view  # type: ignore[assignment]
-            view.selected_choice = self.label_text
             for item in view.children:
                 item.disabled = True
-            await interaction.response.edit_message(
-                content=f"You chose: {self.label_text}", view=view
-            )
-            view.stop()
+            await interaction.response.edit_message(view=view)
+
+            result = await view.service.advance_mission(view.user_id, self.label_text)
+            if not result:
+                await interaction.followup.send("An error occurred.", ephemeral=True)
+                view.stop()
+                return
+
+            if result.get("status"):
+                await interaction.edit_original_response(content=result.get("text", ""), view=None)
+                view.stop()
+            else:
+                view.update_scene(result.get("text", ""), result.get("choices", []))
+                await interaction.edit_original_response(content=result.get("text", ""), view=view)

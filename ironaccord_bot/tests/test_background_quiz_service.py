@@ -46,8 +46,9 @@ async def test_evaluate_result(monkeypatch):
 
     monkeypatch.setattr(bqs.OllamaService, "get_narrative", fake_narrative)
 
-    result = await service.evaluate_result(1)
+    result, name = await service.evaluate_result(1)
 
     assert result == "final"
+    assert name == "Beta"
     assert 1 not in service.active_quizzes
 

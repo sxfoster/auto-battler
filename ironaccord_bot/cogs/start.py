@@ -3,13 +3,16 @@ from discord.ext import commands
 from discord import app_commands
 
 from ..services.background_quiz_service import BackgroundQuizService
+from ..services.mission_engine_service import MissionEngineService
 from ..views.background_quiz_view import BackgroundQuizView
+from ..ai.ai_agent import AIAgent
 
 
 class StartCog(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
         self.quiz_service = BackgroundQuizService()
+        self.mission_service = MissionEngineService(AIAgent())
 
     @app_commands.command(
         name="start",
@@ -29,7 +32,7 @@ class StartCog(commands.Cog):
                 )
                 return
 
-            view = BackgroundQuizView(self.quiz_service, user_id)
+            view = BackgroundQuizView(self.quiz_service, self.mission_service, user_id)
             first_question = session.get_current_question_text()
             await interaction.followup.send(content=first_question, view=view, ephemeral=True)
         except Exception as exc:  # pragma: no cover - safety net
