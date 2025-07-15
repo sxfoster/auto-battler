@@ -2,6 +2,8 @@ import os
 import sys
 import asyncio
 import logging
+from datetime import datetime
+
 import discord
 from discord.ext import commands
 from dotenv import load_dotenv
@@ -10,78 +12,94 @@ from ironaccord_bot.services.rag_service import RAGService
 from ironaccord_bot.services.player_service import PlayerService
 from ironaccord_bot.ai.ai_agent import AIAgent
 
-logger = logging.getLogger(__name__)
-
-dotenv_path = os.path.join(sys.path[0], ".env")
-load_dotenv(dotenv_path=dotenv_path)
-
+# --- Load Environment Variables ---
+load_dotenv()
 DISCORD_TOKEN = os.getenv("DISCORD_TOKEN")
+DEVELOPMENT_GUILD_ID = int(os.getenv("DEVELOPMENT_GUILD_ID", 0))
 
-intents = discord.Intents.default()
-intents.message_content = True
+# --- NEW: Add Status Channel ID ---
+STATUS_CHANNEL_ID = 1386506958730690652
 
-
+# --- Bot Definition ---
 class IronAccordBot(commands.Bot):
+    """The main bot class for Iron Accord."""
+
     def __init__(self):
-        super().__init__(command_prefix="!", intents=intents)
-        self.ai_agent = AIAgent()
-        self.ollama_service = self.ai_agent.ollama_service
+        intents = discord.Intents.default()
+        intents.message_content = True
+        intents.members = True
+        super().__init__(command_prefix="/", intents=intents)
+
+        # --- Services ---
         self.rag_service = RAGService()
         self.player_service = PlayerService()
-        self.redeploy = False
+        self.ai_agent = AIAgent()
+        self.status_channel = None
 
     async def setup_hook(self):
-        """This is called when the bot is setting up."""
-        logger.info("[Bot] Running setup hook...")
+        """Asynchronous setup code for the bot."""
+        logging.info("[Bot] Running setup hook...")
 
-        # --- FIX STARTS HERE ---
+        # Load cogs
+        initial_extensions = [
+            "cogs.codex",
+            "cogs.start",
+        ]
+        for extension in initial_extensions:
+            try:
+                await self.load_extension(f"ironaccord_bot.{extension}")
+                logging.info(f"{extension.split('.')[-1].capitalize()}Cog loaded.")
+            except Exception as e:
+                logging.error(f"Failed to load extension {extension}: {e}", exc_info=True)
 
-        # STEP 1: Load all cogs first. This populates the command tree.
-        for filename in os.listdir("./ironaccord_bot/cogs"):
-            if filename.endswith(".py") and not filename.startswith("_"):
-                try:
-                    await self.load_extension(f"cogs.{filename[:-3]}")
-                    logger.info(f"{filename[:-3].capitalize()}Cog loaded.")
-                except Exception as e:
-                    logger.error(f"Failed to load extension {filename[:-3]}: {e}")
-        logger.info("[Bot] Cogs loaded.")
+        logging.info("[Bot] Cogs loaded.")
 
-        # STEP 2: Sync the commands after the tree is populated.
-        guild_id = os.getenv("DISCORD_GUILD_ID")
-        if not guild_id:
-            logger.warning(
-                "[Bot] DISCORD_GUILD_ID is not set. Commands will be synced globally, which can be slow."
-            )
-            logger.warning(
-                "[Bot] For fast development, please set DISCORD_GUILD_ID in your .env file."
-            )
-            await self.tree.sync()
-        else:
-            guild = discord.Object(id=int(guild_id))
+        # Sync commands to the development guild
+        if DEVELOPMENT_GUILD_ID:
+            guild = discord.Object(id=DEVELOPMENT_GUILD_ID)
             self.tree.copy_global_to(guild=guild)
             await self.tree.sync(guild=guild)
-            logger.info(f"[Bot] Commands synced to development guild (ID: {guild_id})")
-
-        # --- FIX ENDS HERE ---
+            logging.info(f"[Bot] Commands synced to development guild (ID: {DEVELOPMENT_GUILD_ID})")
 
     async def on_ready(self):
-        """Event that is called when the bot is ready and connected to Discord."""
-        logger.info(f"[Bot] Logged in as {self.user} (ID: {self.user.id})")
-        logger.info("[Bot] ------")
+        """
+        Called when the bot is ready and connected to Discord.
+        MODIFIED: Sends a startup message.
+        """
+        logging.info(f"[Bot] Logged in as {self.user.name}#{self.user.discriminator} (ID: {self.user.id})")
+        logging.info("[Bot] ------")
+
+        # Fetch the status channel and send the online message
+        self.status_channel = self.get_channel(STATUS_CHANNEL_ID)
+        if self.status_channel:
+            embed = discord.Embed(
+                title="Bot Status: Online",
+                description=f"{self.user.name} has connected and is ready.",
+                color=discord.Color.green(),
+            )
+            embed.set_timestamp(datetime.utcnow())
+            await self.status_channel.send(embed=embed)
+        else:
+            logging.warning(f"Could not find status channel with ID: {STATUS_CHANNEL_ID}")
+
+    async def on_close(self):
+        """
+        Called when the bot is shutting down.
+        NEW: Sends a shutdown message.
+        """
+        logging.info("[Bot] Shutting down...")
+        if self.status_channel:
+            embed = discord.Embed(
+                title="Bot Status: Offline",
+                description=f"{self.user.name} is shutting down.",
+                color=discord.Color.red(),
+            )
+            embed.set_timestamp(datetime.utcnow())
+            await self.status_channel.send(embed=embed)
 
 
+# --- Main Execution ---
 bot: IronAccordBot | None = None
-
-
-async def on_ready():
-    """Event handler dispatched when the bot becomes ready."""
-    if bot is None:
-        return
-    logger.info(f"[Bot] Logged in as {bot.user} (ID: {bot.user.id})")
-    if getattr(bot, "redeploy", False):
-        await bot.tree.clear_commands()
-    await bot.tree.sync()
-
 
 async def start_bot():
     """The main function to run the bot."""
@@ -90,8 +108,9 @@ async def start_bot():
         format="%(asctime)s - %(levelname)s - [%(name)s] - %(message)s",
         stream=sys.stdout,
     )
+
     if not DISCORD_TOKEN:
-        logging.error("[Bot] DISCORD_TOKEN is not set in the .env file.")
+        logging.error("[Bot] Error: DISCORD_TOKEN is not set in the .env file.")
         return
 
     global bot
@@ -99,8 +118,17 @@ async def start_bot():
     await bot.start(DISCORD_TOKEN)
 
 
-if __name__ == "__main__":
+def main():
+    """Entry point for the application."""
     try:
         asyncio.run(start_bot())
     except KeyboardInterrupt:
         logging.info("Shutdown signal received.")
+    finally:
+        if bot and not bot.is_closed():
+            # The on_close event will handle the final message
+            asyncio.run(bot.close())
+        logging.info("[Launcher] Bot shutdown gracefully.")
+
+if __name__ == "__main__":
+    main()
