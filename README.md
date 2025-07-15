@@ -16,7 +16,7 @@ This repository houses the Discord bot used for the auto battler experiments alo
 ## Setup
 
 1. Install **Python 3.11+**.
-2. Copy `.env.example` to `.env` and provide your Discord token, application ID, guild ID and MySQL credentials. You can also override the default Ollama models by setting `OLLAMA_NARRATOR_MODEL` and `OLLAMA_GM_MODEL`.
+2. Copy `.env.example` to `.env` and provide your Discord token, application ID, and `DISCORD_GUILD_ID` for your development server along with MySQL credentials. You can also override the default Ollama models by setting `OLLAMA_NARRATOR_MODEL` and `OLLAMA_GM_MODEL`.
 3. Install dependencies from the consolidated list:
    ```bash
    pip install -r requirements.txt
