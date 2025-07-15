@@ -3,12 +3,15 @@ import random
 from pathlib import Path
 from discord.ext import commands
 from discord import app_commands
+import logging
 
 from ironaccord_bot.services.background_quiz_service import BackgroundQuizService
 from ironaccord_bot.services.mission_engine_service import MissionEngineService
 from ironaccord_bot.services.ollama_service import OllamaService
 from ironaccord_bot.views.background_quiz_view import BackgroundQuizView
 from ironaccord_bot.ai.ai_agent import AIAgent
+
+logger = logging.getLogger(__name__)
 
 BACKGROUNDS_PATH = Path("data/backgrounds/iron_accord")
 
@@ -32,28 +35,43 @@ class StartCog(commands.Cog):
         description="Begin your journey and discover your place in the Iron Accord.",
     )
     async def start(self, interaction: discord.Interaction):
-        """Kick off the interactive background quiz."""
-        await interaction.response.defer(ephemeral=True)
+        """Kick off the interactive background quiz with a loading message."""
+        user_id = interaction.user.id
+        logger.info(f"User {user_id} started the quiz process.")
+
+        # Send an initial loading message so the user sees immediate feedback
+        await interaction.response.send_message(
+            "Edraz is consulting the archives to build your personalized story...",
+            ephemeral=True,
+        )
 
         try:
-            user_id = interaction.user.id
             backgrounds = self._load_random_backgrounds()
             session = await self.quiz_service.start_quiz(user_id, backgrounds)
-            if not session:
-                await interaction.followup.send(
-                    content="There was an error generating the quiz. Please try again later.",
-                    ephemeral=True,
-                )
-                return
 
-            view = BackgroundQuizView(self.quiz_service, self.mission_service, user_id)
-            first_question = session.get_current_question_text()
-            await interaction.followup.send(content=first_question, view=view, ephemeral=True)
+            if session:
+                logger.info(f"Quiz generated for user {user_id}. Sending first question.")
+                view = BackgroundQuizView(self.quiz_service, self.mission_service, user_id)
+                await interaction.edit_original_response(
+                    content=session.get_current_question_text(),
+                    view=view,
+                )
+            else:
+                logger.error(f"Failed to generate quiz for user {user_id} after all retries.")
+                await interaction.edit_original_response(
+                    content=(
+                        "There was an error generating the quiz. The archives may be unstable. Please try again later."
+                    ),
+                    view=None,
+                )
         except Exception as exc:  # pragma: no cover - safety net
-            print(f"Error starting quiz: {exc}")
-            await interaction.followup.send(
-                content="A critical error occurred while starting your journey. The archivists have been notified.",
-                ephemeral=True,
+            logger.error(
+                f"An unexpected error occurred in the start command for user {user_id}: {exc}",
+                exc_info=True,
+            )
+            await interaction.edit_original_response(
+                content="A critical error occurred. Please notify the developers.",
+                view=None,
             )
 
 
