@@ -7,7 +7,6 @@ from dotenv import load_dotenv
 
 from ironaccord_bot.services.rag_service import RAGService
 from ironaccord_bot.services.player_service import PlayerService
-from ironaccord_bot.cogs.game_commands_cog import GameCommandsCog
 from ironaccord_bot.ai.ai_agent import AIAgent
 
 dotenv_path = os.path.join(sys.path[0], '.env')
@@ -28,11 +27,26 @@ class IronAccordBot(commands.Bot):
         self.redeploy = False
         
     async def setup_hook(self):
-        """A hook that is called when the bot is setting up."""
+        """This is called when the bot is setting up."""
         print("[Bot] Running setup hook...")
+
+        # --- FIX STARTS HERE ---
+
+        # STEP 1: Load all cogs first. This populates the command tree.
+        for filename in os.listdir("./ironaccord_bot/cogs"):
+            if filename.endswith(".py") and not filename.startswith("_"):
+                try:
+                    await self.load_extension(f"cogs.{filename[:-3]}")
+                    print(f"{filename[:-3].capitalize()}Cog loaded.")
+                except Exception as e:
+                    print(f"Failed to load extension {filename[:-3]}: {e}")
+        print("[Bot] Cogs loaded.")
+
+        # STEP 2: Sync the commands after the tree is populated.
         guild_id = os.getenv("DISCORD_GUILD_ID")
         if not guild_id:
             print("[Bot] WARNING: DISCORD_GUILD_ID is not set. Commands will be synced globally, which can be slow.")
+            print("[Bot] For fast development, please set DISCORD_GUILD_ID in your .env file.")
             await self.tree.sync()
         else:
             guild = discord.Object(id=int(guild_id))
@@ -40,8 +54,7 @@ class IronAccordBot(commands.Bot):
             await self.tree.sync(guild=guild)
             print(f"[Bot] Commands synced to development guild (ID: {guild_id})")
 
-        await self.add_cog(GameCommandsCog(self, self.rag_service, self.player_service))
-        print("[Bot] Cogs loaded.")
+        # --- FIX ENDS HERE ---
 
     async def on_ready(self):
         """Event that is called when the bot is ready and connected to Discord."""
