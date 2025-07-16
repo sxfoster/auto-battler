@@ -34,7 +34,7 @@ class MissionView(discord.ui.View):
                 item.disabled = True
             await interaction.response.edit_message(view=view)
 
-            result_text = await view.mission_service.make_choice(view.user_id, self.choice_data)
+            result_text = await view.mission_service.make_mission_choice(view.user_id, self.choice_data)
             await interaction.followup.send(result_text, ephemeral=True)
             view.stop()
 

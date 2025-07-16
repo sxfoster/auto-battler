@@ -9,7 +9,7 @@ class DummyService:
     def __init__(self):
         self.choice = None
 
-    async def make_choice(self, uid, choice):
+    async def make_mission_choice(self, uid, choice):
         self.choice = choice
         return "done"
 
