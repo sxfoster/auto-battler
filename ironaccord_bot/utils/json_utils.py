@@ -5,27 +5,30 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-def extract_json_from_string(text: str) -> str | None:
-    """Find and return the first valid JSON object within *text*.
+def extract_json_from_string(text: str) -> dict | None:
+    """Return a JSON object parsed from ``text`` if possible.
 
-    The helper is resilient to surrounding chatter or markdown code blocks
-    commonly produced by LLMs. If no JSON object can be identified or parsed,
-    ``None`` is returned.
+    This helper searches ``text`` for a JSON block, optionally wrapped in a
+    `````json```` markdown fence. It also cleans up common LLM issues such as
+    trailing commas before attempting to parse.
     """
+
     if not text:
         return None
 
-    # Look for a JSON object either inside a ```json code block or standalone.
-    match = re.search(r'```json\s*(\{.*\})\s*```|(\{.*\})', text, re.DOTALL)
-    if not match:
-        logger.warning("No JSON object found in the provided text.")
-        return None
-
-    json_str = match.group(1) or match.group(2)
+    # Search for a fenced JSON block first
+    json_match = re.search(r'```json\s*(\{.*?\})\s*```', text, re.DOTALL)
+    if json_match:
+        json_str = json_match.group(1)
+    else:
+        # Otherwise assume the entire string should be JSON
+        json_str = text
 
     try:
-        json.loads(json_str)
-        return json_str
-    except json.JSONDecodeError:
-        logger.error("Extracted string could not be parsed as valid JSON.", exc_info=True)
+        # Remove trailing commas that would break json.loads
+        json_str = re.sub(r',\s*(\}|\])', r'\1', json_str)
+        return json.loads(json_str)
+    except json.JSONDecodeError as e:
+        logger.error("Extracted string could not be parsed as valid JSON: %s", e)
+        logger.debug("Invalid JSON string was: %s", json_str)
         return None
