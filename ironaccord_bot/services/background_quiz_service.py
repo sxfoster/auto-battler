@@ -39,21 +39,39 @@ class BackgroundQuizService:
         self.active_quizzes: Dict[int, QuizSession] = {}
 
     def _create_question_generation_prompt(self, backgrounds: Dict[str, str]) -> str:
-        """
-        Creates the prompt to generate the quiz questions.
-        MODIFIED: Reinforced the instructions for the 'questions' array.
-        """
+        """Create a detailed prompt for generating situational quiz questions."""
+
         labels = list(backgrounds.keys())
         a, b, c = labels[0], labels[1], labels[2]
+
         return (
-            f"You are a Game Master AI. Your task is to generate a 5-question multiple-choice quiz.\n\n"
-            f"BACKGROUND A: \"{backgrounds[a]}\"\n"
-            f"BACKGROUND B: \"{backgrounds[b]}\"\n"
-            f"BACKGROUND C: \"{backgrounds[c]}\"\n\n"
-            "CRITICAL INSTRUCTION: Your entire response must be ONLY a raw, valid JSON object. Do not include any text, explanations, or markdown before or after the JSON object.\n"
-            "The JSON object must have two keys: 'background_map' and 'questions'.\n"
-            "- 'background_map': maps labels 'A', 'B', 'C' to the background names.\n"
-            "- 'questions': a list of JSON objects. Ensure the list contains only comma-separated objects `[ {obj1}, {obj2}, ... ]` with no other text or numbers between them."
+            "You are a master TTRPG storyteller creating a personality quiz. "
+            "Your goal is to determine which of three character archetypes a new player aligns with based on their answers to situational questions.\n\n"
+            "## Archetypes:\n"
+            f"- **ARCHETYPE A ({a}):** {backgrounds[a]}\n"
+            f"- **ARCHETYPE B ({b}):** {backgrounds[b]}\n"
+            f"- **ARCHETYPE C ({c}):** {backgrounds[c]}\n\n"
+            "## Your Task:\n"
+            "Generate a 5-question multiple-choice quiz. Follow these rules precisely:\n"
+            "1.  **Create Situational Questions:** The questions must be abstract scenarios about difficult choices, not questions about the archetypes themselves.\n"
+            "2.  **Do Not Name the Archetypes:** Absolutely do not use the archetype names (like 'Salvage Scout' or 'Marshal') in the questions or answers.\n"
+            "3.  **Align Answers to Archetypes:** Each answer option ('A', 'B', 'C') for a question should reflect a choice that one of the corresponding archetypes would make.\n"
+            "4.  **Strict JSON Output:** Respond ONLY with a raw, valid JSON object. Do not include any text or markdown formatting before or after the JSON.\n\n"
+            "## JSON Structure:\n"
+            "The JSON object must contain exactly two keys: 'background_map' and 'questions'.\n"
+            "- `background_map`: A dictionary mapping 'A', 'B', and 'C' to the original archetype names.\n"
+            "- `questions`: A JSON array of exactly 5 question objects. Each object must have:\n"
+            "  - A `question` key with a string value.\n"
+            "  - An `answers` key with an array of exactly three string values, each corresponding to choices A, B, and C.\n\n"
+            "### Example Question Object:\n"
+            '{\n'
+            '    "question": "A caravan is being attacked by raiders. What is your first instinct?",\n'
+            '    "answers": [\n'
+            '        "A. Intervene directly, using force to protect the innocent.",\n'
+            '        "B. Observe from a distance to gather information before acting.",\n'
+            '        "C. Create a diversion to help the caravan escape without a direct fight."\n'
+            '    ]\n'
+            '}'
         )
 
     async def start_quiz(self, user_id: int, backgrounds: Dict[str, str]) -> QuizSession | None:
