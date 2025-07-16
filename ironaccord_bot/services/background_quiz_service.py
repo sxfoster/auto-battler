@@ -7,6 +7,7 @@ from collections import Counter
 
 from ironaccord_bot.services.ollama_service import OllamaService
 from ironaccord_bot.views.background_quiz_view import QuizSession
+from ironaccord_bot.utils.json_utils import extract_json_from_string
 
 logger = logging.getLogger(__name__)
 
