@@ -86,14 +86,14 @@ class BackgroundQuizService:
             logger.info(f"Attempting to generate quiz (Attempt {attempt + 1}/{max_attempts})")
             try:
                 raw_response = await self.ollama_service.get_gm_response(prompt)
-                json_string = extract_json_from_string(raw_response)
+                quiz_data = extract_json_from_string(raw_response)
 
-                if not json_string:
-                    logger.warning(f"Attempt {attempt + 1}: Could not extract JSON from LLM response.")
+                if not quiz_data:
+                    logger.warning(
+                        f"Attempt {attempt + 1}: Could not extract JSON from LLM response."
+                    )
                     await asyncio.sleep(1)
                     continue
-
-                quiz_data = json.loads(json_string)
 
                 background_text_map = {
                     "A": backgrounds.get(quiz_data["background_map"]["A"], ""),
@@ -155,3 +155,13 @@ class BackgroundQuizService:
 
         del self.active_quizzes[user_id]
         return result, background_name
+
+    def create_welcome_message(self, session: "QuizSession", background_name: str) -> str:
+        """Return a short welcome message for the completed quiz."""
+
+        description = session.background_text.get(background_name, "")
+        return (
+            f"**Welcome, {background_name}!**\n\n"
+            f"*{description}*\n\n"
+            "You are now ready to begin your first mission. Use the `/mission` command to see what's available."
+        )

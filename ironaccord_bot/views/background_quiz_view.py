@@ -102,8 +102,8 @@ class BackgroundQuizView(discord.ui.View):
             await interaction.edit_original_response(content="Edraz is considering your answers...", view=None)
             final_text, background = await self.quiz_service.evaluate_result(self.user_id)
 
-            # MODIFICATION: Tag the user in the final welcome message
-            welcome_message = f"{final_text}\n\nWelcome to your new life, <@{self.user_id}>."
+            # Build a concise welcome message that fits within Discord limits
+            welcome_message = self.quiz_service.create_welcome_message(session, background)
             await interaction.followup.send(welcome_message, ephemeral=True)
 
             # Start the first mission
