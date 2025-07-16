@@ -28,19 +28,19 @@ class QuizSession:
         return self.questions[self.current_question_index]
 
     def get_current_question_text(self) -> str:
-        """
-        Returns the formatted text for the current question.
-        MODIFIED: This now ONLY returns the question text.
-        """
+        """Return the current question text along with the full answer text."""
         q_data = self.get_current_question()
         if not q_data:
             return "Quiz complete."
-        return q_data.get("question", "Error: Could not load question.")
+
+        question_text = q_data.get("question", "Error: Could not load question.")
+        answers = q_data.get("answers", [])
+        answer_lines = "\n".join(answers)
+        return f"{question_text}\n\n{answer_lines}"
 
     def record_answer(self, label: str) -> None:
-        """Records the selected answer and advances the quiz."""
-        answer_key = label.strip()[0].upper()
-        self.answers.append(answer_key)
+        """Record the selected answer key and advance the quiz."""
+        self.answers.append(label)
         self.current_question_index += 1
 
     def is_finished(self) -> bool:
@@ -66,16 +66,18 @@ class BackgroundQuizView(discord.ui.View):
             self._update_buttons_for_question(session.get_current_question())
 
     def _update_buttons_for_question(self, question_data: Dict):
-        """Clears and adds new buttons based on the current question's answers."""
+        """Clear and add new buttons using generic labels."""
         self.clear_items()
         if not question_data:
             return
-            
+
         answers = question_data.get("answers", [])
-        for answer_text in answers:
-            # Extract the letter (A, B, C, etc.) from the start of the answer
-            label = answer_text.strip()[0]
-            self.add_item(self.AnswerButton(label=label, answer_text=answer_text))
+        for i, answer_text in enumerate(answers):
+            original_label = answer_text.strip()[0]
+            button_label = f"Choice {i + 1}"
+            self.add_item(
+                self.AnswerButton(display_label=button_label, answer_text=answer_text, original_label=original_label)
+            )
 
     async def handle_answer(self, interaction: discord.Interaction, answer_label: str):
         """Handles answer selection, question progression, and quiz completion."""
@@ -115,10 +117,9 @@ class BackgroundQuizView(discord.ui.View):
 
     # A generic button class to be created dynamically for each answer
     class AnswerButton(discord.ui.Button):
-        def __init__(self, label: str, answer_text: str):
-            # Use the first 80 characters of the answer as the button label
-            super().__init__(label=answer_text[:80], style=discord.ButtonStyle.secondary, custom_id=f"quiz_answer_{label}")
-            self.answer_label = label
+        def __init__(self, display_label: str, answer_text: str, original_label: str):
+            super().__init__(label=display_label, style=discord.ButtonStyle.secondary, custom_id=f"quiz_answer_{original_label}")
+            self.answer_label = original_label
 
         async def callback(self, interaction: discord.Interaction):
             # Ensure the interaction is from the correct user
