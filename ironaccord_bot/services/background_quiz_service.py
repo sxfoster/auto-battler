@@ -121,47 +121,29 @@ class BackgroundQuizService:
         return None
 
     async def record_answer_and_get_next(self, user_id: int, answer_label: str) -> Tuple[QuizSession, Dict | None]:
-        """Records a user's answer and returns the next question."""
+        """Record a user's answer and return the next question."""
         session = self.active_quizzes[user_id]
         session.record_answer(answer_label)
         next_question = session.get_current_question()
         return session, next_question
 
-    async def evaluate_result(self, user_id: int) -> Tuple[str, str]:
-        """
-        Evaluates the quiz results and generates a welcome message.
-        MODIFIED: Prompt is improved for tone and brevity.
-        """
+    def evaluate_result(self, user_id: int) -> Tuple[str, QuizSession | None]:
+        """Evaluate the quiz locally and return the background name and session."""
         session = self.active_quizzes.get(user_id)
         if not session:
-            return "Error: Could not find your quiz session.", "Unknown"
+            return "Unknown", None
 
         counts = Counter(session.answers)
-        most_common_label = counts.most_common(1)[0][0]
-        background_name = session.background_map[most_common_label]
-        background_text = session.background_text[most_common_label]
+        if not counts:
+            most_common_label = list(session.background_map.keys())[0]
+        else:
+            most_common_label = counts.most_common(1)[0][0]
 
-        prompt = (
-            f"You are Edraz, a grizzled and wise warrior of the Iron Accord. Your tone is stern, but welcoming.\n"
-            f"A new recruit is best suited to be a \"{background_name}\".\n\n"
-            "Based on the following description of that role, write a welcome speech for the recruit. Explain their new role and why their temperament is a good fit. Keep it to two concise paragraphs.\n\n"
-            f"BACKGROUND DESCRIPTION:\n{background_text}"
-        )
-        try:
-            result = await self.ollama_service.get_narrative(prompt)
-        except Exception as exc:
-            logger.error("Failed to generate final result: %s", exc, exc_info=True)
-            result = "An error occurred while determining your background."
+        background_name = session.background_map.get(most_common_label, "Unknown")
+        return background_name, session
 
-        del self.active_quizzes[user_id]
-        return result, background_name
-
-    def create_welcome_message(self, session: "QuizSession", background_name: str) -> str:
-        """Return a short welcome message for the completed quiz."""
-
-        description = session.background_text.get(background_name, "")
-        return (
-            f"**Welcome, {background_name}!**\n\n"
-            f"*{description}*\n\n"
-            "You are now ready to begin your first mission. Use the `/mission` command to see what's available."
-        )
+    def cleanup_quiz_session(self, user_id: int):
+        """Remove a quiz session after it is fully processed."""
+        if user_id in self.active_quizzes:
+            del self.active_quizzes[user_id]
+            logger.info(f"Cleaned up quiz session for user {user_id}.")

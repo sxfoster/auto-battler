@@ -80,40 +80,59 @@ class BackgroundQuizView(discord.ui.View):
             )
 
     async def handle_answer(self, interaction: discord.Interaction, answer_label: str):
-        """Handles answer selection, question progression, and quiz completion."""
-        # Disable buttons on the current view to prevent multiple clicks
+        """Handle the final answer, evaluate the quiz, and start the mission."""
         for item in self.children:
             if isinstance(item, discord.ui.Button):
                 item.disabled = True
-        await interaction.response.edit_message(view=self)
 
         session, next_question_data = await self.quiz_service.record_answer_and_get_next(
             self.user_id, answer_label
         )
 
         if not session.is_finished() and next_question_data:
-            # If there's a next question, update the buttons and edit the message
+            await interaction.response.edit_message(view=self)
             self._update_buttons_for_question(next_question_data)
             await interaction.edit_original_response(
                 content=session.get_current_question_text(), view=self
             )
-        else:
-            # Quiz is finished, show a thinking message
-            await interaction.edit_original_response(content="Edraz is considering your answers...", view=None)
-            final_text, background = await self.quiz_service.evaluate_result(self.user_id)
+            return
 
-            # Build a concise welcome message that fits within Discord limits
-            welcome_message = self.quiz_service.create_welcome_message(session, background)
-            await interaction.followup.send(welcome_message, ephemeral=True)
+        await interaction.response.edit_message(
+            content="Edraz is considering your answers and preparing your first assignment...",
+            view=None,
+        )
 
-            # Start the first mission
-            opening = await self.mission_service.start_mission(self.user_id, background, self.template)
-            if opening:
-                view = MissionView(self.mission_service, self.user_id, opening.get("text", ""), opening.get("choices", []))
-                await interaction.followup.send(opening.get("text", ""), view=view, ephemeral=True)
-            else:
-                await interaction.followup.send("Failed to start your first mission.", ephemeral=True)
+        background, session = self.quiz_service.evaluate_result(self.user_id)
+        if not background or not session:
+            await interaction.followup.send("Error evaluating your quiz results.", ephemeral=True)
             self.stop()
+            return
+
+        welcome_embed = discord.Embed(
+            title=f"Welcome, {background}!",
+            description=(
+                f"*{session.background_text[background][:200]}...*\n\n"
+                "Your path is set. Now, your first trial awaits."
+            ),
+            color=discord.Color.dark_gold(),
+        )
+        await interaction.followup.send(embed=welcome_embed, ephemeral=True)
+
+        opening = await self.mission_service.start_mission(self.user_id, background, self.template)
+        self.quiz_service.cleanup_quiz_session(self.user_id)
+
+        if opening:
+            view = MissionView(
+                self.mission_service,
+                self.user_id,
+                opening.get("text", ""),
+                opening.get("choices", []),
+            )
+            await interaction.followup.send(opening.get("text", ""), view=view, ephemeral=True)
+        else:
+            await interaction.followup.send("Failed to start your first mission.", ephemeral=True)
+
+        self.stop()
 
     # A generic button class to be created dynamically for each answer
     class AnswerButton(discord.ui.Button):

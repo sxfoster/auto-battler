@@ -46,8 +46,7 @@ async def test_start_quiz_handles_markdown(monkeypatch):
     assert session.get_current_question_text().startswith("Q1")
 
 
-@pytest.mark.asyncio
-async def test_evaluate_result(monkeypatch):
+def test_evaluate_result():
     service = bqs.BackgroundQuizService(bqs.OllamaService())
     session = bqs.QuizSession(
         questions=[{"question": "Q1", "answers": ["A", "B", "C"]}],
@@ -57,14 +56,12 @@ async def test_evaluate_result(monkeypatch):
     session.answers = ["B", "B", "A"]
     service.active_quizzes[1] = session
 
-    async def fake_narrative(self, prompt):
-        return "final"
+    background, returned_session = service.evaluate_result(1)
 
-    monkeypatch.setattr(bqs.OllamaService, "get_narrative", fake_narrative)
+    assert background == "Beta"
+    assert returned_session is session
+    assert 1 in service.active_quizzes
 
-    result, name = await service.evaluate_result(1)
-
-    assert result == "final"
-    assert name == "Beta"
+    service.cleanup_quiz_session(1)
     assert 1 not in service.active_quizzes
 
