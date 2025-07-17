@@ -1,4 +1,5 @@
 import os
+import os
 import sys
 import asyncio
 import logging
@@ -16,7 +17,8 @@ from ironaccord_bot.services.ollama_service import OllamaService
 # --- Load Environment Variables ---
 load_dotenv()
 DISCORD_TOKEN = os.getenv("DISCORD_TOKEN")
-DEVELOPMENT_GUILD_ID = int(os.getenv("DEVELOPMENT_GUILD_ID", 0))
+COMMAND_PREFIX = os.getenv("COMMAND_PREFIX", "!")
+DEBUG_GUILD_ID = int(os.getenv("DEBUG_GUILD_ID", 0))
 
 # --- NEW: Add Status Channel ID ---
 STATUS_CHANNEL_ID = 1386506958730690652
@@ -25,11 +27,13 @@ STATUS_CHANNEL_ID = 1386506958730690652
 class IronAccordBot(commands.Bot):
     """The main bot class for Iron Accord."""
 
-    def __init__(self):
-        intents = discord.Intents.default()
-        intents.message_content = True
-        intents.members = True
-        super().__init__(command_prefix="/", intents=intents)
+    def __init__(self, *, command_prefix: str = COMMAND_PREFIX, intents: discord.Intents | None = None, debug_guild_id: int | None = None):
+        if intents is None:
+            intents = discord.Intents.default()
+            intents.message_content = True
+            intents.members = True
+        super().__init__(command_prefix=command_prefix, intents=intents)
+        self.debug_guild_id = debug_guild_id
 
         # --- Services ---
         self.rag_service = RAGService()
@@ -61,12 +65,12 @@ class IronAccordBot(commands.Bot):
 
         logging.info("[Bot] Cogs loaded.")
 
-        # Sync commands to the development guild
-        if DEVELOPMENT_GUILD_ID:
-            guild = discord.Object(id=DEVELOPMENT_GUILD_ID)
+        # Sync commands to the debug guild if provided
+        if self.debug_guild_id:
+            guild = discord.Object(id=self.debug_guild_id)
             self.tree.copy_global_to(guild=guild)
             await self.tree.sync(guild=guild)
-            logging.info(f"[Bot] Commands synced to development guild (ID: {DEVELOPMENT_GUILD_ID})")
+            logging.info(f"[Bot] Commands synced to debug guild (ID: {self.debug_guild_id})")
 
     async def on_ready(self):
         """
@@ -129,7 +133,7 @@ async def start_bot():
         return
 
     global bot
-    bot = IronAccordBot()
+    bot = IronAccordBot(command_prefix=COMMAND_PREFIX, debug_guild_id=DEBUG_GUILD_ID)
     await bot.start(DISCORD_TOKEN)
 
 

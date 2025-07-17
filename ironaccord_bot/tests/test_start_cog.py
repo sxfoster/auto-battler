@@ -25,12 +25,22 @@ class DummyInteraction:
         self.edited = kwargs
 
 
+class DummyCtx:
+    def __init__(self):
+        self.author = type("User", (), {"id": 1})()
+        self.interaction = DummyInteraction()
+        self.sent = None
+
+    async def send(self, *args, **kwargs):
+        self.sent = (args, kwargs)
+
+
 @pytest.mark.asyncio
 async def test_start_cog_sends_first_question(monkeypatch):
     bot = commands.Bot(command_prefix="!", intents=discord.Intents.none())
     cog = start.StartCog(bot)
 
-    interaction = DummyInteraction()
+    ctx = DummyCtx()
 
     class DummySession:
         def get_current_question_text(self):
@@ -42,8 +52,9 @@ async def test_start_cog_sends_first_question(monkeypatch):
     monkeypatch.setattr(start.BackgroundQuizService, "start_quiz", fake_start)
     monkeypatch.setattr(start.StartCog, "_load_random_backgrounds", lambda self: {})
 
-    await cog.start.callback(cog, interaction)
+    await cog.start.callback(cog, ctx)
 
+    interaction = ctx.interaction
     assert interaction.response.args[0].startswith("Edraz is consulting")
     assert interaction.response.kwargs["ephemeral"] is True
     assert interaction.edited["content"] == "Q1"
