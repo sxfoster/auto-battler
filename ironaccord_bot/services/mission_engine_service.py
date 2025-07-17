@@ -4,6 +4,9 @@ import json
 import logging
 from pathlib import Path
 from typing import Optional, Dict, Any, TYPE_CHECKING
+from dataclasses import dataclass, field
+
+from ironaccord_bot.utils.json_utils import extract_json_from_string
 
 if TYPE_CHECKING:
     from ai.ai_agent import AIAgent
@@ -11,18 +14,6 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 MISSIONS_PATH = Path("data/missions")
-
-
-def _extract_json(text: str) -> Dict[str, Any]:
-    """Best-effort parse of JSON text returned from the LLM."""
-    start = text.find("{")
-    end = text.rfind("}") + 1
-    if start == -1 or end == 0:
-        raise ValueError("No JSON object found")
-    return json.loads(text[start:end])
-
-
-from dataclasses import dataclass, field
 
 
 @dataclass
@@ -71,9 +62,13 @@ class MissionEngineService:
             return None
 
         try:
-            return _extract_json(raw)
+            data = extract_json_from_string(raw)
+            if not data:
+                raise ValueError("No valid JSON found in the LLM response.")
+            return data
         except Exception as exc:  # pragma: no cover - malformed JSON
             logger.error("Failed to parse LLM output: %s", exc, exc_info=True)
+            logger.debug("Raw response from LLM was: %s", raw)
             return None
 
     async def start_mission(self, user_id: int, background: str, template_name: str) -> Optional[Dict[str, Any]]:
@@ -107,9 +102,12 @@ class MissionEngineService:
             return None
 
         try:
-            data = _extract_json(raw)
+            data = extract_json_from_string(raw)
+            if not data:
+                raise ValueError("No valid JSON found in the LLM response.")
         except Exception as exc:
             logger.error("Failed to parse LLM output: %s", exc, exc_info=True)
+            logger.debug("Raw response from LLM was: %s", raw)
             return None
 
         session.history.append(f"Player chose: {choice}\n{data.get('text', '')}")

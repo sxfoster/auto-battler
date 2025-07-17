@@ -61,3 +61,26 @@ async def test_start_and_advance(monkeypatch, tmp_path):
     assert nxt["text"] == "next"
     done = await svc.advance_mission(1, "c")
     assert done["status"] == "complete"
+
+
+@pytest.mark.asyncio
+async def test_advance_handles_extra_text(monkeypatch, tmp_path):
+    (tmp_path / "demo.json").write_text('{"title": "Demo"}')
+    monkeypatch.setattr(mes, "MISSIONS_PATH", tmp_path)
+
+    responses = iter([
+        '{"text": "start", "choices": ["a", "b"]}',
+        'Before JSON {junk} ```json\n{"text": "next", "choices": ["c", "d"]}\n``` After',
+    ])
+
+    async def fake_completion(self, prompt):
+        return next(responses)
+
+    agent = type('A', (), {'get_completion': fake_completion})()
+    svc = mes.MissionEngineService(agent)
+
+    opening = await svc.start_mission(1, "Scout", "demo")
+    assert opening["text"] == "start"
+
+    nxt = await svc.advance_mission(1, "a")
+    assert nxt == {"text": "next", "choices": ["c", "d"]}
