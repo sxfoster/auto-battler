@@ -127,11 +127,11 @@ class BackgroundQuizService:
         next_question = session.get_current_question()
         return session, next_question
 
-    def evaluate_result(self, user_id: int) -> Tuple[str, QuizSession | None]:
-        """Evaluate the quiz locally and return the background name and session."""
+    def evaluate_result(self, user_id: int) -> Tuple[str, str, QuizSession | None]:
+        """Return the chosen archetype key, its name, and the quiz session."""
         session = self.active_quizzes.get(user_id)
         if not session:
-            return "Unknown", None
+            return "Unknown", "Unknown", None
 
         counts = Counter(session.answers)
         if not counts:
@@ -139,8 +139,8 @@ class BackgroundQuizService:
         else:
             most_common_label = counts.most_common(1)[0][0]
 
-        background_name = session.background_map.get(most_common_label, "Unknown")
-        return background_name, session
+        archetype_name = session.background_map.get(most_common_label, "Unknown")
+        return most_common_label, archetype_name, session
 
     def cleanup_quiz_session(self, user_id: int):
         """Remove a quiz session after it is fully processed."""

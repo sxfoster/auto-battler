@@ -56,9 +56,10 @@ def test_evaluate_result():
     session.answers = ["B", "B", "A"]
     service.active_quizzes[1] = session
 
-    background, returned_session = service.evaluate_result(1)
+    key, name, returned_session = service.evaluate_result(1)
 
-    assert background == "Beta"
+    assert key == "B"
+    assert name == "Beta"
     assert returned_session is session
     assert 1 in service.active_quizzes
 
