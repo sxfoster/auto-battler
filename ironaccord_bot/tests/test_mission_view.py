@@ -9,9 +9,9 @@ class DummyService:
     def __init__(self):
         self.choice = None
 
-    async def make_mission_choice(self, uid, choice):
+    async def advance_mission(self, uid, choice):
         self.choice = choice
-        return "done"
+        return {"text": "next"}
 
 
 class DummyResponse:
@@ -42,5 +42,5 @@ async def test_button_sends_choice():
 
     await button.callback(interaction)
 
-    assert service.choice == choices[0]
+    assert service.choice == "A"
     assert interaction.followup.kwargs is not None

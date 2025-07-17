@@ -4,6 +4,7 @@ from typing import List, Dict
 
 logger = logging.getLogger(__name__)
 
+
 class MissionView(discord.ui.View):
     """A view to display mission choices to the player."""
 
@@ -26,7 +27,9 @@ class MissionView(discord.ui.View):
         async def callback(self, interaction: discord.Interaction):
             view: "MissionView" = self.view
             if interaction.user.id != view.user_id:
-                await interaction.response.send_message("This is not your mission.", ephemeral=True)
+                await interaction.response.send_message(
+                    "This is not your mission.", ephemeral=True
+                )
                 return
 
             # Disable all buttons to prevent multiple selections
@@ -34,7 +37,33 @@ class MissionView(discord.ui.View):
                 item.disabled = True
             await interaction.response.edit_message(view=view)
 
-            result_text = await view.mission_service.make_mission_choice(view.user_id, self.choice_data)
-            await interaction.followup.send(result_text, ephemeral=True)
-            view.stop()
+            # Call the mission engine to advance the mission using the choice text
+            choice_text = self.choice_data.get("text", "No choice text found.")
+            next_scene_data = await view.mission_service.advance_mission(
+                view.user_id, choice_text
+            )
 
+            if next_scene_data and next_scene_data.get("choices"):
+                new_view = MissionView(
+                    mission_service=view.mission_service,
+                    user_id=view.user_id,
+                    text=next_scene_data.get("text", ""),
+                    choices=next_scene_data.get("choices", []),
+                )
+                await interaction.followup.send(
+                    next_scene_data.get("text", "The story continues..."),
+                    view=new_view,
+                    ephemeral=True,
+                )
+            elif next_scene_data:
+                await interaction.followup.send(
+                    next_scene_data.get("text", "The mission concludes."),
+                    ephemeral=True,
+                )
+            else:
+                await interaction.followup.send(
+                    "An error occurred while advancing the mission.",
+                    ephemeral=True,
+                )
+
+            view.stop()
