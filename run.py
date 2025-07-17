@@ -1,48 +1,27 @@
-import sys
 import os
 import asyncio
+import discord
+from dotenv import load_dotenv
+
+from ironaccord_bot.bot import IronAccordBot
 
 
-def main():
-    """
-    Sets up the system path and directly imports and runs the bot's main function.
-    This is a more forceful approach to bypass environment-specific module resolution issues.
-    """
-    # Get the absolute path of the directory where this script is located (the project root).
-    project_root = os.path.dirname(os.path.abspath(__file__))
+load_dotenv()
 
-    # Add the project root to the system path to allow for package imports.
-    if project_root not in sys.path:
-        sys.path.insert(0, project_root)
-        print(f"[Launcher] Added project root to path: {project_root}")
+# Prefix for traditional commands (e.g. !start)
+COMMAND_PREFIX = os.getenv("COMMAND_PREFIX", "!")
+DISCORD_TOKEN = os.getenv("DISCORD_TOKEN")
+DEBUG_GUILD_ID = int(os.getenv("DEBUG_GUILD_ID", 0)) or None
 
-    # Add the package directory to the system path so top-level imports like
-    # 'from models import ...' resolve correctly when run from this launcher.
-    package_path = os.path.join(project_root, "ironaccord_bot")
-    if package_path not in sys.path:
-        sys.path.insert(0, package_path)
-        print(f"[Launcher] Added package path to path: {package_path}")
 
-    print("[Launcher] Attempting to start the bot directly...")
+async def main() -> None:
+    """Entry point for launching the bot."""
+    intents = discord.Intents.default()
+    intents.message_content = True
 
-    try:
-        # Directly import the function we need from the bot module.
-        # This is a more explicit way of loading the code than runpy.
-        from ironaccord_bot.bot import start_bot
-
-        # Run the bot's main async function.
-        asyncio.run(start_bot())
-
-    except KeyboardInterrupt:
-        print("\n[Launcher] Bot shutdown gracefully.")
-    except ModuleNotFoundError as e:
-        print(f"\n[Launcher] FATAL: A module could not be found: {e}")
-        print("[Launcher] This indicates a persistent pathing problem.")
-        print("[Launcher] Please ensure all dependencies from requirements.txt are installed.")
-        print(f"[Launcher] Current sys.path: {sys.path}")
-    except Exception as e:
-        print(f"\n[Launcher] An unexpected error occurred: {e}")
+    bot = IronAccordBot(command_prefix=COMMAND_PREFIX, intents=intents, debug_guild_id=DEBUG_GUILD_ID)
+    await bot.start(DISCORD_TOKEN)
 
 
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())
