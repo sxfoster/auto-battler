@@ -102,23 +102,23 @@ class BackgroundQuizView(discord.ui.View):
             view=None,
         )
 
-        background, session = self.quiz_service.evaluate_result(self.user_id)
-        if not background or not session:
+        archetype_key, archetype_name, session = self.quiz_service.evaluate_result(self.user_id)
+        if not archetype_name or not session:
             await interaction.followup.send("Error evaluating your quiz results.", ephemeral=True)
             self.stop()
             return
 
         welcome_embed = discord.Embed(
-            title=f"Welcome, {background}!",
+            title=f"Welcome, {archetype_name}!",
             description=(
-                f"*{session.background_text[background][:200]}...*\n\n"
+                f"*{session.background_text.get(archetype_key, 'No description found.')[:200]}...*\n\n"
                 "Your path is set. Now, your first trial awaits."
             ),
             color=discord.Color.dark_gold(),
         )
         await interaction.followup.send(embed=welcome_embed, ephemeral=True)
 
-        opening = await self.mission_service.start_mission(self.user_id, background, self.template)
+        opening = await self.mission_service.start_mission(self.user_id, archetype_key, self.template)
         self.quiz_service.cleanup_quiz_session(self.user_id)
 
         if opening:
