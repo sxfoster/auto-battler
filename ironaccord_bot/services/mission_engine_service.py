@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import Optional, Dict, Any, TYPE_CHECKING
 from dataclasses import dataclass, field
 
-from ironaccord_bot.utils.json_utils import extract_json_from_string
+from ironaccord_bot.utils import json_utils
 
 if TYPE_CHECKING:
     from ai.ai_agent import AIAgent
@@ -21,6 +21,32 @@ class MissionSession:
     template: str
     background: str
     history: list[str] = field(default_factory=list)
+
+
+def get_phi3_formatter_prompt(mixtral_output: str) -> str:
+    """Return a prompt instructing phi3 to format ``mixtral_output`` as JSON."""
+
+    return f"""
+    You are a data formatting expert. Convert the following text into a valid JSON object.
+    The text contains a narrative outcome and three numbered choices.
+
+    Text to format:
+    ---
+    {mixtral_output}
+    ---
+
+    Your response MUST be a valid JSON object and nothing else. Do not include any other text or markdown formatting.
+    Use this exact structure:
+    {{
+      "outcome_text": "The narrative paragraph.",
+      "choices": [
+        {{ "id": 1, "text": "The first choice." }},
+        {{ "id": 2, "text": "The second choice." }},
+        {{ "id": 3, "text": "The third choice." }}
+      ],
+      "status_effect": null
+    }}
+    """
 
 
 class MissionEngineService:
@@ -43,33 +69,47 @@ class MissionEngineService:
 
     async def generate_opening(self, background: str, template_name: str) -> Optional[Dict[str, Any]]:
         """Return a mission opening using ``background`` and ``template_name``."""
+
         template = self.load_template(template_name)
         if template is None:
             return None
 
-        prompt = (
+        mixtral_prompt = (
             "You are Lore Weaver, a master TTRPG storyteller. "
             "Using the player's background and the mission template, "
             "craft a short opening scene followed by two or three numbered choices.\n\n"
             f"PLAYER BACKGROUND:\n{background}\n\n"
             f"MISSION TEMPLATE:\n{json.dumps(template)}\n\n"
-            "Respond ONLY with a JSON object containing 'text' and 'choices'."
+            "Respond ONLY with narrative text followed by numbered choices."
         )
+
         try:
-            raw = await self.agent.get_completion(prompt)
+            narrative = await self.agent.get_narrative(mixtral_prompt)
         except Exception as exc:
             logger.error("LLM call failed: %s", exc, exc_info=True)
             return None
 
+        phi3_prompt = get_phi3_formatter_prompt(narrative)
+
         try:
-            data = extract_json_from_string(raw)
+            raw_json = await self.agent.get_gm_response(phi3_prompt)
+        except Exception as exc:  # pragma: no cover - unexpected
+            logger.error("LLM call failed: %s", exc, exc_info=True)
+            return None
+
+        try:
+            data = json_utils.extract_and_parse_json(raw_json)
             if not data:
                 raise ValueError("No valid JSON found in the LLM response.")
-            return data
         except Exception as exc:  # pragma: no cover - malformed JSON
             logger.error("Failed to parse LLM output: %s", exc, exc_info=True)
-            logger.debug("Raw response from LLM was: %s", raw)
+            logger.debug("Raw response from LLM was: %s", raw_json)
             return None
+
+        if "outcome_text" in data and "text" not in data:
+            data["text"] = data.pop("outcome_text")
+
+        return data
 
     async def start_mission(self, user_id: int, background: str, template_name: str) -> Optional[Dict[str, Any]]:
         opening = await self.generate_opening(background, template_name)
@@ -82,36 +122,48 @@ class MissionEngineService:
         session = self.active_sessions.get(user_id)
         if not session:
             return None
+
         template = self.load_template(session.template)
         if template is None:
             return None
+
         history = "\n".join(session.history)
-        prompt = (
+        mixtral_prompt = (
             "You are Lore Weaver, continuing the mission.\n"
             f"PLAYER BACKGROUND:\n{session.background}\n\n"
             f"MISSION TEMPLATE:\n{json.dumps(template)}\n\n"
             f"STORY SO FAR:\n{history}\n\n"
             f"PLAYER CHOICE: {choice}\n"
-            "Write the next scene followed by two numbered choices. If the mission is complete or failed, "
-            "return a JSON object with 'text' and 'status' instead of 'choices'."
+            "Write the next scene in a short paragraph, then list two or three numbered choices."
         )
+
         try:
-            raw = await self.agent.get_completion(prompt)
+            narrative = await self.agent.get_narrative(mixtral_prompt)
+        except Exception as exc:
+            logger.error("LLM call failed: %s", exc, exc_info=True)
+            return None
+
+        phi3_prompt = get_phi3_formatter_prompt(narrative)
+        try:
+            raw_json = await self.agent.get_gm_response(phi3_prompt)
         except Exception as exc:
             logger.error("LLM call failed: %s", exc, exc_info=True)
             return None
 
         try:
-            data = extract_json_from_string(raw)
+            data = json_utils.extract_and_parse_json(raw_json)
             if not data:
                 raise ValueError("No valid JSON found in the LLM response.")
         except Exception as exc:
             logger.error("Failed to parse LLM output: %s", exc, exc_info=True)
-            logger.debug("Raw response from LLM was: %s", raw)
+            logger.debug("Raw response from LLM was: %s", raw_json)
             return None
 
+        if "outcome_text" in data and "text" not in data:
+            data["text"] = data.pop("outcome_text")
+
         session.history.append(f"Player chose: {choice}\n{data.get('text', '')}")
-        if data.get("status"):
+        if data.get("status") or data.get("status_effect"):
             self.active_sessions.pop(user_id, None)
         return data
 
