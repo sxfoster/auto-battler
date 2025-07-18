@@ -27,7 +27,14 @@ STATUS_CHANNEL_ID = 1386506958730690652
 class IronAccordBot(commands.Bot):
     """The main bot class for Iron Accord."""
 
-    def __init__(self, *, command_prefix: str = COMMAND_PREFIX, intents: discord.Intents | None = None, debug_guild_id: int | None = None):
+    def __init__(
+        self,
+        *,
+        rag_service: RAGService | None = None,
+        command_prefix: str = COMMAND_PREFIX,
+        intents: discord.Intents | None = None,
+        debug_guild_id: int | None = None,
+    ):
         if intents is None:
             intents = discord.Intents.default()
             intents.message_content = True
@@ -36,7 +43,7 @@ class IronAccordBot(commands.Bot):
         self.debug_guild_id = debug_guild_id
 
         # --- Services ---
-        self.rag_service = RAGService()
+        self.rag_service = rag_service or RAGService()
         self.player_service = PlayerService()
         self.ai_agent = AIAgent()
         self.ollama_service = OllamaService()
