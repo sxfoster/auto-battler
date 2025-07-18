@@ -15,6 +15,7 @@ class RAGService:
     """Handles the Retrieval-Augmented Generation logic using a local LLM via Ollama."""
 
     def __init__(self):
+        """Set up embeddings, vector store and the retrieval QA chain."""
         # Initialize embeddings and vector store
         self.embedding_function = SentenceTransformerEmbeddings(model_name="all-MiniLM-L6-v2")
         self.vector_store = Chroma(
@@ -47,7 +48,18 @@ class RAGService:
         print("RAGService initialized with local Ollama model.")
 
     def query(self, query_text: str) -> dict:
-        """Queries the QA chain and returns a standardized dictionary."""
+        """Query the vector store and language model for an answer.
+
+        Parameters
+        ----------
+        query_text:
+            Natural language question from the user.
+
+        Returns
+        -------
+        dict
+            Dictionary containing ``answer`` text and ``source_documents``.
+        """
         raw_result = self.qa_chain({"query": query_text})
         answer = raw_result.get("result", "No answer could be generated.")
         source_docs = raw_result.get("source_documents", [])

@@ -18,7 +18,22 @@ MISSIONS_PATH = Path("data/missions")
 
 
 def get_unified_mission_prompt(character, mission, user_choice_text: str) -> str:
-    """Return a single prompt for the unified mission generation flow."""
+    """Build the prompt sent to the unified mission model.
+
+    Parameters
+    ----------
+    character:
+        Player character object with a ``class_name`` and ``name`` attribute.
+    mission:
+        Current mission state object.
+    user_choice_text:
+        The raw text of the player's chosen option.
+
+    Returns
+    -------
+    str
+        Fully formatted prompt instructing the model to produce JSON.
+    """
     return f"""
     You are a master storyteller and game designer generating the next step of a quest.
 
@@ -43,13 +58,26 @@ def get_unified_mission_prompt(character, mission, user_choice_text: str) -> str
 
 @dataclass
 class MissionSession:
+    """Active mission state tracked per user."""
+
     template: str
     background: str
     history: list[str] = field(default_factory=list)
 
 
 def get_phi3_formatter_prompt(mixtral_output: str) -> str:
-    """Return a prompt instructing phi3 to format ``mixtral_output`` as JSON."""
+    """Create a prompt that asks the GM model to clean up Mixtral output.
+
+    Parameters
+    ----------
+    mixtral_output:
+        Raw narrative text produced by the creative model.
+
+    Returns
+    -------
+    str
+        A prompt directing phi3 to return only a JSON object.
+    """
 
     return f"""
     You are a data formatting expert. Convert the following text into a valid JSON object.
@@ -78,6 +106,13 @@ class MissionEngineService:
     """Combine mission templates with player backgrounds using an LLM."""
 
     def __init__(self, agent: "AIAgent") -> None:
+        """Create a new service instance tied to an ``AIAgent``.
+
+        Parameters
+        ----------
+        agent:
+            Wrapper providing ``get_gm_response`` and ``get_narrative`` methods.
+        """
         self.agent = agent
         self.active_sessions: Dict[int, MissionSession] = {}
 
@@ -143,7 +178,18 @@ class MissionEngineService:
         return narrative
 
     def load_template(self, name: str) -> Optional[Dict[str, Any]]:
-        """Load the mission template with the given ``name``."""
+        """Load the mission template with the given ``name``.
+
+        Parameters
+        ----------
+        name:
+            Base file name of the JSON template stored in ``data/missions``.
+
+        Returns
+        -------
+        dict | None
+            Parsed template dictionary or ``None`` if it cannot be loaded.
+        """
         file = MISSIONS_PATH / f"{name}.json"
         if not file.exists():
             return None
@@ -154,7 +200,20 @@ class MissionEngineService:
             return None
 
     async def generate_opening(self, background: str, template_name: str) -> Optional[Dict[str, Any]]:
-        """Return a mission opening using ``background`` and ``template_name``."""
+        """Return a mission opening using ``background`` and ``template_name``.
+
+        Parameters
+        ----------
+        background:
+            Text describing the player's selected background.
+        template_name:
+            Name of the mission template JSON file (without extension).
+
+        Returns
+        -------
+        dict | None
+            Opening scene with text and choices or ``None`` on failure.
+        """
 
         template = self.load_template(template_name)
         if template is None:
@@ -198,6 +257,23 @@ class MissionEngineService:
         return data
 
     async def start_mission(self, user_id: int, background: str, template_name: str) -> Optional[Dict[str, Any]]:
+        """Start a new mission session for a user.
+
+        Parameters
+        ----------
+        user_id:
+            Discord user identifier.
+        background:
+            Player background text used for narrative context.
+        template_name:
+            Which mission template to load.
+
+        Returns
+        -------
+        dict | None
+            The opening scene data or ``None`` if generation fails.
+        """
+
         opening = await self.generate_opening(background, template_name)
         if opening is None:
             return None
@@ -205,6 +281,21 @@ class MissionEngineService:
         return opening
 
     async def advance_mission(self, user_id: int, choice: str) -> Optional[Dict[str, Any]]:
+        """Advance an active mission based on the player's choice.
+
+        Parameters
+        ----------
+        user_id:
+            Discord user identifier.
+        choice:
+            Text of the option selected by the player.
+
+        Returns
+        -------
+        dict | None
+            Updated narrative and choice list or ``None`` on failure.
+        """
+
         mechanics = await self._resolve_action_mechanics(user_id, choice)
         if not mechanics:
             return None
@@ -228,13 +319,34 @@ class MissionEngineService:
         return result
 
     async def generate_mission(self, background: str, template_name: str = "missing_person") -> Optional[Dict[str, Any]]:
-        """Return a mission dictionary using ``background`` and ``template_name``."""
+        """Utility wrapper for backward compatibility.
+
+        Parameters
+        ----------
+        background:
+            Player background text.
+        template_name:
+            Name of the mission template, defaults to ``"missing_person"``.
+
+        Returns
+        -------
+        dict | None
+            Mission opening dictionary or ``None`` if generation fails.
+        """
 
         return await self.generate_opening(background, template_name)
 
 
 async def advance_mission_interaction(interaction, user_choice_text: str):
-    """Advance a mission using a single streaming call to the unified LLM."""
+    """Handle a Discord button press and update the mission in real time.
+
+    Parameters
+    ----------
+    interaction:
+        Discord interaction object for the button click.
+    user_choice_text:
+        The textual value associated with the clicked button.
+    """
     await interaction.response.send_message("Edraz is considering your choice...", ephemeral=True)
 
     # Assuming ``character`` and ``mission`` are retrieved elsewhere in the bot
