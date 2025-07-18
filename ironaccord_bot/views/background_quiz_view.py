@@ -128,7 +128,7 @@ class BackgroundQuizView(discord.ui.View):
                 opening.get("text", ""),
                 opening.get("choices", []),
             )
-            await interaction.followup.send(opening.get("text", ""), view=view, ephemeral=True)
+            await interaction.followup.send(view.message_text, view=view, ephemeral=True)
         else:
             await interaction.followup.send("Failed to start your first mission.", ephemeral=True)
 
