@@ -3,6 +3,7 @@ import discord
 from discord.ext import commands
 
 from ironaccord_bot.cogs import start
+from ironaccord_bot.cogs import quiz
 
 
 class DummyResponse:
@@ -38,15 +39,23 @@ class DummyCtx:
 @pytest.mark.asyncio
 async def test_start_cog_sends_first_question(monkeypatch):
     bot = commands.Bot(command_prefix="!", intents=discord.Intents.none())
+    quiz_cog = quiz.QuizCog(bot)
+    await bot.add_cog(quiz_cog)
     cog = start.StartCog(bot)
 
     ctx = DummyCtx()
 
-    monkeypatch.setattr(cog.quiz_service, "start_quiz", lambda uid: None)
     monkeypatch.setattr(
-        cog.quiz_service,
-        "get_next_question_for_user",
-        lambda uid: {"text": "Q1", "choices": {"a": "A", "b": "B", "c": "C"}},
+        quiz_cog.content_service,
+        "get_question_and_choices",
+        lambda num: {
+            "text": "Q1",
+            "choices": [
+                {"background": "a", "text": "A"},
+                {"background": "b", "text": "B"},
+                {"background": "c", "text": "C"},
+            ],
+        },
     )
 
     await cog.start.callback(cog, ctx)
@@ -56,5 +65,5 @@ async def test_start_cog_sends_first_question(monkeypatch):
     assert interaction.response.kwargs["ephemeral"] is True
     expected = "**Question 1/5:**\n\nQ1\n\n**A:** A\n**B:** B\n**C:** C\n"
     assert interaction.edited["content"] == expected
-    assert isinstance(interaction.edited["view"], start.QuizView)
+    assert isinstance(interaction.edited["view"], quiz.SimpleQuizView)
 
