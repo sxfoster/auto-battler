@@ -81,6 +81,67 @@ class MissionEngineService:
         self.agent = agent
         self.active_sessions: Dict[int, MissionSession] = {}
 
+    async def _resolve_action_mechanics(self, user_id: int, choice: str) -> Optional[Dict[str, Any]]:
+        """Return a quick mechanical resolution for ``choice``."""
+
+        session = self.active_sessions.get(user_id)
+        if not session:
+            return None
+
+        history = "\n".join(session.history)
+        prompt = (
+            "You are a fast, logical game master. "
+            f"The player chose to '{choice}'. Based on the context below, "
+            "determine the immediate mechanical outcome. Respond in JSON with "
+            'keys "success", "outcome_summary", and "new_choices" (a list of 3 strings).'
+            " You may also include optional 'status' or 'status_effect' keys.\n\n"
+            f"BACKGROUND:\n{session.background}\n\nSTORY SO FAR:\n{history}"
+        )
+
+        try:
+            raw = await self.agent.get_gm_response(prompt)
+        except Exception as exc:
+            logger.error("LLM call failed: %s", exc, exc_info=True)
+            return None
+
+        data = json_utils.extract_and_parse_json(raw)
+        if not data:
+            logger.error("Failed to parse GM output: %s", raw)
+            return None
+
+        return data
+
+    async def _generate_narrative_description(
+        self, user_id: int, choice: str, mechanics: Dict[str, Any]
+    ) -> Optional[str]:
+        """Return a rich narrative for ``choice`` using ``mechanics``."""
+
+        session = self.active_sessions.get(user_id)
+        if not session:
+            return None
+
+        outcome_summary = mechanics.get("outcome_summary", "")
+        history = "\n".join(session.history)
+
+        prompt = (
+            "You are a master storyteller. "
+            f"A player's action resulted in: '{outcome_summary}'. "
+            "Describe this scene in rich, evocative detail (2-3 sentences).\n\n"
+            f"BACKGROUND:\n{session.background}\n\nSTORY SO FAR:\n{history}"
+        )
+
+        try:
+            narrative = await self.agent.get_narrative(prompt)
+        except Exception as exc:
+            logger.error("LLM call failed: %s", exc, exc_info=True)
+            return None
+
+        session.history.append(f"Player chose: {choice}\n{narrative}")
+        if mechanics.get("status") or mechanics.get("status_effect"):
+            self.active_sessions.pop(user_id, None)
+
+        return narrative
+
     def load_template(self, name: str) -> Optional[Dict[str, Any]]:
         """Load the mission template with the given ``name``."""
         file = MISSIONS_PATH / f"{name}.json"
@@ -144,53 +205,27 @@ class MissionEngineService:
         return opening
 
     async def advance_mission(self, user_id: int, choice: str) -> Optional[Dict[str, Any]]:
-        session = self.active_sessions.get(user_id)
-        if not session:
+        mechanics = await self._resolve_action_mechanics(user_id, choice)
+        if not mechanics:
             return None
 
-        template = self.load_template(session.template)
-        if template is None:
-            return None
-
-        history = "\n".join(session.history)
-        mixtral_prompt = (
-            "You are Lore Weaver, continuing the mission.\n"
-            f"PLAYER BACKGROUND:\n{session.background}\n\n"
-            f"MISSION TEMPLATE:\n{json.dumps(template)}\n\n"
-            f"STORY SO FAR:\n{history}\n\n"
-            f"PLAYER CHOICE: {choice}\n"
-            "Write the next scene in a short paragraph, then list two or three numbered choices."
+        narrative = await self._generate_narrative_description(
+            user_id, choice, mechanics
         )
-
-        try:
-            narrative = await self.agent.get_narrative(mixtral_prompt)
-        except Exception as exc:
-            logger.error("LLM call failed: %s", exc, exc_info=True)
+        if narrative is None:
             return None
 
-        phi3_prompt = get_phi3_formatter_prompt(narrative)
-        try:
-            raw_json = await self.agent.get_gm_response(phi3_prompt)
-        except Exception as exc:
-            logger.error("LLM call failed: %s", exc, exc_info=True)
-            return None
+        choices = [
+            {"id": idx + 1, "text": text}
+            for idx, text in enumerate(mechanics.get("new_choices", []))
+        ]
 
-        try:
-            data = json_utils.extract_and_parse_json(raw_json)
-            if not data:
-                raise ValueError("No valid JSON found in the LLM response.")
-        except Exception as exc:
-            logger.error("Failed to parse LLM output: %s", exc, exc_info=True)
-            logger.debug("Raw response from LLM was: %s", raw_json)
-            return None
-
-        if "outcome_text" in data and "text" not in data:
-            data["text"] = data.pop("outcome_text")
-
-        session.history.append(f"Player chose: {choice}\n{data.get('text', '')}")
-        if data.get("status") or data.get("status_effect"):
-            self.active_sessions.pop(user_id, None)
-        return data
+        result = {"text": narrative, "choices": choices}
+        if mechanics.get("status"):
+            result["status"] = mechanics["status"]
+        if mechanics.get("status_effect"):
+            result["status_effect"] = mechanics["status_effect"]
+        return result
 
     async def generate_mission(self, background: str, template_name: str = "missing_person") -> Optional[Dict[str, Any]]:
         """Return a mission dictionary using ``background`` and ``template_name``."""

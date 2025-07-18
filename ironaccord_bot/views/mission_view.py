@@ -1,3 +1,4 @@
+import asyncio
 import discord
 import logging
 from typing import List, Dict
@@ -46,39 +47,55 @@ class MissionView(discord.ui.View):
                     "This is not your mission.", ephemeral=True
                 )
                 return
-
+            
             # Disable all buttons to prevent multiple selections
             for item in view.children:
                 item.disabled = True
-            await interaction.response.edit_message(view=view)
+            await interaction.response.edit_message(
+                content="*Deciding what happens next...*", view=view
+            )
 
-            # Call the mission engine to advance the mission using the choice text
             choice_text = self.choice_data.get("text", "No choice text found.")
-            next_scene_data = await view.mission_service.advance_mission(
+            mechanics = await view.mission_service._resolve_action_mechanics(
                 view.user_id, choice_text
             )
 
-            if next_scene_data and next_scene_data.get("choices"):
+            if not mechanics:
+                await interaction.edit_original_response(
+                    content="An error occurred while processing your action.",
+                    view=None,
+                )
+                view.stop()
+                return
+
+            await interaction.edit_original_response(
+                content=mechanics.get("outcome_summary", "..."), view=view
+            )
+
+            async def update_with_full_narrative():
+                narrative = await view.mission_service._generate_narrative_description(
+                    view.user_id, choice_text, mechanics
+                )
+                if narrative is None:
+                    await interaction.edit_original_response(
+                        content="An error occurred while generating the narrative.",
+                        view=None,
+                    )
+                    return
+
+                new_choices = [
+                    {"id": idx + 1, "text": text}
+                    for idx, text in enumerate(mechanics.get("new_choices", []))
+                ]
                 new_view = MissionView(
                     mission_service=view.mission_service,
                     user_id=view.user_id,
-                    text=next_scene_data.get("text", ""),
-                    choices=next_scene_data.get("choices", []),
+                    text=narrative,
+                    choices=new_choices,
                 )
-                await interaction.followup.send(
-                    new_view.message_text,
-                    view=new_view,
-                    ephemeral=True,
-                )
-            elif next_scene_data:
-                await interaction.followup.send(
-                    next_scene_data.get("text", "The mission concludes."),
-                    ephemeral=True,
-                )
-            else:
-                await interaction.followup.send(
-                    "An error occurred while advancing the mission.",
-                    ephemeral=True,
+                await interaction.edit_original_response(
+                    content=new_view.message_text, view=new_view
                 )
 
+            asyncio.create_task(update_with_full_narrative())
             view.stop()
