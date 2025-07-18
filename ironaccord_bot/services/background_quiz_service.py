@@ -38,48 +38,77 @@ class BackgroundQuizService:
         self.ollama_service = ollama_service
         self.active_quizzes: Dict[int, QuizSession] = {}
 
-    def _create_question_generation_prompt(self, backgrounds: Dict[str, str]) -> str:
-        """Create a detailed prompt for generating situational quiz questions."""
+    def _create_question_generation_prompt(self, backgrounds: dict, template: str) -> str:
+        """Creates a strict prompt for the LLM to generate quiz questions."""
 
-        labels = list(backgrounds.keys())
-        a, b, c = labels[0], labels[1], labels[2]
+        background_lines = []
+        for key, value in backgrounds.items():
+            if isinstance(value, dict) and "name" in value:
+                name = value.get("name", key)
+            else:
+                name = key
+            background_lines.append(f"- {key}: {name}")
+        background_list = "\n".join(background_lines)
 
-        return (
-            "You are a master TTRPG storyteller creating a personality quiz. "
-            "Your goal is to determine which of three character archetypes a new player aligns with based on their answers to situational questions.\n\n"
-            "## Archetypes:\n"
-            f"- **ARCHETYPE A ({a}):** {backgrounds[a]}\n"
-            f"- **ARCHETYPE B ({b}):** {backgrounds[b]}\n"
-            f"- **ARCHETYPE C ({c}):** {backgrounds[c]}\n\n"
-            "## Your Task:\n"
-            "Generate a 5-question multiple-choice quiz. Follow these rules precisely:\n"
-            "1.  **Create Situational Questions:** The questions must be abstract scenarios about difficult choices, not questions about the archetypes themselves.\n"
-            "2.  **Do Not Name the Archetypes:** Absolutely do not use the archetype names (like 'Salvage Scout' or 'Marshal') in the questions or answers.\n"
-            "3.  **Align Answers to Archetypes:** Each answer option ('A', 'B', 'C') for a question should reflect a choice that one of the corresponding archetypes would make.\n"
-            "4.  **Strict JSON Output:** Respond ONLY with a raw, valid JSON object. Do not include any text or markdown formatting before or after the JSON.\n\n"
-            "## JSON Structure:\n"
-            "The JSON object must contain exactly two keys: 'background_map' and 'questions'.\n"
-            "- `background_map`: A dictionary mapping 'A', 'B', and 'C' to the original archetype names.\n"
-            "- `questions`: A JSON array of exactly 5 question objects. Each object must have:\n"
-            "  - A `question` key with a string value.\n"
-            "  - An `answers` key with an array of exactly three string values, each corresponding to choices A, B, and C.\n\n"
-            "### Example Question Object:\n"
-            '{\n'
-            '    "question": "A caravan is being attacked by raiders. What is your first instinct?",\n'
-            '    "answers": [\n'
-            '        "A. Intervene directly, using force to protect the innocent.",\n'
-            '        "B. Observe from a distance to gather information before acting.",\n'
-            '        "C. Create a diversion to help the caravan escape without a direct fight."\n'
-            '    ]\n'
-            '}'
-        )
+        json_schema = """
+        {
+          "title": "A title for the quiz, like 'Your Iron Accord Chronicle Begins'",
+          "questions": [
+            {
+              "question_text": "A compelling, scenario-based question.",
+              "choices": [
+                {"text": "A choice that reflects one or more backgrounds.", "maps_to": "BACKGROUND_KEY"},
+                {"text": "Another choice.", "maps_to": "BACKGROUND_KEY"},
+                {"text": "A third choice.", "maps_to": "BACKGROUND_KEY"}
+              ]
+            }
+          ]
+        }
+        """
 
-    async def start_quiz(self, user_id: int, backgrounds: Dict[str, str]) -> QuizSession | None:
+        rules = """
+        1.  You MUST output a single, valid JSON object and nothing else.
+        2.  All keys and string values in the JSON MUST be enclosed in double quotes ("').
+        3.  Each question MUST have exactly 3 choices.
+        4.  The `maps_to` value for each choice MUST be one of the provided background keys.
+        5.  Do NOT include trailing commas after the last element in an array or object.
+        6.  The quiz should consist of 3-5 questions.
+        """
+
+        prompt = f"""
+        You are a game master's assistant responsible for creating a personality quiz.
+        Your task is to generate a quiz that determines a player's starting archetype in the steampunk fantasy world of Iron Accord.
+
+        **BACKGROUND ARCHETYPES:**
+        {background_list}
+
+        **INSTRUCTIONS:**
+        Generate a quiz based on the provided mission template. Adhere strictly to the following rules and JSON schema.
+
+        **MISSION TEMPLATE:**
+        "{template}"
+
+        **RULES:**
+        {rules}
+
+        **JSON SCHEMA AND EXAMPLE:**
+        Your output MUST conform to this exact JSON structure.
+        ```json
+        {json_schema}
+        ```
+
+        Now, generate the quiz as a single JSON object.
+        """
+        return prompt.strip()
+
+    async def start_quiz(
+        self, user_id: int, backgrounds: Dict[str, str], template: str = "salvage_run"
+    ) -> QuizSession | None:
         """
         Generates and starts a new quiz for a user.
         MODIFIED: Implements a retry loop to handle malformed JSON from the LLM.
         """
-        prompt = self._create_question_generation_prompt(backgrounds)
+        prompt = self._create_question_generation_prompt(backgrounds, template)
         max_attempts = 3
 
         for attempt in range(max_attempts):
