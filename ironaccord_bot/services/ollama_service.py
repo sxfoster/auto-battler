@@ -11,9 +11,16 @@ logger = logging.getLogger(__name__)
 
 
 class OllamaService:
-    """Handle interactions with the local Ollama API."""
+    """Wrapper around the local Ollama API used by the bot.
+
+    The service exposes convenience helpers for the two models used by the
+    application – a slower "narrator" model for descriptive text and a faster
+    "game master" model for mechanical resolution.  All requests are dispatched
+    through a shared :class:`httpx.AsyncClient` instance.
+    """
 
     def __init__(self) -> None:
+        """Initialize the HTTP client and model names from configuration."""
         self.client = httpx.AsyncClient(timeout=300.0)
         cfg = load_settings()
         self.api_url = cfg.ollama_api_url
@@ -21,6 +28,16 @@ class OllamaService:
         self.gm_model = cfg.gm_model
 
     async def _generate_response(self, model_name: str, prompt: str) -> str:
+        """Send ``prompt`` to ``model_name`` and return the text response.
+
+        Args:
+            model_name: Identifier of the Ollama model to query.
+            prompt: Prompt string to send to the model.
+
+        Returns:
+            The plain text response returned by the model, or an error message
+            if the call fails.
+        """
         payload = {"model": model_name, "prompt": prompt, "stream": False}
         try:
             logger.debug("OLLAMA_PAYLOAD: %s", json.dumps(payload))
@@ -73,15 +90,38 @@ class OllamaService:
             return "An unexpected error occurred. Please check the bot logs."
 
     async def get_narrative(self, prompt: str) -> str:
-        """Get a creative, narrative response."""
+        """Generate narrative prose from the storyteller model.
+
+        Args:
+            prompt: The full prompt to send to the narrator model.
+
+        Returns:
+            The generated narrative text or an error string.
+        """
         return await self._generate_response(self.narrator_model, prompt)
 
     async def get_gm_response(self, prompt: str) -> str:
-        """Get a fast, logical response."""
+        """Query the fast rules-focused model used for mechanics.
+
+        Args:
+            prompt: Prompt describing the rules question.
+
+        Returns:
+            The text returned by the game master model or an error string.
+        """
         return await self._generate_response(self.gm_model, prompt)
 
     async def send_request(self, prompt: str, models: list[str]) -> str:
-        """Send ``prompt`` to the first available model in ``models``."""
+        """Send ``prompt`` to the first working model in ``models``.
+
+        Args:
+            prompt: Prompt text to deliver to the model.
+            models: Ordered list of model names to try.
+
+        Returns:
+            The text response from the first model that succeeds, or an empty
+            string if all models fail.
+        """
         for model in models:
             try:
                 return await self._generate_response(model, prompt)
@@ -91,12 +131,22 @@ class OllamaService:
         return ""
 
     async def stream_request(self, prompt: str, models: list[str]):
-        """Stream the response for ``prompt`` from the first working model."""
+        """Yield streaming chunks for ``prompt`` using the first working model.
+
+        Args:
+            prompt: Prompt text to deliver to the model.
+            models: Ordered list of models to attempt.
+
+        Yields:
+            Individual text chunks from the streaming API as they arrive.
+        """
         for model in models:
             payload = {"model": model, "prompt": prompt, "stream": True}
             try:
                 logger.info("Streaming request to model %s", model)
-                async with self.client.stream("POST", self.api_url, json=payload) as resp:
+                async with self.client.stream(
+                    "POST", self.api_url, json=payload
+                ) as resp:
                     resp.raise_for_status()
                     async for line in resp.aiter_lines():
                         if not line:

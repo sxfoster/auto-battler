@@ -11,19 +11,27 @@ ABS_PATH = os.path.dirname(os.path.abspath(__file__))
 DB_DIR = os.path.join(ABS_PATH, "../../", "chromadb")
 DEFAULT_COLLECTION = "lore"
 
+
 class RAGService:
-    """Handles the Retrieval-Augmented Generation logic using a local LLM via Ollama."""
+    """Simple Retrieval-Augmented Generation wrapper around LangChain.
+
+    Documents are embedded and stored in a local Chroma database. Queries are
+    answered by retrieving the most relevant chunks and feeding them to a local
+    LLM hosted by Ollama.
+    """
 
     def __init__(self):
-        # Initialize embeddings and vector store
-        self.embedding_function = SentenceTransformerEmbeddings(model_name="all-MiniLM-L6-v2")
+        """Set up the vector store and LLM used for answering questions."""
+
+        self.embedding_function = SentenceTransformerEmbeddings(
+            model_name="all-MiniLM-L6-v2"
+        )
         self.vector_store = Chroma(
             persist_directory=DB_DIR,
             embedding_function=self.embedding_function,
-            client_settings=Settings(anonymized_telemetry=False)
+            client_settings=Settings(anonymized_telemetry=False),
         )
 
-        # Initialize the local Language Model (LLM) via Ollama
         self.llm = Ollama(model="mixtral")
 
         # Define the prompt template
@@ -47,12 +55,16 @@ class RAGService:
         print("RAGService initialized with local Ollama model.")
 
     def query(self, query_text: str) -> dict:
-        """Queries the QA chain and returns a standardized dictionary."""
+        """Query the knowledge base and return the answer.
+
+        Args:
+            query_text: Natural language question posed by the user.
+
+        Returns:
+            Dictionary containing ``answer`` and ``source_documents`` entries.
+        """
         raw_result = self.qa_chain({"query": query_text})
         answer = raw_result.get("result", "No answer could be generated.")
         source_docs = raw_result.get("source_documents", [])
 
-        return {
-            "answer": answer,
-            "source_documents": source_docs
-        }
+        return {"answer": answer, "source_documents": source_docs}
