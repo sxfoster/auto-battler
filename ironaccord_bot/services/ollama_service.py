@@ -1,15 +1,11 @@
-import os
-import httpx
 import logging
 import json
 
-# --- Constants ---
-OLLAMA_API_URL = os.getenv("OLLAMA_API_URL", "http://localhost:11434/api/generate")
-NARRATOR_MODEL = os.getenv(
-    "OLLAMA_NARRATOR_MODEL",
-    "mixtral:8x7b-instruct-v0.1-q4_0",
-)  # The creative storyteller
-GM_MODEL = os.getenv("OLLAMA_GM_MODEL", "phi3:mini")  # The fast, logical game master
+import httpx
+from ironaccord_bot.config import load_settings
+
+# --- Default Settings ---
+_DEFAULT_SETTINGS = load_settings()
 
 logger = logging.getLogger(__name__)
 
@@ -19,6 +15,10 @@ class OllamaService:
 
     def __init__(self) -> None:
         self.client = httpx.AsyncClient(timeout=300.0)
+        cfg = load_settings()
+        self.api_url = cfg.ollama_api_url
+        self.narrator_model = cfg.narrator_model
+        self.gm_model = cfg.gm_model
 
     async def _generate_response(self, model_name: str, prompt: str) -> str:
         payload = {"model": model_name, "prompt": prompt, "stream": False}
@@ -26,7 +26,7 @@ class OllamaService:
             logger.debug("OLLAMA_PAYLOAD: %s", json.dumps(payload))
             logger.info(f"Sending request to Ollama model: {model_name}")
 
-            response = await self.client.post(OLLAMA_API_URL, json=payload)
+            response = await self.client.post(self.api_url, json=payload)
             try:
                 response.raise_for_status()
             except RuntimeError:
@@ -58,7 +58,7 @@ class OllamaService:
                 f"Ollama API request error for model {model_name}: {e}",
                 exc_info=True,
             )
-            return f"Error: Could not connect to the Ollama API at {OLLAMA_API_URL}. Is it running?"
+            return f"Error: Could not connect to the Ollama API at {self.api_url}. Is it running?"
         except json.JSONDecodeError:
             logger.error(
                 f"Failed to decode JSON response from Ollama for model {model_name}.",
@@ -74,11 +74,11 @@ class OllamaService:
 
     async def get_narrative(self, prompt: str) -> str:
         """Get a creative, narrative response."""
-        return await self._generate_response(NARRATOR_MODEL, prompt)
+        return await self._generate_response(self.narrator_model, prompt)
 
     async def get_gm_response(self, prompt: str) -> str:
         """Get a fast, logical response."""
-        return await self._generate_response(GM_MODEL, prompt)
+        return await self._generate_response(self.gm_model, prompt)
 
     async def send_request(self, prompt: str, models: list[str]) -> str:
         """Send ``prompt`` to the first available model in ``models``."""
@@ -96,7 +96,7 @@ class OllamaService:
             payload = {"model": model, "prompt": prompt, "stream": True}
             try:
                 logger.info("Streaming request to model %s", model)
-                async with self.client.stream("POST", OLLAMA_API_URL, json=payload) as resp:
+                async with self.client.stream("POST", self.api_url, json=payload) as resp:
                     resp.raise_for_status()
                     async for line in resp.aiter_lines():
                         if not line:
