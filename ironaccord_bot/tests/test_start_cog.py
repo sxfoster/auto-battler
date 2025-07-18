@@ -54,6 +54,7 @@ async def test_start_cog_sends_first_question(monkeypatch):
     interaction = ctx.interaction
     assert interaction.response.args[0].startswith("Edraz is consulting")
     assert interaction.response.kwargs["ephemeral"] is True
-    assert interaction.edited["content"] == "Q1"
+    expected = "**Question 1/5:**\n\nQ1\n\n**A:** A\n**B:** B\n**C:** C\n"
+    assert interaction.edited["content"] == expected
     assert isinstance(interaction.edited["view"], start.QuizView)
 
