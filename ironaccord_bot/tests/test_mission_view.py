@@ -9,9 +9,12 @@ class DummyService:
     def __init__(self):
         self.choice = None
 
-    async def advance_mission(self, uid, choice):
+    async def _resolve_action_mechanics(self, uid, choice):
         self.choice = choice
-        return {"text": "next"}
+        return {"outcome_summary": "short", "new_choices": ["X"]}
+
+    async def _generate_narrative_description(self, uid, choice, mech):
+        return "full"
 
 
 class DummyResponse:
@@ -29,11 +32,14 @@ class DummyInteraction:
     def __init__(self):
         self.user = type("U", (), {"id": 1})()
         self.response = DummyResponse()
-        self.followup = DummyResponse()
+        self.edited = None
+
+    async def edit_original_response(self, **kwargs):
+        self.edited = kwargs
 
 
 @pytest.mark.asyncio
-async def test_button_sends_choice():
+async def test_button_sends_choice(monkeypatch):
     service = DummyService()
     choices = [
         {"id": 1, "text": "Option A"},
@@ -43,8 +49,13 @@ async def test_button_sends_choice():
     interaction = DummyInteraction()
     button = view.children[0]
 
+    async def immediate(coro):
+        await coro
+
+    monkeypatch.setattr(asyncio, "create_task", immediate)
+
     await button.callback(interaction)
 
     assert service.choice == "Option A"
-    assert interaction.followup.kwargs is not None
+    assert interaction.edited is not None
     assert "**A.** Option A" in view.message_text
