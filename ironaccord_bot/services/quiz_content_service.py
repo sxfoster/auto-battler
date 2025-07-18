@@ -1,27 +1,18 @@
+import random
 import yaml
 
 
 class QuizContentService:
-    """Load and provide static quiz content from YAML."""
+    """Load quiz questions from YAML and provide randomized choices."""
 
     def __init__(self, file_path: str = "docs/yaml/mission_background_sorter.yaml"):
+        # Load the YAML once at startup
         with open(file_path, "r", encoding="utf-8") as f:
-            self.quiz_data = yaml.safe_load(f)
-        self.structured_questions = self._structure_questions()
-        print("Quiz content loaded and structured.")
+            self.quiz_data = yaml.safe_load(f)["questions"]
+        print("Quiz content loaded.")
 
-    def _structure_questions(self):
-        structured = []
-        for q_data in self.quiz_data.get("questions", []):
-            question_obj = {
-                "id": q_data.get("id"),
-                "text": q_data.get("text"),
-                "choices": {c["background"]: c["text"] for c in q_data.get("choices", [])},
-            }
-            structured.append(question_obj)
-        return structured
-
-    def get_question(self, question_number: int):
-        if 0 <= question_number - 1 < len(self.structured_questions):
-            return self.structured_questions[question_number - 1]
-        return None
+    def get_question_and_choices(self, question_number: int):
+        """Return the question text and three random choices for the given number."""
+        question_data = self.quiz_data[question_number - 1]
+        random_choices = random.sample(question_data["choices"], 3)
+        return {"text": question_data["text"], "choices": random_choices}
