@@ -7,9 +7,10 @@ from collections import Counter
 
 from ironaccord_bot.services.ollama_service import OllamaService
 from ironaccord_bot.views.background_quiz_view import QuizSession
-from ironaccord_bot.utils.json_utils import extract_json_from_string
+from ironaccord_bot.utils.json_utils import extract_and_parse_json
 
 logger = logging.getLogger(__name__)
+MAX_RETRIES = 3
 
 
 def _extract_json(response: str) -> Dict:
@@ -56,7 +57,8 @@ class BackgroundQuizService:
             "1.  **Create Situational Questions:** The questions must be abstract scenarios about difficult choices, not questions about the archetypes themselves.\n"
             "2.  **Do Not Name the Archetypes:** Absolutely do not use the archetype names (like 'Salvage Scout' or 'Marshal') in the questions or answers.\n"
             "3.  **Align Answers to Archetypes:** Each answer option ('A', 'B', 'C') for a question should reflect a choice that one of the corresponding archetypes would make.\n"
-            "4.  **Strict JSON Output:** Respond ONLY with a raw, valid JSON object. Do not include any text or markdown formatting before or after the JSON.\n\n"
+            "4.  **Strict JSON Output:** Respond ONLY with a raw, valid JSON object. Do not include any text or markdown formatting before or after the JSON.\n"
+            "    Your response MUST be valid JSON and nothing else.\n\n"
             "## JSON Structure:\n"
             "The JSON object must contain exactly two keys: 'background_map' and 'questions'.\n"
             "- `background_map`: A dictionary mapping 'A', 'B', and 'C' to the original archetype names.\n"
@@ -80,17 +82,19 @@ class BackgroundQuizService:
         MODIFIED: Implements a retry loop to handle malformed JSON from the LLM.
         """
         prompt = self._create_question_generation_prompt(backgrounds)
-        max_attempts = 3
 
-        for attempt in range(max_attempts):
-            logger.info(f"Attempting to generate quiz (Attempt {attempt + 1}/{max_attempts})")
+        for attempt in range(1, MAX_RETRIES + 1):
+            logger.info(
+                f"Attempt {attempt}: Generating quiz for user {user_id}."
+            )
             try:
                 raw_response = await self.ollama_service.get_gm_response(prompt)
-                quiz_data = extract_json_from_string(raw_response)
+                logger.debug("Raw LLM response: %s", raw_response)
+                quiz_data = extract_and_parse_json(raw_response)
 
                 if not quiz_data:
                     logger.warning(
-                        f"Attempt {attempt + 1}: Could not extract JSON from LLM response."
+                        f"Attempt {attempt}: Could not extract JSON from LLM response."
                     )
                     await asyncio.sleep(1)
                     continue
@@ -107,12 +111,17 @@ class BackgroundQuizService:
                     background_text=background_text_map,
                 )
                 self.active_quizzes[user_id] = session
-                logger.info(f"Successfully generated quiz on attempt {attempt + 1}.")
+                logger.info(
+                    f"Successfully generated quiz on attempt {attempt}."
+                )
                 return session
 
             except (json.JSONDecodeError, KeyError, ValueError) as e:
-                logger.error(f"Attempt {attempt + 1} failed to parse quiz data: {e}", exc_info=True)
-                if attempt < max_attempts - 1:
+                logger.error(
+                    f"Attempt {attempt} failed to parse quiz data: {e}",
+                    exc_info=True,
+                )
+                if attempt < MAX_RETRIES:
                     await asyncio.sleep(1)
                 else:
                     logger.error("All attempts to generate a valid quiz have failed.")

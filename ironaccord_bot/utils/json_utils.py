@@ -32,3 +32,30 @@ def extract_json_from_string(text: str) -> dict | None:
         logger.error("Extracted string could not be parsed as valid JSON: %s", e)
         logger.debug("Invalid JSON string was: %s", json_str)
         return None
+
+
+def extract_and_parse_json(text: str) -> dict | None:
+    """Return a cleaned JSON object from ``text`` if possible.
+
+    This helper is more tolerant of common LLM mistakes such as surrounding
+    commentary or Markdown code fences. It searches for the first JSON object
+    in ``text`` and attempts to parse it.
+    """
+
+    if not text:
+        logger.error("Extracted string is empty.")
+        return None
+
+    match = re.search(r"\{.*\}", text, re.DOTALL)
+    if not match:
+        logger.error("No JSON object found in the string: %s", text)
+        return None
+
+    json_string = match.group(0)
+
+    try:
+        return json.loads(json_string)
+    except json.JSONDecodeError as e:
+        logger.error("Extracted string could not be parsed as valid JSON: %s", e)
+        logger.debug("Malformed JSON string: %s", json_string)
+        return None
