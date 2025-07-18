@@ -1,4 +1,5 @@
 import pytest
+import asyncio
 
 discord = pytest.importorskip("discord")
 
@@ -49,8 +50,8 @@ async def test_button_sends_choice(monkeypatch):
     interaction = DummyInteraction()
     button = view.children[0]
 
-    async def immediate(coro):
-        await coro
+    def immediate(coro):
+        return asyncio.get_event_loop().create_task(coro)
 
     monkeypatch.setattr(asyncio, "create_task", immediate)
 
