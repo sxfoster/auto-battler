@@ -46,16 +46,19 @@ def extract_and_parse_json(text: str) -> dict | None:
         logger.error("Extracted string is empty.")
         return None
 
-    match = re.search(r"\{.*\}", text, re.DOTALL)
-    if not match:
-        logger.error("No JSON object found in the string: %s", text)
-        return None
+    fenced = re.search(r"```json\s*(\{.*?\})\s*```", text, re.DOTALL)
+    if fenced:
+        text = fenced.group(1)
 
-    json_string = match.group(0)
+    decoder = json.JSONDecoder()
+    for idx in range(len(text)):
+        if text[idx] != "{":
+            continue
+        try:
+            obj, _ = decoder.raw_decode(text[idx:])
+            return obj
+        except json.JSONDecodeError:
+            continue
 
-    try:
-        return json.loads(json_string)
-    except json.JSONDecodeError as e:
-        logger.error("Extracted string could not be parsed as valid JSON: %s", e)
-        logger.debug("Malformed JSON string: %s", json_string)
-        return None
+    logger.error("No JSON object found in the string: %s", text)
+    return None
