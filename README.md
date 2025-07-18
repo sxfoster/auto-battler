@@ -12,6 +12,7 @@ This repository houses the Discord bot used for the auto battler experiments alo
 - `ironaccord_bot/tests/stubs/chromadb/` – lightweight stand‑in for the
   [Chromadb](https://github.com/chroma-core/chroma) client so the test suite can
   run without the heavy dependency installed.
+- `docs/ARCHITECTURE.md` – overview of the dual‑LLM architecture used by the bot.
 
 ## Setup
 
