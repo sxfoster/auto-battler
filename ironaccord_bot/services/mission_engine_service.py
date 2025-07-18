@@ -7,7 +7,7 @@ from typing import Optional, Dict, Any, TYPE_CHECKING
 from dataclasses import dataclass, field
 
 from ironaccord_bot.utils import json_utils
-from . import ollama_service
+from . import ollama_service, prompt_factory
 
 if TYPE_CHECKING:
     from ai.ai_agent import AIAgent
@@ -17,61 +17,11 @@ logger = logging.getLogger(__name__)
 MISSIONS_PATH = Path("data/missions")
 
 
-def get_unified_mission_prompt(character, mission, user_choice_text: str) -> str:
-    """Return a single prompt for the unified mission generation flow."""
-    return f"""
-    You are a master storyteller and game designer generating the next step of a quest.
-
-    **Character:** A {character.class_name} named {character.name}
-    **Current Situation:** {mission.state}
-    **Player's Action:** "{user_choice_text}"
-
-    Generate a creative and engaging outcome for this action. Then, provide three new, distinct choices for the player.
-    Your response MUST be ONLY a single, valid JSON object. Do not add any conversational text, explanations, or markdown.
-
-    **JSON Schema:**
-    {{
-      "outcome_text": "A narrative paragraph describing the result of the player's action.",
-      "choices": [
-        {{ "id": 1, "text": "A compelling first choice for the player." }},
-        {{ "id": 2, "text": "A compelling second choice for the player." }},
-        {{ "id": 3, "text": "A compelling third choice for the player." }}
-      ]
-    }}
-    """
-
-
 @dataclass
 class MissionSession:
     template: str
     background: str
     history: list[str] = field(default_factory=list)
-
-
-def get_phi3_formatter_prompt(mixtral_output: str) -> str:
-    """Return a prompt instructing phi3 to format ``mixtral_output`` as JSON."""
-
-    return f"""
-    You are a data formatting expert. Convert the following text into a valid JSON object.
-    The text contains a narrative outcome and three numbered choices.
-
-    Text to format:
-    ---
-    {mixtral_output}
-    ---
-
-    Your response MUST be a valid JSON object and nothing else. Do not include any other text or markdown formatting.
-    Use this exact structure:
-    {{
-      "outcome_text": "The narrative paragraph.",
-      "choices": [
-        {{ "id": 1, "text": "The first choice." }},
-        {{ "id": 2, "text": "The second choice." }},
-        {{ "id": 3, "text": "The third choice." }}
-      ],
-      "status_effect": null
-    }}
-    """
 
 
 class MissionEngineService:
@@ -88,15 +38,7 @@ class MissionEngineService:
         if not session:
             return None
 
-        history = "\n".join(session.history)
-        prompt = (
-            "You are a fast, logical game master. "
-            f"The player chose to '{choice}'. Based on the context below, "
-            "determine the immediate mechanical outcome. Respond in JSON with "
-            'keys "success", "outcome_summary", and "new_choices" (a list of 3 strings).'
-            " You may also include optional 'status' or 'status_effect' keys.\n\n"
-            f"BACKGROUND:\n{session.background}\n\nSTORY SO FAR:\n{history}"
-        )
+        prompt = prompt_factory.build_action_mechanics_prompt(choice, session)
 
         try:
             raw = await self.agent.get_gm_response(prompt)
@@ -121,24 +63,13 @@ class MissionEngineService:
             return None
 
         outcome_summary = mechanics.get("outcome_summary", "")
-        history = "\n".join(session.history)
-
-        prompt = (
-            "You are a master storyteller. "
-            f"A player's action resulted in: '{outcome_summary}'. "
-            "Describe this scene in rich, evocative detail (2-3 sentences).\n\n"
-            f"BACKGROUND:\n{session.background}\n\nSTORY SO FAR:\n{history}"
-        )
+        prompt = prompt_factory.build_narrative_prompt(outcome_summary, session)
 
         try:
             narrative = await self.agent.get_narrative(prompt)
         except Exception as exc:
             logger.error("LLM call failed: %s", exc, exc_info=True)
             return None
-
-        session.history.append(f"Player chose: {choice}\n{narrative}")
-        if mechanics.get("status") or mechanics.get("status_effect"):
-            self.active_sessions.pop(user_id, None)
 
         return narrative
 
@@ -160,14 +91,7 @@ class MissionEngineService:
         if template is None:
             return None
 
-        mixtral_prompt = (
-            "You are Lore Weaver, a master TTRPG storyteller. "
-            "Using the player's background and the mission template, "
-            "craft a short opening scene followed by two or three numbered choices.\n\n"
-            f"PLAYER BACKGROUND:\n{background}\n\n"
-            f"MISSION TEMPLATE:\n{json.dumps(template)}\n\n"
-            "Respond ONLY with narrative text followed by numbered choices."
-        )
+        mixtral_prompt = prompt_factory.build_opening_prompt(background, template)
 
         try:
             narrative = await self.agent.get_narrative(mixtral_prompt)
@@ -175,7 +99,7 @@ class MissionEngineService:
             logger.error("LLM call failed: %s", exc, exc_info=True)
             return None
 
-        phi3_prompt = get_phi3_formatter_prompt(narrative)
+        phi3_prompt = prompt_factory.build_phi3_formatter_prompt(narrative)
 
         try:
             raw_json = await self.agent.get_gm_response(phi3_prompt)
@@ -187,6 +111,8 @@ class MissionEngineService:
             data = json_utils.extract_and_parse_json(raw_json)
             if not data:
                 raise ValueError("No valid JSON found in the LLM response.")
+            if "outcome_text" in data and "text" not in data:
+                data["text"] = data.pop("outcome_text")
         except Exception as exc:  # pragma: no cover - malformed JSON
             logger.error("Failed to parse LLM output: %s", exc, exc_info=True)
             logger.debug("Raw response from LLM was: %s", raw_json)
@@ -209,22 +135,49 @@ class MissionEngineService:
         if not mechanics:
             return None
 
+        session = self.active_sessions.get(user_id)
+        if not session:
+            return None
+
         narrative = await self._generate_narrative_description(
             user_id, choice, mechanics
         )
         if narrative is None:
             return None
 
+        phi3_prompt = prompt_factory.build_phi3_formatter_prompt(narrative)
+        try:
+            raw_json = await self.agent.get_gm_response(phi3_prompt)
+        except Exception as exc:  # pragma: no cover - unexpected
+            logger.error("LLM call failed: %s", exc, exc_info=True)
+            return None
+
+        try:
+            data = json_utils.extract_and_parse_json(raw_json)
+            if not data:
+                raise ValueError("No valid JSON found in the LLM response.")
+            if "outcome_text" in data and "text" not in data:
+                data["text"] = data.pop("outcome_text")
+        except Exception as exc:  # pragma: no cover - malformed JSON
+            logger.error("Failed to parse LLM output: %s", exc, exc_info=True)
+            logger.debug("Raw response from LLM was: %s", raw_json)
+            return None
+
         choices = [
-            {"id": idx + 1, "text": text}
-            for idx, text in enumerate(mechanics.get("new_choices", []))
+            {"id": idx + 1, "text": c.get("text", "")}
+            for idx, c in enumerate(data.get("choices", []))
         ]
 
-        result = {"text": narrative, "choices": choices}
-        if mechanics.get("status"):
-            result["status"] = mechanics["status"]
-        if mechanics.get("status_effect"):
-            result["status_effect"] = mechanics["status_effect"]
+        result = {"text": data.get("text", ""), "choices": choices}
+        if data.get("status"):
+            result["status"] = data["status"]
+        if data.get("status_effect"):
+            result["status_effect"] = data["status_effect"]
+
+        session.history.append(f"Player chose: {choice}\n{data.get('text', '')}")
+        if data.get("status") or data.get("status_effect"):
+            self.active_sessions.pop(user_id, None)
+
         return result
 
     async def generate_mission(self, background: str, template_name: str = "missing_person") -> Optional[Dict[str, Any]]:
@@ -241,7 +194,9 @@ async def advance_mission_interaction(interaction, user_choice_text: str):
     character = interaction.client.character_service.get_character(interaction.user.id)
     mission = interaction.client.mission_service.get_active_mission(interaction.user.id)
 
-    prompt = get_unified_mission_prompt(character, mission, user_choice_text)
+    prompt = prompt_factory.build_unified_mission_prompt(
+        character, mission, user_choice_text
+    )
 
     full_text = ""
     async for chunk in ollama_service.stream_request(prompt, ["llama3:70b-instruct"]):
