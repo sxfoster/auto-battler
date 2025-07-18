@@ -79,3 +79,36 @@ class OllamaService:
     async def get_gm_response(self, prompt: str) -> str:
         """Get a fast, logical response."""
         return await self._generate_response(GM_MODEL, prompt)
+
+    async def send_request(self, prompt: str, models: list[str]) -> str:
+        """Send ``prompt`` to the first available model in ``models``."""
+        for model in models:
+            try:
+                return await self._generate_response(model, prompt)
+            except Exception as exc:  # pragma: no cover - fallback to next model
+                logger.error("Model %s failed: %s", model, exc, exc_info=True)
+                continue
+        return ""
+
+    async def stream_request(self, prompt: str, models: list[str]):
+        """Stream the response for ``prompt`` from the first working model."""
+        for model in models:
+            payload = {"model": model, "prompt": prompt, "stream": True}
+            try:
+                logger.info("Streaming request to model %s", model)
+                async with self.client.stream("POST", OLLAMA_API_URL, json=payload) as resp:
+                    resp.raise_for_status()
+                    async for line in resp.aiter_lines():
+                        if not line:
+                            continue
+                        try:
+                            data = json.loads(line)
+                            chunk = data.get("response", "")
+                            if chunk:
+                                yield chunk
+                        except json.JSONDecodeError:
+                            continue
+                return
+            except Exception as exc:  # pragma: no cover - fallback
+                logger.error("Streaming failed for %s: %s", model, exc, exc_info=True)
+                continue

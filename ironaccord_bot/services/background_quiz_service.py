@@ -8,9 +8,51 @@ from collections import Counter
 from ironaccord_bot.services.ollama_service import OllamaService
 from ironaccord_bot.views.background_quiz_view import QuizSession
 from ironaccord_bot.utils.json_utils import extract_and_parse_json
+from . import ollama_service
 
 logger = logging.getLogger(__name__)
 MAX_RETRIES = 3
+
+
+def get_unified_quiz_prompt(user_context: str) -> str:
+    """Return a single prompt for the unified LLM quiz generation."""
+    return f"""
+    You are a game master designing an onboarding quiz for a new player.
+    Based on the player's initial statements, generate a creative, multiple-choice question to determine their starting class.
+
+    **Player's Input:** "{user_context}"
+
+    Your response MUST be ONLY a single, valid JSON object. Do not add any conversational text, explanations, or markdown.
+
+    **JSON Schema:**
+    {{
+      "question": "A creative, multiple-choice question that reflects the player's input.",
+      "options": [
+        {{ "id": 1, "text": "A compelling first choice." }},
+        {{ "id": 2, "text": "A compelling second choice." }},
+        {{ "id": 3, "text": "A compelling third choice." }}
+      ]
+    }}
+    """
+
+
+async def generate_quiz_for_user(user_id: int, user_context: str):
+    """Generate a quiz for ``user_id`` using the unified LLM."""
+    logger.info("Generating unified quiz for user %s", user_id)
+    prompt = get_unified_quiz_prompt(user_context)
+    response = await ollama_service.send_request(prompt, ["llama3:70b-instruct"])
+
+    if not response:
+        logger.error("Failed to generate quiz for user %s: empty response", user_id)
+        raise ValueError("LLM response was empty.")
+
+    quiz_data = extract_and_parse_json(response)
+    if not quiz_data:
+        logger.error("Failed to parse quiz JSON for user %s. Raw: %s", user_id, response)
+        raise ValueError("Failed to parse LLM output into valid quiz JSON.")
+
+    logger.info("Successfully generated quiz for user %s", user_id)
+    return quiz_data
 
 
 def _extract_json(response: str) -> Dict:
