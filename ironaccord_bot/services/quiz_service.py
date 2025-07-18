@@ -33,9 +33,15 @@ class QuizService:
             "choices": {bg: all_choices[bg] for bg in random_backgrounds},
         }
 
-    def record_answer(self, user_id: int, chosen_background: str):
+    def record_answer(self, user_id: int, chosen_background: str) -> bool:
+        """Record a user's answer and advance the quiz.
+
+        Returns ``True`` if the quiz has reached the end of the question list,
+        otherwise ``False``. A missing ``user_id`` results in ``False`` as well.
+        """
         if user_id not in self.active_quizzes:
-            return
+            return False
+
         state = self.active_quizzes[user_id]
         if chosen_background in state["scores"]:
             state["scores"][chosen_background] += 1
@@ -43,6 +49,9 @@ class QuizService:
             print(
                 f"User {user_id} chose {chosen_background}. Scores: {state['scores']}"
             )
+
+        # The quiz is over once question_number exceeds 5
+        return state["question_number"] > 5
 
     def get_final_result(self, user_id: int):
         if user_id not in self.active_quizzes:
