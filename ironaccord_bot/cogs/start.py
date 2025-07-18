@@ -2,7 +2,7 @@ import discord
 from discord.ext import commands
 import logging
 
-from .quiz import QuizCog, SimpleQuizView
+from .quiz import QuizCog, SimpleQuizView, slugify
 
 logger = logging.getLogger(__name__)
 
@@ -40,7 +40,7 @@ class StartCog(commands.Cog):
                 raise RuntimeError("QuizCog not loaded")
 
             question = quiz_cog.content_service.get_question_and_choices(1)
-            scores = {c["background"]: 0 for c in question["choices"]}
+            scores = {slugify(c["background"]): 0 for c in question["choices"]}
             quiz_cog.active_quizzes[user_id] = {
                 "question_number": 1,
                 "scores": scores,

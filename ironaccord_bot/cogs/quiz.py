@@ -5,6 +5,11 @@ from discord import app_commands
 
 from ..services.quiz_content_service import QuizContentService
 
+
+def slugify(text: str) -> str:
+    """Convert ``text`` to a lowercase, underscore-separated slug."""
+    return text.lower().replace(" ", "_")
+
 logger = logging.getLogger(__name__)
 
 
@@ -48,7 +53,7 @@ class QuizCog(commands.Cog):
         logger.info(f"User {user_id} starting the quiz.")
 
         first_question = self.content_service.get_question_and_choices(1)
-        scores = {choice["background"]: 0 for choice in first_question["choices"]}
+        scores = {slugify(choice["background"]): 0 for choice in first_question["choices"]}
         self.active_quizzes[user_id] = {
             "question_number": 1,
             "scores": scores,
@@ -74,7 +79,8 @@ class QuizCog(commands.Cog):
         if not state:
             return
 
-        background = state["last_choices"][choice_index]["background"]
+        background_raw = state["last_choices"][choice_index]["background"]
+        background = slugify(background_raw)
         state["scores"][background] += 1
         state["question_number"] += 1
 
@@ -82,7 +88,8 @@ class QuizCog(commands.Cog):
             scores = state["scores"]
             max_score = max(scores.values())
             winners = [bg for bg, score in scores.items() if score == max_score]
-            final_background = winners[0]
+            winner_slug = winners[0]
+            final_background = winner_slug.replace("_", " ").title()
             await interaction.followup.send(
                 f"**Diagnostic Complete.**\nYour background is: **{final_background}**\n\n*Welcome to the Iron Accord.*",
                 ephemeral=True,
