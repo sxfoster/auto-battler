@@ -1,0 +1,74 @@
+id: mission_background_sorter
+name: "Final Systems Diagnostic: Core Identity"
+type: sorting_quiz
+
+questions:
+  - id: "q1_discovery"
+    text: "On a patrol, you discover a large, sealed, pre-Fall cargo container half-buried in the earth. It hums with a faint, steady power, its markings ancient. What is your first, instinctual action?"
+    choices:
+      - { background: "Salvage Scout", text: "Pry it open, quickly. Whatever's inside is valuable—whether it's scrap, parts, or a forgotten treasure. The wasteland rewards speed." }
+      - { background: "Clockwork Guard", text: "Secure the perimeter immediately. An unidentified, powered object is a potential threat. Report it via official channels and await backup." }
+      - { background: "Cipher", text: "Analyze the markings and the locking mechanism. The real value isn't what's inside, but understanding the puzzle of how it works." }
+      - { background: "Communal Farmer", text: "Assess it for practical use. Could it be a water purifier, a seed bank, or a weather stabilizer? Its value is in how it can serve the community." }
+      - { background: "Street Urchin", text: "Watch from a hidden spot to see if anyone else knows about it. A discovery no one else knows about is true power." }
+      - { background: "Steamwright", text: "Trace the source of the hum. A functioning pre-Fall power source could revolutionize the settlement's engine technology." }
+      - { background: "Lore Keeper", text: "Sketch the markings meticulously. To act without understanding its history—its purpose, its creators—is to invite disaster." }
+      - { background: "Guild Apprentice", text: "Examine its construction. The quality of the welds, the refinement of the metal... the craftsmanship will tell you more than any strange symbols." }
+      - { background: "Field Healer", text: "Check for danger. Is that hum a stable power source or a sign of leaking radiation? The first priority is ensuring it isn't a threat to health." }
+      - { background: "Marshal", text: "Treat the area as a public hazard. Keep onlookers away and ensure the discovery is logged officially. The law requires a safe, orderly process." }
+
+  - id: "q2_crisis"
+    text: "A panicked announcement echoes through the settlement: the main water purifier has failed, and reserves are low. Chaos begins to stir. Where do you go first?"
+    choices:
+      - { background: "Steamwright", text: "Straight to the purifier itself. I need to get my hands on the engine, diagnose the pressure failure, and see if I can improvise a bypass." }
+      - { background: "Marshal", text: "To the public square. I need to maintain order, prevent hoarding, and make sure the official rationing plan is communicated clearly." }
+      - { background: "Field Healer", text: "To the infirmary. I need to prepare supplies for dehydration and sickness. The most vulnerable will be affected first." }
+      - { background: "Communal Farmer", text: "To my own water reclamation system and private well. The community will need a backup supply, and I must see what I can share." }
+      - { background: "Clockwork Guard", text: "To my post at the reserve tanks. They are now the settlement's most valuable asset and must be defended from rioters or thieves." }
+      - { background: "Guild Apprentice", text: "To the guild hall. My master will have a plan, and the guild will need every apprentice to help fabricate replacement parts." }
+      - { background: "Cipher", text: "To the purifier's control room. The problem may not be mechanical, but a logical error in its ancient operating system. I need to see the code." }
+      - { background: "Lore Keeper", text: "To the archives. Records from the last great drought must detail how our ancestors solved this. The answer may be in the past." }
+      - { background: "Salvage Scout", text: "To the gate. While everyone is distracted, it's the perfect time to slip out and search nearby ruins for a replacement pump or filtration unit." }
+      - { background: "Street Urchin", text: "Into the chaos. Panic creates opportunity. I can listen for rumors, find out who is hoarding water, and maybe secure a supply for myself." }
+
+  - id: "q3_stranger"
+    text: "A lone, wounded traveler stumbles to the gates, pleading for sanctuary. They wear the markings of a rival faction. What is your immediate thought?"
+    choices:
+      - { background: "Field Healer", text: "They are wounded. That is all that matters. Get them inside and on a cot. I can treat their injuries while others decide their fate." }
+      - { background: "Clockwork Guard", text: "This is a security risk. They must be disarmed and questioned in a secure location before they are allowed entry. They could be a scout or a spy." }
+      - { background: "Marshal", text: "This person is now under my protection until a formal judgment is made. I will hear their story and ensure no one harms them." }
+      - { background: "Street Urchin", text: "What are they not saying? A wounded traveler is a story, and stories can be valuable. I'll watch them and learn their secret." }
+      - { background: "Lore Keeper", text: "The ancient Accord hospitality laws are clear. Sanctuary must be granted, but there are rituals and precedents to follow." }
+      - { background: "Communal Farmer", text: "Another mouth to feed, but a person in need is a person in need. We can spare a little food and water. It's the right thing to do." }
+      - { background: "Cipher", text: "Their gear might use unfamiliar technology. Letting them in provides an opportunity to study it, even if they are a risk." }
+      - { background: "Guild Apprentice", text: "Are their tools or clothes made with different techniques? I need a closer look at their craftsmanship." }
+      - { background: "Steamwright", text: "They're from a rival faction? I wonder what their engines are like. Their misfortune could be our technological advantage." }
+      - { background: "Salvage Scout", text: "A rival? They probably know the location of different ruins and salvage spots. Helping them could be a good investment." }
+
+  - id: "q4_conflict"
+    text: "A furious argument erupts in the market. A merchant accuses a scavenger of stealing. The crowd is turning ugly. How do you intervene?"
+    choices:
+      - { background: "Marshal", text: "Step between them, badge visible. Announce my authority, separate the parties, and begin a proper investigation. Justice must be impartial." }
+      - { background: "Street Urchin", text: "Use the commotion as a cover to slip through the crowd and see if I can spot who is lying, or maybe lift a little something for myself." }
+      - { background: "Clockwork Guard", text: "Disperse the crowd. A public disturbance is a threat to order, regardless of who is right. The parties can file a formal grievance later." }
+      - { background: "Lore Keeper", text: "Remind both parties of the Market Charter and the laws of public decency. Citing precedent can often cool hot heads." }
+      - { background: "Guild Apprentice", text: "Defend the one who is a member of a guild. We have to look out for our own. The guilds have their own way of settling disputes." }
+      - { background: "Communal Farmer", text: "Try to mediate. 'Is a single piece of scrap worth disrupting the peace we all rely on? Let's find a compromise.'" }
+      - { background: "Field Healer", text: "Look for anyone who might get hurt if the pushing and shoving turns into a real fight. My job is to be ready to treat the consequences." }
+      - { background: "Cipher", text: "Observe the interaction like a puzzle. The accuser's micro-expressions, the scavenger's defensive posture... there is a logical truth to be found." }
+      - { background: "Steamwright", text: "Ignore it. Let them sort out their own problems. I have a pressure valve that needs calibrating, and that's more important." }
+      - { background: "Salvage Scout", text: "Side with the scavenger. Merchants always have enough, while scavengers live on the edge. I know whose side I'm on." }
+
+  - id: "q5_rumor"
+    text: "You hear a whispered rumor: a prospector claims to have found a map leading to an intact, pre-Fall sky-barge, located deep in the treacherous Glasswastes. What do you do with this information?"
+    choices:
+      - { background: "Salvage Scout", text: "Get my gear. This is the score of a lifetime. I'll find that prospector and get that map, one way or another." }
+      - { background: "Cipher", text: "A sky-barge? The navigational and propulsion systems would be a scientific marvel. I must be on the team that analyzes it." }
+      - { background: "Steamwright", text: "The power core on a sky-barge could run the entire settlement for a century. I need to get to it before someone else does and breaks it." }
+      - { background: "Clockwork Guard", text: "Report the rumor to my superior. An asset of that magnitude is a strategic concern for the entire Accord and must be secured by a formal expedition." }
+      - { background: "Lore Keeper", text: "Find the prospector and record their story. The existence of a sky-barge could change our entire understanding of the Machine Fall." }
+      - { background: "Guild Apprentice", text: "Tell my Guild Master immediately. The Guild would pay a fortune for the schematics and alloys from a machine like that." }
+      - { background: "Marshal", text: "Investigate the prospector. Rumors like this can cause chaos, stampedes, and even murder. I need to find the truth before people get hurt." }
+      - { background: "Street Urchin", text: "Figure out how to profit from the rumor itself. Sell the information, create a fake map, or follow whoever actually buys the real one." }
+      - { background: "Field Healer", text: "Warn people against going. The Glasswastes are a death sentence. A sky-barge isn't worth a dozen lives lost to glass storms and radiation." }
+      - { background: "Communal Farmer", text: "It's a foolish dream. Chasing myths in the wastes won't put food on the table. There's work to be done right here." }
