@@ -44,25 +44,14 @@ class StartCog(commands.Cog):
 
             if question:
                 logger.info(f"Quiz started for user {user_id}. Sending first question.")
-                formatted_text = (
-                    f"**Question {self.quiz_service.active_quizzes[user_id]['question_number']}/5:**\n\n"
-                    f"{question['text']}\n\n"
-                )
-                button_labels = ["A", "B", "C"]
-                choices = {}
-                for i, (bg, text) in enumerate(question["choices"].items()):
-                    formatted_text += f"**{button_labels[i]}:** {text}\n"
-                    choices[bg] = text
-
-                view = QuizView(self.bot, self.quiz_service, choices)
-
+                view = QuizView(self.quiz_service, question["choices"])
                 if ctx.interaction:
                     await ctx.interaction.edit_original_response(
-                        content=formatted_text,
+                        content=question["text"],
                         view=view,
                     )
                 else:
-                    await ctx.send(formatted_text, view=view)
+                    await ctx.send(question["text"], view=view)
             else:
                 logger.error("Quiz content unavailable for user %s", user_id)
                 if ctx.interaction:
