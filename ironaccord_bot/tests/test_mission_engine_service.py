@@ -81,12 +81,6 @@ async def test_start_and_advance(monkeypatch, tmp_path):
 
     agent = type('A', (), {'get_narrative': fake_narrative, 'get_gm_response': fake_gm})()
     svc = mes.MissionEngineService(agent)
-
-    async def fake_mech(self, user_id, choice):
-        return {"outcome_summary": choice}
-
-    monkeypatch.setattr(mes.MissionEngineService, "_resolve_action_mechanics", fake_mech)
-
     opening = await svc.start_mission(1, "Scout", "demo")
     assert opening["text"] == "start"
 
@@ -119,12 +113,6 @@ async def test_advance_handles_extra_text(monkeypatch, tmp_path):
 
     agent = type('A', (), {'get_narrative': fake_narrative, 'get_gm_response': fake_gm})()
     svc = mes.MissionEngineService(agent)
-
-    async def fake_mech(self, user_id, choice):
-        return {"outcome_summary": choice}
-
-    monkeypatch.setattr(mes.MissionEngineService, "_resolve_action_mechanics", fake_mech)
-
 
     opening = await svc.start_mission(1, "Scout", "demo")
     assert opening["text"] == "start"
