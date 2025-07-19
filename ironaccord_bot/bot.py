@@ -62,7 +62,6 @@ class IronAccordBot(commands.Bot):
         initial_extensions = [
             "cogs.codex",
             "cogs.start",
-            "cogs.quiz",
         ]
         for extension in initial_extensions:
             try:
