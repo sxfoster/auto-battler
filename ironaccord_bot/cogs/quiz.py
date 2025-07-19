@@ -47,18 +47,40 @@ class QuizCog(commands.Cog):
         self.content_service = QuizContentService()
         self.active_quizzes: dict[int, dict] = {}
 
+        # Explicit list of all possible background slugs. Using a hardcoded
+        # list ensures the score dictionary always has the correct keys and
+        # cannot go out of sync with the quiz data.
+        self.ALL_BACKGROUNDS = [
+            "cipher",
+            "clockwork_guard",
+            "communal_farmer",
+            "field_healer",
+            "guild_apprentice",
+            "lore_keeper",
+            "marshal",
+            "salvage_scout",
+            "steamwright",
+            "street_urchin",
+        ]
+
     @app_commands.command(name="startquiz", description="Starts the background sorting quiz.")
     async def startquiz(self, interaction: discord.Interaction):
         user_id = interaction.user.id
         logger.info(f"User {user_id} starting the quiz.")
 
         first_question = self.content_service.get_question_and_choices(1)
-        scores = {slugify(choice["background"]): 0 for choice in first_question["choices"]}
+
+        # Initialize scores for every possible background to zero using the
+        # predefined list. This removes any dependency on how the YAML file is
+        # structured and prevents KeyError issues during scoring.
+        scores = {bg: 0 for bg in self.ALL_BACKGROUNDS}
+
         self.active_quizzes[user_id] = {
             "question_number": 1,
             "scores": scores,
             "last_choices": first_question["choices"],
         }
+
         await self._send_question(interaction, user_id, first_question)
 
     async def _send_question(self, interaction: discord.Interaction, user_id: int, question_data: dict):
@@ -81,6 +103,20 @@ class QuizCog(commands.Cog):
 
         background_raw = state["last_choices"][choice_index]["background"]
         background = slugify(background_raw)
+
+        # Extra safety check: ensure the slug exists in the scores dict.
+        if background not in state["scores"]:
+            logger.error(
+                "FATAL: Slug '%s' not found in scores dict! Dict keys: %s",
+                background,
+                list(state["scores"].keys()),
+            )
+            await interaction.followup.send(
+                "A critical error occurred with the quiz data. Please contact an admin.",
+                ephemeral=True,
+            )
+            return
+
         state["scores"][background] += 1
         state["question_number"] += 1
 
