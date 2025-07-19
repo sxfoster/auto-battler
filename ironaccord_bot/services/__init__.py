@@ -3,6 +3,7 @@ from .rag_service import RAGService
 from .player_context_service import gather_player_context
 from .mission_engine_service import MissionEngineService
 from .quiz_content_service import QuizContentService
+from .quiz_service import QuizService
 
 __all__ = [
     "OllamaService",
@@ -10,4 +11,5 @@ __all__ = [
     "gather_player_context",
     "MissionEngineService",
     "QuizContentService",
+    "QuizService",
 ]

@@ -2,7 +2,9 @@ import discord
 from discord.ext import commands
 import logging
 
-from .quiz import QuizCog, SimpleQuizView
+from ironaccord_bot.services.quiz_content_service import QuizContentService
+from ironaccord_bot.services.quiz_service import QuizService
+from ironaccord_bot.views.quiz_view import QuizView
 
 logger = logging.getLogger(__name__)
 
@@ -11,6 +13,8 @@ logger = logging.getLogger(__name__)
 class StartCog(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
+        content_service = QuizContentService()
+        self.quiz_service = QuizService(content_service)
 
 
     @commands.hybrid_command(
@@ -35,30 +39,39 @@ class StartCog(commands.Cog):
             )
 
         try:
-            quiz_cog = self.bot.get_cog("QuizCog")
-            if not quiz_cog:
-                raise RuntimeError("QuizCog not loaded")
+            self.quiz_service.start_quiz(user_id)
+            question = self.quiz_service.get_next_question_for_user(user_id)
 
-            question = quiz_cog.content_service.get_question_and_choices(1)
-            scores = {c["background"]: 0 for c in question["choices"]}
-            quiz_cog.active_quizzes[user_id] = {
-                "question_number": 1,
-                "scores": scores,
-                "last_choices": question["choices"],
-            }
+            if question:
+                logger.info(f"Quiz started for user {user_id}. Sending first question.")
+                formatted_text = (
+                    f"**Question {self.quiz_service.active_quizzes[user_id]['question_number']}/5:**\n\n"
+                    f"{question['text']}\n\n"
+                )
+                button_labels = ["A", "B", "C"]
+                choices = {}
+                for i, (bg, text) in enumerate(question["choices"].items()):
+                    formatted_text += f"**{button_labels[i]}:** {text}\n"
+                    choices[bg] = text
 
-            logger.info(f"Quiz started for user {user_id}. Sending first question.")
-            formatted_text = f"**Question 1/5:**\n\n{question['text']}\n\n"
-            labels = ["A", "B", "C"]
-            for i, choice in enumerate(question["choices"]):
-                formatted_text += f"**{labels[i]}:** {choice['text']}\n"
+                view = QuizView(self.bot, self.quiz_service, choices)
 
-            view = SimpleQuizView(self.bot, user_id)
-
-            if ctx.interaction:
-                await ctx.interaction.edit_original_response(content=formatted_text, view=view)
+                if ctx.interaction:
+                    await ctx.interaction.edit_original_response(
+                        content=formatted_text,
+                        view=view,
+                    )
+                else:
+                    await ctx.send(formatted_text, view=view)
             else:
-                await ctx.send(formatted_text, view=view)
+                logger.error("Quiz content unavailable for user %s", user_id)
+                if ctx.interaction:
+                    await ctx.interaction.edit_original_response(
+                        content="Sorry, the quiz is currently unavailable.",
+                        view=None,
+                    )
+                else:
+                    await ctx.send("Sorry, the quiz is currently unavailable.")
         except Exception as exc:  # pragma: no cover - safety net
             logger.error(
                 f"An unexpected error occurred in the start command for user {user_id}: {exc}",
