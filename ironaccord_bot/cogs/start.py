@@ -1,21 +1,33 @@
 import discord
+import random
+from pathlib import Path
 from discord.ext import commands
 import logging
 
-from ironaccord_bot.services.quiz_content_service import QuizContentService
-from ironaccord_bot.services.quiz_service import QuizService
-from ironaccord_bot.views.quiz_view import QuizView
+from ironaccord_bot.services.background_quiz_service import BackgroundQuizService
+from ironaccord_bot.services.mission_engine_service import MissionEngineService
+from ironaccord_bot.services.ollama_service import OllamaService
+from ironaccord_bot.views.background_quiz_view import BackgroundQuizView
+from ironaccord_bot.ai.ai_agent import AIAgent
 
 logger = logging.getLogger(__name__)
 
+BACKGROUNDS_PATH = Path("data/backgrounds/iron_accord")
 
 
 class StartCog(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
-        content_service = QuizContentService()
-        self.quiz_service = QuizService(content_service)
+        self.ollama_service = OllamaService()
+        self.quiz_service = BackgroundQuizService(self.ollama_service)
+        self.mission_service = MissionEngineService(AIAgent())
 
+    def _load_random_backgrounds(self, count: int = 3) -> dict[str, str]:
+        files = [p for p in BACKGROUNDS_PATH.glob("*.md") if p.name.lower() != "readme.md"]
+        if len(files) < count:
+            return {}
+        chosen = random.sample(files, count)
+        return {f.stem.replace("_", " ").title(): f.read_text(encoding="utf-8") for f in chosen}
 
     @commands.hybrid_command(
         name="start",
@@ -39,28 +51,32 @@ class StartCog(commands.Cog):
             )
 
         try:
-            self.quiz_service.start_quiz(user_id)
-            question = self.quiz_service.get_next_question_for_user(user_id)
+            backgrounds = self._load_random_backgrounds()
+            session = await self.quiz_service.start_quiz(user_id, backgrounds)
 
-            if question:
-                logger.info(f"Quiz started for user {user_id}. Sending first question.")
-                view = QuizView(self.quiz_service, question["choices"])
+            if session:
+                logger.info(f"Quiz generated for user {user_id}. Sending first question.")
+                view = BackgroundQuizView(self.quiz_service, self.mission_service, user_id)
                 if ctx.interaction:
                     await ctx.interaction.edit_original_response(
-                        content=question["text"],
+                        content=session.get_current_question_text(),
                         view=view,
                     )
                 else:
-                    await ctx.send(question["text"], view=view)
+                    await ctx.send(session.get_current_question_text(), view=view)
             else:
-                logger.error("Quiz content unavailable for user %s", user_id)
+                logger.error(f"Failed to generate quiz for user {user_id} after all retries.")
                 if ctx.interaction:
                     await ctx.interaction.edit_original_response(
-                        content="Sorry, the quiz is currently unavailable.",
+                        content=(
+                            "There was an error generating the quiz. The archives may be unstable. Please try again later."
+                        ),
                         view=None,
                     )
                 else:
-                    await ctx.send("Sorry, the quiz is currently unavailable.")
+                    await ctx.send(
+                        "There was an error generating the quiz. The archives may be unstable. Please try again later."
+                    )
         except Exception as exc:  # pragma: no cover - safety net
             logger.error(
                 f"An unexpected error occurred in the start command for user {user_id}: {exc}",
