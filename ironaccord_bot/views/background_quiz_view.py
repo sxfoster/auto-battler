@@ -76,7 +76,7 @@ class BackgroundQuizView(discord.ui.View):
             original_label = answer_text.strip()[0]
             button_label = f"Choice {i + 1}"
             self.add_item(
-                self.AnswerButton(display_label=button_label, answer_text=answer_text, original_label=original_label)
+                self.AnswerButton(display_label=button_label, answer_text=answer_text, original_label=original_label, index=i)
             )
 
     async def handle_answer(self, interaction: discord.Interaction, answer_label: str):
@@ -136,8 +136,9 @@ class BackgroundQuizView(discord.ui.View):
 
     # A generic button class to be created dynamically for each answer
     class AnswerButton(discord.ui.Button):
-        def __init__(self, display_label: str, answer_text: str, original_label: str):
-            super().__init__(label=display_label, style=discord.ButtonStyle.secondary, custom_id=f"quiz_answer_{original_label}")
+        def __init__(self, display_label: str, answer_text: str, original_label: str, index: int):
+            # Use the index to create a unique custom_id
+            super().__init__(label=display_label, style=discord.ButtonStyle.secondary, custom_id=f"quiz_answer_{index}")
             self.answer_label = original_label
 
         async def callback(self, interaction: discord.Interaction):
