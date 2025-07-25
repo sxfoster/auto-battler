@@ -1,5 +1,49 @@
 {
-  "title": "Salvage Run",
-  "premise": "Scavenge parts from a crashed airship on the outskirts of Brasshaven.",
-  "objective": "Recover valuable components before rival scavengers arrive"
+  "mission_id": "salvage_run",
+  "title": "The Salvage Run",
+  "briefing": "Edraz needs a crucial component from an abandoned factory in the Brasshaven outskirts. The area is known to be dangerous, with scavengers and automated security.",
+  "opening_narrative_template": "You arrive at the dilapidated {location}. The air is thick with the scent of rust and decay. Dust motes dance in the infrequent beams of sunlight piercing the crumbling roof. Your objective: locate the crucial {component_type} component. Beware of {threat_type} and their watchful automated sentries.",
+  "completion_narrative_template": "With the {component_type} secured, you make your way back to Edraz, the hum of your success echoing through the desolate streets.",
+  "initial_choices": [
+    {
+      "label": "Head directly to the main research wing, components are usually there.",
+      "action": "explore_main_wing",
+      "outcome": "encounter_scavengers"
+    },
+    {
+      "label": "Scout the perimeter for alternative entry points or signs of recent activity.",
+      "action": "scout_perimeter",
+      "outcome": "discover_hidden_cache"
+    },
+    {
+      "label": "Set up a defensive position and plan your approach carefully.",
+      "action": "plan_approach",
+      "outcome": "avoid_initial_threat"
+    }
+  ],
+  "location_options": ["old factory", "abandoned warehouse", "derelict research lab"],
+  "threat_options": ["scavengers", "rogue automatons", "mutated wildlife"],
+  "component_options": ["power core", "navigational chip", "data recorder"],
+  "encounters": {
+    "encounter_scavengers": {
+      "narrative": "As you push open the heavy door to the main research wing, two heavily armed scavengers emerge from behind a stack of broken machinery. They eye you warily.",
+      "choices": [
+        {"label": "Demand they stand down.", "action": "demand_stand_down", "outcome": "combat"},
+        {"label": "Attempt to stealthily bypass them.", "action": "stealth_bypass", "outcome": "stealth_check"}
+      ]
+    },
+    "discover_hidden_cache": {
+      "narrative": "Circumventing the main entrance, you discover a hidden crawlspace leading directly to an unguarded section of the factory. Inside, a small cache of useful supplies gleams.",
+      "choices": [
+        {"label": "Take the supplies and proceed to the objective.", "action": "take_supplies", "outcome": "proceed_objective"},
+        {"label": "Leave the supplies and continue scouting.", "action": "leave_supplies", "outcome": "continue_scouting"}
+      ]
+    }
+  },
+  "rewards": {
+    "retrieve_component": {
+      "items": ["salvaged_data_chip"],
+      "credits": 150
+    }
+  }
 }
